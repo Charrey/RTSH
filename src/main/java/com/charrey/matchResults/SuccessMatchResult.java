@@ -1,20 +1,21 @@
 package com.charrey.matchResults;
 
 import com.charrey.State;
+import com.charrey.graph.AttributedVertex;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class SuccessMatchResult<V1 extends Comparable<V1>, V2 extends Comparable<V2>> extends MatchResult<V1, V2> {
+public class SuccessMatchResult extends MatchResult {
 
-    private final State<V2> newState;
+    private final State newState;
 
-    public SuccessMatchResult(V1 from, V2 to, State<V2> newState) {
+    public SuccessMatchResult(AttributedVertex from, AttributedVertex to, State newState) {
         super(from, to);
         this.newState = newState;
     }
 
-    public State<V2> getState() {
+    public State getState() {
         return newState;
     }
 

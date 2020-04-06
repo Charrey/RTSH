@@ -4,21 +4,19 @@ import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
 
-public class RoutingVertexTable<C extends Comparable<C>>  {
+public class RoutingVertexTable {
 
-    private Map<C, Set<Option<C>>> options = new HashMap<>();
+    private Map<AttributedVertex, Set<Option>> options = new HashMap<>();
 
-    public Option<C> addOption(C routingVertex) {
-        if (routingVertex instanceof AttributedVertex) {
-            assert ((AttributedVertex) routingVertex).containsLabel("routing");
-        }
+    public Option addOption(AttributedVertex routingVertex) {
+        assert routingVertex.containsLabel("routing");
         options.putIfAbsent(routingVertex, new HashSet<>());
-        Option<C> option = new Option<C>();
+        Option option = new Option();
         options.get(routingVertex).add(option);
         return option;
     }
 
-    public void addOptions(C routingVertex, C... neighbours) {
+    public void addOptions(AttributedVertex routingVertex, AttributedVertex... neighbours) {
         for (int i = 0; i < neighbours.length-1; i++) {
             for (int j = i+1; j < neighbours.length; j++) {
                 addOption(routingVertex).add(neighbours[i], neighbours[j], neighbours[j], neighbours[i]);
@@ -28,14 +26,14 @@ public class RoutingVertexTable<C extends Comparable<C>>  {
     }
 
 
-    public static class Option<V extends Comparable<V>> {
-        private Set<Pair<V, V>> connections = new HashSet<>();
+    public static class Option {
+        private Set<Pair<AttributedVertex, AttributedVertex>> connections = new HashSet<>();
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            Option<?> option = (Option<?>) o;
+            Option option = (Option) o;
             return connections.equals(option.connections);
         }
 
@@ -44,7 +42,7 @@ public class RoutingVertexTable<C extends Comparable<C>>  {
             return Objects.hash(connections);
         }
 
-        public Option<V> add(V... vertices) {
+        public Option add(AttributedVertex... vertices) {
             assert vertices.length%2==0;
             for (int i = 0; i < vertices.length; i+=2) {
                 connections.add(new Pair<>(vertices[i], vertices[i + 1]));

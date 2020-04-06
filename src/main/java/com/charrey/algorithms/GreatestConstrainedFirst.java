@@ -3,21 +3,22 @@ package com.charrey.algorithms;
 import com.charrey.graph.AttributedVertex;
 import com.charrey.util.GraphUtil;
 import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GreatestConstrainedFirst<V, E> {
+public class GreatestConstrainedFirst {
 
 
-    public List<V> apply(Graph<V , E> graph) {
-        List<V> ordering = new ArrayList<>(graph.vertexSet().size());
+    public List<AttributedVertex> apply(Graph<AttributedVertex , DefaultEdge> graph) {
+        List<AttributedVertex> ordering = new ArrayList<>(graph.vertexSet().size());
         if (graph.vertexSet().isEmpty()) {
             return ordering;
         }
         int maxDegree = -1;
-        V maxDegreeVertex = null;
-        for (V vertex : graph.vertexSet()) {
+        AttributedVertex maxDegreeVertex = null;
+        for (AttributedVertex vertex : graph.vertexSet()) {
             int degree = graph.degreeOf(vertex);
             if (degree > maxDegree) {
                 maxDegree = degree;
@@ -26,28 +27,26 @@ public class GreatestConstrainedFirst<V, E> {
         }
         ordering.add(maxDegreeVertex);
         while (ordering.size() < graph.vertexSet().size()) {
-            Set<V> firstSelection = getFirstCriterium(graph, ordering);
-            Set<V> secondSelection = getSecondCriterium(graph, ordering, firstSelection);
-            Set<V> thirdSelection = getThirdCriterium(graph, ordering, firstSelection, secondSelection);
+            Set<AttributedVertex> firstSelection = getFirstCriterium(graph, ordering);
+            Set<AttributedVertex> secondSelection = getSecondCriterium(graph, ordering, firstSelection);
+            Set<AttributedVertex> thirdSelection = getThirdCriterium(graph, ordering, firstSelection, secondSelection);
             assert secondSelection.containsAll(thirdSelection);
-            V toAdd = thirdSelection.iterator().next();
+            AttributedVertex toAdd = thirdSelection.iterator().next();
             assert !ordering.contains(toAdd);
             ordering.add(toAdd);
         }
 
-        for (V vertex : graph.vertexSet()) {
-            if (vertex instanceof AttributedVertex) {
-                ((AttributedVertex) vertex).setId(ordering.indexOf(vertex));
-            }
+        for (AttributedVertex vertex : graph.vertexSet()) {
+            vertex.setData(ordering.indexOf(vertex));
         }
 
         return Collections.unmodifiableList(ordering);
     }
 
-    private Set<V> getThirdCriterium(Graph<V,E> graph, List<V> ordering, Set<V> firstSelection, Set<V> secondSelection) {
-        Set<V> thirdSelection = new HashSet<>();
+    private Set<AttributedVertex> getThirdCriterium(Graph<AttributedVertex, DefaultEdge> graph, List<AttributedVertex> ordering, Set<AttributedVertex> firstSelection, Set<AttributedVertex> secondSelection) {
+        Set<AttributedVertex> thirdSelection = new HashSet<>();
         long thirdValue = -1;
-        for (V vertex : secondSelection) {
+        for (AttributedVertex vertex : secondSelection) {
             long score = GraphUtil.neighboursOf(graph,
                     GraphUtil.neighboursOf(graph, vertex)
                         .stream()
@@ -67,10 +66,10 @@ public class GreatestConstrainedFirst<V, E> {
         return thirdSelection;
     }
 
-    private Set<V> getSecondCriterium(Graph<V,E> graph, List<V> ordering, Set<V> firstSelections) {
-        Set<V> secondSelection = new HashSet<>();
+    private Set<AttributedVertex> getSecondCriterium(Graph<AttributedVertex, DefaultEdge> graph, List<AttributedVertex> ordering, Set<AttributedVertex> firstSelections) {
+        Set<AttributedVertex> secondSelection = new HashSet<>();
         long secondValue = -1;
-        for (V vertex : firstSelections) {
+        for (AttributedVertex vertex : firstSelections) {
             long score = GraphUtil.neighboursOf(graph,
                     GraphUtil.neighboursOf(graph, vertex)
                                    .stream()
@@ -90,10 +89,10 @@ public class GreatestConstrainedFirst<V, E> {
         return secondSelection;
     }
 
-    private Set<V> getFirstCriterium(Graph<V, E> graph, List<V> ordering) {
-        Set<V> firstSelection = new HashSet<>();
+    private Set<AttributedVertex> getFirstCriterium(Graph<AttributedVertex, DefaultEdge> graph, List<AttributedVertex> ordering) {
+        Set<AttributedVertex> firstSelection = new HashSet<>();
         long firstValue = -1;
-        for (V vertex : graph.vertexSet().stream().filter(x -> !ordering.contains(x)).collect(Collectors.toSet())) {
+        for (AttributedVertex vertex : graph.vertexSet().stream().filter(x -> !ordering.contains(x)).collect(Collectors.toSet())) {
             long score = GraphUtil.neighboursOf(graph, vertex).stream()
                     .filter(ordering::contains)
                     .count();

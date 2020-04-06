@@ -1,24 +1,25 @@
 package com.charrey.matchResults;
 
+import com.charrey.graph.AttributedVertex;
 import com.charrey.graph.Path;
 
 import java.util.Set;
 
-public class SuccessWithExtraVertices<V1, V2> extends MatchResult<V1, V2> {
+public class SuccessWithExtraVertices extends MatchResult {
 
-    public SuccessWithExtraVertices(V1 from, V2 to) {
+    public SuccessWithExtraVertices(AttributedVertex from, AttributedVertex to) {
         super(from, to);
     }
 
-    public Set<Set<V2>> getContested() {
+    public Set<Set<AttributedVertex>> getContested() {
         throw new UnsupportedOperationException();
     }
 
-    public V2 getPlacedVertex() {
+    public AttributedVertex getPlacedVertex() {
         throw new UnsupportedOperationException();
     }
 
-    public Set<Path<V2>> getAddedPaths() {
+    public Set<Path<AttributedVertex>> getAddedPaths() {
         throw new UnsupportedOperationException();
     }
 

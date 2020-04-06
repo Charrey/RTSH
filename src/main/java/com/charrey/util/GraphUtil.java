@@ -14,34 +14,34 @@ import java.util.stream.Collectors;
 public class GraphUtil {
 
 
-    public static <V, E> VertexColoringAlgorithm.Coloring<V> getLabelColoring(Graph<V, E> pattern) {
-        Map<Set<Attribute>, Set<V>> labelSets = new HashMap<>();
-        for (V v : pattern.vertexSet()) {
-            labelSets.putIfAbsent(((AttributedVertex<Comparable>)v).getLabels(), new HashSet<>());
-            labelSets.get(((AttributedVertex<Comparable>)v).getLabels()).add(v);
+    public static VertexColoringAlgorithm.Coloring<AttributedVertex> getLabelColoring(Graph<AttributedVertex, DefaultEdge> pattern) {
+        Map<Set<Attribute>, Set<AttributedVertex>> labelSets = new HashMap<>();
+        for (AttributedVertex v : pattern.vertexSet()) {
+            labelSets.putIfAbsent(v.getLabels(), new HashSet<>());
+            labelSets.get(v.getLabels()).add(v);
         }
-        List<Set<V>> asList = new ArrayList<>(labelSets.values());
-        Map<V, Integer> colouring = new HashMap<>();
+        List<Set<AttributedVertex>> asList = new ArrayList<>(labelSets.values());
+        Map<AttributedVertex, Integer> colouring = new HashMap<>();
         for (int colourClass = 0; colourClass < asList.size(); colourClass++) {
-            for (V v : asList.get(colourClass)) {
+            for (AttributedVertex v : asList.get(colourClass)) {
                 colouring.put(v, colourClass);
             }
         }
 
 
-        return new VertexColoringAlgorithm.Coloring<V>() {
+        return new VertexColoringAlgorithm.Coloring<>() {
             @Override
             public int getNumberColors() {
                 return labelSets.size();
             }
 
             @Override
-            public Map<V, Integer> getColors() {
+            public Map<AttributedVertex, Integer> getColors() {
                 return colouring;
             }
 
             @Override
-            public List<Set<V>> getColorClasses() {
+            public List<Set<AttributedVertex>> getColorClasses() {
                 return asList;
             }
         };
@@ -67,15 +67,14 @@ public class GraphUtil {
         return floodedRouting;
     }
 
-    static Map<Graph, Integer[]> edgesMatchedCache = new HashMap<>();
-    public static  <V extends Comparable<V>, E> Integer[] edgesMatched(Graph<V, E> graph) {
+    static Map<Graph<AttributedVertex, DefaultEdge>, Integer[]> edgesMatchedCache = new HashMap<>();
+    public static  Integer[] edgesMatched(Graph<AttributedVertex, DefaultEdge> graph) {
         if (edgesMatchedCache.containsKey(graph)) {
             return edgesMatchedCache.get(graph);
         }
-        List<V> vertices = null;
-        vertices = new ArrayList<>(graph.vertexSet());
+        List<AttributedVertex> vertices = new ArrayList<>(graph.vertexSet());
         Collections.sort(vertices);
-        Set<V> seen = new HashSet<>();
+        Set<AttributedVertex> seen = new HashSet<>();
         Integer[] res = new Integer[vertices.size()];
         for (int i = 0; i < vertices.size(); i++) {
             int newEdges = Math.toIntExact(GraphUtil.neighboursOf(graph, vertices.get(i)).stream().filter(seen::contains).count());
@@ -86,12 +85,12 @@ public class GraphUtil {
         return res;
     }
 
-    public static  <V1, V2> Map<V2, V2>[] getToTryNext(List<V1> order, Map<V1, Set<V2>> compatibility, Graph<V2, DefaultEdge> targetGraph) {
-        Map<V2, V2>[] toTryNext = new HashMap[order.size()];
+    public static  Map<AttributedVertex, AttributedVertex>[] getToTryNext(List<AttributedVertex> order, Map<AttributedVertex, Set<AttributedVertex>> compatibility, Graph<AttributedVertex, DefaultEdge> targetGraph) {
+        @SuppressWarnings("unchecked") Map<AttributedVertex, AttributedVertex>[] toTryNext = new HashMap[order.size()];
         for (int i = 0; i < order.size(); i++) {
             toTryNext[i] = new HashMap<>();
-            V2 previous = null;
-            for (V2 targetVertex : compatibility.get(order.get(i))) {
+            AttributedVertex previous = null;
+            for (AttributedVertex targetVertex : compatibility.get(order.get(i))) {
                 toTryNext[i].put(previous, targetVertex);
                 previous = targetVertex;
             }

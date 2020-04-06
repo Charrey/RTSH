@@ -12,25 +12,24 @@ public class GraphGenerator {
     private final static String alphabet = "abcdefghijklmnopqrstuvwxyz";
 
 
-    @SuppressWarnings("unchecked")
-    public static GraphGeneration<AttributedVertex<Character>> getTarget() {
+    public static GraphGeneration getTarget() {
         AnyGenerator<Integer> gen = new AnyGenerator<>(0, x -> ++x);
-        Graph<AttributedVertex<Character>, DefaultEdge> target = new SimpleGraph<>(() -> new AttributedVertex<>(alphabet.charAt(gen.get())), DefaultEdge::new, false);
-        AttributedVertex<Character> a = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> b = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> c = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> d = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> e = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> f = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> g = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> h = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> i = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> j = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> k = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> l = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> m = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> n = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> o = target.addVertex().addLabel("routing");
+        Graph<AttributedVertex, DefaultEdge> target = new SimpleGraph<>(() -> new AttributedVertex(alphabet.charAt(gen.get())), DefaultEdge::new, false);
+        AttributedVertex a = target.addVertex().addLabel("normal");
+        AttributedVertex b = target.addVertex().addLabel("routing");
+        AttributedVertex c = target.addVertex().addLabel("routing");
+        AttributedVertex d = target.addVertex().addLabel("normal");
+        AttributedVertex e = target.addVertex().addLabel("normal");
+        AttributedVertex f = target.addVertex().addLabel("routing");
+        AttributedVertex g = target.addVertex().addLabel("routing");
+        AttributedVertex h = target.addVertex().addLabel("normal");
+        AttributedVertex i = target.addVertex().addLabel("routing");
+        AttributedVertex j = target.addVertex().addLabel("normal");
+        AttributedVertex k = target.addVertex().addLabel("routing");
+        AttributedVertex l = target.addVertex().addLabel("routing");
+        AttributedVertex m = target.addVertex().addLabel("normal");
+        AttributedVertex n = target.addVertex().addLabel("routing");
+        AttributedVertex o = target.addVertex().addLabel("routing");
         target.addEdge(a, b);
         target.addEdge(a, e);
         target.addEdge(b, c);
@@ -54,7 +53,7 @@ public class GraphGenerator {
         target.addEdge(m, n);
         target.addEdge(m, o);
         target.addEdge(n, o);
-        RoutingVertexTable<AttributedVertex<Character>> routingVertexTable = new RoutingVertexTable<>();
+        RoutingVertexTable routingVertexTable = new RoutingVertexTable();
         routingVertexTable.addOptions(b, f, a, c);
         routingVertexTable.addOptions(c, b, d, g);
         routingVertexTable.addOptions(f, e, b, g, k);
@@ -64,24 +63,24 @@ public class GraphGenerator {
         routingVertexTable.addOptions(l, k, g, m, o);
         routingVertexTable.addOptions(n, i, m, o);
         routingVertexTable.addOptions(o, l, m, n);
-        return new GraphGeneration<AttributedVertex<Character>>(target, routingVertexTable);
+        return new GraphGeneration(target, routingVertexTable);
     }
 
-    public static Graph<AttributedVertex<Character>, DefaultEdge> getTarget2() {
+    public static Graph<AttributedVertex, DefaultEdge> getTarget2() {
         AnyGenerator<Integer> gen = new AnyGenerator<>(0, x -> ++x);
-        Graph<AttributedVertex<Character>, DefaultEdge> target = new SimpleGraph<>(() -> new AttributedVertex<>(alphabet.charAt(gen.get())), DefaultEdge::new, false);
-        AttributedVertex<Character> a = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> c = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> d = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> e = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> h = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> i = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> j = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> k = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> l = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> m = target.addVertex().addLabel("normal");
-        AttributedVertex<Character> n = target.addVertex().addLabel("routing");
-        AttributedVertex<Character> o = target.addVertex().addLabel("routing");
+        Graph<AttributedVertex, DefaultEdge> target = new SimpleGraph<>(() -> new AttributedVertex(alphabet.charAt(gen.get())), DefaultEdge::new, false);
+        AttributedVertex a = target.addVertex().addLabel("normal");
+        AttributedVertex c = target.addVertex().addLabel("routing");
+        AttributedVertex d = target.addVertex().addLabel("normal");
+        AttributedVertex e = target.addVertex().addLabel("normal");
+        AttributedVertex h = target.addVertex().addLabel("normal");
+        AttributedVertex i = target.addVertex().addLabel("routing");
+        AttributedVertex j = target.addVertex().addLabel("normal");
+        AttributedVertex k = target.addVertex().addLabel("routing");
+        AttributedVertex l = target.addVertex().addLabel("routing");
+        AttributedVertex m = target.addVertex().addLabel("normal");
+        AttributedVertex n = target.addVertex().addLabel("routing");
+        AttributedVertex o = target.addVertex().addLabel("routing");
         target.addEdge(a, c);
         target.addEdge(a, e);
         target.addEdge(c, d);
@@ -102,37 +101,37 @@ public class GraphGenerator {
         return target;
     }
 
-    public static GraphGeneration<AttributedVertex<Integer>> getPattern() {
+    public static GraphGeneration getPattern() {
         AnyGenerator<Integer> gen = new AnyGenerator<>(0, x -> ++x);
-        Graph<AttributedVertex<Integer>, DefaultEdge> pattern = new SimpleGraph<>(() -> new AttributedVertex<>(gen.get()), DefaultEdge::new, false);
-        AttributedVertex<Integer> p0 = pattern.addVertex().addLabel("normal");
-        AttributedVertex<Integer> p1 = pattern.addVertex().addLabel("normal");
-        AttributedVertex<Integer> p2 = pattern.addVertex().addLabel("normal");
-        AttributedVertex<Integer> p3 = pattern.addVertex().addLabel("normal");
-        AttributedVertex<Integer> p4 = pattern.addVertex().addLabel("normal");
+        Graph<AttributedVertex, DefaultEdge> pattern = new SimpleGraph<>(() -> new AttributedVertex(gen.get()), DefaultEdge::new, false);
+        AttributedVertex p0 = pattern.addVertex().addLabel("normal");
+        AttributedVertex p1 = pattern.addVertex().addLabel("normal");
+        AttributedVertex p2 = pattern.addVertex().addLabel("normal");
+        AttributedVertex p3 = pattern.addVertex().addLabel("normal");
+        AttributedVertex p4 = pattern.addVertex().addLabel("normal");
         pattern.addEdge(p0, p1);
         pattern.addEdge(p0, p2);
         pattern.addEdge(p1, p3);
         pattern.addEdge(p2, p3);
         pattern.addEdge(p2, p4);
         pattern.addEdge(p3, p4);
-        return new GraphGeneration<>(pattern, new RoutingVertexTable<>());
+        return new GraphGeneration(pattern, new RoutingVertexTable());
     }
 
-    public static class GraphGeneration<T extends Comparable<T>> {
-        public final Graph<T, DefaultEdge> graph;
-        public final RoutingVertexTable<T> routingTable;
+    public static class GraphGeneration {
+        public final Graph<AttributedVertex, DefaultEdge> graph;
+        public final RoutingVertexTable routingTable;
 
-        public GraphGeneration(Graph<T, DefaultEdge> graph, RoutingVertexTable<T> routingTable) {
+        public GraphGeneration(Graph<AttributedVertex, DefaultEdge> graph, RoutingVertexTable routingTable) {
             this.graph = graph;
             this.routingTable = routingTable;
         }
 
-        public Graph<T, DefaultEdge> getGraph() {
+        public Graph<AttributedVertex, DefaultEdge> getGraph() {
             return graph;
         }
 
-        public RoutingVertexTable<T> getRoutingTable() {
+        public RoutingVertexTable getRoutingTable() {
             return routingTable;
         }
     }

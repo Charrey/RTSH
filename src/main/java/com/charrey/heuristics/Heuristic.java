@@ -1,11 +1,12 @@
 package com.charrey.heuristics;
 
 import com.charrey.Cache;
+import com.charrey.graph.AttributedVertex;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-public interface Heuristic<V1 extends Comparable<V1>, V2 extends Comparable<V2>> {
+public interface Heuristic {
 
 
-    double get(Cache.CacheEntry<V1, V2> entry, Graph<V1, DefaultEdge> patternGraph, Graph<V2, DefaultEdge> targetGraph);
+    double get(Cache.CacheEntry entry, Graph<AttributedVertex, DefaultEdge> patternGraph, Graph<AttributedVertex, DefaultEdge> targetGraph);
 }

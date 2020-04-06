@@ -1,5 +1,6 @@
 package com.charrey;
 
+import com.charrey.graph.AttributedVertex;
 import com.charrey.graph.Path;
 import com.charrey.heuristics.Heuristic;
 import org.jgrapht.Graph;
@@ -8,14 +9,14 @@ import org.jgrapht.graph.DefaultEdge;
 import java.util.*;
 import java.util.function.Function;
 
-public class Cache<V1 extends Comparable<V1>, V2 extends Comparable<V2>> {
+public class Cache {
 
-    private final Map<CacheEntry<V1, V2>, List<CacheEntry<V1, V2>>> cacheTree;
-    private final SortedSet<CacheEntry<V1, V2>> nextEntry;
-    private final Set<Map<V2, Integer>> colourCache;
+    private final Map<CacheEntry, List<CacheEntry>> cacheTree;
+    private final SortedSet<CacheEntry> nextEntry;
+    private final Set<Map<AttributedVertex, Integer>> colourCache;
 
 
-    public Cache(Graph<V1, DefaultEdge> patternGraph, Graph<V2, DefaultEdge> targetGraph, Function<V1, Integer> order, Heuristic<V1, V2> heuristic) {
+    public Cache(Graph<AttributedVertex, DefaultEdge> patternGraph, Graph<AttributedVertex, DefaultEdge> targetGraph, Function<AttributedVertex, Integer> order, Heuristic heuristic) {
         nextEntry = new TreeSet<>(Comparator.comparingDouble(o -> heuristic.get(o, patternGraph, targetGraph)));
         colourCache = new HashSet<>();
         cacheTree = new HashMap<>();
@@ -24,25 +25,25 @@ public class Cache<V1 extends Comparable<V1>, V2 extends Comparable<V2>> {
     }
 
 
-    public CacheEntry<V1, V2> add(List<V2> placement, CacheEntry<V1, V2> parent, Set<Path<V2>> addedPaths, boolean worseAlternatives) {
+    public CacheEntry add(List<AttributedVertex> placement, CacheEntry parent, Set<Path<AttributedVertex>> addedPaths, boolean worseAlternatives) {
         cacheTree.putIfAbsent(parent, new LinkedList<>());
-        CacheEntry<V1, V2> toAdd = new CacheEntry<>(placement, addedPaths, worseAlternatives);
+        CacheEntry toAdd = new CacheEntry(placement, addedPaths, worseAlternatives);
         cacheTree.get(parent).add(toAdd);
         nextEntry.add(toAdd);
         return toAdd;
     }
 
-    public CacheEntry<V1, V2> nextExploration() {
+    public CacheEntry nextExploration() {
         return nextEntry.last();
     }
 
 
 
-    public static class CacheEntry<V1 extends Comparable<V1>, V2 extends Comparable<V2>> {
+    public static class CacheEntry {
 
         //public static final CacheEntry ROOT = new CacheEntry(null, null, false);
-        public final List<V2> placement;
-        public final Set<Path<V2>> addedPaths;
+        public final List<AttributedVertex> placement;
+        public final Set<Path<AttributedVertex>> addedPaths;
         public final boolean worseAlternatives;
 
 
@@ -51,7 +52,7 @@ public class Cache<V1 extends Comparable<V1>, V2 extends Comparable<V2>> {
         }
 
 
-        public CacheEntry(List<V2> placement, Set<Path<V2>> addedPaths, boolean worseAlternatives) {
+        public CacheEntry(List<AttributedVertex> placement, Set<Path<AttributedVertex>> addedPaths, boolean worseAlternatives) {
             this.placement = placement;
             this.addedPaths = addedPaths;
             this.worseAlternatives = worseAlternatives;
