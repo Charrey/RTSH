@@ -1,6 +1,7 @@
 package com.charrey;
 
-import com.charrey.graph.AttributedVertex;
+import com.charrey.exceptions.FullyExploredException;
+import com.charrey.graph.Vertex;
 import com.charrey.graph.RoutingVertexTable;
 import com.charrey.matchResults.*;
 import com.charrey.router.LockTable;
@@ -18,24 +19,24 @@ import java.util.stream.Collectors;
 public class State {
 
 
-    private final List<AttributedVertex> placement;
+    private final List<Vertex> placement;
     @SuppressWarnings("rawtypes")
     private final Map[] nextTry;
-    private final Set<AttributedVertex> occupation;
+    private final Set<Vertex> occupation;
     private final Router router;
-    private final Graph<AttributedVertex, DefaultEdge> pattern;
-    private final Graph<AttributedVertex, DefaultEdge> target;
-    private final List<AttributedVertex> vertices;
+    private final Graph<Vertex, DefaultEdge> pattern;
+    private final Graph<Vertex, DefaultEdge> target;
+    private final List<Vertex> vertices;
     private final RoutingVertexTable routingVertexTable;
     private final LockTable lockTable;
 
 
-    public State(Graph<AttributedVertex, DefaultEdge> pattern,
-                 List<AttributedVertex> vertices,
-                 Graph<AttributedVertex, DefaultEdge> target,
-                 List<AttributedVertex> placement,
-                 Map<AttributedVertex, AttributedVertex>[] nextTry,
-                 Set<AttributedVertex> occupation,
+    public State(Graph<Vertex, DefaultEdge> pattern,
+                 List<Vertex> vertices,
+                 Graph<Vertex, DefaultEdge> target,
+                 List<Vertex> placement,
+                 Map<Vertex, Vertex>[] nextTry,
+                 Set<Vertex> occupation,
                  Router router,
                  RoutingVertexTable routingVertexTable,
                  LockTable lockTable) {
@@ -66,8 +67,8 @@ public class State {
         return false;
     }
 
-    private List<AttributedVertex> newPlacement(Pair<Integer, AttributedVertex> nextPair) {
-        List<AttributedVertex> newPlacement = new ArrayList<>(placement);
+    private List<Vertex> newPlacement(Pair<Integer, Vertex> nextPair) {
+        List<Vertex> newPlacement = new ArrayList<>(placement);
         if (nextPair.getFirst() == placement.size()) {
             newPlacement.add(nextPair.getSecond());
         } else {
@@ -76,8 +77,8 @@ public class State {
         return newPlacement;
     }
 
-    private Set<AttributedVertex> newOccupation(Pair<Integer, AttributedVertex> nextPair) {
-        Set<AttributedVertex> newOccupation = new HashSet<>(occupation);
+    private Set<Vertex> newOccupation(Pair<Integer, Vertex> nextPair) {
+        Set<Vertex> newOccupation = new HashSet<>(occupation);
         if (nextPair.getFirst() < placement.size()) {
             newOccupation.remove(placement.get(nextPair.getFirst()));
         }
@@ -85,57 +86,47 @@ public class State {
         return newOccupation;
     }
 
-    public MatchResult tryNext(Pair<Integer, AttributedVertex> nextPair) {
+    public MatchResult tryNext(Pair<Integer, Vertex> nextPair) {
         if (occupation.contains(nextPair.getSecond())) {
             return new OccupiedMatchResult(vertices.get(nextPair.getFirst()), nextPair.getSecond());
         }
-        RoutingResult routing = router.route(nextPair.getSecond(),
-                GraphUtil.neighboursOf(pattern, vertices.get(nextPair.getFirst()))
-                        .stream()
-                        .filter(x -> x.intData() < placement.size())
-                        .map(v1 -> placement.get(v1.intData()))
-                        .collect(Collectors.toSet()),
-                target, routingVertexTable, lockTable);
-        if (routing.hasFailed()) {
-            return new RoutingFailedMatchResult(vertices.get(nextPair.getFirst()), nextPair.getSecond());
-        } else if (routing.requiresExtraVertices()) {
-            return new SuccessWithExtraVertices(vertices.get(nextPair.getFirst()), nextPair.getSecond());
-        }
-
-        List<AttributedVertex> newPlacement = newPlacement(nextPair);
-        Set<AttributedVertex> newOccupation = newOccupation(nextPair);
+        List<Vertex> newPlacement = newPlacement(nextPair);
+        Set<Vertex> newOccupation = newOccupation(nextPair);
         return new SuccessMatchResult(vertices.get(nextPair.getFirst()), nextPair.getSecond(), new State(pattern, vertices, target, newPlacement, nextTry, newOccupation, router, routingVertexTable, lockTable));
     }
 
-    public Pair<Integer, AttributedVertex> getNextPairExplore() {
+    public Pair<Integer, Vertex> getNextPairExplore() throws FullyExploredException {
+        if (nextTry.length <= placement.size()) {
+            throw new FullyExploredException();
+        }
         if (nextTry[placement.size()].get(null) != null) {
-            return new Pair<>(placement.size(), (AttributedVertex) nextTry[placement.size()].get(null));
+            return new Pair<>(placement.size(), (Vertex) nextTry[placement.size()].get(null));
         }
         for (int i = placement.size() - 1; i >=0; i--) {
             if (nextTry[i].get(placement.get(i)) != null) {
-                return new Pair<>(i, (AttributedVertex) nextTry[i].get(placement.get(i)));
+                return new Pair<>(i, (Vertex) nextTry[i].get(placement.get(i)));
             }
         }
         throw new RuntimeException();
     }
 
 
-    public Pair<Integer, AttributedVertex> getNextPairRetry(Pair<Integer, AttributedVertex> previousPair) {
+    public Pair<Integer, Vertex> getNextPairRetry(Pair<Integer, Vertex> previousPair) {
         int from = previousPair.getFirst();
-        AttributedVertex to = previousPair.getSecond();
+        Vertex to = previousPair.getSecond();
         if (nextTry[from].get(to) != null) {
-            return new Pair<>(from, (AttributedVertex) nextTry[from].get(to));
+            return new Pair<>(from, (Vertex) nextTry[from].get(to));
         }
         for (int i = from - 1; i >=0; i--) {
             if (nextTry[i].get(placement.get(i)) != null) {
-                return new Pair<>(i, (AttributedVertex) nextTry[i].get(placement.get(i)));
+                return new Pair<>(i, (Vertex) nextTry[i].get(placement.get(i)));
             }
         }
         return null;
     }
 
 
-    public List<AttributedVertex> getPlacement() {
+    public List<Vertex> getPlacement() {
         return placement;
     }
 

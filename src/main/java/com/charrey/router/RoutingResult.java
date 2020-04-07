@@ -1,6 +1,6 @@
 package com.charrey.router;
 
-import com.charrey.graph.AttributedVertex;
+import com.charrey.graph.Vertex;
 import com.charrey.graph.Path;
 
 import java.util.Collections;
@@ -9,14 +9,14 @@ import java.util.List;
 public class RoutingResult {
 
     private final boolean failed;
-    private final List<Path<AttributedVertex>> paths;
+    private final List<Path<Vertex>> paths;
     private final LockTable locks;
 
     private RoutingResult() {
         throw new UnsupportedOperationException();
     }
 
-    public RoutingResult(boolean failed, List<Path<AttributedVertex>> paths, LockTable locks) {
+    public RoutingResult(boolean failed, List<Path<Vertex>> paths, LockTable locks) {
         this.failed = failed;
         this.paths = paths;
         this.locks = locks;

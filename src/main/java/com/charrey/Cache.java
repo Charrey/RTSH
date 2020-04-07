@@ -1,6 +1,6 @@
 package com.charrey;
 
-import com.charrey.graph.AttributedVertex;
+import com.charrey.graph.Vertex;
 import com.charrey.graph.Path;
 import com.charrey.heuristics.Heuristic;
 import org.jgrapht.Graph;
@@ -13,10 +13,10 @@ public class Cache {
 
     private final Map<CacheEntry, List<CacheEntry>> cacheTree;
     private final SortedSet<CacheEntry> nextEntry;
-    private final Set<Map<AttributedVertex, Integer>> colourCache;
+    private final Set<Map<Vertex, Integer>> colourCache;
 
 
-    public Cache(Graph<AttributedVertex, DefaultEdge> patternGraph, Graph<AttributedVertex, DefaultEdge> targetGraph, Function<AttributedVertex, Integer> order, Heuristic heuristic) {
+    public Cache(Graph<Vertex, DefaultEdge> patternGraph, Graph<Vertex, DefaultEdge> targetGraph, Function<Vertex, Integer> order, Heuristic heuristic) {
         nextEntry = new TreeSet<>(Comparator.comparingDouble(o -> heuristic.get(o, patternGraph, targetGraph)));
         colourCache = new HashSet<>();
         cacheTree = new HashMap<>();
@@ -25,7 +25,7 @@ public class Cache {
     }
 
 
-    public CacheEntry add(List<AttributedVertex> placement, CacheEntry parent, Set<Path<AttributedVertex>> addedPaths, boolean worseAlternatives) {
+    public CacheEntry add(List<Vertex> placement, CacheEntry parent, Set<Path<Vertex>> addedPaths, boolean worseAlternatives) {
         cacheTree.putIfAbsent(parent, new LinkedList<>());
         CacheEntry toAdd = new CacheEntry(placement, addedPaths, worseAlternatives);
         cacheTree.get(parent).add(toAdd);
@@ -42,8 +42,8 @@ public class Cache {
     public static class CacheEntry {
 
         //public static final CacheEntry ROOT = new CacheEntry(null, null, false);
-        public final List<AttributedVertex> placement;
-        public final Set<Path<AttributedVertex>> addedPaths;
+        public final List<Vertex> placement;
+        public final Set<Path<Vertex>> addedPaths;
         public final boolean worseAlternatives;
 
 
@@ -52,7 +52,7 @@ public class Cache {
         }
 
 
-        public CacheEntry(List<AttributedVertex> placement, Set<Path<AttributedVertex>> addedPaths, boolean worseAlternatives) {
+        public CacheEntry(List<Vertex> placement, Set<Path<Vertex>> addedPaths, boolean worseAlternatives) {
             this.placement = placement;
             this.addedPaths = addedPaths;
             this.worseAlternatives = worseAlternatives;

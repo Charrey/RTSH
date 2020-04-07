@@ -7,7 +7,7 @@ import org.jgrapht.nio.DefaultAttribute;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-public class AttributedVertex implements Comparable<AttributedVertex> {
+public class Vertex implements Comparable<Vertex> {
 
     private static int counter = 0;
     private final int counterValue;
@@ -15,12 +15,12 @@ public class AttributedVertex implements Comparable<AttributedVertex> {
     protected Map<String, Set<Attribute>> attributes = new HashMap<>();
 
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-    public AttributedVertex(Object data) {
+    public Vertex(Object data) {
         this.data = data;
         counterValue = ++counter;
     }
 
-    public AttributedVertex addLabel(String label) {
+    public Vertex addLabel(String label) {
         attributes.putIfAbsent("label", new HashSet<>());
         attributes.get("label").add(new DefaultAttribute<>(label, AttributeType.STRING));
         return this;
@@ -56,7 +56,7 @@ public class AttributedVertex implements Comparable<AttributedVertex> {
     }
 
     @Override
-    public int compareTo(@Nonnull AttributedVertex o) {
+    public int compareTo(@Nonnull Vertex o) {
         if (data instanceof Comparable) {
             //noinspection rawtypes,unchecked
             return ((Comparable) data).compareTo(o.data);
@@ -69,7 +69,7 @@ public class AttributedVertex implements Comparable<AttributedVertex> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AttributedVertex that = (AttributedVertex) o;
+        Vertex that = (Vertex) o;
         return counterValue == that.counterValue;
     }
 

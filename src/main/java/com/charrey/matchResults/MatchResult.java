@@ -1,24 +1,22 @@
 package com.charrey.matchResults;
 
-import com.charrey.graph.AttributedVertex;
-
-import java.util.Set;
+import com.charrey.graph.Vertex;
 
 public abstract class MatchResult {
 
-    private final AttributedVertex from;
-    private final AttributedVertex to;
+    private final Vertex from;
+    private final Vertex to;
 
-    public MatchResult(AttributedVertex from, AttributedVertex to) {
+    public MatchResult(Vertex from, Vertex to) {
         this.from = from;
         this.to = to;
     }
 
-    public AttributedVertex getFrom() {
+    public Vertex getFrom() {
         return from;
     }
 
-    public AttributedVertex getTo() {
+    public Vertex getTo() {
         return to;
     }
 }

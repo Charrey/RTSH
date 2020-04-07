@@ -6,9 +6,9 @@ import java.util.*;
 
 public class RoutingVertexTable {
 
-    private Map<AttributedVertex, Set<Option>> options = new HashMap<>();
+    private Map<Vertex, Set<Option>> options = new HashMap<>();
 
-    public Option addOption(AttributedVertex routingVertex) {
+    public Option addOption(Vertex routingVertex) {
         assert routingVertex.containsLabel("routing");
         options.putIfAbsent(routingVertex, new HashSet<>());
         Option option = new Option();
@@ -16,7 +16,7 @@ public class RoutingVertexTable {
         return option;
     }
 
-    public void addOptions(AttributedVertex routingVertex, AttributedVertex... neighbours) {
+    public void addOptions(Vertex routingVertex, Vertex... neighbours) {
         for (int i = 0; i < neighbours.length-1; i++) {
             for (int j = i+1; j < neighbours.length; j++) {
                 addOption(routingVertex).add(neighbours[i], neighbours[j], neighbours[j], neighbours[i]);
@@ -27,7 +27,7 @@ public class RoutingVertexTable {
 
 
     public static class Option {
-        private Set<Pair<AttributedVertex, AttributedVertex>> connections = new HashSet<>();
+        private Set<Pair<Vertex, Vertex>> connections = new HashSet<>();
 
         @Override
         public boolean equals(Object o) {
@@ -42,7 +42,7 @@ public class RoutingVertexTable {
             return Objects.hash(connections);
         }
 
-        public Option add(AttributedVertex... vertices) {
+        public Option add(Vertex... vertices) {
             assert vertices.length%2==0;
             for (int i = 0; i < vertices.length; i+=2) {
                 connections.add(new Pair<>(vertices[i], vertices[i + 1]));

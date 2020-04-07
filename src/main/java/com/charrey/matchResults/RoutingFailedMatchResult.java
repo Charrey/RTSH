@@ -1,13 +1,10 @@
 package com.charrey.matchResults;
 
-import com.charrey.graph.AttributedVertex;
+import com.charrey.graph.Vertex;
 
-import java.util.Set;
+class RoutingFailedMatchResult extends MatchResult {
 
-public class RoutingFailedMatchResult extends MatchResult {
-
-
-    public RoutingFailedMatchResult(AttributedVertex from, AttributedVertex to) {
+    public RoutingFailedMatchResult(Vertex from, Vertex to) {
         super(from, to);
     }
 

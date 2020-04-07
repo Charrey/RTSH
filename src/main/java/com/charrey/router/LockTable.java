@@ -1,23 +1,23 @@
 package com.charrey.router;
 
-import com.charrey.graph.AttributedVertex;
+import com.charrey.graph.Vertex;
 
 import java.util.Set;
 import java.util.TreeSet;
 
 public class LockTable {
 
-    private Set<AttributedVertex> locked = new TreeSet<>();
+    private Set<Vertex> locked = new TreeSet<>();
 
-    private boolean lock(AttributedVertex toLock) {
+    private boolean lock(Vertex toLock) {
         return locked.add(toLock);
     }
 
-    private boolean unlock(AttributedVertex toUnlock) {
+    private boolean unlock(Vertex toUnlock) {
         return locked.remove(toUnlock);
     }
 
-    private boolean isLocked(AttributedVertex isLocked) {
+    private boolean isLocked(Vertex isLocked) {
         return locked.contains(isLocked);
     }
 
