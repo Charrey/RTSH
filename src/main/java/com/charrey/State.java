@@ -1,21 +1,19 @@
 package com.charrey;
 
-import com.charrey.exceptions.FullyExploredException;
+import com.charrey.exceptions.FullHomeomorphismFound;
+import com.charrey.exceptions.NoSuchPairException;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.RoutingVertexTable;
 import com.charrey.matchResults.*;
 import com.charrey.router.LockTable;
 import com.charrey.router.Router;
-import com.charrey.router.RoutingResult;
-import com.charrey.util.GraphUtil;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.util.Pair;
 import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.logging.Logger;
 
-@SuppressWarnings("unchecked")
 public class State {
 
 
@@ -29,6 +27,7 @@ public class State {
     private final List<Vertex> vertices;
     private final RoutingVertexTable routingVertexTable;
     private final LockTable lockTable;
+    private static final Logger LOGGER = Logger.getLogger("State");
 
 
     public State(Graph<Vertex, DefaultEdge> pattern,
@@ -67,37 +66,42 @@ public class State {
         return false;
     }
 
-    private List<Vertex> newPlacement(Pair<Integer, Vertex> nextPair) {
-        List<Vertex> newPlacement = new ArrayList<>(placement);
-        if (nextPair.getFirst() == placement.size()) {
-            newPlacement.add(nextPair.getSecond());
-        } else {
-            newPlacement.set(nextPair.getFirst(), nextPair.getSecond());
-        }
-        return newPlacement;
-    }
+//    private List<Vertex> newPlacement(Pair<Integer, Vertex> nextPair) {
+//        List<Vertex> newPlacement = new ArrayList<>(placement);
+//        if (nextPair.getFirst() == placement.size()) {
+//            newPlacement.add(nextPair.getSecond());
+//        } else {
+//            newPlacement.set(nextPair.getFirst(), nextPair.getSecond());
+//        }
+//        return newPlacement;
+//    }
 
-    private Set<Vertex> newOccupation(Pair<Integer, Vertex> nextPair) {
-        Set<Vertex> newOccupation = new HashSet<>(occupation);
-        if (nextPair.getFirst() < placement.size()) {
-            newOccupation.remove(placement.get(nextPair.getFirst()));
-        }
-        newOccupation.add(nextPair.getSecond());
-        return newOccupation;
-    }
+//    private Set<Vertex> newOccupation(Pair<Integer, Vertex> nextPair) {
+//        Set<Vertex> newOccupation = new HashSet<>(occupation);
+//        if (nextPair.getFirst() < placement.size()) {
+//            newOccupation.remove(placement.get(nextPair.getFirst()));
+//        }
+//        newOccupation.add(nextPair.getSecond());
+//        return newOccupation;
+//    }
 
     public MatchResult tryNext(Pair<Integer, Vertex> nextPair) {
         if (occupation.contains(nextPair.getSecond())) {
+            LOGGER.finer(nextPair.getFirst() + "--" + nextPair.getSecond().getData() + " is occupied");
             return new OccupiedMatchResult(vertices.get(nextPair.getFirst()), nextPair.getSecond());
         }
-        List<Vertex> newPlacement = newPlacement(nextPair);
-        Set<Vertex> newOccupation = newOccupation(nextPair);
-        return new SuccessMatchResult(vertices.get(nextPair.getFirst()), nextPair.getSecond(), new State(pattern, vertices, target, newPlacement, nextTry, newOccupation, router, routingVertexTable, lockTable));
+        LOGGER.finer("Success match " + nextPair.getFirst() + "--" + nextPair.getSecond().getData());
+        return new SuccessMatchResult(vertices.get(nextPair.getFirst()), nextPair.getSecond());
     }
 
-    public Pair<Integer, Vertex> getNextPairExplore() throws FullyExploredException {
+    public void update(SuccessMatchResult successMatchResult) {
+        placement.add(successMatchResult.getTo());
+        occupation.add(successMatchResult.getTo());
+    }
+
+    public Pair<Integer, Vertex> getNextPairExplore() throws FullHomeomorphismFound {
         if (nextTry.length <= placement.size()) {
-            throw new FullyExploredException();
+            throw new FullHomeomorphismFound();
         }
         if (nextTry[placement.size()].get(null) != null) {
             return new Pair<>(placement.size(), (Vertex) nextTry[placement.size()].get(null));
@@ -111,7 +115,7 @@ public class State {
     }
 
 
-    public Pair<Integer, Vertex> getNextPairRetry(Pair<Integer, Vertex> previousPair) {
+    public Pair<Integer, Vertex> getNextPairRetry(Pair<Integer, Vertex> previousPair) throws NoSuchPairException {
         int from = previousPair.getFirst();
         Vertex to = previousPair.getSecond();
         if (nextTry[from].get(to) != null) {
@@ -122,7 +126,7 @@ public class State {
                 return new Pair<>(i, (Vertex) nextTry[i].get(placement.get(i)));
             }
         }
-        return null;
+        throw new NoSuchPairException();
     }
 
 
@@ -141,4 +145,6 @@ public class State {
                 "\tlocked:\t" + this.lockTable + "\n" +
                 "}";
     }
+
+
 }
