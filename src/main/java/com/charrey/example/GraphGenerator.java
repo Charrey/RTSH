@@ -119,8 +119,8 @@ public class GraphGenerator {
     }
 
     public static class GraphGeneration {
-        public final Graph<Vertex, DefaultEdge> graph;
-        public final RoutingVertexTable routingTable;
+        private final Graph<Vertex, DefaultEdge> graph;
+        private final RoutingVertexTable routingTable;
 
         public GraphGeneration(Graph<Vertex, DefaultEdge> graph, RoutingVertexTable routingTable) {
             this.graph = graph;

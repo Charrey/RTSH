@@ -8,6 +8,7 @@ import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
+import com.charrey.graph.Vertex;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
@@ -20,14 +21,14 @@ public class AllDifferent {
 
 
 
-    public static <V1, V2> boolean get(List<V1> sources, Map<V1, Set<V2>> allDifferentMap, ToIntFunction<V2> trans) {
-        final Map<V1, int[]> domains = new HashMap<>();
-        allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(trans).toArray()));
-
+    public boolean get(Map<Vertex, Set<Vertex>> allDifferentMap) {
+        final Map<Vertex, int[]> domains = new HashMap<>();
+        allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::getIntId).toArray()));
         Model model = new Model("Foo");
-        IntVar[] variables = new IntVar[sources.size()];
-        for (int i = 0; i < sources.size(); i++) {
-            variables[i] = model.intVar("foo", domains.get(sources.get(i)));
+        IntVar[] variables = new IntVar[allDifferentMap.size()];
+        List<Vertex> ordered = new ArrayList<>(allDifferentMap.keySet());
+        for (int i = 0; i < allDifferentMap.size(); i++) {
+            variables[i] = model.intVar("foo", domains.get(ordered.get(i)));
         }
         model.allDifferent(variables).post();
         return model.getSolver().solve();

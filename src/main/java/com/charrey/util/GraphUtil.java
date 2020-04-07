@@ -85,16 +85,18 @@ public class GraphUtil {
         return res;
     }
 
-    public static  Map<Vertex, Vertex>[] getToTryNext(List<Vertex> order, Map<Vertex, Set<Vertex>> compatibility, Graph<Vertex, DefaultEdge> targetGraph) {
-        @SuppressWarnings("unchecked") Map<Vertex, Vertex>[] toTryNext = new HashMap[order.size()];
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static  Map<Vertex, Vertex>[] getToTryNext(List<Vertex> order, Map<Vertex, Set<Vertex>> compatibility) {
+        Map[] toTryNext = new Map[order.size()];
         for (int i = 0; i < order.size(); i++) {
-            toTryNext[i] = new HashMap<>();
+            toTryNext[i] = new HashMap<Vertex, Vertex>();
             Vertex previous = null;
             for (Vertex targetVertex : compatibility.get(order.get(i))) {
                 toTryNext[i].put(previous, targetVertex);
                 previous = targetVertex;
             }
             toTryNext[i].put(previous, null);
+            toTryNext[i] = Collections.unmodifiableMap(toTryNext[i]);
         }
         return toTryNext;
     }

@@ -5,9 +5,20 @@ import com.charrey.graph.Vertex;
 
 public class SuccessMatchResult extends MatchResult {
 
+    private final Vertex from;
+    private final Vertex to;
 
     public SuccessMatchResult(Vertex from, Vertex to) {
-        super(from, to);
+        this.from = from;
+        this.to = to;
+    }
+
+    public Vertex getFrom() {
+        return from;
+    }
+
+    public Vertex getTo() {
+        return to;
     }
 
 

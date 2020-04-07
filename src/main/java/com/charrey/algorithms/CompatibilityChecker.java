@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 
 public class CompatibilityChecker {
 
+    private AllDifferent alldiff = new AllDifferent();
 
-
-    public static  Map<Vertex, Set<Vertex>> get(Graph<Vertex, DefaultEdge> source,
+    public  Map<Vertex, Set<Vertex>> get(Graph<Vertex, DefaultEdge> source,
                                                 Graph<Vertex, DefaultEdge> target) {
 
         Map<Vertex, Set<Vertex>> res = new HashMap<>();
@@ -58,7 +58,7 @@ public class CompatibilityChecker {
         }
     }
 
-    private static boolean filterNeighbourHoods(Map<Vertex, Set<Vertex>> compatibility,
+    private boolean filterNeighbourHoods(Map<Vertex, Set<Vertex>> compatibility,
                                                                                                    Graph<Vertex, DefaultEdge> source,
                                                                                                    Graph<Vertex, DefaultEdge> target) {
         boolean res = false;
@@ -80,7 +80,7 @@ public class CompatibilityChecker {
         return res;
     }
 
-    private static  boolean compatibleNeighbourhoods(Set<Vertex> sources, Set<Vertex> targets, Map<Vertex, Set<Vertex>> compatibility) {
+    private boolean compatibleNeighbourhoods(Set<Vertex> sources, Set<Vertex> targets, Map<Vertex, Set<Vertex>> compatibility) {
         Map<Vertex, Set<Vertex>> allDifferentMap = new HashMap<>();
         for (Map.Entry<Vertex, Set<Vertex>> entry : compatibility.entrySet()) {
            if (sources.contains(entry.getKey())) {
@@ -90,7 +90,7 @@ public class CompatibilityChecker {
                         .collect(Collectors.toSet()));
             }
         }
-        return AllDifferent.get(new LinkedList<>(sources), allDifferentMap, Vertex::getIntId);
+        return alldiff.get(allDifferentMap);
     }
 
     private static <T extends Comparable<T>> boolean isCompatible(Vertex sourceVertex, Vertex targetVertex, Graph<Vertex, DefaultEdge> source, Graph<Vertex, DefaultEdge> target) {
