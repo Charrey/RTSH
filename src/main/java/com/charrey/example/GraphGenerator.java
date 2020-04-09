@@ -6,6 +6,9 @@ import com.charrey.graph.Vertex;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
+import org.jgrapht.nio.dot.DOTExporter;
+
+import java.io.StringWriter;
 
 public class GraphGenerator {
 
@@ -14,7 +17,7 @@ public class GraphGenerator {
 
     public static GraphGeneration getTarget() {
         AnyGenerator<Integer> gen = new AnyGenerator<>(0, x -> ++x);
-        Graph<Vertex, DefaultEdge> target = new SimpleGraph<>(() -> new Vertex(alphabet.charAt(gen.get())), DefaultEdge::new, false);
+        Graph<Vertex, DefaultEdge> target = new SimpleGraph<>(() -> new Vertex(gen.get()), DefaultEdge::new, false);
         Vertex a = target.addVertex().addLabel("normal");
         Vertex b = target.addVertex().addLabel("routing");
         Vertex c = target.addVertex().addLabel("routing");
@@ -133,6 +136,14 @@ public class GraphGenerator {
 
         public RoutingVertexTable getRoutingTable() {
             return routingTable;
+        }
+
+        @Override
+        public String toString() {
+            DOTExporter<Vertex, DefaultEdge> exporter = new DOTExporter<>(x -> Integer.toString(x.intData()));
+            StringWriter writer = new StringWriter();
+            exporter.exportGraph(graph, writer);
+            return writer.toString();
         }
     }
 }

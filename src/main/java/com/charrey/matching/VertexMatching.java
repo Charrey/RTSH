@@ -1,23 +1,20 @@
-package com.charrey;
+package com.charrey.matching;
 
 import com.charrey.example.GraphGenerator;
-import com.charrey.exceptions.FullHomeomorphismFound;
 import com.charrey.exceptions.NoSuchPairException;
 import com.charrey.graph.RoutingVertexTable;
 import com.charrey.graph.Vertex;
-import com.charrey.matchResults.MatchResult;
-import com.charrey.matchResults.OccupiedMatchResult;
-import com.charrey.matchResults.SuccessMatchResult;
+import com.charrey.matching.matchResults.vertex.VertexMatchResult;
+import com.charrey.matching.matchResults.vertex.OccupiedMatchResult;
+import com.charrey.matching.matchResults.vertex.SuccessMatchResult;
 import com.charrey.router.LockTable;
 import com.charrey.util.UtilityData;
-import org.jgrapht.Graph;
 import org.jgrapht.alg.util.Pair;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 import java.util.logging.Logger;
 
-public class State {
+public class VertexMatching implements VertexBlocker {
 
 
     private final List<Vertex> placement = new LinkedList<>();
@@ -30,19 +27,21 @@ public class State {
     private static final Logger LOGGER = Logger.getLogger("State");
 
 
-    public State(GraphGenerator.GraphGeneration pattern,
-                 GraphGenerator.GraphGeneration target) {
-        UtilityData utilityData = new UtilityData(pattern.getGraph(), target.getGraph());
-        this.nextTry = utilityData.getToTryNext();
-        this.order = utilityData.getOrder();
+    public VertexMatching(UtilityData data, GraphGenerator.GraphGeneration pattern,
+                          GraphGenerator.GraphGeneration target) {
+        this.nextTry = data.getToTryNext();
+        this.order = data.getOrder();
         this.routingVertexTable = target.getRoutingTable();
     }
 
-    public int numberOfMatchedVertices() {
+    public int matched() {
         return placement.size();
     }
 
     public boolean hasNext() {
+        if (placement.size() >= nextTry.length) {
+            return false;
+        }
         if (nextTry[placement.size()].get(null) != null) {
             return true;
         }
@@ -55,7 +54,7 @@ public class State {
     }
 
 
-    public MatchResult tryNext(Pair<Integer, Vertex> nextPair) {
+    public VertexMatchResult tryNext(Pair<Integer, Vertex> nextPair) {
         if (occupation.contains(nextPair.getSecond())) {
             LOGGER.finer(nextPair.getFirst() + "--" + nextPair.getSecond().getData() + " is occupied");
             return OccupiedMatchResult.instance;
@@ -69,9 +68,9 @@ public class State {
         occupation.add(successMatchResult.getTo());
     }
 
-    public Pair<Integer, Vertex> explore() throws FullHomeomorphismFound {
+    public Pair<Integer, Vertex> explore() {
         if (nextTry.length <= placement.size()) {
-            throw new FullHomeomorphismFound();
+            return null;
         }
         if (nextTry[placement.size()].get(null) != null) {
             return new Pair<>(placement.size(), (Vertex) nextTry[placement.size()].get(null));
@@ -92,6 +91,7 @@ public class State {
             return new Pair<>(from, (Vertex) nextTry[from].get(to));
         }
         for (int i = from - 1; i >=0; i--) {
+            assert occupation.remove(placement.get(i + 1));
             if (nextTry[i].get(placement.get(i)) != null) {
                 return new Pair<>(i, (Vertex) nextTry[i].get(placement.get(i)));
             }
@@ -113,4 +113,16 @@ public class State {
     }
 
 
+    public int unmatched() {
+        return order.size() - placement.size();
+    }
+
+    public List<Vertex> getOrder() {
+        return order;
+    }
+
+    @Override
+    public boolean blocks(Vertex v) {
+        return occupation.contains(v);
+    }
 }

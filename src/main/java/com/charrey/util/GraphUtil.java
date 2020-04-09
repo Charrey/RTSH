@@ -68,7 +68,7 @@ public class GraphUtil {
     }
 
     static Map<Graph<Vertex, DefaultEdge>, Integer[]> edgesMatchedCache = new HashMap<>();
-    public static  Integer[] edgesMatched(Graph<Vertex, DefaultEdge> graph) {
+    public static Integer[] edgesMatched(Graph<Vertex, DefaultEdge> graph) {
         if (edgesMatchedCache.containsKey(graph)) {
             return edgesMatchedCache.get(graph);
         }
@@ -91,7 +91,9 @@ public class GraphUtil {
         for (int i = 0; i < order.size(); i++) {
             toTryNext[i] = new HashMap<Vertex, Vertex>();
             Vertex previous = null;
-            for (Vertex targetVertex : compatibility.get(order.get(i))) {
+            List<Vertex> values = new LinkedList<>(compatibility.get(order.get(i)));
+            values.sort(Comparator.comparingInt(Vertex::getIntId));
+            for (Vertex targetVertex : values) {
                 toTryNext[i].put(previous, targetVertex);
                 previous = targetVertex;
             }

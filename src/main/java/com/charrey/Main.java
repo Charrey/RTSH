@@ -1,11 +1,15 @@
 package com.charrey;
 
-import com.charrey.exceptions.FullHomeomorphismFound;
 import com.charrey.exceptions.NoSuchPairException;
 import com.charrey.graph.Vertex;
-import com.charrey.matchResults.MatchResult;
-import com.charrey.matchResults.OccupiedMatchResult;
-import com.charrey.matchResults.SuccessMatchResult;
+import com.charrey.matching.NoMorePathsResult;
+import com.charrey.matching.SuccessPathResult;
+import com.charrey.matching.matchResults.edge.EdgeMatchResult;
+import com.charrey.matching.matchResults.vertex.VertexMatchResult;
+import com.charrey.matching.matchResults.vertex.OccupiedMatchResult;
+import com.charrey.matching.matchResults.vertex.SuccessMatchResult;
+import com.charrey.matching.EdgeMatching;
+import com.charrey.matching.VertexMatching;
 import com.charrey.util.UtilityData;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.util.Pair;
@@ -25,27 +29,42 @@ public class Main {
         GraphGeneration pattern = getPattern();
         GraphGeneration target = getTarget();
 
-        Graph<Vertex, DefaultEdge> targetGraph = target.getGraph();
-        Graph<Vertex, DefaultEdge> patternGraph = pattern.getGraph();
+        UtilityData data = new UtilityData(pattern.getGraph(), target.getGraph());
+        System.out.println(target);
+        VertexMatching vertexMatching = new VertexMatching(data, pattern, target);
+        EdgeMatching edgeMatching = new EdgeMatching(vertexMatching, data, pattern, target);
 
-        UtilityData utilityData = new UtilityData(patternGraph, targetGraph);
-
-        State state = new State(pattern, target);
         try {
-            Pair<Integer, Vertex> pairToTry = state.explore();
-            while (state.hasNext()) {
-                MatchResult matchResult = state.tryNext(pairToTry);
-                if (matchResult instanceof SuccessMatchResult) {
-                    state.update(((SuccessMatchResult) matchResult));
-                    pairToTry = state.explore();
-                } else if (matchResult instanceof OccupiedMatchResult) {
-                    pairToTry = state.retry(pairToTry);
+            Pair<Integer, Vertex> pairToTry = vertexMatching.explore();
+            while (vertexMatching.hasNext() || edgeMatching.hasUnmatched()) {
+                if (edgeMatching.hasUnmatched()) {
+
+
+                    EdgeMatchResult matchResult = edgeMatching.tryNext();
+                    if (matchResult instanceof SuccessPathResult && ((SuccessPathResult) matchResult).getPath().intermediate().stream().noneMatch(vertexMatching::blocks)) {
+                        System.out.println("Celebrate");
+                        edgeMatching.update((SuccessPathResult)matchResult);
+                    } else {
+                        System.out.println("Cry");
+                        pairToTry = vertexMatching.retry(pairToTry);
+                        //Todo: release bound edges;
+                        //todo: subscribe to each other's blocked function
+                    }
+
+
+                } else {
+                    VertexMatchResult matchResult = vertexMatching.tryNext(pairToTry);
+                    if (matchResult instanceof SuccessMatchResult) {
+                        vertexMatching.update(((SuccessMatchResult) matchResult));
+                        pairToTry = vertexMatching.explore();
+                    } else if (matchResult instanceof OccupiedMatchResult) {
+                        pairToTry = vertexMatching.retry(pairToTry);
+                    }
                 }
             }
-
-        } catch (FullHomeomorphismFound e) {
-            System.out.println("Found homeomorphism: " + state);
-        } catch (NoSuchPairException e) {
+            System.out.println("Found homeomorphism: " + vertexMatching + "\n" + edgeMatching);
+        }
+        catch (NoSuchPairException e) {
             System.out.println("No homeomorphism.");
         }
     }

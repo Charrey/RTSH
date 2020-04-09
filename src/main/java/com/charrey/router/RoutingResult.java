@@ -9,14 +9,14 @@ import java.util.List;
 public class RoutingResult {
 
     private final boolean failed;
-    private final List<Path<Vertex>> paths;
+    private final List<Path> paths;
     private final LockTable locks;
 
     private RoutingResult() {
         throw new UnsupportedOperationException();
     }
 
-    public RoutingResult(boolean failed, List<Path<Vertex>> paths, LockTable locks) {
+    public RoutingResult(boolean failed, List<Path> paths, LockTable locks) {
         this.failed = failed;
         this.paths = paths;
         this.locks = locks;

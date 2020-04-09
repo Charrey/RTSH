@@ -1,9 +1,8 @@
-package com.charrey.matchResults;
+package com.charrey.matching.matchResults.vertex;
 
-import com.charrey.State;
 import com.charrey.graph.Vertex;
 
-public class SuccessMatchResult extends MatchResult {
+public class SuccessMatchResult implements VertexMatchResult {
 
     private final Vertex from;
     private final Vertex to;
