@@ -14,10 +14,14 @@ import org.jgrapht.alg.util.Pair;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class VertexMatching implements VertexBlocker {
+public class VertexMatching extends VertexBlocker {
 
 
     private final List<Vertex> placement = new LinkedList<>();
+    private final int[] chosen;
+
+
+
     @SuppressWarnings("rawtypes")
     private final Map[] nextTry;
     private final Set<Vertex> occupation = new HashSet<>();
@@ -27,11 +31,16 @@ public class VertexMatching implements VertexBlocker {
     private static final Logger LOGGER = Logger.getLogger("State");
 
 
+
+
     public VertexMatching(UtilityData data, GraphGenerator.GraphGeneration pattern,
                           GraphGenerator.GraphGeneration target) {
         this.nextTry = data.getToTryNext();
         this.order = data.getOrder();
         this.routingVertexTable = target.getRoutingTable();
+        chosen = new int[order.size()];
+        Arrays.fill(chosen, 0);
+        //todo: refactor nextTry to an array of arrays.
     }
 
     public int matched() {
@@ -55,11 +64,11 @@ public class VertexMatching implements VertexBlocker {
 
 
     public VertexMatchResult tryNext(Pair<Integer, Vertex> nextPair) {
-        if (occupation.contains(nextPair.getSecond())) {
-            LOGGER.finer(nextPair.getFirst() + "--" + nextPair.getSecond().getData() + " is occupied");
-            return OccupiedMatchResult.instance;
-        }
-        LOGGER.finer("Success match " + nextPair.getFirst() + "--" + nextPair.getSecond().getData());
+//        if (blocks(nextPair.getSecond())) {
+//            LOGGER.finer(nextPair.getFirst() + "--" + nextPair.getSecond().getData() + " is occupied");
+//            return OccupiedMatchResult.instance;
+//        }
+//        LOGGER.finer("Success match " + nextPair.getFirst() + "--" + nextPair.getSecond().getData());
         return new SuccessMatchResult(order.get(nextPair.getFirst()), nextPair.getSecond());
     }
 
@@ -85,13 +94,14 @@ public class VertexMatching implements VertexBlocker {
 
 
     public Pair<Integer, Vertex> retry(Pair<Integer, Vertex> previousPair) throws NoSuchPairException {
+        assert hasNext();
         int from = previousPair.getFirst();
         Vertex to = previousPair.getSecond();
         if (nextTry[from].get(to) != null) {
             return new Pair<>(from, (Vertex) nextTry[from].get(to));
         }
         for (int i = from - 1; i >=0; i--) {
-            assert occupation.remove(placement.get(i + 1));
+            assert occupation.remove(placement.get(i));
             if (nextTry[i].get(placement.get(i)) != null) {
                 return new Pair<>(i, (Vertex) nextTry[i].get(placement.get(i)));
             }
@@ -121,8 +131,13 @@ public class VertexMatching implements VertexBlocker {
         return order;
     }
 
+
     @Override
-    public boolean blocks(Vertex v) {
+    public boolean blocksNonRecursive(Vertex v) {
         return occupation.contains(v);
+    }
+
+    public void remove(SuccessMatchResult toRemove) {
+        placement.remove(toRemove.getFrom().intData());
     }
 }

@@ -65,6 +65,10 @@ public class Path {
         return path.subList(1, path.size() - 1);
     }
 
+    public Vertex tail() {
+        return path.getFirst();
+    }
+
     private static class OccupiedException extends Exception {
         public final static OccupiedException instance = new OccupiedException();
     }

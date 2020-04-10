@@ -4,22 +4,21 @@ import com.charrey.example.GraphGenerator;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.matching.matchResults.edge.EdgeMatchResult;
+import com.charrey.matching.matchResults.edge.SuccessPathResult;
 import com.charrey.router.PathIterator;
 import com.charrey.util.UtilityData;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
-import java.util.function.BinaryOperator;
 
-public class EdgeMatching {
+public class EdgeMatching extends VertexBlocker {
 
     private final VertexMatching vertexMatching;
     private final GraphGenerator.GraphGeneration source;
     private final Map<Vertex, Map<Vertex, PathIterator>> pathfinders;
+    private final GraphGenerator.GraphGeneration target;
 
     private Vertex[][] edges; //do not change
-    private List<List<Path>> paths; //change this
+    private LinkedList<List<Path>> paths; //change this
     
     private final UtilityData data;
 
@@ -30,6 +29,7 @@ public class EdgeMatching {
         initPathsEdges(data);
         pathfinders = initPathFinders(target, data);
         this.data = data;
+        this.target = target;
     }
 
     private Map<Vertex, Map<Vertex, PathIterator>> initPathFinders(GraphGenerator.GraphGeneration targetGraph, UtilityData data) {
@@ -49,6 +49,9 @@ public class EdgeMatching {
                 res.get(a).put(b, new PathIterator(targetGraph, data.getTargetNeighbours(), a, b));
             }
         }
+        while (paths.size() < vertexMatching.getOrder().size()) {
+            paths.add(new LinkedList<>());
+        }
         return res;
     }
 
@@ -57,26 +60,25 @@ public class EdgeMatching {
         if (lastPlacedIndex == -1) {
             return false;
         }
-        while (paths.size() < edges[lastPlacedIndex].length) {
-            paths.add(new LinkedList<>());
-        }
         return paths.get(lastPlacedIndex).size() < edges[lastPlacedIndex].length;
     }
 
     public EdgeMatchResult tryNext() {
         int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
-        while (paths.size() < edges[lastPlacedIndex].length) {
-            paths.add(new LinkedList<>());
-        }
         Vertex from = vertexMatching.getPlacement().get(edges[lastPlacedIndex][paths.get(lastPlacedIndex).size()].intData());
         Vertex to = vertexMatching.getPlacement().get(lastPlacedIndex);
         Vertex a = from.intData() < to.intData() ? from : to;
         Vertex b = a == from ? to : from;
+        if (!pathfinders.containsKey(a) || !pathfinders.get(a).containsKey(b)) {
+            return new SuccessPathResult(null);
+        }
         PathIterator iterator = pathfinders.get(a).get(b);
         if (iterator.hasNext()) {
-            return new SuccessPathResult(iterator.next());
+            SuccessPathResult toReturn = new SuccessPathResult(iterator.next());
+            update(toReturn);
+            return toReturn;
         } else {
-            return new NoMorePathsResult();
+            return new SuccessPathResult(null);
         }
     }
 
@@ -102,11 +104,32 @@ public class EdgeMatching {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("EdgeMatching{");
+        final StringBuilder sb = new StringBuilder("EdgeMatching{\n");
         for (List<Path> pathAddition : paths) {
-            sb.append(pathAddition).append("\n");
+            sb.append("\t").append(pathAddition).append("\n");
         }
         sb.append("}\n");
         return sb.toString();
+    }
+
+    @Override
+    public boolean blocksNonRecursive(Vertex v) {
+        return paths.stream().anyMatch(y -> y.stream().anyMatch(z -> z.intermediate().contains(v)));
+    }
+
+    public void synchronize() {
+        for (int i = vertexMatching.getPlacement().size(); i < paths.size(); i++) {
+            for (Path j : paths.get(i)) {
+                pathfinders.get(j.head()).put(j.tail(), new PathIterator(target, data.getTargetNeighbours(), j.head(), j.tail()));
+                pathfinders.get(j.tail()).put(j.head(), new PathIterator(target, data.getTargetNeighbours(), j.tail(), j.head()));
+            }
+            paths.get(i).clear();
+        }
+    }
+
+    public void removePath(Path removed) {
+        for (List<Path> list : paths) {
+            list.remove(removed);
+        }
     }
 }

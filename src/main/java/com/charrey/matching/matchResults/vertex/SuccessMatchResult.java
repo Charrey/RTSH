@@ -21,5 +21,12 @@ public class SuccessMatchResult implements VertexMatchResult {
     }
 
 
-
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Success {");
+        sb.append(from);
+        sb.append("--").append(to);
+        sb.append('}');
+        return sb.toString();
+    }
 }
