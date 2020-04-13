@@ -69,6 +69,10 @@ public class Path {
         return path.getFirst();
     }
 
+    public List<Vertex> vertices() {
+        return path;
+    }
+
     private static class OccupiedException extends Exception {
         public final static OccupiedException instance = new OccupiedException();
     }

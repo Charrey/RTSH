@@ -1,0 +1,52 @@
+package com.charrey.util;
+
+import com.charrey.graph.Path;
+import com.charrey.graph.Vertex;
+import com.charrey.util.Solution;
+
+import static com.charrey.util.Solution.*;
+
+public class ConflictReport {
+
+    public static final ConflictReport OK = new ConflictReport();
+    public final boolean ok;
+    public final Solution solution;
+
+
+    //duplicate vertex caused by vertex placement
+    public ConflictReport(Vertex vertex) {
+        ok = false;
+        solution = RETRY_LAST_VERTEX;
+    }
+
+    private ConflictReport() {
+        this.ok = true;
+        solution = NOTHING;
+    }
+
+    //last path provided conflicts with another path
+    public ConflictReport(Path lastPath, Path path) {
+        System.out.println();
+        ok = false;
+        solution = RETRY_LAST_PATH;
+    }
+
+    //last path provided conflicts with placement
+    public ConflictReport(Path lastPath) {
+        System.out.println();
+        ok = false;
+        solution = RETRY_LAST_PATH;
+    }
+
+    public ConflictReport and(ConflictReport conflictedPath) {
+        if (this.ok) {
+            return conflictedPath;
+        } else if (conflictedPath.ok) {
+            return this;
+        } else {
+            System.out.println();
+        }
+        System.out.println();
+        return null;
+    }
+}

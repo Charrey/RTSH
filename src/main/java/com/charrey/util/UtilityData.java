@@ -6,10 +6,9 @@ import com.charrey.graph.Vertex;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 public class UtilityData {
@@ -29,22 +28,30 @@ public class UtilityData {
         return order;
     }
 
-    private Map<Vertex, Set<Vertex>> compatibility;
-    public Map<Vertex, Set<Vertex>> getCompatibility() {
+    private Vertex[][] compatibility;
+    public Vertex[][] getCompatibility() {
         if (compatibility == null) {
-            compatibility = new CompatibilityChecker().get(patternGraph, targetGraph);
+            compatibility = new Vertex[getOrder().size()][];
+            Map<Vertex, Set<Vertex>> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph);
+            for (Map.Entry<Vertex, Set<Vertex>> entry : inbetween.entrySet()) {
+                compatibility[entry.getKey().intData()] = entry.getValue()
+                        .stream()
+                        .sorted(Comparator.comparingInt(Vertex::intData))
+                        .collect(Collectors.toList())
+                        .toArray(Vertex[]::new);
+            }
         }
         return compatibility;
     }
 
 
-    private Map<Vertex, Vertex>[] toTryNext;
-    public Map<Vertex, Vertex>[] getToTryNext() {
-        if (toTryNext == null) {
-            toTryNext = GraphUtil.getToTryNext(getOrder(), getCompatibility());
-        }
-        return toTryNext;
-    }
+//    private Map<Vertex, Vertex>[] toTryNext;
+//    public Map<Vertex, Vertex>[] getToTryNext() {
+//        if (toTryNext == null) {
+//            toTryNext = GraphUtil.getToTryNext(getOrder(), getCompatibility());
+//        }
+//        return toTryNext;
+//    }
 
 
     private Vertex[][] targetNeighbours;
@@ -67,4 +74,17 @@ public class UtilityData {
     }
 
 
+    List<Vertex> compatibleValues;
+    public List<Vertex> getCompatibleValues() {
+        if (compatibleValues == null) {
+            Set<Vertex> compatibleValuesSet = new HashSet<>();
+            for (Vertex[] vertices : compatibility) {
+                compatibleValuesSet.addAll(Arrays.asList(vertices));
+            }
+            compatibleValues = new LinkedList<>(compatibleValuesSet);
+            compatibleValues.sort(Comparator.comparingInt(Vertex::intData));
+            compatibleValues = Collections.unmodifiableList(compatibleValues);
+        }
+        return compatibleValues;
+    }
 }

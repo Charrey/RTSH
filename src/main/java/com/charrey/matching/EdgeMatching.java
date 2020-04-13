@@ -3,14 +3,12 @@ package com.charrey.matching;
 import com.charrey.example.GraphGenerator;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
-import com.charrey.matching.matchResults.edge.EdgeMatchResult;
-import com.charrey.matching.matchResults.edge.SuccessPathResult;
 import com.charrey.router.PathIterator;
 import com.charrey.util.UtilityData;
 
 import java.util.*;
 
-public class EdgeMatching extends VertexBlocker {
+public class EdgeMatching extends VertexBlocker implements Iterator<Path> {
 
     private final VertexMatching vertexMatching;
     private final GraphGenerator.GraphGeneration source;
@@ -18,7 +16,7 @@ public class EdgeMatching extends VertexBlocker {
     private final GraphGenerator.GraphGeneration target;
 
     private Vertex[][] edges; //do not change
-    private LinkedList<List<Path>> paths; //change this
+    public LinkedList<LinkedList<Path>> paths; //change this
     
     private final UtilityData data;
 
@@ -27,32 +25,27 @@ public class EdgeMatching extends VertexBlocker {
         this.vertexMatching = vertexMatching;
         this.source = source;
         initPathsEdges(data);
-        pathfinders = initPathFinders(target, data);
+        pathfinders = initPathFinders(data);
         this.data = data;
         this.target = target;
     }
 
-    private Map<Vertex, Map<Vertex, PathIterator>> initPathFinders(GraphGenerator.GraphGeneration targetGraph, UtilityData data) {
-        Map<Vertex, Map<Vertex, PathIterator>> res = new HashMap<>();
-        List<Vertex> allValues = new LinkedList<>(data.getCompatibility().values()
-                .stream()
-                .reduce(new HashSet<>(), (vertices, vertices2) -> {
-                    vertices.addAll(vertices2);
-                    return vertices;
-                }));
-        allValues.sort(Comparator.comparingInt(Vertex::intData));
+    private Map<Vertex, Map<Vertex, PathIterator>> initPathFinders(UtilityData data) {
+        Map<Vertex, Map<Vertex, PathIterator>> pathfinders = new HashMap<>();
+        List<Vertex> allValues = data.getCompatibleValues();
         for (int i = 0; i < allValues.size() - 1; i++) {
             Vertex a = allValues.get(i);
-            res.put(a, new HashMap<>());
+            pathfinders.put(a, new HashMap<>());
             for (int j = i+1; j < allValues.size(); j++) {
                 Vertex b = allValues.get(j);
-                res.get(a).put(b, new PathIterator(targetGraph, data.getTargetNeighbours(), a, b));
+                assert a.intData() < b.intData();
+                pathfinders.get(a).put(b, new PathIterator(data.getTargetNeighbours(), a, b));
             }
         }
-        while (paths.size() < vertexMatching.getOrder().size()) {
+        while (paths.size() < data.getOrder().size()) {
             paths.add(new LinkedList<>());
         }
-        return res;
+        return pathfinders;
     }
 
     public boolean hasUnmatched() {
@@ -63,22 +56,27 @@ public class EdgeMatching extends VertexBlocker {
         return paths.get(lastPlacedIndex).size() < edges[lastPlacedIndex].length;
     }
 
-    public EdgeMatchResult tryNext() {
+    public boolean hasNext() {
+        throw new UnsupportedOperationException();
+    }
+
+    public Path next() {
         int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
         Vertex from = vertexMatching.getPlacement().get(edges[lastPlacedIndex][paths.get(lastPlacedIndex).size()].intData());
         Vertex to = vertexMatching.getPlacement().get(lastPlacedIndex);
         Vertex a = from.intData() < to.intData() ? from : to;
         Vertex b = a == from ? to : from;
+        assert a.intData() < b.intData();
         if (!pathfinders.containsKey(a) || !pathfinders.get(a).containsKey(b)) {
-            return new SuccessPathResult(null);
+            return null;
         }
         PathIterator iterator = pathfinders.get(a).get(b);
         if (iterator.hasNext()) {
-            SuccessPathResult toReturn = new SuccessPathResult(iterator.next());
+            Path toReturn = iterator.next();
             update(toReturn);
             return toReturn;
         } else {
-            return new SuccessPathResult(null);
+            return null;
         }
     }
 
@@ -96,8 +94,8 @@ public class EdgeMatching extends VertexBlocker {
         }
     }
 
-    public void update(SuccessPathResult matchResult) {
-        Path found = matchResult.getPath();
+    public void update(Path found) {
+        assert found.head().intData() > found.tail().intData();
         int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
         paths.get(lastPlacedIndex).add(found);
     }
@@ -112,24 +110,36 @@ public class EdgeMatching extends VertexBlocker {
         return sb.toString();
     }
 
-    @Override
-    public boolean blocksNonRecursive(Vertex v) {
-        return paths.stream().anyMatch(y -> y.stream().anyMatch(z -> z.intermediate().contains(v)));
-    }
-
     public void synchronize() {
         for (int i = vertexMatching.getPlacement().size(); i < paths.size(); i++) {
             for (Path j : paths.get(i)) {
-                pathfinders.get(j.head()).put(j.tail(), new PathIterator(target, data.getTargetNeighbours(), j.head(), j.tail()));
-                pathfinders.get(j.tail()).put(j.head(), new PathIterator(target, data.getTargetNeighbours(), j.tail(), j.head()));
+                assert j.head().intData() > j.tail().intData();
+                pathfinders.get(j.tail()).put(j.head(), new PathIterator(data.getTargetNeighbours(), j.tail(), j.head()));
             }
             paths.get(i).clear();
         }
     }
 
     public void removePath(Path removed) {
+        assert removed != null;
         for (List<Path> list : paths) {
             list.remove(removed);
         }
+    }
+
+    public void reset(Path path) {
+        pathfinders.get(path.tail()).put(path.head(), new PathIterator(data.getTargetNeighbours(), path.tail(), path.head()));
+    }
+
+    public Set<Path> allPaths() {
+        Set<Path> res = new HashSet<>();
+        for (List<Path> pathList : paths) {
+            res.addAll(pathList);
+        }
+        return Collections.unmodifiableSet(res);
+    }
+
+    public void retry() {
+        paths.get(vertexMatching.getPlacement().size() - 1).removeLast();
     }
 }

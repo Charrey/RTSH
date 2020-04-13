@@ -11,20 +11,14 @@ import java.util.*;
 
 public class PathIterator implements Iterator<Path> {
     private final Vertex b;
-    private final Vertex a;
-    private final RoutingVertexTable routingTable;
-    private final Graph<Vertex, DefaultEdge> graph;
 
     private final Vertex[][] neighbours;
     private final int[] chosen;
 
 
-    public PathIterator(GraphGenerator.GraphGeneration graph, Vertex[][] neighbours, Vertex a, Vertex b) {
-        this.a = a;
+    public PathIterator(Vertex[][] neighbours, Vertex a, Vertex b) {
         this.b = b;
         exploration = new Path(a);
-        this.graph = graph.getGraph();
-        this.routingTable = graph.getRoutingTable();
         this.neighbours = neighbours;
         chosen = new int[neighbours.length];
         Arrays.fill(chosen, 0);
@@ -72,6 +66,8 @@ public class PathIterator implements Iterator<Path> {
         }
         while (exploration.head() != b) {
             int index = exploration.length() - 1;
+            assert index < chosen.length;
+            assert exploration.get(index).intData() < neighbours.length;
             while (chosen[index] >= neighbours[exploration.get(index).intData()].length) {
                 exploration.removeHead();
                 if (exploration.isEmpty()) {

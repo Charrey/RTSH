@@ -1,143 +1,88 @@
 package com.charrey.matching;
 
 import com.charrey.example.GraphGenerator;
-import com.charrey.exceptions.NoSuchPairException;
 import com.charrey.graph.RoutingVertexTable;
 import com.charrey.graph.Vertex;
-import com.charrey.matching.matchResults.vertex.VertexMatchResult;
-import com.charrey.matching.matchResults.vertex.OccupiedMatchResult;
-import com.charrey.matching.matchResults.vertex.SuccessMatchResult;
 import com.charrey.router.LockTable;
 import com.charrey.util.UtilityData;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 public class VertexMatching extends VertexBlocker {
 
 
-    private final List<Vertex> placement = new LinkedList<>();
-    private final int[] chosen;
+    private final LinkedList<Vertex> placement = new LinkedList<>();
+    private final Vertex[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
+    private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
 
 
-
-    @SuppressWarnings("rawtypes")
-    private final Map[] nextTry;
-    private final Set<Vertex> occupation = new HashSet<>();
-    private final List<Vertex> order;
-    private final RoutingVertexTable routingVertexTable;
-    private final LockTable lockTable = new LockTable();
-    private static final Logger LOGGER = Logger.getLogger("State");
-
-
-
-
-    public VertexMatching(UtilityData data, GraphGenerator.GraphGeneration pattern,
-                          GraphGenerator.GraphGeneration target) {
-        this.nextTry = data.getToTryNext();
-        this.order = data.getOrder();
-        this.routingVertexTable = target.getRoutingTable();
-        chosen = new int[order.size()];
-        Arrays.fill(chosen, 0);
-        //todo: refactor nextTry to an array of arrays.
+    public VertexMatching(UtilityData data, GraphGenerator.GraphGeneration pattern) {
+        this.candidates = data.getCompatibility();
+        candidateToChooseNext = new int[pattern.getGraph().vertexSet().size()];
+        assert candidateToChooseNext.length == candidates.length;
+        Arrays.fill(candidateToChooseNext, 0);
     }
 
-    public int matched() {
-        return placement.size();
-    }
+    private Pair<Integer, Vertex> cached;
 
     public boolean hasNext() {
-        if (placement.size() >= nextTry.length) {
+        if (placement.size() >= candidates.length) {
             return false;
+        } else {
+            return candidateToChooseNext[placement.size()] < candidates[placement.size()].length;
         }
-        if (nextTry[placement.size()].get(null) != null) {
-            return true;
-        }
-        for (int i = placement.size() - 1; i >=0; i--) {
-            if (nextTry[i].get(placement.get(i)) != null) {
-                return true;
-            }
-        }
-        return false;
     }
 
-
-    public VertexMatchResult tryNext(Pair<Integer, Vertex> nextPair) {
-//        if (blocks(nextPair.getSecond())) {
-//            LOGGER.finer(nextPair.getFirst() + "--" + nextPair.getSecond().getData() + " is occupied");
-//            return OccupiedMatchResult.instance;
-//        }
-//        LOGGER.finer("Success match " + nextPair.getFirst() + "--" + nextPair.getSecond().getData());
-        return new SuccessMatchResult(order.get(nextPair.getFirst()), nextPair.getSecond());
+    public void next() {
+        while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
+            candidateToChooseNext[placement.size()] = 0;
+            placement.removeLast();
+            candidateToChooseNext[placement.size()] += 1;
+        }
+        Vertex toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
+        placement.add(toAdd);
     }
-
-    public void update(SuccessMatchResult successMatchResult) {
-        placement.add(successMatchResult.getTo());
-        occupation.add(successMatchResult.getTo());
-    }
-
-    public Pair<Integer, Vertex> explore() {
-        if (nextTry.length <= placement.size()) {
-            return null;
-        }
-        if (nextTry[placement.size()].get(null) != null) {
-            return new Pair<>(placement.size(), (Vertex) nextTry[placement.size()].get(null));
-        }
-        for (int i = placement.size() - 1; i >=0; i--) {
-            if (nextTry[i].get(placement.get(i)) != null) {
-                return new Pair<>(i, (Vertex) nextTry[i].get(placement.get(i)));
-            }
-        }
-        throw new RuntimeException();
-    }
-
-
-    public Pair<Integer, Vertex> retry(Pair<Integer, Vertex> previousPair) throws NoSuchPairException {
-        assert hasNext();
-        int from = previousPair.getFirst();
-        Vertex to = previousPair.getSecond();
-        if (nextTry[from].get(to) != null) {
-            return new Pair<>(from, (Vertex) nextTry[from].get(to));
-        }
-        for (int i = from - 1; i >=0; i--) {
-            assert occupation.remove(placement.get(i));
-            if (nextTry[i].get(placement.get(i)) != null) {
-                return new Pair<>(i, (Vertex) nextTry[i].get(placement.get(i)));
-            }
-        }
-        throw new NoSuchPairException();
-    }
-
 
     public List<Vertex> getPlacement() {
-        return placement;
+        return Collections.unmodifiableList(placement);
     }
 
 
     @Override
     public String toString() {
         return "State {\n" + "\tplacement:\t" + placement + "\n" +
-                "\tlocked:\t" + this.lockTable + "\n" +
                 "}";
     }
 
 
-    public int unmatched() {
-        return order.size() - placement.size();
+    public boolean hasNextCandidate(Integer index) {
+        return this.candidates[index].length > this.candidateToChooseNext[index];
     }
 
-    public List<Vertex> getOrder() {
-        return order;
+    public void retry() {
+        if (placement.size() < candidateToChooseNext.length) {
+            candidateToChooseNext[placement.size()] = 0;
+        }
+        Vertex removed = placement.remove(placement.size()-1);
+        candidateToChooseNext[placement.size()] += 1;
     }
 
+//    public Pair<Integer, Vertex> nextCandidate(Integer index) {
+//        assert hasNextCandidate(index);
+//        while (index >= placement.size()) {
+//            placement.add(null);
+//        }
+//        assert index < candidates.length;
+//        assert index < candidateToChooseNext.length;
+//        assert candidateToChooseNext[index] < candidates[index].length;
+//        this.placement.set(index, candidates[index][candidateToChooseNext[index]]);
+//        this.candidateToChooseNext[index] += 1;
+//        return new Pair<>(index, placement.get(index));
+//    }
 
-    @Override
-    public boolean blocksNonRecursive(Vertex v) {
-        return occupation.contains(v);
-    }
-
-    public void remove(SuccessMatchResult toRemove) {
-        placement.remove(toRemove.getFrom().intData());
-    }
+//    public void removeLast() {
+//        candidateToChooseNext[placement.size()-1] += 1;
+//        placement.removeLast();
+//    }
 }
