@@ -14,7 +14,7 @@ public class PathIterator implements Iterator<Path> {
 
     public PathIterator(Vertex[][] neighbours, Vertex a, Vertex b) {
         this.b = b;
-        exploration = new Path(a);
+        exploration = new Path(a, neighbours.length);
         this.neighbours = neighbours;
         chosen = new int[neighbours.length];
         Arrays.fill(chosen, 0);

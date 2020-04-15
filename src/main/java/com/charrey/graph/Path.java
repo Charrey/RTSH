@@ -1,32 +1,30 @@
 package com.charrey.graph;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class Path {
 
     private LinkedList<Vertex> path;
+    private BitSet containing;
     //private Set<Vertex> containing;
 
-    public Path(Vertex init) {
+    public Path(Vertex init, int maxSize) {
         path = new LinkedList<>();
-        //containing = new HashSet<>();
+        containing = new BitSet(maxSize);
         append(init);
     }
 
     public Path(Path found) {
         this.path = new LinkedList<>(found.path);
-        //this.containing = new HashSet<>(found.containing);
+        this.containing = (BitSet) found.containing.clone();
     }
 
     public boolean append(Vertex toAdd) {
-//        if (containing.contains(toAdd)) {
-//            return false;
-//        }
-//        containing.add(toAdd);
+        if (containing.get(toAdd.intData())) {
+            return false;
+        }
+        containing.set(toAdd.intData());
         path.add(toAdd);
         return true;
     }
@@ -46,8 +44,7 @@ public class Path {
 
     public void removeHead() {
         Vertex removed = path.removeLast();
-        //boolean wasRemoved = containing.remove(removed);
-        //assert wasRemoved;
+        containing.clear(removed.intData());
     }
 
     public boolean contains(Vertex vertex) {
