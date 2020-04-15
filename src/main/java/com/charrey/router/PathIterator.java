@@ -1,11 +1,7 @@
 package com.charrey.router;
 
-import com.charrey.example.GraphGenerator;
 import com.charrey.graph.Path;
-import com.charrey.graph.RoutingVertexTable;
 import com.charrey.graph.Vertex;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 
@@ -51,6 +47,7 @@ public class PathIterator implements Iterator<Path> {
         }
         Path toReturn = cached;
         cached = null;
+        assert toReturn == null || !toReturn.isEmpty();
         return toReturn;
     }
 
@@ -67,7 +64,11 @@ public class PathIterator implements Iterator<Path> {
         while (exploration.head() != b) {
             int index = exploration.length() - 1;
             assert index < chosen.length;
-            assert exploration.get(index).intData() < neighbours.length;
+            try {
+                assert exploration.get(index).intData() < neighbours.length;
+            } catch (AssertionError e) {
+                System.out.println();
+            }
             while (chosen[index] >= neighbours[exploration.get(index).intData()].length) {
                 exploration.removeHead();
                 if (exploration.isEmpty()) {
@@ -97,6 +98,7 @@ public class PathIterator implements Iterator<Path> {
             }
         }
         seen.add(exploration.getPath());
+        assert !exploration.isEmpty();
         return exploration;
     }
 

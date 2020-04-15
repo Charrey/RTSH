@@ -3,6 +3,7 @@ package com.charrey.util;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.util.Solution;
+import org.jgrapht.alg.util.Pair;
 
 import static com.charrey.util.Solution.*;
 
@@ -26,14 +27,12 @@ public class ConflictReport {
 
     //last path provided conflicts with another path
     public ConflictReport(Path lastPath, Path path) {
-        System.out.println();
         ok = false;
         solution = RETRY_LAST_PATH;
     }
 
     //last path provided conflicts with placement
     public ConflictReport(Path lastPath) {
-        System.out.println();
         ok = false;
         solution = RETRY_LAST_PATH;
     }
@@ -43,10 +42,10 @@ public class ConflictReport {
             return conflictedPath;
         } else if (conflictedPath.ok) {
             return this;
+        } else if (this.solution == conflictedPath.solution) {
+            return this;
         } else {
-            System.out.println();
+            return this.solution == RETRY_LAST_PATH ? this : conflictedPath;
         }
-        System.out.println();
-        return null;
     }
 }

@@ -20,6 +20,7 @@ public class CompatibilityChecker {
 
         Map<Vertex, Set<Vertex>> res = new HashMap<>();
         for (Vertex v : source.vertexSet()) {
+            assert source.containsVertex(v);
             res.put(v, new HashSet<>(target.vertexSet().stream().filter(x -> isCompatible(v, x, source, target)).collect(Collectors.toSet())));
         }
         boolean hasChanged = true;
@@ -38,7 +39,7 @@ public class CompatibilityChecker {
         BiMap<Vertex, Integer> map2 = HashBiMap.create();
         for (Set<Vertex> iset : compatibility.values()) {
             for (Vertex i : iset) {
-                map2.put(i, i.getIntId());
+                map2.put(i, i.intData());
             }
         }
 
@@ -65,8 +66,8 @@ public class CompatibilityChecker {
         Set<Pair<Vertex, Vertex>> toRemove = new HashSet<>();
         for (Map.Entry<Vertex, Set<Vertex>> s : compatibility.entrySet()) {
             for (Vertex t : s.getValue()) {
-                Set<Vertex> sourceNeighbourHood = GraphUtil.floodNeighboursOf(source, s.getKey(), x -> x.containsLabel("routing"));
-                Set<Vertex> targetNeighbourHood = GraphUtil.floodNeighboursOf(target, t, x -> x.containsLabel("routing"));
+                Set<Vertex> sourceNeighbourHood = GraphUtil.reachableNeighbours(source, s.getKey());//source.outgoingEdgesOf(s.getKey()).stream().map(source::getEdgeTarget).collect(Collectors.toSet());
+                Set<Vertex> targetNeighbourHood = GraphUtil.reachableNeighbours(target, t);//target.outgoingEdgesOf(t).stream().map(source::getEdgeTarget).collect(Collectors.toSet());
                 if (!compatibleNeighbourhoods(sourceNeighbourHood, targetNeighbourHood, compatibility)) {
                     res = true;
                     toRemove.add(new Pair<>(s.getKey(), t));
@@ -94,6 +95,8 @@ public class CompatibilityChecker {
     }
 
     private static <T extends Comparable<T>> boolean isCompatible(Vertex sourceVertex, Vertex targetVertex, Graph<Vertex, DefaultEdge> source, Graph<Vertex, DefaultEdge> target) {
+        assert source.containsVertex(sourceVertex);
+        assert target.containsVertex(targetVertex);
         return source.degreeOf(sourceVertex) <= target.degreeOf(targetVertex) &&
                 targetVertex.getLabels().containsAll(sourceVertex.getLabels());
     }

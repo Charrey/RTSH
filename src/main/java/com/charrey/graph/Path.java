@@ -17,6 +17,11 @@ public class Path {
         append(init);
     }
 
+    public Path(Path found) {
+        this.path = new LinkedList<>(found.path);
+        this.containing = new HashSet<>(found.containing);
+    }
+
     public boolean append(Vertex toAdd) {
         if (containing.contains(toAdd)) {
             return false;
@@ -57,24 +62,12 @@ public class Path {
         return path;
     }
 
-    public Stream<Vertex> stream() {
-        return path.stream();
-    }
-
     public List<Vertex> intermediate() {
         return path.subList(1, path.size() - 1);
     }
 
     public Vertex tail() {
         return path.getFirst();
-    }
-
-    public List<Vertex> vertices() {
-        return path;
-    }
-
-    private static class OccupiedException extends Exception {
-        public final static OccupiedException instance = new OccupiedException();
     }
 
     @Override

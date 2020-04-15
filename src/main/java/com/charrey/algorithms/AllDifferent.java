@@ -23,7 +23,10 @@ public class AllDifferent {
 
     public boolean get(Map<Vertex, Set<Vertex>> allDifferentMap) {
         final Map<Vertex, int[]> domains = new HashMap<>();
-        allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::getIntId).toArray()));
+        allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::intData).toArray()));
+        if (domains.values().stream().anyMatch(x -> x.length == 0)) {
+            return false;
+        }
         Model model = new Model("Foo");
         IntVar[] variables = new IntVar[allDifferentMap.size()];
         List<Vertex> ordered = new ArrayList<>(allDifferentMap.keySet());
@@ -43,6 +46,9 @@ public class AllDifferent {
         Model model = new Model("Foo");
         IntVar[] variables = new IntVar[domains.length];
         for (int i = 0; i < domains.length; i++) {
+            if (domains[i].length == 0) {
+                return constructSetOfPairs(allDifferentMap);
+            }
             variables[i] = model.intVar("foo", domains[i]);
         }
         model.allDifferent(variables).post();
@@ -62,5 +68,15 @@ public class AllDifferent {
         }
         return res;
         //return model.getSolver().solve();
+    }
+
+    private static Set<Pair<Integer, Integer>> constructSetOfPairs(Map<Integer, Set<Integer>> allDifferentMap) {
+        Set<Pair<Integer, Integer>> toRemove = new HashSet<>();
+        for (Map.Entry<Integer, Set<Integer>> entry : allDifferentMap.entrySet()) {
+            for (Integer target : entry.getValue()) {
+                toRemove.add(new Pair<>(entry.getKey(), target));
+            }
+        }
+        return toRemove;
     }
 }

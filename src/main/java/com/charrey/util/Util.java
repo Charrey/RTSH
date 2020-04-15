@@ -5,10 +5,18 @@ import com.charrey.graph.Vertex;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 
-import java.util.HashSet;
-import java.util.List;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class Util {
+    private static Random random = new Random();
+
+    public static  <V> V pickRandom(Collection<V> collection, Random random) {
+        List<V> list = new LinkedList<>(collection);
+        return list.get(random.nextInt(list.size()));
+    }
 
 
 
@@ -61,6 +69,9 @@ public class Util {
     }
 
 
-
-
+    public static void appendToFile(String file, String valueOf) throws IOException {
+        try (FileWriter writer = new FileWriter(Paths.get(file).toRealPath().toFile(), true)) {
+            writer.write(valueOf + "\n");
+        }
+    }
 }

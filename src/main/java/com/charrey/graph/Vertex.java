@@ -26,14 +26,6 @@ public class Vertex implements Comparable<Vertex> {
         return this;
     }
 
-    public Map<String, Attribute> getAttributes() {
-        Map<String, Attribute> res = new HashMap<>();
-        for (Map.Entry<String, Set<Attribute>> entry : attributes.entrySet()) {
-            res.put(entry.getKey(), new DefaultAttribute<>(entry.getValue().toString(), AttributeType.STRING));
-        }
-        return res;
-    }
-
     @Override
     public String toString() {
         return "[" + data + "]";
@@ -41,10 +33,6 @@ public class Vertex implements Comparable<Vertex> {
 
     public Set<Attribute> getLabels() {
         return attributes.getOrDefault("label", Collections.emptySet());
-    }
-
-    public int getIntId() {
-        return counterValue;
     }
 
     public boolean containsLabel(String routing) {

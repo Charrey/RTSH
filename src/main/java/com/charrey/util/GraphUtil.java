@@ -3,8 +3,10 @@ package com.charrey.util;
 import com.charrey.algorithms.FixedPoint;
 import com.charrey.graph.Vertex;
 import org.jgrapht.Graph;
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.alg.interfaces.VertexColoringAlgorithm;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleGraph;
 import org.jgrapht.nio.Attribute;
 
 import java.util.*;
@@ -85,21 +87,43 @@ public class GraphUtil {
         return res;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static  Map<Vertex, Vertex>[] getToTryNext(List<Vertex> order, Map<Vertex, Set<Vertex>> compatibility) {
-        Map[] toTryNext = new Map[order.size()];
-        for (int i = 0; i < order.size(); i++) {
-            toTryNext[i] = new HashMap<Vertex, Vertex>();
-            Vertex previous = null;
-            List<Vertex> values = new LinkedList<>(compatibility.get(order.get(i)));
-            values.sort(Comparator.comparingInt(Vertex::getIntId));
-            for (Vertex targetVertex : values) {
-                toTryNext[i].put(previous, targetVertex);
-                previous = targetVertex;
-            }
-            toTryNext[i].put(previous, null);
-            toTryNext[i] = Collections.unmodifiableMap(toTryNext[i]);
+    public static Graph<Vertex, DefaultEdge> copy(Graph<Vertex, DefaultEdge> pattern, Random random) {
+        AnyGenerator<Integer> numbers = new AnyGenerator<>(0, x -> ++x);
+        Graph<Vertex, DefaultEdge> res = new SimpleGraph<>(() -> new Vertex(numbers.get()), DefaultEdge::new, false);
+        Map<Vertex, Vertex> mapping = new HashMap<>();
+
+        List<Vertex> vertices = new LinkedList<>(pattern.vertexSet());
+        vertices.sort(Comparator.comparingInt(Vertex::intData));
+        Collections.shuffle(vertices, random);
+        for (Vertex v : vertices) {
+            mapping.put(v, res.addVertex());
         }
-        return toTryNext;
+        List<DefaultEdge> edges = new LinkedList<>(pattern.edgeSet());
+        edges.sort((o1, o2) -> {
+            int compareFirst = Integer.compare(pattern.getEdgeSource(o1).intData(), pattern.getEdgeSource(o2).intData());
+            int compareSecond = Integer.compare(pattern.getEdgeTarget(o1).intData(), pattern.getEdgeTarget(o2).intData());
+            return compareFirst == 0 ? compareSecond : compareFirst;
+        });
+        Collections.shuffle(edges);
+        for (DefaultEdge e : edges) {
+            res.addEdge(mapping.get(pattern.getEdgeSource(e)), mapping.get(pattern.getEdgeTarget(e)));
+        }
+        return res;
+    }
+
+    public static void fixIntData(Graph<Vertex, DefaultEdge> graph) {
+        Iterator<Vertex> vertexIterator = graph.vertexSet().iterator();
+        int data = 0;
+        while (vertexIterator.hasNext()) {
+            Vertex nextVertex = vertexIterator.next();
+            nextVertex.setData(data++);
+            assert data > 0;
+        }
+    }
+
+    private static Map<Graph<Vertex, DefaultEdge>, ConnectivityInspector<Vertex, DefaultEdge>> cachedComponents = new HashMap<>();
+    public static Set<Vertex> reachableNeighbours(Graph<Vertex, DefaultEdge> graph, Vertex source) {
+        cachedComponents.putIfAbsent(graph, new ConnectivityInspector<>(graph));
+        return cachedComponents.get(graph).connectedSetOf(source).stream().filter(x -> x != source).collect(Collectors.toUnmodifiableSet());
     }
 }
