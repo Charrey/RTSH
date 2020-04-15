@@ -23,8 +23,8 @@ public class RandomHomeomorphic {
         //new Thread(new Charter("benchmark.txt")).start();
         Graph<Vertex, DefaultEdge> previous = null;
         long seed = 1;
-        for (int i = 0; i < 100; i++) {
-            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(4, 1, 2, 3, seed);
+        for (int i = 0; i < 2; i++) {
+            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(4, 4, 2, 3, seed);
             try {
                 long start = System.currentTimeMillis();
                 Optional<Homeomorphism> morph = IsoFinder.getHomeomorphism(pair.getFirst(), pair.getSecond());
