@@ -24,7 +24,7 @@ public class RandomHomeomorphic {
         Graph<Vertex, DefaultEdge> previous = null;
         long seed = 1;
         for (int i = 0; i < 100; i++) {
-            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(4, 0, 2, 3, seed);
+            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(4, 1, 2, 3, seed);
             try {
                 long start = System.currentTimeMillis();
                 Optional<Homeomorphism> morph = IsoFinder.getHomeomorphism(pair.getFirst(), pair.getSecond());

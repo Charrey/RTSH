@@ -9,7 +9,10 @@ import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import com.charrey.graph.Vertex;
+import org.chocosolver.memory.EnvironmentBuilder;
+import org.chocosolver.solver.DefaultSettings;
 import org.chocosolver.solver.Model;
+import org.chocosolver.solver.Settings;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
 import org.chocosolver.solver.variables.SetVar;
@@ -18,6 +21,8 @@ import org.chocosolver.util.iterators.ValueIterator;
 import org.jgrapht.alg.util.Pair;
 
 public class AllDifferent {
+
+    private static final Settings settings = new DefaultSettings();
 
     private Set<Map<Vertex, Set<Vertex>>> cacheYes = new HashSet<>();
     private Set<Map<Vertex, Set<Vertex>>> cacheNo = new HashSet<>();
@@ -32,7 +37,7 @@ public class AllDifferent {
             if (domains.values().stream().anyMatch(x -> x.length == 0)) {
                 return false;
             }
-            Model model = new Model("Foo");
+            Model model = new Model(settings);
             IntVar[] variables = new IntVar[allDifferentMap.size()];
             List<Vertex> ordered = new ArrayList<>(allDifferentMap.keySet());
             for (int i = 0; i < allDifferentMap.size(); i++) {
@@ -55,7 +60,7 @@ public class AllDifferent {
         final int[][] domains = new int[allDifferentMap.size()][];
         allDifferentMap.forEach((key, value) -> domains[key] = (value.stream().mapToInt(x -> x).toArray()));
 
-        Model model = new Model("Foo");
+        Model model = new Model(settings);
         IntVar[] variables = new IntVar[domains.length];
         for (int i = 0; i < domains.length; i++) {
             if (domains[i].length == 0) {
