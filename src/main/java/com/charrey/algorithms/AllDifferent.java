@@ -19,22 +19,34 @@ import org.jgrapht.alg.util.Pair;
 
 public class AllDifferent {
 
-
-
+    private Set<Map<Vertex, Set<Vertex>>> cacheYes = new HashSet<>();
+    private Set<Map<Vertex, Set<Vertex>>> cacheNo = new HashSet<>();
     public boolean get(Map<Vertex, Set<Vertex>> allDifferentMap) {
-        final Map<Vertex, int[]> domains = new HashMap<>();
-        allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::intData).toArray()));
-        if (domains.values().stream().anyMatch(x -> x.length == 0)) {
+        if (cacheYes.contains(allDifferentMap)) {
+            return true;
+        } else if (cacheNo.contains(allDifferentMap)) {
             return false;
+        } else {
+            final Map<Vertex, int[]> domains = new HashMap<>();
+            allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::intData).toArray()));
+            if (domains.values().stream().anyMatch(x -> x.length == 0)) {
+                return false;
+            }
+            Model model = new Model("Foo");
+            IntVar[] variables = new IntVar[allDifferentMap.size()];
+            List<Vertex> ordered = new ArrayList<>(allDifferentMap.keySet());
+            for (int i = 0; i < allDifferentMap.size(); i++) {
+                variables[i] = model.intVar("foo", domains.get(ordered.get(i)));
+            }
+            model.allDifferent(variables).post();
+            boolean result = model.getSolver().solve();
+            if (result) {
+                cacheYes.add(allDifferentMap);
+            } else {
+                cacheNo.add(allDifferentMap);
+            }
+            return result;
         }
-        Model model = new Model("Foo");
-        IntVar[] variables = new IntVar[allDifferentMap.size()];
-        List<Vertex> ordered = new ArrayList<>(allDifferentMap.keySet());
-        for (int i = 0; i < allDifferentMap.size(); i++) {
-            variables[i] = model.intVar("foo", domains.get(ordered.get(i)));
-        }
-        model.allDifferent(variables).post();
-        return model.getSolver().solve();
     }
 
 
