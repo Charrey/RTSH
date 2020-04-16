@@ -5,18 +5,18 @@ import java.util.stream.Stream;
 
 public class Path {
 
-    private LinkedList<Vertex> path;
+    private ArrayList<Vertex> path;
     private BitSet containing;
     //private Set<Vertex> containing;
 
     public Path(Vertex init, int maxSize) {
-        path = new LinkedList<>();
+        path = new ArrayList<>(maxSize);
         containing = new BitSet(maxSize);
         append(init);
     }
 
     public Path(Path found) {
-        this.path = new LinkedList<>(found.path);
+        this.path = new ArrayList<>(found.path);
         this.containing = (BitSet) found.containing.clone();
     }
 
@@ -30,7 +30,7 @@ public class Path {
     }
 
     public Vertex head() {
-        return path.getLast();
+        return path.get(path.size()-1);
     }
 
 
@@ -43,7 +43,7 @@ public class Path {
     }
 
     public void removeHead() {
-        Vertex removed = path.removeLast();
+        Vertex removed = path.remove(path.size()-1);
         containing.clear(removed.intData());
     }
 
@@ -64,7 +64,7 @@ public class Path {
     }
 
     public Vertex tail() {
-        return path.getFirst();
+        return path.get(0);
     }
 
     @Override

@@ -10,6 +10,7 @@ import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.random.AbstractRandomGenerator;
 import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.util.Pair;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
@@ -24,20 +25,10 @@ public class TestCaseGenerator {
 
 
     public static Pair<GraphGeneration, GraphGeneration> getRandom(int patternNodes, int patternEdges, int extraRoutingNodes, int extraNodes, long seed) {
-        Random random = new Random(seed);
-        final RandomGenerator randomGen = new AbstractRandomGenerator() {
-            @Override
-            public void setSeed(long seed) {
-                random.setSeed(seed);
-            }
-
-            @Override
-            public double nextDouble() {
-                return random.nextDouble();
-            }
-        };
+        final RandomGenerator randomGen = new Well512a();
+        randomGen.setSeed(seed);
         Graph<Vertex, DefaultEdge> pattern = getPattern(patternNodes, patternEdges, seed);
-        Graph<Vertex, DefaultEdge> targetGraph = GraphUtil.copy(pattern, random);
+        Graph<Vertex, DefaultEdge> targetGraph = GraphUtil.copy(pattern, randomGen);
         insertIntermediateNodes(targetGraph, extraRoutingNodes, randomGen);
         addExtraNodes(targetGraph, extraNodes, patternEdges / (double) patternNodes, randomGen);
         return new Pair<>(new GraphGeneration(pattern, new RoutingVertexTable()), new GraphGeneration(targetGraph, new RoutingVertexTable()));
@@ -53,7 +44,7 @@ public class TestCaseGenerator {
             actualEdges.put(vertex, 0);
         }
         while (!neededEdges.isEmpty()) {
-            Vertex randomKey = Util.pickRandom(neededEdges.keySet(), new RandomAdaptor(randomGen));
+            Vertex randomKey = Util.pickRandom(neededEdges.keySet(), randomGen);
             if (actualEdges.get(randomKey) >= neededEdges.get(randomKey)) {
                 actualEdges.remove(randomKey);
                 neededEdges.remove(randomKey);
@@ -64,7 +55,7 @@ public class TestCaseGenerator {
                 neededEdges.remove(randomKey);
                 actualEdges.remove(randomKey);
             } else {
-                Vertex target = Util.pickRandom(targets, new RandomAdaptor(randomGen));
+                Vertex target = Util.pickRandom(targets, randomGen);
                 targetGraph.addEdge(randomKey, target);
             }
         }
@@ -88,8 +79,7 @@ public class TestCaseGenerator {
 
     private static Graph<Vertex, DefaultEdge> getPattern(int patternNodes, int patternEdges, long seed) {
         GnmRandomGraphGenerator<Vertex, DefaultEdge> gen = new GnmRandomGraphGenerator<>(patternNodes, patternEdges, seed + 17);
-        AnyGenerator<Integer> numbers = new AnyGenerator<>(0, x -> ++x);
-        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(() -> new Vertex(numbers.get()), DefaultEdge::new, false);
+        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new GraphGenerator.IntGenerator(), new GraphGenerator.BasicEdgeSupplier(), false);
         gen.generateGraph(pattern);
         return pattern;
     }

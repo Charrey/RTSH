@@ -2,9 +2,10 @@ package com.charrey.graph;
 
 import org.jgrapht.alg.util.Pair;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class RoutingVertexTable {
+public class RoutingVertexTable implements Serializable {
 
     private Map<Vertex, Set<Option>> options = new HashMap<>();
 
@@ -16,14 +17,14 @@ public class RoutingVertexTable {
         return option;
     }
 
-    public void addOptions(Vertex routingVertex, Vertex... neighbours) {
-        for (int i = 0; i < neighbours.length-1; i++) {
-            for (int j = i+1; j < neighbours.length; j++) {
-                addOption(routingVertex).add(neighbours[i], neighbours[j], neighbours[j], neighbours[i]);
-            }
-        }
-
-    }
+//    public void addOptions(Vertex routingVertex, Vertex... neighbours) {
+//        for (int i = 0; i < neighbours.length-1; i++) {
+//            for (int j = i+1; j < neighbours.length; j++) {
+//                addOption(routingVertex).add(neighbours[i], neighbours[j], neighbours[j], neighbours[i]);
+//            }
+//        }
+//
+//    }
 
 
     public static class Option {

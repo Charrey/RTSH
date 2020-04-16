@@ -12,14 +12,16 @@ import org.jgrapht.generate.GnmRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
+import java.io.Serializable;
 import java.util.HashSet;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class GraphGenerator {
 
 
     public static GraphGeneration getTarget() {
-        AnyGenerator<Integer> gen = new AnyGenerator<>(0, x -> ++x);
-        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(() -> new Vertex(gen.get()), DefaultEdge::new, false);
+        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new IntGenerator(), DefaultEdge::new, false);
         Vertex p1 = pattern.addVertex().addLabel("normal");
         Vertex p2 = pattern.addVertex().addLabel("normal");
         Vertex p3 = pattern.addVertex().addLabel("normal");
@@ -35,8 +37,7 @@ public class GraphGenerator {
 
 
     public static GraphGeneration getPattern() {
-        AnyGenerator<Integer> gen = new AnyGenerator<>(0, x -> ++x);
-        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(() -> new Vertex(gen.get()), DefaultEdge::new, false);
+        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new IntGenerator(), new BasicEdgeSupplier(), false);
         Vertex p0 = pattern.addVertex().addLabel("normal");
         Vertex p1 = pattern.addVertex().addLabel("normal");
         Vertex p2 = pattern.addVertex().addLabel("normal");
@@ -51,6 +52,19 @@ public class GraphGenerator {
     }
 
 
+    public static class IntGenerator implements Serializable, Supplier<Vertex> {
+        private int current = 0;
 
+        @Override
+        public Vertex get() {
+            return new Vertex(current++);
+        }
+    }
 
+    public static class BasicEdgeSupplier implements Serializable, Supplier<DefaultEdge> {
+        @Override
+        public DefaultEdge get() {
+            return new DefaultEdge();
+        }
+    }
 }

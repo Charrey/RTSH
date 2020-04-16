@@ -28,18 +28,18 @@ public class IsoFinder {
         EdgeMatching edgeMatching = new EdgeMatching(vertexMatching, data, pattern, target);
         boolean exhausedAllPaths = false;
         while (!allDone(pattern.getGraph(), vertexMatching, edgeMatching)) {
-
+            ;
             LOG.fine(vertexMatching.toString());
             LOG.fine(edgeMatching.toString());
             ConflictReport report = Util.conflicted(vertexMatching, edgeMatching);
-            while (exhausedAllPaths || !report.ok) {
+            if (exhausedAllPaths || !report.ok) {
                 if (exhausedAllPaths) {
                     exhausedAllPaths = false;
                     applySolution(vertexMatching, edgeMatching, Solution.RETRY_LAST_VERTEX);
                 } else {
                     applySolution(vertexMatching, edgeMatching, report.solution);
                 }
-                report = Util.conflicted(vertexMatching, edgeMatching);
+                continue;
             }
 
             if (edgeMatching.hasUnmatched()) {
@@ -63,6 +63,7 @@ public class IsoFinder {
         if (vertexMatching.getPlacement().size() < pattern.getGraph().vertexSet().size()) {
             return Optional.empty();
         } else {
+            //System.out.println(iterations);
             return Optional.of(new Homeomorphism(vertexMatching, edgeMatching));
         }
     }
@@ -87,6 +88,7 @@ public class IsoFinder {
             case RETRY_LAST_PATH:
                 if (edgeMatching.canRetry()) {
                     edgeMatching.retry(); //this can fail. In this case we should just remove the last path.
+                    vertexMatching.giveAllowance();
                 } else {
                     edgeMatching.removeLastPath();
                 }

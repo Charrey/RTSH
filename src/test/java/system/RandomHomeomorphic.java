@@ -3,40 +3,67 @@ import com.charrey.Homeomorphism;
 import com.charrey.IsoFinder;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
+import com.charrey.graph.generation.GraphGenerator;
 import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.util.GraphUtil;
 import com.charrey.util.Util;
+import com.charrey.util.UtilityData;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.util.Pair;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleGraph;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Optional;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RandomHomeomorphic {
+public class RandomHomeomorphic extends SystemTest {
 
     @Test
-    public void testSucceed() {
-        //new Thread(new Charter("benchmark.txt")).start();
-        Graph<Vertex, DefaultEdge> previous = null;
-        long seed = 1;
-        for (int i = 0; i < 2; i++) {
-            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(4, 4, 2, 3, seed);
+    public void testChallenge() throws IOException, ClassNotFoundException {
+        //Logger.getLogger("IsoFinder").setLevel(Level.ALL);
+        Pair<GraphGeneration, GraphGeneration> challenge = readChallenge();
+        testSucceed(challenge);
+    }
+
+
+
+    @Test
+    public void testSucceed() throws IOException {
+        while (true) {
+            long seed = System.currentTimeMillis();
+            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(4, 4, 1, 2, seed);
             try {
-                long start = System.currentTimeMillis();
-                Optional<Homeomorphism> morph = IsoFinder.getHomeomorphism(pair.getFirst(), pair.getSecond());
-                assert morph.isPresent();
-                System.out.println(System.currentTimeMillis() - start);
+                testSucceed(pair);
             } catch (AssertionError e) {
-                System.out.println(seed);
-                System.out.println(pair.getFirst());
-                System.out.println(pair.getSecond());
-                fail();
+                return;
             }
-            seed += 1;
         }
     }
+
+    private void writeChallenge(Pair<GraphGeneration, GraphGeneration> pair) throws IOException {
+        File file = new File("challenge.txt");
+        FileOutputStream fos = new FileOutputStream(file);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(pair);
+    }
+
+    private Pair<GraphGeneration, GraphGeneration> readChallenge() throws IOException, ClassNotFoundException {
+        try (ObjectInputStream oos = new ObjectInputStream(new FileInputStream(new File("challenge.txt")))) {
+            Pair<GraphGeneration, GraphGeneration> read = (Pair<GraphGeneration, GraphGeneration>) oos.readObject();
+            return read;
+        }
+    }
+
+
+
 }

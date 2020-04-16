@@ -2,6 +2,9 @@ package com.charrey.util;
 
 import com.charrey.algorithms.FixedPoint;
 import com.charrey.graph.Vertex;
+import com.charrey.graph.generation.GraphGenerator;
+import org.apache.commons.math3.random.RandomAdaptor;
+import org.apache.commons.math3.random.RandomGenerator;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.alg.interfaces.VertexColoringAlgorithm;
@@ -87,14 +90,13 @@ public class GraphUtil {
         return res;
     }
 
-    public static Graph<Vertex, DefaultEdge> copy(Graph<Vertex, DefaultEdge> pattern, Random random) {
-        AnyGenerator<Integer> numbers = new AnyGenerator<>(0, x -> ++x);
-        Graph<Vertex, DefaultEdge> res = new SimpleGraph<>(() -> new Vertex(numbers.get()), DefaultEdge::new, false);
+    public static Graph<Vertex, DefaultEdge> copy(Graph<Vertex, DefaultEdge> pattern, RandomGenerator random) {
+        Graph<Vertex, DefaultEdge> res = new SimpleGraph<>(new GraphGenerator.IntGenerator(), new GraphGenerator.BasicEdgeSupplier(), false);
         Map<Vertex, Vertex> mapping = new HashMap<>();
 
         List<Vertex> vertices = new LinkedList<>(pattern.vertexSet());
         vertices.sort(Comparator.comparingInt(Vertex::intData));
-        Collections.shuffle(vertices, random);
+        Collections.shuffle(vertices, new RandomAdaptor(random));
         for (Vertex v : vertices) {
             mapping.put(v, res.addVertex());
         }
@@ -104,7 +106,7 @@ public class GraphUtil {
             int compareSecond = Integer.compare(pattern.getEdgeTarget(o1).intData(), pattern.getEdgeTarget(o2).intData());
             return compareFirst == 0 ? compareSecond : compareFirst;
         });
-        Collections.shuffle(edges);
+        Collections.shuffle(edges, new RandomAdaptor(random));
         for (DefaultEdge e : edges) {
             res.addEdge(mapping.get(pattern.getEdgeSource(e)), mapping.get(pattern.getEdgeTarget(e)));
         }

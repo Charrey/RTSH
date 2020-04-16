@@ -39,7 +39,6 @@ public class VertexMatching extends VertexBlocker {
             try {
                 assert canPlaceNext();
             } catch (AssertionError e) {
-                System.out.println();
                 throw e;
             }
             this.onDeletion.run(this);
@@ -80,7 +79,7 @@ public class VertexMatching extends VertexBlocker {
 
     public void giveAllowance() {
         if (placement.size() < candidateToChooseNext.length) {
-            this.candidateToChooseNext[placement.size()] -= 1;
+            this.candidateToChooseNext[placement.size()] = 0;
         }
     }
 

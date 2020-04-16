@@ -5,17 +5,18 @@ import org.jgrapht.nio.AttributeType;
 import org.jgrapht.nio.DefaultAttribute;
 
 import javax.annotation.Nonnull;
+import java.io.Serializable;
 import java.util.*;
 
-public class Vertex implements Comparable<Vertex> {
+public class Vertex implements Serializable, Comparable<Vertex> {
 
     private static int counter = 0;
     private final int counterValue;
-    private Object data;
+    private Serializable data;
     protected Map<String, Set<Attribute>> attributes = new HashMap<>();
 
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-    public Vertex(Object data) {
+    public Vertex(Serializable data) {
         this.data = data;
         counterValue = ++counter;
     }
@@ -39,7 +40,7 @@ public class Vertex implements Comparable<Vertex> {
         return attributes.getOrDefault("label", Collections.emptySet()).contains(new DefaultAttribute<>(routing, AttributeType.STRING));
     }
 
-    public void setData(Object newData) {
+    public void setData(Serializable newData) {
         data = newData;
     }
 

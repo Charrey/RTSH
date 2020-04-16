@@ -4,6 +4,7 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,7 +14,7 @@ import java.util.*;
 public class Util {
     private static Random random = new Random();
 
-    public static  <V> V pickRandom(Collection<V> collection, Random random) {
+    public static  <V> V pickRandom(Collection<V> collection, RandomGenerator random) {
         List<V> list = new LinkedList<>(collection);
         return list.get(random.nextInt(list.size()));
     }

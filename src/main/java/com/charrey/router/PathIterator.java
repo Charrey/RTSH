@@ -10,6 +10,7 @@ public class PathIterator implements Iterator<Path> {
 
     private final Vertex[][] neighbours;
     private final int[] chosen;
+    private final Path exploration;
 
 
     public PathIterator(Vertex[][] neighbours, Vertex a, Vertex b) {
@@ -19,7 +20,6 @@ public class PathIterator implements Iterator<Path> {
         chosen = new int[neighbours.length];
         Arrays.fill(chosen, 0);
     }
-
 
 
     Path cached = null;
@@ -51,7 +51,6 @@ public class PathIterator implements Iterator<Path> {
         return toReturn;
     }
 
-    private Path exploration;
 
 
     Set<List<Vertex>> seen = new HashSet<>();
@@ -64,11 +63,6 @@ public class PathIterator implements Iterator<Path> {
         while (exploration.head() != b) {
             int index = exploration.length() - 1;
             assert index < chosen.length;
-            try {
-                assert exploration.get(index).intData() < neighbours.length;
-            } catch (AssertionError e) {
-                System.out.println();
-            }
             while (chosen[index] >= neighbours[exploration.get(index).intData()].length) {
                 exploration.removeHead();
                 if (exploration.isEmpty()) {

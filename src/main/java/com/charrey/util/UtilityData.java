@@ -87,4 +87,18 @@ public class UtilityData {
         }
         return compatibleValues;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UtilityData that = (UtilityData) o;
+        return targetGraph.equals(that.targetGraph) &&
+                patternGraph.equals(that.patternGraph);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(targetGraph, patternGraph);
+    }
 }
