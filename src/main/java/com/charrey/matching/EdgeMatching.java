@@ -169,7 +169,7 @@ public class EdgeMatching extends VertexBlocker {
                 }
             }
         }
-        assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
+        //assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
 
     }
 
@@ -178,7 +178,6 @@ public class EdgeMatching extends VertexBlocker {
         for (List<Path> pathList : paths) {
             res.addAll(pathList);
         }
-        assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
         return Collections.unmodifiableSet(res);
     }
 
@@ -186,8 +185,5 @@ public class EdgeMatching extends VertexBlocker {
     public void removeLastPath() {
         Path removed = this.paths.get(this.vertexMatching.getPlacement().size() - 1).removeLast();
         assert removed.head().intData() > removed.tail().intData();
-        Vertex a = removed.tail();
-        Vertex b = removed.head();
-        //this.pathfinders.get(a).put(b, new PathIterator(data.getTargetNeighbours(), a, b));
     }
 }

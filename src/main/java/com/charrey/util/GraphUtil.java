@@ -98,7 +98,9 @@ public class GraphUtil {
         vertices.sort(Comparator.comparingInt(Vertex::intData));
         Collections.shuffle(vertices, new RandomAdaptor(random));
         for (Vertex v : vertices) {
-            mapping.put(v, res.addVertex());
+            Vertex added = res.addVertex();
+            added.setGraph(res);
+            mapping.put(v, added);
         }
         List<DefaultEdge> edges = new LinkedList<>(pattern.edgeSet());
         edges.sort((o1, o2) -> {

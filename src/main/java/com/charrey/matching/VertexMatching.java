@@ -1,5 +1,6 @@
 package com.charrey.matching;
 
+import com.charrey.Occupation;
 import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
@@ -34,7 +35,8 @@ public class VertexMatching extends VertexBlocker {
         assert canPlaceNext();
         while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
             candidateToChooseNext[placement.size()] = 0;
-            placement.removeLast();
+            Vertex removed = placement.removeLast();
+            Occupation.getOccupation(removed.getGraph()).release(removed);
             candidateToChooseNext[placement.size()] += 1;
             try {
                 assert canPlaceNext();
@@ -44,7 +46,18 @@ public class VertexMatching extends VertexBlocker {
             this.onDeletion.run(this);
         }
         Vertex toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
-        placement.add(toAdd);
+        boolean occupied = Occupation.getOccupation(toAdd.getGraph()).isOccupied(toAdd);
+        if (occupied) {
+            candidateToChooseNext[placement.size()] += 1;
+            if (canPlaceNext()) {
+                return placeNext();
+            } else {
+                return null;
+            }
+        } else {
+            placement.add(toAdd);
+        }
+        Occupation.getOccupation(toAdd.getGraph()).occupy(toAdd);
         return this;
     }
 
@@ -69,7 +82,8 @@ public class VertexMatching extends VertexBlocker {
         if (placement.size() < candidateToChooseNext.length) {
             candidateToChooseNext[placement.size()] = 0;
         }
-        placement.remove(placement.size()-1);
+        Vertex removed = placement.remove(placement.size()-1);
+        Occupation.getOccupation(removed.getGraph()).release(removed);
         candidateToChooseNext[placement.size()] += 1;
     }
 

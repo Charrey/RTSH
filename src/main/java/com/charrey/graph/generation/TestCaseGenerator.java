@@ -40,6 +40,7 @@ public class TestCaseGenerator {
         IntegerDistribution distribution = new GeometricDistribution(randomGen, 1./(expectedEdges+1));
         for (int i = 0; i < extraNodes; i++) {
             Vertex vertex = targetGraph.addVertex();
+            vertex.setGraph(targetGraph);
             neededEdges.put(vertex, distribution.sample());
             actualEdges.put(vertex, 0);
         }
@@ -70,6 +71,7 @@ public class TestCaseGenerator {
                 Vertex target = targetGraph.getEdgeTarget(edge);
                 targetGraph.removeEdge(source, target);
                 Vertex intermediate = targetGraph.addVertex();
+                intermediate.setGraph(targetGraph);
                 targetGraph.addEdge(intermediate, target);
                 edge = targetGraph.addEdge(source, intermediate);
                 toAdd -= 1;
@@ -81,6 +83,9 @@ public class TestCaseGenerator {
         GnmRandomGraphGenerator<Vertex, DefaultEdge> gen = new GnmRandomGraphGenerator<>(patternNodes, patternEdges, seed + 17);
         Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new GraphGenerator.IntGenerator(), new GraphGenerator.BasicEdgeSupplier(), false);
         gen.generateGraph(pattern);
+        for (Vertex v : pattern.vertexSet()) {
+            v.setGraph(pattern);
+        }
         return pattern;
     }
 }

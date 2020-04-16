@@ -1,5 +1,7 @@
 package com.charrey.graph;
 
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.AttributeType;
 import org.jgrapht.nio.DefaultAttribute;
@@ -12,6 +14,7 @@ public class Vertex implements Serializable, Comparable<Vertex> {
 
     private static int counter = 0;
     private final int counterValue;
+    private Graph<Vertex, DefaultEdge> graph;
     private Serializable data;
     protected Map<String, Set<Attribute>> attributes = new HashMap<>();
 
@@ -19,6 +22,14 @@ public class Vertex implements Serializable, Comparable<Vertex> {
     public Vertex(Serializable data) {
         this.data = data;
         counterValue = ++counter;
+    }
+
+    public void setGraph(Graph<Vertex, DefaultEdge> graph) {
+        if (this.graph == null) {
+            this.graph = graph;
+        } else {
+            throw new RuntimeException("Graph already set");
+        }
     }
 
     public Vertex addLabel(String label) {
@@ -42,6 +53,10 @@ public class Vertex implements Serializable, Comparable<Vertex> {
 
     public void setData(Serializable newData) {
         data = newData;
+    }
+
+    public Graph<Vertex, DefaultEdge> getGraph() {
+        return graph;
     }
 
     @Override

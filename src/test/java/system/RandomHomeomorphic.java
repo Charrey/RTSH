@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.util.Optional;
+import java.util.Random;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -38,15 +39,11 @@ public class RandomHomeomorphic extends SystemTest {
 
 
     @Test
-    public void testSucceed() throws IOException {
+    public void testRandom() {
         while (true) {
-            long seed = System.currentTimeMillis();
-            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(4, 4, 1, 2, seed);
-            try {
-                testSucceed(pair);
-            } catch (AssertionError e) {
-                return;
-            }
+            long seed = new Random().nextLong();
+            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(4, 4, 1, 1, seed);
+            testSucceed(pair);
         }
     }
 
@@ -59,8 +56,7 @@ public class RandomHomeomorphic extends SystemTest {
 
     private Pair<GraphGeneration, GraphGeneration> readChallenge() throws IOException, ClassNotFoundException {
         try (ObjectInputStream oos = new ObjectInputStream(new FileInputStream(new File("challenge.txt")))) {
-            Pair<GraphGeneration, GraphGeneration> read = (Pair<GraphGeneration, GraphGeneration>) oos.readObject();
-            return read;
+            return (Pair<GraphGeneration, GraphGeneration>) oos.readObject();
         }
     }
 

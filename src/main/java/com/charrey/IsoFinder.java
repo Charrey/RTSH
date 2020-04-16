@@ -19,18 +19,17 @@ public class IsoFinder {
     private static final Logger LOG = Logger.getLogger("IsoFinder");
 
     public static Optional<Homeomorphism> getHomeomorphism(GraphGeneration pattern, GraphGeneration target) {
-
         UtilityData data = new UtilityData(pattern.getGraph(), target.getGraph());
         if (Arrays.stream(data.getCompatibility()).anyMatch(x -> x.length == 0)) {
             return Optional.empty();
         }
         VertexMatching vertexMatching = new VertexMatching(data, pattern);
-        EdgeMatching edgeMatching = new EdgeMatching(vertexMatching, data, pattern, target);
+        EdgeMatching edgeMatching     = new EdgeMatching(vertexMatching, data, pattern, target);
+        Occupation occupation         = Occupation.getOccupation(target.getGraph());
         boolean exhausedAllPaths = false;
         while (!allDone(pattern.getGraph(), vertexMatching, edgeMatching)) {
-            ;
-            LOG.fine(vertexMatching.toString());
-            LOG.fine(edgeMatching.toString());
+            //LOG.fine(vertexMatching.toString());
+            //LOG.fine(edgeMatching.toString());
             ConflictReport report = Util.conflicted(vertexMatching, edgeMatching);
             if (exhausedAllPaths || !report.ok) {
                 if (exhausedAllPaths) {
@@ -60,6 +59,7 @@ public class IsoFinder {
                 return Optional.empty();
             }
         }
+        occupation.release(target.getGraph());
         if (vertexMatching.getPlacement().size() < pattern.getGraph().vertexSet().size()) {
             return Optional.empty();
         } else {
