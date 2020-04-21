@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Util {
-    private static Random random = new Random();
+    private static final Random random = new Random();
 
     public static  <V> V pickRandom(Collection<V> collection, RandomGenerator random) {
         List<V> list = new LinkedList<>(collection);

@@ -92,7 +92,7 @@ public class GraphUtil {
 
     public static Graph<Vertex, DefaultEdge> copy(Graph<Vertex, DefaultEdge> pattern, RandomGenerator random) {
         Graph<Vertex, DefaultEdge> res = new SimpleGraph<>(new GraphGenerator.IntGenerator(), new GraphGenerator.BasicEdgeSupplier(), false);
-        Map<Vertex, Vertex> mapping = new HashMap<>();
+        Map<Vertex, Vertex> mapping = new IndexMap<>(pattern.vertexSet().size());
 
         List<Vertex> vertices = new LinkedList<>(pattern.vertexSet());
         vertices.sort(Comparator.comparingInt(Vertex::intData));
@@ -125,7 +125,7 @@ public class GraphUtil {
         }
     }
 
-    private static Map<Graph<Vertex, DefaultEdge>, ConnectivityInspector<Vertex, DefaultEdge>> cachedComponents = new HashMap<>();
+    private static final Map<Graph<Vertex, DefaultEdge>, ConnectivityInspector<Vertex, DefaultEdge>> cachedComponents = new HashMap<>();
     public static Set<Vertex> reachableNeighbours(Graph<Vertex, DefaultEdge> graph, Vertex source) {
         cachedComponents.putIfAbsent(graph, new ConnectivityInspector<>(graph));
         return cachedComponents.get(graph).connectedSetOf(source).stream().filter(x -> x != source).collect(Collectors.toUnmodifiableSet());

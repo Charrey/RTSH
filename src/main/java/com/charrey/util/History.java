@@ -2,16 +2,14 @@ package com.charrey.util;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
-import com.charrey.router.PathIterator;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.concurrent.Callable;
 
 public class History {
 
-    private Deque<Object> deque = new ArrayDeque<>();
+    private final Deque<Object> deque = new ArrayDeque<>();
 
     public boolean isEmpty() {
         return deque.isEmpty();

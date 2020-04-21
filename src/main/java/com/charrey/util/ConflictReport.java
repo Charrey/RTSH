@@ -2,8 +2,6 @@ package com.charrey.util;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
-import com.charrey.util.Solution;
-import org.jgrapht.alg.util.Pair;
 
 import static com.charrey.util.Solution.*;
 

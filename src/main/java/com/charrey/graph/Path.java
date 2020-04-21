@@ -1,12 +1,13 @@
 package com.charrey.graph;
 
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
 
 public class Path {
 
-    private ArrayList<Vertex> path;
-    private BitSet containing;
+    private final ArrayList<Vertex> path;
+    private final BitSet containing;
     //private Set<Vertex> containing;
 
     public Path(Vertex init, int maxSize) {

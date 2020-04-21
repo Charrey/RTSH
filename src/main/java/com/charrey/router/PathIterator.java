@@ -1,11 +1,12 @@
 package com.charrey.router;
 
+import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 
 import java.util.*;
 
-public class PathIterator implements Iterator<Path> {
+public class PathIterator {
     private final Vertex b;
 
     private final Vertex[][] neighbours;
@@ -22,40 +23,19 @@ public class PathIterator implements Iterator<Path> {
     }
 
 
-    Path cached = null;
-    boolean done = false;
-    @Override
+    public PathIterator(PathIterator pathIterator) {
+        this.b = pathIterator.b;
+        this.neighbours = pathIterator.neighbours;
+        this.chosen = Arrays.copyOf(pathIterator.chosen, pathIterator.chosen.length);
+        this.exploration = new Path(pathIterator.exploration);
+    }
+
     public boolean hasNext() {
-        if (done) {
-            return false;
-        }
-        if (cached == null) {
-            cached = getNext();
-        }
-        if (cached == null) {
-            done = true;
-            return false;
-        } else {
-            return true;
-        }
+        return new PathIterator(this).next() != null;
     }
 
-    @Override
+
     public Path next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
-        }
-        Path toReturn = cached;
-        cached = null;
-        assert toReturn == null || !toReturn.isEmpty();
-        return toReturn;
-    }
-
-
-
-    Set<List<Vertex>> seen = new HashSet<>();
-
-    private Path getNext() {
         if (exploration.head() == b) {
             chosen[exploration.length() - 2] += 1;
             exploration.removeHead();
@@ -76,7 +56,7 @@ public class PathIterator implements Iterator<Path> {
             //iterate over neighbours until we find an unused vertex
             for (int i = chosen[index]; i < neighbours[exploration.head().intData()].length; i++) {
                 Vertex neighbour = neighbours[exploration.head().intData()][i];
-                if (!exploration.contains(neighbour)) {
+                if (!exploration.contains(neighbour) && !Occupation.getOccupation(neighbour.getGraph()).isOccupiedRouting(neighbour)) {
                     //if found, update chosen, update exploration
                     exploration.append(neighbour);
                     chosen[index] = i;
@@ -87,11 +67,13 @@ public class PathIterator implements Iterator<Path> {
             if (!found) {
                 //if not found, bump previous index value.
                 exploration.removeHead();
+                if (exploration.isEmpty()) {
+                    return null;
+                }
                 chosen[index] = 0;
                 chosen[index - 1] += 1;
             }
         }
-        seen.add(exploration.getPath());
         assert !exploration.isEmpty();
         return exploration;
     }

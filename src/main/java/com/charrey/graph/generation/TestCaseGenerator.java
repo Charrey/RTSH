@@ -2,13 +2,10 @@ package com.charrey.graph.generation;
 
 import com.charrey.graph.RoutingVertexTable;
 import com.charrey.graph.Vertex;
-import com.charrey.util.AnyGenerator;
 import com.charrey.util.GraphUtil;
 import com.charrey.util.Util;
 import org.apache.commons.math3.distribution.GeometricDistribution;
 import org.apache.commons.math3.distribution.IntegerDistribution;
-import org.apache.commons.math3.random.AbstractRandomGenerator;
-import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.Graph;
@@ -22,9 +19,12 @@ import java.util.stream.Collectors;
 
 public class TestCaseGenerator {
 
+    private static final Random random = new Random();
+    public static Pair<GraphGeneration, GraphGeneration> getRandom(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes) {
+        return getRandom(patternNodes, patternEdges, extraRoutingNodes, extraNodes, random.nextLong());
+    }
 
-
-    public static Pair<GraphGeneration, GraphGeneration> getRandom(int patternNodes, int patternEdges, int extraRoutingNodes, int extraNodes, long seed) {
+    public static Pair<GraphGeneration, GraphGeneration> getRandom(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes, long seed) {
         final RandomGenerator randomGen = new Well512a();
         randomGen.setSeed(seed);
         Graph<Vertex, DefaultEdge> pattern = getPattern(patternNodes, patternEdges, seed);
@@ -62,7 +62,7 @@ public class TestCaseGenerator {
         }
     }
 
-    private static void insertIntermediateNodes(Graph<Vertex, DefaultEdge> targetGraph, int extraRoutingNodes, RandomGenerator random) {
+    private static void insertIntermediateNodes(Graph<Vertex, DefaultEdge> targetGraph, double extraRoutingNodes, RandomGenerator random) {
         IntegerDistribution distribution = new GeometricDistribution(random, 1./(extraRoutingNodes + 1));
         for (DefaultEdge edge : new HashSet<>(targetGraph.edgeSet())) {
             int toAdd = distribution.sample();

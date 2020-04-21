@@ -1,8 +1,9 @@
 package com.charrey.matching;
 
-import com.charrey.graph.generation.GraphGeneration;
+import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
+import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.router.PathIterator;
 import com.charrey.util.UtilityData;
 
@@ -29,7 +30,7 @@ public class EdgeMatching extends VertexBlocker {
         this.data = data;
         assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
         EdgeMatching em = this;
-        this.vertexMatching.setOnDeletion(vMatching -> em.synchronize());
+        this.vertexMatching.setOnDeletion(vertex -> em.synchronize());
         //target.getGraph().vertexSet().forEach(x -> currentPathOccupation.put(x, new HashSet<>()));
     }
 
@@ -42,7 +43,7 @@ public class EdgeMatching extends VertexBlocker {
             for (int j = i+1; j < allValues.size(); j++) {
                 Vertex b = allValues.get(j);
                 assert a.intData() < b.intData();
-                pathfinders.get(a).put(b, new PathIterator(data.getTargetNeighbours(), a, b));
+                //pathfinders.get(a).put(b, new PathIterator(data.getTargetNeighbours(), a, b));
             }
         }
         while (paths.size() < data.getOrder().size()) {
@@ -71,14 +72,15 @@ public class EdgeMatching extends VertexBlocker {
         if (pathList.isEmpty()) {
             return false;
         }
-        Path toRetry = pathList.getLast();
-        Vertex a = toRetry.tail();
-        Vertex b = toRetry.head();
-        assert a.intData() < b.intData();
-        if (!pathfinders.containsKey(a) || !pathfinders.get(a).containsKey(b)) {
-            return false;
-        }
-        return pathfinders.get(a).get(b).hasNext(); //returns whether some next path exists between these two
+        return pathList.stream().anyMatch(path -> {
+            Vertex a = path.tail();
+            Vertex b = path.head();
+            assert a.intData() < b.intData();
+            if (!pathfinders.get(a).containsKey(b)) {
+                pathfinders.get(a).put(b, new PathIterator(data.getTargetNeighbours(), a, b));
+            }
+            return pathfinders.get(a).get(b).hasNext();
+        });
     }
 
     public void retry() {
@@ -86,16 +88,27 @@ public class EdgeMatching extends VertexBlocker {
 //        paths.get(vertexMatching.getPlacement().size() - 1).removeLast();
         LinkedList<Path> pathList = paths.get(vertexMatching.getPlacement().size()-1);
         assert !pathList.isEmpty();
-        Path toRetry = pathList.getLast();
-        //toRetry.intermediate().forEach(x -> currentPathOccupation.get(x).remove(toRetry));
-        Vertex a = toRetry.tail();
-        Vertex b = toRetry.head();
-        assert a.intData() < b.intData();
-        assert pathfinders.containsKey(a) && pathfinders.get(a).containsKey(b);
-        Path path = pathfinders.get(a).get(b).next();
-        assert !path.isEmpty();
-        //path.intermediate().forEach(x -> currentPathOccupation.get(x).add(path));
-        pathList.set(pathList.size() - 1, new Path(path));
+
+
+        for (int i = pathList.size() - 1; i >= 0; i--) {
+            Path toRetry = pathList.get(i);
+            //toRetry.intermediate().forEach(x -> currentPathOccupation.get(x).remove(toRetry));
+            Vertex a = toRetry.tail();
+            Vertex b = toRetry.head();
+            assert a.intData() < b.intData();
+            assert pathfinders.containsKey(a) && pathfinders.get(a).containsKey(b);
+            if (pathfinders.get(a).get(b).hasNext()) {
+                Occupation occ = Occupation.getOccupation(a.getGraph());
+                pathList.get(pathList.size() - 1).intermediate().forEach(occ::releaseRouting);
+                pathList.set(pathList.size() - 1, new Path(pathfinders.get(a).get(b).next()));
+                pathList.get(pathList.size() - 1).intermediate().forEach(occ::occupyRouting);
+                return;
+            } else {
+                pathfinders.get(a).remove(b);
+                removeLastPath();
+            }
+        }
+        assert false;
     }
 
     public Path placeNextUnmatched() {
@@ -106,8 +119,8 @@ public class EdgeMatching extends VertexBlocker {
         Vertex a = from.intData() < to.intData() ? from : to;
         Vertex b = a == from ? to : from;
         assert a.intData() < b.intData();
-        if (!pathfinders.containsKey(a) || !pathfinders.get(a).containsKey(b)) {
-            return null;
+        if (!pathfinders.get(a).containsKey(b)) {
+            pathfinders.get(a).put(b, new PathIterator(data.getTargetNeighbours(), a, b));
         }
         PathIterator iterator = pathfinders.get(a).get(b);
         if (iterator.hasNext()) {
@@ -119,7 +132,6 @@ public class EdgeMatching extends VertexBlocker {
             return null;
         }
     }
-
 
     private void initPathsEdges(UtilityData data) {
         edges = new Vertex[source.getGraph().vertexSet().size()][];
@@ -143,6 +155,7 @@ public class EdgeMatching extends VertexBlocker {
         Path added = new Path(found);
         //found.intermediate().forEach(x -> this.currentPathOccupation.get(x).add(added));
         paths.get(lastPlacedIndex).add(added);
+        added.intermediate().forEach(x -> Occupation.getOccupation(found.head().getGraph()).occupyRouting(x));
         assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
 
     }
@@ -160,17 +173,16 @@ public class EdgeMatching extends VertexBlocker {
 
     public void synchronize() {
         for (int i = vertexMatching.getPlacement().size(); i < paths.size(); i++) {
+            paths.get(i).forEach(x -> x.intermediate().forEach(y -> Occupation.getOccupation(y.getGraph()).releaseRouting(y)));
             paths.get(i).clear();
         }
         for (Map.Entry<Vertex, Map<Vertex, PathIterator>> entry : pathfinders.entrySet()) {
-            for (Map.Entry<Vertex, PathIterator> secondEntry : entry.getValue().entrySet()) {
+            for (Map.Entry<Vertex, PathIterator> secondEntry : new HashSet<>(entry.getValue().entrySet())) {
                 if (paths.stream().noneMatch(x -> x.stream().anyMatch(y -> y.tail() == entry.getKey() && y.head() == secondEntry.getKey()))) {
-                    pathfinders.get(entry.getKey()).put(secondEntry.getKey(), new PathIterator(data.getTargetNeighbours(), entry.getKey(), secondEntry.getKey()));
+                    pathfinders.get(entry.getKey()).remove(secondEntry.getKey());
                 }
             }
         }
-        //assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
-
     }
 
     public Set<Path> allPaths() {
@@ -181,9 +193,9 @@ public class EdgeMatching extends VertexBlocker {
         return Collections.unmodifiableSet(res);
     }
 
-
     public void removeLastPath() {
         Path removed = this.paths.get(this.vertexMatching.getPlacement().size() - 1).removeLast();
+        removed.intermediate().forEach(x -> Occupation.getOccupation(removed.head().getGraph()).releaseRouting(x));
         assert removed.head().intData() > removed.tail().intData();
     }
 }

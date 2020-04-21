@@ -6,11 +6,12 @@ import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class VertexMatching extends VertexBlocker {
 
 
-    private final LinkedList<Vertex> placement = new LinkedList<>();
+    private final CopyOnWriteArrayList<Vertex> placement = new CopyOnWriteArrayList<>();
     private final Vertex[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
     private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
     private DeletionFunction onDeletion;
@@ -35,15 +36,12 @@ public class VertexMatching extends VertexBlocker {
         assert canPlaceNext();
         while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
             candidateToChooseNext[placement.size()] = 0;
-            Vertex removed = placement.removeLast();
-            Occupation.getOccupation(removed.getGraph()).release(removed);
+            Vertex removed = placement.remove(placement.size()-1);
+            Occupation.getOccupation(removed.getGraph()).releaseVertex(removed);
+            this.onDeletion.run(removed);
             candidateToChooseNext[placement.size()] += 1;
-            try {
-                assert canPlaceNext();
-            } catch (AssertionError e) {
-                throw e;
-            }
-            this.onDeletion.run(this);
+            assert canPlaceNext();
+
         }
         Vertex toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
         boolean occupied = Occupation.getOccupation(toAdd.getGraph()).isOccupied(toAdd);
@@ -55,16 +53,16 @@ public class VertexMatching extends VertexBlocker {
                 return null;
             }
         } else {
+            Occupation.getOccupation(toAdd.getGraph()).occupyVertex(toAdd);
             placement.add(toAdd);
         }
-        Occupation.getOccupation(toAdd.getGraph()).occupy(toAdd);
         return this;
     }
 
 
 
     public List<Vertex> getPlacement() {
-        return Collections.unmodifiableList(placement);
+        return Collections.unmodifiableList(new LinkedList<>(placement));
     }
 
 
@@ -83,7 +81,7 @@ public class VertexMatching extends VertexBlocker {
             candidateToChooseNext[placement.size()] = 0;
         }
         Vertex removed = placement.remove(placement.size()-1);
-        Occupation.getOccupation(removed.getGraph()).release(removed);
+        Occupation.getOccupation(removed.getGraph()).releaseVertex(removed);
         candidateToChooseNext[placement.size()] += 1;
     }
 
@@ -101,7 +99,7 @@ public class VertexMatching extends VertexBlocker {
 
     public interface DeletionFunction {
 
-        void run(VertexMatching vMatching);
+        void run(Vertex deleted);
 
     }
 }

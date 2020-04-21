@@ -1,38 +1,31 @@
 package com.charrey.algorithms;
 
 
-
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.ToIntFunction;
-import java.util.stream.Collectors;
-
 import com.charrey.graph.Vertex;
-import org.chocosolver.memory.EnvironmentBuilder;
+import com.charrey.util.IndexMap;
 import org.chocosolver.solver.DefaultSettings;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Settings;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.solver.variables.SetVar;
-import org.chocosolver.util.iterators.DisposableValueIterator;
 import org.chocosolver.util.iterators.ValueIterator;
 import org.jgrapht.alg.util.Pair;
+
+import java.util.*;
 
 public class AllDifferent {
 
     private static final Settings settings = new DefaultSettings();
 
-    private Set<Map<Vertex, Set<Vertex>>> cacheYes = new HashSet<>();
-    private Set<Map<Vertex, Set<Vertex>>> cacheNo = new HashSet<>();
-    public boolean get(Map<Vertex, Set<Vertex>> allDifferentMap) {
+    private final Set<Map<Vertex, Set<Vertex>>> cacheYes = new HashSet<>();
+    private final Set<Map<Vertex, Set<Vertex>>> cacheNo = new HashSet<>();
+    public boolean get(int graphSize, Map<Vertex, Set<Vertex>> allDifferentMap) {
         if (cacheYes.contains(allDifferentMap)) {
             return true;
         } else if (cacheNo.contains(allDifferentMap)) {
             return false;
         } else {
-            final Map<Vertex, int[]> domains = new HashMap<>();
+            final Map<Vertex, int[]> domains = new IndexMap<>(graphSize);
             allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::intData).toArray()));
             if (domains.values().stream().anyMatch(x -> x.length == 0)) {
                 return false;

@@ -1,8 +1,8 @@
 package com.charrey;
 
+import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
-import com.charrey.graph.Path;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import com.charrey.util.*;
@@ -28,8 +28,9 @@ public class IsoFinder {
         Occupation occupation         = Occupation.getOccupation(target.getGraph());
         boolean exhausedAllPaths = false;
         while (!allDone(pattern.getGraph(), vertexMatching, edgeMatching)) {
-            //LOG.fine(vertexMatching.toString());
-            //LOG.fine(edgeMatching.toString());
+            DOTViewer.printIfNecessary(pattern.getGraph(), target.getGraph(), vertexMatching, edgeMatching);
+            LOG.fine(vertexMatching::toString);
+            LOG.fine(edgeMatching::toString);
             ConflictReport report = Util.conflicted(vertexMatching, edgeMatching);
             if (exhausedAllPaths || !report.ok) {
                 if (exhausedAllPaths) {

@@ -14,9 +14,8 @@ public class Homeomorphism {
 
     @Override
     public String toString() {
-        String sb = "Homeomorphism{edgeMatching=" + edgeMatching +
+        return "Homeomorphism{edgeMatching=" + edgeMatching +
                 ", vertexMatching=" + vertexMatching +
                 '}';
-        return sb;
     }
 }

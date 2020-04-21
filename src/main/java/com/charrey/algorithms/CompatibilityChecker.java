@@ -1,19 +1,23 @@
 package com.charrey.algorithms;
 
-import com.charrey.util.GraphUtil;
 import com.charrey.graph.Vertex;
+import com.charrey.util.GraphUtil;
+import com.charrey.util.IndexMap;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.util.Pair;
 import org.jgrapht.graph.DefaultEdge;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CompatibilityChecker {
 
-    private AllDifferent alldiff = new AllDifferent();
+    private final AllDifferent alldiff = new AllDifferent();
 
     public  Map<Vertex, Set<Vertex>> get(Graph<Vertex, DefaultEdge> source,
                                                 Graph<Vertex, DefaultEdge> target) {
@@ -68,7 +72,7 @@ public class CompatibilityChecker {
             for (Vertex t : s.getValue()) {
                 Set<Vertex> sourceNeighbourHood = GraphUtil.reachableNeighbours(source, s.getKey());//source.outgoingEdgesOf(s.getKey()).stream().map(source::getEdgeTarget).collect(Collectors.toSet());
                 Set<Vertex> targetNeighbourHood = GraphUtil.reachableNeighbours(target, t);//target.outgoingEdgesOf(t).stream().map(source::getEdgeTarget).collect(Collectors.toSet());
-                if (!compatibleNeighbourhoods(sourceNeighbourHood, targetNeighbourHood, compatibility)) {
+                if (!compatibleNeighbourhoods(source.vertexSet().size(), sourceNeighbourHood, targetNeighbourHood, compatibility)) {
                     res = true;
                     toRemove.add(new Pair<>(s.getKey(), t));
                 }
@@ -81,8 +85,8 @@ public class CompatibilityChecker {
         return res;
     }
 
-    private boolean compatibleNeighbourhoods(Set<Vertex> sources, Set<Vertex> targets, Map<Vertex, Set<Vertex>> compatibility) {
-        Map<Vertex, Set<Vertex>> allDifferentMap = new HashMap<>();
+    private boolean compatibleNeighbourhoods(int graphSize, Set<Vertex> sources, Set<Vertex> targets, Map<Vertex, Set<Vertex>> compatibility) {
+        Map<Vertex, Set<Vertex>> allDifferentMap = new IndexMap<>(graphSize);
         for (Map.Entry<Vertex, Set<Vertex>> entry : compatibility.entrySet()) {
            if (sources.contains(entry.getKey())) {
                 allDifferentMap.put(entry.getKey(), entry.getValue()
@@ -91,10 +95,10 @@ public class CompatibilityChecker {
                         .collect(Collectors.toSet()));
             }
         }
-        return alldiff.get(allDifferentMap);
+        return alldiff.get(graphSize, allDifferentMap);
     }
 
-    private static <T extends Comparable<T>> boolean isCompatible(Vertex sourceVertex, Vertex targetVertex, Graph<Vertex, DefaultEdge> source, Graph<Vertex, DefaultEdge> target) {
+    private static boolean isCompatible(Vertex sourceVertex, Vertex targetVertex, Graph<Vertex, DefaultEdge> source, Graph<Vertex, DefaultEdge> target) {
         assert source.containsVertex(sourceVertex);
         assert target.containsVertex(targetVertex);
         return source.degreeOf(sourceVertex) <= target.degreeOf(targetVertex) &&

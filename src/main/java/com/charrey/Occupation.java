@@ -9,25 +9,48 @@ import java.util.stream.Collectors;
 
 public class Occupation {
 
-    private final BitSet bits;
+    private final BitSet routingBits;
+    private final BitSet vertexBits;
 
     private Occupation(int size){
-        this.bits = new BitSet(size);
+        this.routingBits = new BitSet(size);
+        this.vertexBits = new BitSet(size);
     }
 
-    public void occupy(Vertex v) {
-        assert !bits.get(v.intData());
-        bits.set(v.intData());
+    public void occupyRouting(Vertex v) {
+        assert !routingBits.get(v.intData());
+        routingBits.set(v.intData());
     }
 
-    public void release(Vertex v) {
-        assert bits.get(v.intData());
-        bits.clear(v.intData());
+    public void occupyVertex(Vertex v) {
+        assert !routingBits.get(v.intData());
+        assert !vertexBits.get(v.intData());
+        vertexBits.set(v.intData());
+    }
+
+    public void releaseRouting(Vertex v) {
+        assert routingBits.get(v.intData());
+        routingBits.clear(v.intData());
+    }
+
+    public void releaseVertex(Vertex v) {
+        assert vertexBits.get(v.intData());
+        vertexBits.clear(v.intData());
+    }
+
+    public boolean isOccupiedRouting(Vertex v) {
+        return routingBits.get(v.intData());
+    }
+
+    private boolean isOccupiedVertex(Vertex v) {
+        return vertexBits.get(v.intData());
     }
 
     public boolean isOccupied(Vertex v) {
-        return bits.get(v.intData());
+        return isOccupiedRouting(v) || isOccupiedVertex(v);
     }
+
+
 
     private static final Map<Graph<Vertex, DefaultEdge>, Occupation> occupationMap = new HashMap<>();
     public static Occupation getOccupation(Graph<Vertex, DefaultEdge> graph) {
@@ -49,4 +72,7 @@ public class Occupation {
     public void release(Graph<Vertex, DefaultEdge> graph) {
         occupationMap.remove(graph);
     }
+
+
+
 }

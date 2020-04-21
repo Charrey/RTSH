@@ -1,6 +1,5 @@
 package com.charrey.util;
 
-import java.util.Iterator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
