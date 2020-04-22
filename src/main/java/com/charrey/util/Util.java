@@ -5,6 +5,8 @@ import com.charrey.graph.Vertex;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultEdge;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,60 +21,50 @@ public class Util {
         return list.get(random.nextInt(list.size()));
     }
 
-
-
-    public static ConflictReport conflicted(VertexMatching vertexMatching, EdgeMatching edgeMatching) {
-        return conflictedVertex(vertexMatching, edgeMatching).and(conflictedPath(vertexMatching, edgeMatching));
-    }
-
-    private static ConflictReport conflictedVertex(VertexMatching vertexMatching, EdgeMatching edgeMatching) {
-        boolean vertexCompatible =  vertexMatching.getPlacement().size() == new HashSet<>(vertexMatching.getPlacement()).size();
-        if (vertexMatching.getPlacement().isEmpty()) {
-            return ConflictReport.OK;
-        }
-        Vertex culprit = vertexMatching.getPlacement().get(vertexMatching.getPlacement().size()-1);
-        if (!vertexCompatible) {
-            return new ConflictReport(culprit);
-        }
-        boolean edgeCompatible   = edgeMatching
-                .allPaths()
-                .stream()
-                .map(Path::intermediate)
-                .noneMatch(x -> x.contains(vertexMatching.getPlacement().get(vertexMatching.getPlacement().size()-1)));
-        if (!edgeCompatible) {
-            return new ConflictReport(culprit);
-        } else {
-            return ConflictReport.OK;
-        }
-    }
-
-    private static ConflictReport conflictedPath(VertexMatching vertexMatching, EdgeMatching edgeMatching) {
-        if (vertexMatching.getPlacement().isEmpty() || edgeMatching.paths.get(vertexMatching.getPlacement().size() - 1).isEmpty()) {
-            return ConflictReport.OK;
-        }
-        Path lastPath  = edgeMatching.paths.get(vertexMatching.getPlacement().size() - 1).getLast();
-        for (List<Path> paths : edgeMatching.paths) {
-            for (Path path : paths) {
-                if (path != lastPath && path.intermediate().stream().anyMatch(x -> lastPath.intermediate().contains(x))) {
-                    return new ConflictReport(lastPath, path);
-                }
-            }
-        }
-        boolean vertexCompatible =  lastPath
-                .intermediate()
-                .stream()
-                .noneMatch(x -> vertexMatching.getPlacement().contains(x));
-        if (!vertexCompatible) {
-            return new ConflictReport(lastPath);
-        } else {
-            return ConflictReport.OK;
-        }
-    }
-
-
     public static void appendToFile(String file, String valueOf) throws IOException {
         try (FileWriter writer = new FileWriter(Paths.get(file).toRealPath().toFile(), true)) {
             writer.write(valueOf + "\n");
         }
+    }
+
+    public static boolean isCorrect(Graph<Vertex, DefaultEdge> pattern, Graph<Vertex, DefaultEdge> target, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
+        //all nodes are placed
+        if (vertexMatching.getPlacement().size() < pattern.vertexSet().size()) {
+            return false;
+        }
+        //all nodes are distinct
+        if (vertexMatching.getPlacement().size() != new HashSet<>(vertexMatching.getPlacement()).size()) {
+            return false;
+        }
+
+        //all edges are placed
+        if (edgeMatching.allPaths().size() != pattern.edgeSet().size()) {
+            return false;
+        }
+        for (DefaultEdge edge : pattern.edgeSet()) {
+            Vertex edgeSourceTarget = vertexMatching.getPlacement().get(pattern.getEdgeSource(edge).intData());
+            Vertex edgeTargetTarget = vertexMatching.getPlacement().get(pattern.getEdgeTarget(edge).intData());
+            long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.head(), x.tail()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
+            if (matches != 1) {
+                return false;
+            }
+        }
+
+        //the intermediate list of nodes are distinct
+        for (Path path : edgeMatching.allPaths()) {
+            List<Vertex> intermediate = path.intermediate();
+            if (!edgeMatching.allPaths().stream().allMatch(x -> x == path || x.intermediate().stream().noneMatch(intermediate::contains))) {
+                return false;
+            }
+        }
+
+        //the intermediate list of nodes are disjoint from the nodes
+        for (Path path : edgeMatching.allPaths()) {
+            List<Vertex> intermediate = path.intermediate();
+            if (vertexMatching.getPlacement().stream().anyMatch(intermediate::contains)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

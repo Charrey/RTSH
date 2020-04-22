@@ -16,6 +16,7 @@
                     <source>11</source>
                     <target>11</target>
                 </configuration>
+                <version>3.8.1</version>
             </plugin>
         </plugins>
     </build>
@@ -39,13 +40,13 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>RELEASE</version>
+            <version>4.0.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
+            <version>5.6.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -74,12 +75,6 @@
             <artifactId>graphviz-java</artifactId>
             <version>0.15.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-swing</artifactId>
-            <version>1.12</version>
-        </dependency>
-
     </dependencies>
 
 

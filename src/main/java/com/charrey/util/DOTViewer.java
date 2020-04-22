@@ -50,19 +50,8 @@ public class DOTViewer {
     }
 
 
-    private static Graph<Vertex, DefaultEdge> patternCached;
-    private static Graph<Vertex, DefaultEdge> targetCached;
-    private static String patternSVG;
-    private static String targetSVG;
-    public static Document getState(Graph<Vertex, DefaultEdge> pattern, Graph<Vertex, DefaultEdge> target, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
-        if (pattern != patternCached && target != targetCached) {
-            patternSVG = makeFromJGraphT(pattern);
-            targetSVG = makeFromJGraphT(target);
-            patternCached = pattern;
-            targetCached = target;
-        }
 
-
+    public static Document getState(VertexMatching vertexMatching, EdgeMatching edgeMatching, String patternSVG, String targetSVG) {
         try {
             Document mergedSVG = mergeSVG(patternSVG, targetSVG);
             Map<String, Pair<Element, Location>> locations = getLocations(mergedSVG);
@@ -132,8 +121,7 @@ public class DOTViewer {
     private static Map<String, Pair<Element, Location>> getLocations(Document doc) {
         Map<String, Pair<Element, Location>> res = new HashMap<>();
         NodeList itemList = doc.getElementsByTagName("g");
-        for (int i = 0; i < itemList.getLength(); i++) {
-            Element item = (Element) itemList.item(i);
+        for (Element item : new ElementListWrapper(itemList)) {
             if (item.getAttribute("class").equals("node")) {
                 Location transform = getTranslate((Element) item.getParentNode());
                 double x = Double.parseDouble(((Element)item.getChildNodes().item(2)).getAttribute("cx"));
@@ -145,6 +133,8 @@ public class DOTViewer {
         }
         return res;
     }
+
+
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static Location getTranslate(Element graph) {
@@ -238,9 +228,7 @@ public class DOTViewer {
     }
 
     private static void fixIdentifiers(Document doc, String prefix) {
-        NodeList patternElements = doc.getElementsByTagName("g");
-        for (int i = 0; i < patternElements.getLength(); i++) {
-            Element element = (Element) patternElements.item(i);
+        for (Element element : new ElementListWrapper(doc.getElementsByTagName("g"))) {
             String type = element.getAttribute("class");
             switch (type) {
                 case "graph":
@@ -260,7 +248,7 @@ public class DOTViewer {
         }
     }
 
-    private static String makeFromJGraphT(Graph<Vertex, DefaultEdge> graph) {
+    public static String makeFromJGraphT(Graph<Vertex, DefaultEdge> graph) {
         MutableGraph vizGraph = mutGraph("foo").setDirected(false).setStrict(true);
         Map<Vertex, MutableNode> mapping = new IndexMap<>(graph.vertexSet().size());
         for (Vertex vertex : graph.vertexSet()) {
@@ -276,21 +264,21 @@ public class DOTViewer {
         return Graphviz.fromGraph(vizGraph).render(Format.SVG).toString();
     }
 
-    private static final boolean shouldPrint = true;
-    private static long lastPrint = System.currentTimeMillis() - 1000;
-    private static final long printInterval = 100;
-    public static synchronized void printIfNecessary(Graph<Vertex, DefaultEdge> patternDot, Graph<Vertex, DefaultEdge> targetDot, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
-        if (shouldPrint && System.currentTimeMillis() - lastPrint > printInterval) {
-            synchronized (DotViewerThread.instance) {
-                DotViewerThread.patternGraph = patternDot;
-                DotViewerThread.targetGraph = targetDot;
-                DotViewerThread.vertexMatching = vertexMatching;
-                DotViewerThread.edgeMatching = edgeMatching;
-                DotViewerThread.instance.notify();
-            }
-            lastPrint = System.currentTimeMillis();
-        }
-    }
+//    private static final boolean shouldPrint = true;
+//    private static long lastPrint = 0;
+//    private static final long printInterval = 50;
+//    public static synchronized void printIfNecessary(RandomTestCaseGenerator.TestCase testCase, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
+//        if (shouldPrint && System.currentTimeMillis() - lastPrint > printInterval) {
+//            synchronized (DotViewerThread.instance) {
+//                DotViewerThread.vertexMatching = vertexMatching;
+//                DotViewerThread.edgeMatching = edgeMatching;
+//                DotViewerThread.sourceSVG = testCase.sourceSVG;
+//                DotViewerThread.targetSVG = testCase.targetSVG;
+//                DotViewerThread.instance.notify();
+//            }
+//            lastPrint = System.currentTimeMillis();
+//        }
+//    }
 
 
 
@@ -343,4 +331,37 @@ public class DOTViewer {
         }
     }
 
+    private static class ElementListWrapper implements Iterable<Element> {
+        private final NodeList list;
+
+        public ElementListWrapper(NodeList list) {
+            this.list = list;
+        }
+
+        @Override
+        public Iterator<Element> iterator() {
+            return new NodeListIterator(list);
+        }
+
+    }
+    private static class NodeListIterator implements Iterator<Element> {
+        private final NodeList list;
+        int nextIndex = 0;
+
+        public NodeListIterator(NodeList list) {
+            this.list = list;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return list.item(nextIndex) != null;
+        }
+
+        @Override
+        public Element next() {
+            Element toReturn = (Element) list.item(nextIndex);
+            nextIndex++;
+            return toReturn;
+        }
+    }
 }

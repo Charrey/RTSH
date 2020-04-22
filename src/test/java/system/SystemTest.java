@@ -3,7 +3,7 @@ package system;
 import com.charrey.Homeomorphism;
 import com.charrey.IsoFinder;
 import com.charrey.graph.generation.GraphGeneration;
-import com.charrey.util.DotViewerThread;
+import com.charrey.graph.generation.RandomTestCaseGenerator;
 import org.jgrapht.alg.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -27,9 +27,6 @@ public abstract class SystemTest {
         Logger.getLogger("IsoFinder").addHandler(new LogHandler());
     }
 
-    public static void showProgress() {
-        new Thread(DotViewerThread.instance).start();
-    }
 
     protected void printTime(long actualTime) {
         long hours = actualTime / 3600000;
@@ -40,19 +37,15 @@ public abstract class SystemTest {
         System.out.println(positive);
     }
 
-    protected void testSucceed(Pair<GraphGeneration, GraphGeneration> pair, boolean print) throws IOException {
-        Optional<Homeomorphism> morph = IsoFinder.getHomeomorphism(pair.getFirst(), pair.getSecond());
-        if (morph.isEmpty() && print) {
-            System.out.println(pair.getFirst());
-            System.out.println(pair.getSecond());
-            openInBrowser(pair.getFirst().toString(), pair.getSecond().toString());
-        }
+    protected void testSucceed(RandomTestCaseGenerator.TestCase testCase) throws IOException {
+        Optional<Homeomorphism> morph = IsoFinder.getHomeomorphism(testCase);
         if (morph.isEmpty()) {
-            writeChallenge(pair);
+            openInBrowser(testCase.source.toString(), testCase.target.toString());
+            writeChallenge(new Pair<>(testCase.source, testCase.target));
             fail();
         }
-
     }
+
 
     private void writeChallenge(Pair<GraphGeneration, GraphGeneration> pair) throws IOException {
         File file = new File("challenge.txt");

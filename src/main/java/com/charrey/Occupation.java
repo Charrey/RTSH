@@ -57,15 +57,6 @@ public class Occupation {
 
 
 
-    private static final Map<Graph<Vertex, DefaultEdge>, Occupation> occupationMap = new HashMap<>();
-    private static Occupation getOccupation(Graph<Vertex, DefaultEdge> graph) {
-        if (occupationMap.containsKey(graph)) {
-            return occupationMap.get(graph);
-        }
-        checkData(graph);
-        occupationMap.put(graph, new Occupation(graph.vertexSet().size()));
-        return occupationMap.get(graph);
-    }
 
     private static void checkData(Graph<Vertex, DefaultEdge> graph) {
         List<Integer> datas = graph.vertexSet().stream().map(Vertex::intData).collect(Collectors.toList());
@@ -74,9 +65,7 @@ public class Occupation {
         assert Collections.max(datas) == datas.size()-1;
     }
 
-    public void release(Graph<Vertex, DefaultEdge> graph) {
-        occupationMap.remove(graph);
-    }
+
 
 
 

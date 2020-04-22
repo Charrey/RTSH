@@ -84,6 +84,7 @@ public class VertexMatching extends VertexBlocker {
         }
         Vertex removed = placement.remove(placement.size()-1);
         occupation.releaseVertex(removed);
+        this.onDeletion.run(removed);
         candidateToChooseNext[placement.size()] += 1;
     }
 
