@@ -10,6 +10,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -23,11 +24,12 @@ public class IsoFinder {
         if (Arrays.stream(data.getCompatibility()).anyMatch(x -> x.length == 0)) {
             return Optional.empty();
         }
-        VertexMatching vertexMatching = new VertexMatching(data, pattern);
-        EdgeMatching edgeMatching     = new EdgeMatching(vertexMatching, data, pattern, target);
-        Occupation occupation         = Occupation.getOccupation(target.getGraph());
+        Occupation occupation         = new Occupation(target.getGraph().vertexSet().size());
+        VertexMatching vertexMatching = new VertexMatching(data, pattern, occupation);
+        EdgeMatching edgeMatching     = new EdgeMatching(vertexMatching, data, pattern, target, occupation);
         boolean exhausedAllPaths = false;
         while (!allDone(pattern.getGraph(), vertexMatching, edgeMatching)) {
+            assertNoVertexMatchedIntermediatePath(vertexMatching, edgeMatching);
             DOTViewer.printIfNecessary(pattern.getGraph(), target.getGraph(), vertexMatching, edgeMatching);
             LOG.fine(vertexMatching::toString);
             LOG.fine(edgeMatching::toString);
@@ -66,6 +68,15 @@ public class IsoFinder {
         } else {
             //System.out.println(iterations);
             return Optional.of(new Homeomorphism(vertexMatching, edgeMatching));
+        }
+    }
+
+    private static void assertNoVertexMatchedIntermediatePath(VertexMatching vertexMatching, EdgeMatching edgeMatching) {
+        for (Vertex v : vertexMatching.getPlacement()) {
+            for (Path p : edgeMatching.allPaths()) {
+                List<Vertex> intermediate = p.intermediate();
+                assert !intermediate.contains(v);
+            }
         }
     }
 

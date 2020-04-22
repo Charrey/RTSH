@@ -12,14 +12,16 @@ public class PathIterator {
     private final Vertex[][] neighbours;
     private final int[] chosen;
     private final Path exploration;
+    private final Occupation occupation;
 
 
-    public PathIterator(Vertex[][] neighbours, Vertex a, Vertex b) {
+    public PathIterator(Vertex[][] neighbours, Vertex a, Vertex b, Occupation occupation) {
         this.b = b;
         exploration = new Path(a, neighbours.length);
         this.neighbours = neighbours;
         chosen = new int[neighbours.length];
         Arrays.fill(chosen, 0);
+        this.occupation = occupation;
     }
 
 
@@ -28,6 +30,7 @@ public class PathIterator {
         this.neighbours = pathIterator.neighbours;
         this.chosen = Arrays.copyOf(pathIterator.chosen, pathIterator.chosen.length);
         this.exploration = new Path(pathIterator.exploration);
+        this.occupation = new Occupation(pathIterator.occupation);
     }
 
     public boolean hasNext() {
@@ -56,7 +59,10 @@ public class PathIterator {
             //iterate over neighbours until we find an unused vertex
             for (int i = chosen[index]; i < neighbours[exploration.head().intData()].length; i++) {
                 Vertex neighbour = neighbours[exploration.head().intData()][i];
-                if (!exploration.contains(neighbour) && !Occupation.getOccupation(neighbour.getGraph()).isOccupiedRouting(neighbour)) {
+                if (!exploration.contains(neighbour) && !occupation.isOccupiedRouting(neighbour)) {
+                    if (occupation.isOccupiedVertex(neighbour) && neighbour != b) {
+                        continue;
+                    }
                     //if found, update chosen, update exploration
                     exploration.append(neighbour);
                     chosen[index] = i;

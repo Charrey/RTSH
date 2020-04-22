@@ -80,15 +80,24 @@ public class DOTViewer {
         for (Path path : paths) {
             Vertex previous = null;
             for (Vertex v : path.getPath()) {
+                if (path.head() == v || path.tail() == v) {
+                    Element ellipse = ((Element)locations.get("target_vertex_" + v.intData()).getFirst().getChildNodes().item(2));
+                    ellipse.setAttribute("stroke", "blue");
+                    ellipse.setAttribute("stroke-width", "5px");
+                }
                 if (previous == null) {
                     previous = v;
                     continue;
+                }
+                if (path.head() != v) {
+                    Element ellipse = ((Element)locations.get("target_vertex_" + v.intData()).getFirst().getChildNodes().item(2));
+                    ellipse.setAttribute("fill", "blue");
                 }
                 Element DOMedge = locations.containsKey("target_edge_" + v.intData() + "--" + previous.intData()) ?
                         locations.get("target_edge_" + v.intData() + "--" + previous.intData()).getFirst() :
                         locations.get("target_edge_" + previous.intData() + "--" + v.intData()).getFirst();
                 Element DOMpath = (Element) DOMedge.getChildNodes().item(2);
-                DOMpath.setAttribute("stroke", "red");
+                DOMpath.setAttribute("stroke", "blue");
                 DOMpath.setAttribute("stroke-width", "5px");
                 previous = v;
             }
@@ -101,9 +110,7 @@ public class DOTViewer {
             ((Element)patternElement.getFirst().getChildNodes().item(2)).setAttribute("stroke", "red");
             Pair<Element, Location> targetElement = locations.get("target_vertex_" + placement.get(i).intData());
             Element ellipse = ((Element)targetElement.getFirst().getChildNodes().item(2));
-            ellipse.setAttribute("stroke", "red");
             ellipse.setAttribute("fill", "red");
-            ellipse.setAttribute("stroke-width", "10px");
             addCurvedLine(mergedSVG, patternElement.getSecond(), targetElement.getSecond(), "red", true);
         }
     }

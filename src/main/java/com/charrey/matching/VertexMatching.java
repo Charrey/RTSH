@@ -14,14 +14,16 @@ public class VertexMatching extends VertexBlocker {
     private final CopyOnWriteArrayList<Vertex> placement = new CopyOnWriteArrayList<>();
     private final Vertex[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
     private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
+    private final Occupation occupation;
     private DeletionFunction onDeletion;
 
 
-    public VertexMatching(UtilityData data, GraphGeneration pattern) {
+    public VertexMatching(UtilityData data, GraphGeneration pattern, Occupation occupation) {
         this.candidates = data.getCompatibility();
         candidateToChooseNext = new int[pattern.getGraph().vertexSet().size()];
         assert candidateToChooseNext.length == candidates.length;
         Arrays.fill(candidateToChooseNext, 0);
+        this.occupation = occupation;
     }
 
     public boolean canPlaceNext() {
@@ -37,14 +39,14 @@ public class VertexMatching extends VertexBlocker {
         while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
             candidateToChooseNext[placement.size()] = 0;
             Vertex removed = placement.remove(placement.size()-1);
-            Occupation.getOccupation(removed.getGraph()).releaseVertex(removed);
+            occupation.releaseVertex(removed);
             this.onDeletion.run(removed);
             candidateToChooseNext[placement.size()] += 1;
             assert canPlaceNext();
 
         }
         Vertex toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
-        boolean occupied = Occupation.getOccupation(toAdd.getGraph()).isOccupied(toAdd);
+        boolean occupied = occupation.isOccupied(toAdd);
         if (occupied) {
             candidateToChooseNext[placement.size()] += 1;
             if (canPlaceNext()) {
@@ -53,7 +55,7 @@ public class VertexMatching extends VertexBlocker {
                 return null;
             }
         } else {
-            Occupation.getOccupation(toAdd.getGraph()).occupyVertex(toAdd);
+            occupation.occupyVertex(toAdd);
             placement.add(toAdd);
         }
         return this;
@@ -81,7 +83,7 @@ public class VertexMatching extends VertexBlocker {
             candidateToChooseNext[placement.size()] = 0;
         }
         Vertex removed = placement.remove(placement.size()-1);
-        Occupation.getOccupation(removed.getGraph()).releaseVertex(removed);
+        occupation.releaseVertex(removed);
         candidateToChooseNext[placement.size()] += 1;
     }
 

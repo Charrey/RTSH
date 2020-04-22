@@ -12,9 +12,14 @@ public class Occupation {
     private final BitSet routingBits;
     private final BitSet vertexBits;
 
-    private Occupation(int size){
+    public Occupation(int size){
         this.routingBits = new BitSet(size);
         this.vertexBits = new BitSet(size);
+    }
+
+    public Occupation(Occupation copy) {
+        this.routingBits = (BitSet) copy.routingBits.clone();
+        this.vertexBits = (BitSet) copy.vertexBits.clone();
     }
 
     public void occupyRouting(Vertex v) {
@@ -42,7 +47,7 @@ public class Occupation {
         return routingBits.get(v.intData());
     }
 
-    private boolean isOccupiedVertex(Vertex v) {
+    public boolean isOccupiedVertex(Vertex v) {
         return vertexBits.get(v.intData());
     }
 
@@ -53,7 +58,7 @@ public class Occupation {
 
 
     private static final Map<Graph<Vertex, DefaultEdge>, Occupation> occupationMap = new HashMap<>();
-    public static Occupation getOccupation(Graph<Vertex, DefaultEdge> graph) {
+    private static Occupation getOccupation(Graph<Vertex, DefaultEdge> graph) {
         if (occupationMap.containsKey(graph)) {
             return occupationMap.get(graph);
         }

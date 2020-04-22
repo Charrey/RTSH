@@ -17,11 +17,11 @@ public class RandomHomeomorphic extends SystemTest {
     @Test
     public void systemTestSucceed() throws IOException, ClassNotFoundException {
         Logger.getLogger("IsoFinder").setLevel(Level.OFF);
-        //showProgress();
+        showProgress();
         Pair<GraphGeneration, GraphGeneration> challenge = readChallenge();
         testSucceed(challenge, true);
         for (int i = 0; i < ITERATIONS; i++) {
-            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(3, 3, 0.5, 2);
+            Pair<GraphGeneration, GraphGeneration> pair = TestCaseGenerator.getRandom(10, 15, 1, 2);
             testSucceed(pair, false);
             printPercentage(i, ITERATIONS);
         }
