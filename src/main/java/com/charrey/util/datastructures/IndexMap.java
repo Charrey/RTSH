@@ -1,4 +1,4 @@
-package com.charrey.util;
+package com.charrey.util.datastructures;
 
 import com.charrey.graph.Vertex;
 

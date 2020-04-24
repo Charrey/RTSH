@@ -1,7 +1,7 @@
 package unit;
 
 import com.charrey.graph.Vertex;
-import com.charrey.util.IndexMap;
+import com.charrey.util.datastructures.IndexMap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

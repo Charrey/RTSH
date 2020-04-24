@@ -5,8 +5,8 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.router.PathIterator;
-import com.charrey.util.IndexMap;
-import com.charrey.util.MultipleKeyMap;
+import com.charrey.util.datastructures.IndexMap;
+import com.charrey.util.datastructures.MultipleKeyMap;
 import com.charrey.util.UtilityData;
 
 import java.util.*;

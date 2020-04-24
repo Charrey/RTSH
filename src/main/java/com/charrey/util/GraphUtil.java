@@ -3,6 +3,7 @@ package com.charrey.util;
 import com.charrey.algorithms.FixedPoint;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGenerator;
+import com.charrey.util.datastructures.IndexMap;
 import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.jgrapht.Graph;

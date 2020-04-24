@@ -2,7 +2,7 @@ package com.charrey.algorithms;
 
 import com.charrey.graph.Vertex;
 import com.charrey.util.GraphUtil;
-import com.charrey.util.IndexMap;
+import com.charrey.util.datastructures.IndexMap;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.jgrapht.Graph;

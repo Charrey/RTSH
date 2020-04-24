@@ -2,7 +2,7 @@ package com.charrey.algorithms;
 
 
 import com.charrey.graph.Vertex;
-import com.charrey.util.IndexMap;
+import com.charrey.util.datastructures.IndexMap;
 import org.chocosolver.solver.DefaultSettings;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Settings;
