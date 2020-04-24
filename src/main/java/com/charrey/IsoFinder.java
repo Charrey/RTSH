@@ -29,15 +29,11 @@ public class IsoFinder {
         EdgeMatching edgeMatching     = new EdgeMatching(vertexMatching, data, testcase.source, testcase.target, occupation);
         boolean exhausedAllPaths = false;
         while (!allDone(testcase.source.getGraph(), testcase.target.getGraph(), vertexMatching, edgeMatching)) {
-            //assertNoVertexMatchedIntermediatePath(vertexMatching, edgeMatching);
-//            if (display) {
-//                DOTViewer.printIfNecessary(testcase, vertexMatching, edgeMatching);
-//            }
             LOG.fine(vertexMatching::toString);
             LOG.fine(edgeMatching::toString);
             if (exhausedAllPaths) {
                 exhausedAllPaths = false;
-                applySolution(vertexMatching);
+                vertexMatching.removeLast();
                 continue;
             }
 
@@ -48,19 +44,17 @@ public class IsoFinder {
                 }
             } else if (vertexMatching.canPlaceNext()) {
                 vertexMatching.placeNext();
-            } else if (edgeMatching.canRetry()) {
-                edgeMatching.retry();
+            } else if (edgeMatching.retry()) {
                 vertexMatching.giveAllowance();
             } else if (vertexMatching.canRetry()) {
-                vertexMatching.retry();
+                vertexMatching.removeLast();
             } else {
                 return Optional.empty();
             }
         }
-        if (vertexMatching.getPlacement().size() < testcase.source.getGraph().vertexSet().size()) {
+        if (vertexMatching.getPlacementUnsafe().size() < testcase.source.getGraph().vertexSet().size()) {
             return Optional.empty();
         } else {
-            //System.out.println(iterations);
             return Optional.of(new Homeomorphism(vertexMatching, edgeMatching));
         }
     }
@@ -68,7 +62,7 @@ public class IsoFinder {
 
 
     private static boolean allDone(Graph<Vertex, DefaultEdge> pattern, Graph<Vertex, DefaultEdge> target, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
-        boolean completeV = vertexMatching.getPlacement().size() == pattern.vertexSet().size();
+        boolean completeV = vertexMatching.getPlacementUnsafe().size() == pattern.vertexSet().size();
         if (!completeV) {
             return false;
         }
@@ -79,15 +73,6 @@ public class IsoFinder {
         System.out.println("Done, checking...");
         assert  Util.isCorrect(pattern, target, vertexMatching, edgeMatching);
         return true;
-    }
-
-    private static void applySolution(VertexMatching vertexMatching) {
-        if (vertexMatching.canRetry()) {
-                vertexMatching.retry();
-            } else {
-                System.exit(-2);
-            }
-        //this can fail. In this case we should just remove the last path.
     }
 
 

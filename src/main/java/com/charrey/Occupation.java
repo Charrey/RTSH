@@ -1,11 +1,8 @@
 package com.charrey;
 
 import com.charrey.graph.Vertex;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultEdge;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.BitSet;
 
 public class Occupation {
 
@@ -23,50 +20,37 @@ public class Occupation {
     }
 
     public void occupyRouting(Vertex v) {
-        assert !routingBits.get(v.intData());
-        routingBits.set(v.intData());
+        assert !routingBits.get(v.data());
+        routingBits.set(v.data());
     }
 
     public void occupyVertex(Vertex v) {
-        assert !routingBits.get(v.intData());
-        assert !vertexBits.get(v.intData());
-        vertexBits.set(v.intData());
+        assert !routingBits.get(v.data());
+        assert !vertexBits.get(v.data());
+        vertexBits.set(v.data());
     }
 
     public void releaseRouting(Vertex v) {
-        assert routingBits.get(v.intData());
-        routingBits.clear(v.intData());
+        assert routingBits.get(v.data());
+        routingBits.clear(v.data());
     }
 
     public void releaseVertex(Vertex v) {
-        assert vertexBits.get(v.intData());
-        vertexBits.clear(v.intData());
+        assert vertexBits.get(v.data());
+        vertexBits.clear(v.data());
     }
 
     public boolean isOccupiedRouting(Vertex v) {
-        return routingBits.get(v.intData());
+        return routingBits.get(v.data());
     }
 
     public boolean isOccupiedVertex(Vertex v) {
-        return vertexBits.get(v.intData());
+        return vertexBits.get(v.data());
     }
 
     public boolean isOccupied(Vertex v) {
         return isOccupiedRouting(v) || isOccupiedVertex(v);
     }
-
-
-
-
-    private static void checkData(Graph<Vertex, DefaultEdge> graph) {
-        List<Integer> datas = graph.vertexSet().stream().map(Vertex::intData).collect(Collectors.toList());
-        assert datas.size() == new HashSet<>(datas).size();
-        assert Collections.min(datas) == 0;
-        assert Collections.max(datas) == datas.size()-1;
-    }
-
-
-
 
 
 }

@@ -2,7 +2,6 @@ package com.charrey.graph.generation;
 
 import com.charrey.graph.RoutingVertexTable;
 import com.charrey.graph.Vertex;
-import com.charrey.util.DOTViewer;
 import com.charrey.util.GraphUtil;
 import com.charrey.util.Util;
 import org.apache.commons.math3.distribution.GeometricDistribution;
@@ -37,7 +36,7 @@ public class RandomTestCaseGenerator {
         this.random = new Random(seed);
     }
 
-    private Deque<TestCase> testCases = new ArrayDeque<>();
+    private final Deque<TestCase> testCases = new ArrayDeque<>();
     public void init(int amount) {
         testCases.clear();
         System.out.println("Generating graphs..");
@@ -123,16 +122,12 @@ public class RandomTestCaseGenerator {
 
 
     public static class TestCase {
-        public final String sourceSVG;
-        public final String targetSVG;
         public final GraphGeneration target;
         public final GraphGeneration source;
 
         public TestCase(GraphGeneration source, GraphGeneration target) {
             this.source = source;
             this.target = target;
-            this.sourceSVG = DOTViewer.makeFromJGraphT(source.getGraph());
-            this.targetSVG = DOTViewer.makeFromJGraphT(target.getGraph());
         }
     }
 }

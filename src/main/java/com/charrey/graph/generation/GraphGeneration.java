@@ -28,7 +28,7 @@ public class GraphGeneration implements Serializable {
 
     @Override
     public String toString() {
-        DOTExporter<Vertex, DefaultEdge> exporter = new DOTExporter<>(x -> Integer.toString(x.intData()));
+        DOTExporter<Vertex, DefaultEdge> exporter = new DOTExporter<>(x -> Integer.toString(x.data()));
         StringWriter writer = new StringWriter();
         exporter.exportGraph(graph, writer);
         return writer.toString();

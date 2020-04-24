@@ -32,9 +32,9 @@ public class UtilityData {
             compatibility = new Vertex[getOrder().size()][];
             Map<Vertex, Set<Vertex>> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph);
             for (Map.Entry<Vertex, Set<Vertex>> entry : inbetween.entrySet()) {
-                compatibility[entry.getKey().intData()] = entry.getValue()
+                compatibility[entry.getKey().data()] = entry.getValue()
                         .stream()
-                        .sorted(Comparator.comparingInt(Vertex::intData))
+                        .sorted(Comparator.comparingInt(Vertex::data))
                         .collect(Collectors.toList())
                         .toArray(Vertex[]::new);
             }
@@ -43,26 +43,18 @@ public class UtilityData {
     }
 
 
-//    private Map<Vertex, Vertex>[] toTryNext;
-//    public Map<Vertex, Vertex>[] getToTryNext() {
-//        if (toTryNext == null) {
-//            toTryNext = GraphUtil.getToTryNext(getOrder(), getCompatibility());
-//        }
-//        return toTryNext;
-//    }
-
 
     private Vertex[][] targetNeighbours;
     public Vertex[][] getTargetNeighbours() {
         if (targetNeighbours == null) {
             List<Vertex> routing = targetGraph.vertexSet()
                     .stream()
-                    .sorted(Comparator.comparingInt(Vertex::intData)).collect(Collectors.toList());
+                    .sorted(Comparator.comparingInt(Vertex::data)).collect(Collectors.toList());
             targetNeighbours = new Vertex[routing.size()][];
             for (int i = 0; i < targetNeighbours.length; i++) {
                 targetNeighbours[i] = GraphUtil.neighboursOf(targetGraph, routing.get(i))
                         .stream()
-                        .sorted(Comparator.comparingInt(Vertex::intData))
+                        .sorted(Comparator.comparingInt(Vertex::data))
                         .collect(Collectors.toList()).toArray(Vertex[]::new);
             }
 
@@ -71,20 +63,6 @@ public class UtilityData {
         return targetNeighbours;
     }
 
-
-    List<Vertex> compatibleValues;
-    public List<Vertex> getCompatibleValues() {
-        if (compatibleValues == null) {
-            Set<Vertex> compatibleValuesSet = new HashSet<>();
-            for (Vertex[] vertices : compatibility) {
-                compatibleValuesSet.addAll(Arrays.asList(vertices));
-            }
-            compatibleValues = new LinkedList<>(compatibleValuesSet);
-            compatibleValues.sort(Comparator.comparingInt(Vertex::intData));
-            compatibleValues = Collections.unmodifiableList(compatibleValues);
-        }
-        return compatibleValues;
-    }
 
     @Override
     public boolean equals(Object o) {

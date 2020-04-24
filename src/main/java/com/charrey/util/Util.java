@@ -8,9 +8,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.*;
 
 public class Util {
@@ -21,19 +18,13 @@ public class Util {
         return list.get(random.nextInt(list.size()));
     }
 
-    public static void appendToFile(String file, String valueOf) throws IOException {
-        try (FileWriter writer = new FileWriter(Paths.get(file).toRealPath().toFile(), true)) {
-            writer.write(valueOf + "\n");
-        }
-    }
-
     public static boolean isCorrect(Graph<Vertex, DefaultEdge> pattern, Graph<Vertex, DefaultEdge> target, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
         //all nodes are placed
-        if (vertexMatching.getPlacement().size() < pattern.vertexSet().size()) {
+        if (vertexMatching.getPlacementUnsafe().size() < pattern.vertexSet().size()) {
             return false;
         }
         //all nodes are distinct
-        if (vertexMatching.getPlacement().size() != new HashSet<>(vertexMatching.getPlacement()).size()) {
+        if (vertexMatching.getPlacementUnsafe().size() != new HashSet<>(vertexMatching.getPlacementUnsafe()).size()) {
             return false;
         }
 
@@ -42,8 +33,8 @@ public class Util {
             return false;
         }
         for (DefaultEdge edge : pattern.edgeSet()) {
-            Vertex edgeSourceTarget = vertexMatching.getPlacement().get(pattern.getEdgeSource(edge).intData());
-            Vertex edgeTargetTarget = vertexMatching.getPlacement().get(pattern.getEdgeTarget(edge).intData());
+            Vertex edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge).data());
+            Vertex edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge).data());
             long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.head(), x.tail()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
             if (matches != 1) {
                 return false;
@@ -61,7 +52,7 @@ public class Util {
         //the intermediate list of nodes are disjoint from the nodes
         for (Path path : edgeMatching.allPaths()) {
             List<Vertex> intermediate = path.intermediate();
-            if (vertexMatching.getPlacement().stream().anyMatch(intermediate::contains)) {
+            if (vertexMatching.getPlacementUnsafe().stream().anyMatch(intermediate::contains)) {
                 return false;
             }
         }

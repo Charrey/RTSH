@@ -38,12 +38,12 @@ public class CompatibilityChecker {
     private static boolean filterGAC(Map<Vertex, Set<Vertex>> compatibility) {
         BiMap<Vertex, Integer> map1 = HashBiMap.create();
         for (Vertex i : compatibility.keySet()) {
-            map1.put(i, i.intData());
+            map1.put(i, i.data());
         }
         BiMap<Vertex, Integer> map2 = HashBiMap.create();
         for (Set<Vertex> iset : compatibility.values()) {
             for (Vertex i : iset) {
-                map2.put(i, i.intData());
+                map2.put(i, i.data());
             }
         }
 

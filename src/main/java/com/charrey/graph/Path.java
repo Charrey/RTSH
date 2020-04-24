@@ -8,7 +8,6 @@ public class Path {
 
     private final ArrayList<Vertex> path;
     private final BitSet containing;
-    //private Set<Vertex> containing;
 
     public Path(Vertex init, int maxSize) {
         path = new ArrayList<>(maxSize);
@@ -22,10 +21,10 @@ public class Path {
     }
 
     public boolean append(Vertex toAdd) {
-        if (containing.get(toAdd.intData())) {
+        if (containing.get(toAdd.data())) {
             return false;
         }
-        containing.set(toAdd.intData());
+        containing.set(toAdd.data());
         path.add(toAdd);
         return true;
     }
@@ -45,11 +44,11 @@ public class Path {
 
     public void removeHead() {
         Vertex removed = path.remove(path.size()-1);
-        containing.clear(removed.intData());
+        containing.clear(removed.data());
     }
 
     public boolean contains(Vertex vertex) {
-        return path.contains(vertex);
+        return containing.get(vertex.data());
     }
 
     public Vertex get(int i) {

@@ -4,33 +4,39 @@ import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 
-import java.util.*;
+import java.util.Arrays;
 
 public class PathIterator {
-    private final Vertex b;
+    private final Vertex head;
+    private final Vertex tail;
 
     private final Vertex[][] neighbours;
     private final int[] chosen;
     private final Path exploration;
     private final Occupation occupation;
+    private final int domainSize;
 
 
-    public PathIterator(Vertex[][] neighbours, Vertex a, Vertex b, Occupation occupation) {
-        this.b = b;
-        exploration = new Path(a, neighbours.length);
+    public PathIterator(int domainSize, Vertex[][] neighbours, Vertex tail, Vertex head, Occupation occupation) {
+        this.head = head;
+        this.tail = tail;
+        exploration = new Path(tail, neighbours.length);
         this.neighbours = neighbours;
         chosen = new int[neighbours.length];
         Arrays.fill(chosen, 0);
         this.occupation = occupation;
+        this.domainSize = domainSize;
     }
 
 
     public PathIterator(PathIterator pathIterator) {
-        this.b = pathIterator.b;
+        this.head = pathIterator.head;
+        this.tail = pathIterator.tail;
         this.neighbours = pathIterator.neighbours;
         this.chosen = Arrays.copyOf(pathIterator.chosen, pathIterator.chosen.length);
         this.exploration = new Path(pathIterator.exploration);
         this.occupation = new Occupation(pathIterator.occupation);
+        this.domainSize = pathIterator.domainSize;
     }
 
     public boolean hasNext() {
@@ -39,14 +45,14 @@ public class PathIterator {
 
 
     public Path next() {
-        if (exploration.head() == b) {
+        if (exploration.head() == head) {
             chosen[exploration.length() - 2] += 1;
             exploration.removeHead();
         }
-        while (exploration.head() != b) {
+        while (exploration.head() != head) {
             int index = exploration.length() - 1;
             assert index < chosen.length;
-            while (chosen[index] >= neighbours[exploration.get(index).intData()].length) {
+            while (chosen[index] >= neighbours[exploration.get(index).data()].length) {
                 exploration.removeHead();
                 if (exploration.isEmpty()) {
                     return null;
@@ -57,10 +63,10 @@ public class PathIterator {
             }
             boolean found = false;
             //iterate over neighbours until we find an unused vertex
-            for (int i = chosen[index]; i < neighbours[exploration.head().intData()].length; i++) {
-                Vertex neighbour = neighbours[exploration.head().intData()][i];
+            for (int i = chosen[index]; i < neighbours[exploration.head().data()].length; i++) {
+                Vertex neighbour = neighbours[exploration.head().data()][i];
                 if (!exploration.contains(neighbour) && !occupation.isOccupiedRouting(neighbour)) {
-                    if (occupation.isOccupiedVertex(neighbour) && neighbour != b) {
+                    if (occupation.isOccupiedVertex(neighbour) && neighbour != head) {
                         continue;
                     }
                     //if found, update chosen, update exploration
@@ -85,4 +91,11 @@ public class PathIterator {
     }
 
 
+    public Vertex tail() {
+        return tail;
+    }
+
+    public Vertex head() {
+        return head;
+    }
 }

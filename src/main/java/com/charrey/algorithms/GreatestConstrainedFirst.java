@@ -30,7 +30,7 @@ public class GreatestConstrainedFirst {
             Set<Vertex> firstSelection = getFirstCriterium(graph, ordering);
             Set<Vertex> secondSelection = getSecondCriterium(graph, ordering, firstSelection);
             List<Vertex> thirdSelection = new LinkedList<>(getThirdCriterium(graph, ordering, firstSelection, secondSelection));
-            thirdSelection.sort(Comparator.comparingInt(Vertex::intData));
+            thirdSelection.sort(Comparator.comparingInt(Vertex::data));
             assert secondSelection.containsAll(thirdSelection);
             Vertex toAdd = thirdSelection.get(0);
             assert !ordering.contains(toAdd);

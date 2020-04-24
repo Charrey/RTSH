@@ -56,7 +56,10 @@ public abstract class SystemTest {
 
     protected Pair<GraphGeneration, GraphGeneration> readChallenge() throws IOException, ClassNotFoundException {
         try (ObjectInputStream oos = new ObjectInputStream(new FileInputStream(new File("challenge.txt")))) {
+            //noinspection unchecked
             return (Pair<GraphGeneration, GraphGeneration>) oos.readObject();
+        } catch (FileNotFoundException e) {
+            return null;
         }
     }
 

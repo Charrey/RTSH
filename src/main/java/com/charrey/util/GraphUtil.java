@@ -7,10 +7,8 @@ import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
-import org.jgrapht.alg.interfaces.VertexColoringAlgorithm;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
-import org.jgrapht.nio.Attribute;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -18,39 +16,6 @@ import java.util.stream.Collectors;
 
 public class GraphUtil {
 
-
-    public static VertexColoringAlgorithm.Coloring<Vertex> getLabelColoring(Graph<Vertex, DefaultEdge> pattern) {
-        Map<Set<Attribute>, Set<Vertex>> labelSets = new HashMap<>();
-        for (Vertex v : pattern.vertexSet()) {
-            labelSets.putIfAbsent(v.getLabels(), new HashSet<>());
-            labelSets.get(v.getLabels()).add(v);
-        }
-        List<Set<Vertex>> asList = new ArrayList<>(labelSets.values());
-        Map<Vertex, Integer> colouring = new HashMap<>();
-        for (int colourClass = 0; colourClass < asList.size(); colourClass++) {
-            for (Vertex v : asList.get(colourClass)) {
-                colouring.put(v, colourClass);
-            }
-        }
-
-
-        return new VertexColoringAlgorithm.Coloring<>() {
-            @Override
-            public int getNumberColors() {
-                return labelSets.size();
-            }
-
-            @Override
-            public Map<Vertex, Integer> getColors() {
-                return colouring;
-            }
-
-            @Override
-            public List<Set<Vertex>> getColorClasses() {
-                return asList;
-            }
-        };
-    }
 
     public static  Set<Vertex> neighboursOf(Graph<Vertex, DefaultEdge> g, Vertex vertex) {
         return g.edgesOf(vertex)
@@ -95,7 +60,7 @@ public class GraphUtil {
         Map<Vertex, Vertex> mapping = new IndexMap<>(pattern.vertexSet().size());
 
         List<Vertex> vertices = new LinkedList<>(pattern.vertexSet());
-        vertices.sort(Comparator.comparingInt(Vertex::intData));
+        vertices.sort(Comparator.comparingInt(Vertex::data));
         Collections.shuffle(vertices, new RandomAdaptor(random));
         for (Vertex v : vertices) {
             Vertex added = res.addVertex();
@@ -104,8 +69,8 @@ public class GraphUtil {
         }
         List<DefaultEdge> edges = new LinkedList<>(pattern.edgeSet());
         edges.sort((o1, o2) -> {
-            int compareFirst = Integer.compare(pattern.getEdgeSource(o1).intData(), pattern.getEdgeSource(o2).intData());
-            int compareSecond = Integer.compare(pattern.getEdgeTarget(o1).intData(), pattern.getEdgeTarget(o2).intData());
+            int compareFirst = Integer.compare(pattern.getEdgeSource(o1).data(), pattern.getEdgeSource(o2).data());
+            int compareSecond = Integer.compare(pattern.getEdgeTarget(o1).data(), pattern.getEdgeTarget(o2).data());
             return compareFirst == 0 ? compareSecond : compareFirst;
         });
         Collections.shuffle(edges, new RandomAdaptor(random));

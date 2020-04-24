@@ -15,11 +15,11 @@ public class Vertex implements Serializable, Comparable<Vertex> {
     private static int counter = 0;
     private final int counterValue;
     private Graph<Vertex, DefaultEdge> graph;
-    private Serializable data;
+    private int data;
     protected Map<String, Set<Attribute>> attributes = new HashMap<>();
 
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-    public Vertex(Serializable data) {
+    public Vertex(int data) {
         this.data = data;
         counterValue = ++counter;
     }
@@ -47,11 +47,7 @@ public class Vertex implements Serializable, Comparable<Vertex> {
         return attributes.getOrDefault("label", Collections.emptySet());
     }
 
-    public boolean containsLabel(String routing) {
-        return attributes.getOrDefault("label", Collections.emptySet()).contains(new DefaultAttribute<>(routing, AttributeType.STRING));
-    }
-
-    public void setData(Serializable newData) {
+    public void setData(int newData) {
         data = newData;
     }
 
@@ -61,12 +57,7 @@ public class Vertex implements Serializable, Comparable<Vertex> {
 
     @Override
     public int compareTo(@Nonnull Vertex o) {
-        if (data instanceof Comparable) {
-            //noinspection rawtypes,unchecked
-            return ((Comparable) data).compareTo(o.data);
-        } else {
-            throw new UnsupportedOperationException();
-        }
+        return Integer.compare(data, o.data);
     }
 
     @Override
@@ -79,14 +70,10 @@ public class Vertex implements Serializable, Comparable<Vertex> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(counterValue);
+        return counterValue;
     }
 
-    public int intData() {
-        return (int) data;
-    }
-
-    public Object getData() {
+    public int data() {
         return data;
     }
 }

@@ -26,7 +26,7 @@ public class AllDifferent {
             return false;
         } else {
             final Map<Vertex, int[]> domains = new IndexMap<>(graphSize);
-            allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::intData).toArray()));
+            allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::data).toArray()));
             if (domains.values().stream().anyMatch(x -> x.length == 0)) {
                 return false;
             }

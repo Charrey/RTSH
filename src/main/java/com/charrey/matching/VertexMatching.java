@@ -6,12 +6,11 @@ import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class VertexMatching extends VertexBlocker {
 
 
-    private final CopyOnWriteArrayList<Vertex> placement = new CopyOnWriteArrayList<>();
+    private final ArrayList<Vertex> placement = new ArrayList<>();
     private final Vertex[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
     private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
     private final Occupation occupation;
@@ -62,9 +61,8 @@ public class VertexMatching extends VertexBlocker {
     }
 
 
-
-    public List<Vertex> getPlacement() {
-        return Collections.unmodifiableList(new LinkedList<>(placement));
+    public List<Vertex> getPlacementUnsafe() {
+        return placement;
     }
 
 
@@ -78,7 +76,7 @@ public class VertexMatching extends VertexBlocker {
         return placement.size() > 0;
     }
 
-    public void retry() {
+    public void removeLast() {
         if (placement.size() < candidateToChooseNext.length) {
             candidateToChooseNext[placement.size()] = 0;
         }

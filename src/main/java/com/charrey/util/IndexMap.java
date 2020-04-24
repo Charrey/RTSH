@@ -36,7 +36,7 @@ public class IndexMap <T> implements Map<Vertex, T> {
         if (key == null) {
             throw new NullPointerException("IndexMap may not contain null keys.");
         }
-        return keys[((Vertex) key).intData()] == key;
+        return keys[((Vertex) key).data()] == key;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class IndexMap <T> implements Map<Vertex, T> {
         if (key == null) {
             throw new NullPointerException("IndexMap may not contain null keys.");
         }
-        return values.get(((Vertex) key).intData());
+        return values.get(((Vertex) key).data());
     }
 
     @Override
@@ -59,21 +59,21 @@ public class IndexMap <T> implements Map<Vertex, T> {
         } else if (value == null) {
             throw new NullPointerException("IndexMap may not contain null values.");
         } else {
-            T before = values.get(key.intData());
+            T before = values.get(key.data());
             if (before == null) {
                 size++;
             }
-            values.set(key.intData(), value);
-            keys[key.intData()] = key;
+            values.set(key.data(), value);
+            keys[key.data()] = key;
             return before;
         }
     }
 
     @Override
     public T remove(Object key) {
-        T before = values.get(((Vertex)key).intData());
-        values.set(((Vertex)key).intData(), null);
-        keys[((Vertex)key).intData()] = null;
+        T before = values.get(((Vertex)key).data());
+        values.set(((Vertex)key).data(), null);
+        keys[((Vertex)key).data()] = null;
         if (before != null) {
             size--;
         }
