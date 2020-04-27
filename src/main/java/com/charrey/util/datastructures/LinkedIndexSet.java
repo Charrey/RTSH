@@ -9,12 +9,14 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
 
     private static final int ABSENT = -2;
     private static final int END = -1;
-    private int[] pointersBack;
-    private int[] pointersForward;
-    private T[] data;
+    private final int[] pointersBack;
+    private final int[] pointersForward;
+    private final T[] data;
     private int oldest = END;
     private int newest = END;
     private int size = 0;
+    private final Class<T> clazz;
+
 
 
     @SuppressWarnings("unchecked")
@@ -26,6 +28,7 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
             pointersForward[i] = ABSENT;
         }
         data = (T[]) java.lang.reflect.Array.newInstance(clazz, size);
+        this.clazz = clazz;
     }
 
     @Override
@@ -35,12 +38,19 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
 
     @Override
     public boolean isEmpty() {
-        throw new UnsupportedOperationException();
+        return size == 0;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean contains(Object o) {
-        throw new UnsupportedOperationException();
+        T object;
+        try {
+            object = (T) o;
+        } catch (ClassCastException e) {
+            return false;
+        }
+        return data[object.data()] != null;
     }
 
     @Override
@@ -61,9 +71,29 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
         return res;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public @NotNull <T1> T1[] toArray(@NotNull T1[] a) {
-        throw new UnsupportedOperationException();
+        if (a.length < size) {
+            try {
+                a = (T1[]) java.lang.reflect.Array.newInstance(clazz, size);
+            } catch (ClassCastException e) {
+                throw new ArrayStoreException();
+            }
+        }
+        Iterator<T> i = iterator();
+        int counter = 0;
+        while (i.hasNext()) {
+            T next = i.next();
+            try {
+                a[counter] = (T1) next;
+            } catch (ClassCastException e) {
+                throw new ArrayStoreException();
+            }
+            counter++;
+        }
+        return a;
+
     }
 
     @Override
@@ -107,8 +137,8 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
         if (next != END) {
             pointersBack[next] = previous;
         }
-        pointersForward[data] = -2;
-        pointersBack[data] = -2;
+        pointersForward[data] = ABSENT;
+        pointersBack[data] = ABSENT;
         this.data[data] = null;
         if (oldest == data) {
             oldest = END;
@@ -148,12 +178,27 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
 
     @Override
     public boolean retainAll(@NotNull Collection<?> c) {
-        throw new UnsupportedOperationException();
+        boolean changed = false;
+        for (Iterator<T> iterator = iterator(); iterator.hasNext();) {
+            T item = iterator.next();
+            if (!c.contains(item)) {
+                remove(item);
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     @Override
     public void clear() {
-        throw new UnsupportedOperationException();
+        for (int i = 0; i < this.data.length; i++) {
+            data[i] = null;
+            pointersBack[i] = ABSENT;
+            pointersForward[i] = ABSENT;
+        }
+        oldest = END;
+        newest = END;
+        size = 0;
     }
 
     private class LinkedIndexSetIterator implements Iterator<T> {
