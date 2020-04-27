@@ -3,10 +3,11 @@ package com.charrey.router;
 import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
+import com.charrey.util.datastructures.Indexable;
 
 import java.util.Arrays;
 
-public class PathIterator {
+public class PathIterator implements Indexable {
     private final Vertex head;
     private final Vertex tail;
 
@@ -97,5 +98,14 @@ public class PathIterator {
 
     public Vertex head() {
         return head;
+    }
+
+    public int hashCode() {
+        return (domainSize + 1) * head.data() + tail.data();
+    }
+
+    @Override
+    public int data() {
+        return (domainSize + 1) * head.data() + tail.data();
     }
 }

@@ -4,6 +4,7 @@ import com.charrey.Occupation;
 import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
+import com.charrey.util.datastructures.DomainChecker;
 
 import java.util.*;
 
@@ -38,7 +39,7 @@ public class VertexMatching extends VertexBlocker {
         while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
             candidateToChooseNext[placement.size()] = 0;
             Vertex removed = placement.remove(placement.size()-1);
-            occupation.releaseVertex(removed);
+            occupation.releaseVertex(placement.size(), removed);
             this.onDeletion.run(removed);
             candidateToChooseNext[placement.size()] += 1;
             assert canPlaceNext();
@@ -54,8 +55,17 @@ public class VertexMatching extends VertexBlocker {
                 return null;
             }
         } else {
-            occupation.occupyVertex(toAdd);
-            placement.add(toAdd);
+            try {
+                occupation.occupyVertex(placement.size(), toAdd);
+                placement.add(toAdd);
+            } catch (DomainChecker.EmptyDomainException e) {
+                candidateToChooseNext[placement.size()] += 1;
+                if (canPlaceNext()) {
+                    return placeNext();
+                } else {
+                    return null;
+                }
+            }
         }
         return this;
     }
@@ -81,7 +91,7 @@ public class VertexMatching extends VertexBlocker {
             candidateToChooseNext[placement.size()] = 0;
         }
         Vertex removed = placement.remove(placement.size()-1);
-        occupation.releaseVertex(removed);
+        occupation.releaseVertex(placement.size(), removed);
         this.onDeletion.run(removed);
         candidateToChooseNext[placement.size()] += 1;
     }

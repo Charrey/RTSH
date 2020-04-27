@@ -8,6 +8,7 @@ import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class UtilityData {
     private final Graph<Vertex, DefaultEdge> targetGraph;
@@ -40,6 +41,26 @@ public class UtilityData {
             }
         }
         return compatibility;
+    }
+
+    private Vertex[][] reverseCompatibility;
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public Vertex[][] getReverseCompatibility() {
+        if (reverseCompatibility == null) {
+            List[] tempReverseCompatibility = new List[targetGraph.vertexSet().size()];
+            IntStream.range(0, tempReverseCompatibility.length).forEach(x -> tempReverseCompatibility[x] = new LinkedList());
+            Vertex[][] compatibility = getCompatibility();
+            for (int sourceVertex = 0; sourceVertex < compatibility.length; sourceVertex++){
+                for (int targetVertexIndex = 0; targetVertexIndex < compatibility[sourceVertex].length; targetVertexIndex++) {
+                    tempReverseCompatibility[compatibility[sourceVertex][targetVertexIndex].data()].add(getOrder().get(sourceVertex));
+                }
+            }
+            reverseCompatibility = new Vertex[targetGraph.vertexSet().size()][];
+            for (int i = 0; i< reverseCompatibility.length; i++) {
+                reverseCompatibility[i] = (Vertex[]) tempReverseCompatibility[i].toArray(Vertex[]::new);
+            }
+        }
+        return reverseCompatibility;
     }
 
 

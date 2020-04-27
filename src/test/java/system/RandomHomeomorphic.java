@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class RandomHomeomorphic extends SystemTest {
 
 
-    private static final int ITERATIONS = 200;
+    private static final int ITERATIONS = 20;
 
     @Test
     public void systemTestSucceed() throws IOException, ClassNotFoundException {
@@ -23,11 +23,10 @@ public class RandomHomeomorphic extends SystemTest {
         }
         RandomTestCaseGenerator graphGen = new RandomTestCaseGenerator(6, 8, 3, 2);
         graphGen.init(ITERATIONS);
-        //showProgress();
         for (int i = 0; i < ITERATIONS; i++) {
             RandomTestCaseGenerator.TestCase testCase = graphGen.getNext();
             testSucceed(testCase);
-            printPercentage(i, ITERATIONS);
+            printPercentage(i+1, ITERATIONS);
         }
     }
 
