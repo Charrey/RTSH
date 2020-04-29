@@ -24,7 +24,7 @@ public class IsoFinder {
         BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.source.getGraph().vertexSet().size())).pow(testcase.target.getGraph().vertexSet().size());
         UtilityData data = new UtilityData(testcase.source.getGraph(), testcase.target.getGraph());
         BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility()).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
-        System.out.println("Reduced domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
+        LOG.info(() -> "Reduced domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
 
         if (Arrays.stream(data.getCompatibility()).anyMatch(x -> x.length == 0)) {
             return Optional.empty();
@@ -34,8 +34,9 @@ public class IsoFinder {
         EdgeMatching edgeMatching     = new EdgeMatching(vertexMatching, data, testcase.source, testcase.target, occupation);
         boolean exhausedAllPaths = false;
 
+        long iterations = 0;
         while (!allDone(testcase.source.getGraph(), testcase.target.getGraph(), vertexMatching, edgeMatching)) {
-
+            iterations++;
             LOG.fine(vertexMatching::toString);
             LOG.fine(edgeMatching::toString);
             if (exhausedAllPaths) {
@@ -62,7 +63,7 @@ public class IsoFinder {
         if (vertexMatching.getPlacementUnsafe().size() < testcase.source.getGraph().vertexSet().size()) {
             return Optional.empty();
         } else {
-            return Optional.of(new Homeomorphism(vertexMatching, edgeMatching));
+            return Optional.of(new Homeomorphism(vertexMatching, edgeMatching, iterations));
         }
     }
 
@@ -77,7 +78,7 @@ public class IsoFinder {
         if (!completeE) {
             return false;
         }
-        System.out.println("Done, checking...");
+        LOG.info(() -> "Done, checking...");
         assert  Util.isCorrect(pattern, target, vertexMatching, edgeMatching);
         return true;
     }

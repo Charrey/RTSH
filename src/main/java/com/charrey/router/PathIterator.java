@@ -46,10 +46,12 @@ public class PathIterator implements Indexable {
 
 
     public Path next() {
+        assert !exploration.isEmpty();
         if (exploration.head() == head) {
             chosen[exploration.length() - 2] += 1;
             exploration.removeHead();
         }
+        //assert exploration.length() < 2 || exploration.intermediate().stream().noneMatch(occupation::isOccupied);
         while (exploration.head() != head) {
             int index = exploration.length() - 1;
             assert index < chosen.length;
@@ -88,6 +90,7 @@ public class PathIterator implements Indexable {
             }
         }
         assert !exploration.isEmpty();
+        //assert exploration.intermediate().stream().noneMatch(occupation::isOccupied);
         return exploration;
     }
 
@@ -100,9 +103,6 @@ public class PathIterator implements Indexable {
         return head;
     }
 
-    public int hashCode() {
-        return (domainSize + 1) * head.data() + tail.data();
-    }
 
     @Override
     public int data() {

@@ -7,7 +7,6 @@ import com.charrey.util.datastructures.DomainChecker;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.ListIterator;
 
 public class Occupation {
 
@@ -27,44 +26,24 @@ public class Occupation {
         domainChecker = copy.domainChecker;
     }
 
-    public void occupyRouting(int verticesPlaced, Vertex v) throws DomainChecker.EmptyDomainException {
+    public void occupyRouting(int verticesPlaced, Vertex v) {
         assert !routingBits.get(v.data());
         routingBits.set(v.data());
-        try {
-            domainChecker.afterOccupy(verticesPlaced, v);
-        } catch (DomainChecker.EmptyDomainException e) {
-            routingBits.clear(v.data());
-            throw e;
+        domainChecker.afterOccupy(verticesPlaced, v);
+
+    }
+
+    public void occupyRouting(int verticesPlaced, List<Vertex> vs)  {
+        for (Vertex v : vs) {
+            occupyRouting(verticesPlaced, v);
         }
     }
 
-    public void occupyRouting(int verticesPlaced, List<Vertex> vs) throws DomainChecker.EmptyDomainException {
-        ListIterator<Vertex> iterator = vs.listIterator();
-        while (iterator.hasNext()) {
-            Vertex v = iterator.next();
-            try {
-                occupyRouting(verticesPlaced, v);
-            } catch (DomainChecker.EmptyDomainException e) {
-                iterator.previous();
-                while (iterator.hasPrevious()) {
-                    v = iterator.previous();
-                    releaseRouting(verticesPlaced, v);
-                }
-                throw e;
-            }
-        }
-    }
-
-    public void occupyVertex(int source, Vertex target) throws DomainChecker.EmptyDomainException {
+    public void occupyVertex(int source, Vertex target) {
         assert !routingBits.get(target.data());
         assert !vertexBits.get(target.data());
         vertexBits.set(target.data());
-        try {
-            domainChecker.afterOccupy(source, target);
-        } catch (DomainChecker.EmptyDomainException e) {
-            vertexBits.clear(target.data());
-            throw e;
-        }
+        domainChecker.afterOccupy(source, target);
     }
 
 

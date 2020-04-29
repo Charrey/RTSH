@@ -37,12 +37,16 @@ public class RandomTestCaseGenerator {
     }
 
     private final Deque<TestCase> testCases = new ArrayDeque<>();
-    public void init(int amount) {
+    public void init(int amount, boolean print) {
         testCases.clear();
-        System.out.println("Generating graphs..");
+        if (print) {
+            System.out.println("Generating graphs..");
+        }
         for (int i = 0; i < amount; i++) {
             testCases.add(getRandom());
-            System.out.println(i + "/" + amount);
+            if (print) {
+                System.out.println(i + "/" + amount);
+            }
         }
     }
 
@@ -57,7 +61,7 @@ public class RandomTestCaseGenerator {
         Graph<Vertex, DefaultEdge> pattern = getPattern(patternNodes, patternEdges, randomGen.nextLong());
         Graph<Vertex, DefaultEdge> targetGraph = GraphUtil.copy(pattern, randomGen);
         insertIntermediateNodes(targetGraph, extraRoutingNodes, randomGen);
-        addExtraNodes(targetGraph, extraNodes, patternEdges / (double) patternNodes, randomGen);
+        addExtraNodes(targetGraph, extraNodes, patternNodes == 0 ? 0 : patternEdges / (double) patternNodes, randomGen);
         return new TestCase(new GraphGeneration(pattern, new RoutingVertexTable()), new GraphGeneration(targetGraph, new RoutingVertexTable()));
     }
 
@@ -93,6 +97,9 @@ public class RandomTestCaseGenerator {
     private void addExtraNodes(Graph<Vertex, DefaultEdge> targetGraph, int extraNodes, double expectedEdges, RandomGenerator randomGen) {
         Map<Vertex, Integer> neededEdges = new HashMap<>();
         Map<Vertex, Integer> actualEdges = new HashMap<>();
+        if (expectedEdges == 0) {
+            return;
+        }
         IntegerDistribution distribution = new GeometricDistribution(randomGen, 1./(expectedEdges+1));
         for (int i = 0; i < extraNodes; i++) {
             Vertex vertex = targetGraph.addVertex();

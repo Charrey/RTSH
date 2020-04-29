@@ -2,6 +2,7 @@ package unit;
 
 import com.charrey.util.datastructures.Indexable;
 import com.charrey.util.datastructures.LinkedIndexSet;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -10,20 +11,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LinkedIndexSetTest {
 
-    @Test
-    public void testInsert() {
-        final int ITS = 10000000;
-        Set<IndexableImpl> hashSet = new HashSet<>();
-        Set<IndexableImpl> linkedIndexSet = new LinkedIndexSet<>(ITS, IndexableImpl.class);
+    private HashSet<Indexable> hashSet;
+    private LinkedIndexSet<IndexableImpl> linkedIndexSet;
+    private int ITS;
+    private List<IndexableImpl> elements;
+
+    @BeforeEach
+    public void init() {
+        ITS = 1000000;
+        hashSet = new HashSet<>((int) (ITS * 1.3), 1);
+        linkedIndexSet = new LinkedIndexSet<>(ITS, IndexableImpl.class);
+
+
         assertEquals(0, hashSet.size());
         assertEquals(0, linkedIndexSet.size());
+
+        elements = getIndexable(ITS);
+        Collections.shuffle(elements);
+    }
+
+    @Test
+    public void testInsert() {
         long start = System.currentTimeMillis();
-        hashSet.addAll(getIndexable(ITS));
+        hashSet.addAll(elements);
         long duration = System.currentTimeMillis() - start;
         System.out.println("Insert HashSet        for " + ITS + " elements: " + duration/1000. + "s");
         assertEquals(ITS, hashSet.size());
         start = System.currentTimeMillis();
-        linkedIndexSet.addAll(getIndexable(ITS));
+        linkedIndexSet.addAll(elements);
         duration = System.currentTimeMillis() - start;
         System.out.println("Insert LinkedIndexSet for " + ITS + " elements: " + duration/1000. + "s");
         assertEquals(ITS, linkedIndexSet.size());
@@ -31,13 +46,6 @@ public class LinkedIndexSetTest {
 
     @Test
     public void testRemove() {
-        final int ITS = 10000000;
-        Set<IndexableImpl> hashSet = new HashSet<>();
-        Set<IndexableImpl> linkedIndexSet = new LinkedIndexSet<>(ITS, IndexableImpl.class);
-        assertEquals(0, hashSet.size());
-        assertEquals(0, linkedIndexSet.size());
-
-        List<IndexableImpl> elements = getIndexable(ITS);
         hashSet.addAll(elements);
         linkedIndexSet.addAll(elements);
         Collections.shuffle(elements);
@@ -60,20 +68,13 @@ public class LinkedIndexSetTest {
 
     @Test
     public void testIterate(){
-        final int ITS = 10000000;
-        Set<IndexableImpl> hashSet = new HashSet<>();
-        Set<IndexableImpl> linkedIndexSet = new LinkedIndexSet<>(ITS, IndexableImpl.class);
-        assertEquals(0, hashSet.size());
-        assertEquals(0, linkedIndexSet.size());
-
-        List<IndexableImpl> elements = getIndexable(ITS);
         hashSet.addAll(elements);
         linkedIndexSet.addAll(elements);
         Collections.shuffle(elements);
 
         int count = 0;
         long start = System.currentTimeMillis();
-        for (IndexableImpl ignored : hashSet) {
+        for (Indexable ignored : hashSet) {
             count++;
         }
         long duration = System.currentTimeMillis() - start;
@@ -90,8 +91,6 @@ public class LinkedIndexSetTest {
         assertEquals(ITS, count);
     }
 
-
-
     private static List<IndexableImpl> getIndexable(int size) {
         List<IndexableImpl> res = new LinkedList<>();
         for (int i = 0; i < size; i++) {
@@ -99,8 +98,6 @@ public class LinkedIndexSetTest {
         }
         return res;
     }
-
-
 
 
     private static class IndexableImpl implements Indexable {

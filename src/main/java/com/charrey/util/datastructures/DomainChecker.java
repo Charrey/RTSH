@@ -28,7 +28,7 @@ public class DomainChecker {
         }
     }
 
-    public void afterOccupy(int verticesPlaced, Vertex v) throws EmptyDomainException {
+    public void afterOccupy(int verticesPlaced, Vertex v) {
         boolean bad = false;
         int revertFrom = reverseDomain[v.data()].length;
         for (int i = reverseDomain[v.data()].length - 1; i >= 0; i--) {
@@ -52,6 +52,6 @@ public class DomainChecker {
         }
     }
 
-    public static class EmptyDomainException extends Throwable {
-    }
+//    public static class EmptyDomainException extends Throwable {
+//    }
 }

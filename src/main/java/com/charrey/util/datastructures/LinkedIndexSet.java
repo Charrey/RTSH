@@ -98,6 +98,7 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
 
     @Override
     public boolean add(T t) {
+        assert t != null;
         int data = t.data();
         if (this.data[data] != null) {
             return false;
@@ -137,11 +138,14 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
         if (next != END) {
             pointersBack[next] = previous;
         }
-        pointersForward[data] = ABSENT;
         pointersBack[data] = ABSENT;
         this.data[data] = null;
         if (oldest == data) {
-            oldest = END;
+            oldest = pointersForward[data];
+        }
+        pointersForward[data] = ABSENT;
+        if (newest == data) {
+            newest = previous;
         }
         size--;
         return true;
@@ -203,6 +207,7 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
 
     private class LinkedIndexSetIterator implements Iterator<T> {
         int cursor = oldest;
+        boolean calledNext;
 
         @Override
         public boolean hasNext() {
@@ -213,12 +218,15 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
         public T next() {
             T nextElem = data[cursor];
             cursor = pointersForward[cursor];
+            calledNext = true;
             return nextElem;
         }
 
         @Override
         public void remove() {
-            LinkedIndexSet.this.remove(pointersBack[cursor]);
+            if (cursor != -1) {
+                LinkedIndexSet.this.remove(pointersBack[cursor]);
+            }
         }
     }
 }

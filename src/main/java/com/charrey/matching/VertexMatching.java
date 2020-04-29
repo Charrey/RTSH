@@ -1,12 +1,13 @@
 package com.charrey.matching;
 
 import com.charrey.Occupation;
-import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.graph.Vertex;
+import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.DomainChecker;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class VertexMatching extends VertexBlocker {
 
@@ -55,17 +56,8 @@ public class VertexMatching extends VertexBlocker {
                 return null;
             }
         } else {
-            try {
-                occupation.occupyVertex(placement.size(), toAdd);
-                placement.add(toAdd);
-            } catch (DomainChecker.EmptyDomainException e) {
-                candidateToChooseNext[placement.size()] += 1;
-                if (canPlaceNext()) {
-                    return placeNext();
-                } else {
-                    return null;
-                }
-            }
+            occupation.occupyVertex(placement.size(), toAdd);
+            placement.add(toAdd);
         }
         return this;
     }
