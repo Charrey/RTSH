@@ -6,10 +6,10 @@ import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.router.PathIterator;
 import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.IndexMap;
 import com.charrey.util.datastructures.LinkedIndexSet;
 import com.charrey.util.datastructures.MultipleKeyMap;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class EdgeMatching extends VertexBlocker {
@@ -22,12 +22,13 @@ public class EdgeMatching extends VertexBlocker {
     private final Occupation occupation;
 
     private Vertex[][] edges; //do not change
-    public LinkedList<LinkedList<Path>> paths;
+    public ArrayList<LinkedList<Path>> paths;
 
-    private final Map<Vertex, LinkedIndexSet<PathIterator>> headMap2;
-    private final Map<Vertex, LinkedIndexSet<PathIterator>> tailMap2;
+    private final LinkedIndexSet<PathIterator>[] headMap2;
+    private final LinkedIndexSet<PathIterator>[] tailMap2;
     private final UtilityData data;
 
+    @SuppressWarnings("unchecked")
     public EdgeMatching(VertexMatching vertexMatching, UtilityData data, GraphGeneration source, GraphGeneration target, Occupation occupation) {
         this.vertexMatching = vertexMatching;
         this.source = source;
@@ -39,17 +40,17 @@ public class EdgeMatching extends VertexBlocker {
         this.vertexMatching.setOnDeletion(em::synchronize);
         this.occupation = occupation;
         this.domainSize = target.getGraph().vertexSet().size();
-        headMap2 = new IndexMap<>(domainSize);
-        tailMap2 = new IndexMap<>(domainSize);
+        headMap2 = (LinkedIndexSet<PathIterator>[]) Array.newInstance(LinkedIndexSet.class, domainSize);
+        tailMap2 = (LinkedIndexSet<PathIterator>[]) Array.newInstance(LinkedIndexSet.class, domainSize);
         for (Vertex v: target.getGraph().vertexSet()) {
-            headMap2.put(v, new LinkedIndexSet<>(domainSize * (1 + domainSize), PathIterator.class));
-            tailMap2.put(v, new LinkedIndexSet<>(domainSize * (1 + domainSize), PathIterator.class));
+            headMap2[v.data()] = new LinkedIndexSet<>(domainSize * (1 + domainSize), PathIterator.class);
+            tailMap2[v.data()] = new LinkedIndexSet<>(domainSize * (1 + domainSize), PathIterator.class);
         }
 
     }
 
     private void initPathFinders(int targetSize, UtilityData data) {
-        pathfinders = new MultipleKeyMap<>(targetSize, targetSize);
+        pathfinders = new MultipleKeyMap<>(targetSize, targetSize, PathIterator.class);
         while (paths.size() < data.getOrder().size()) {
             paths.add(new LinkedList<>());
         }
@@ -91,8 +92,8 @@ public class EdgeMatching extends VertexBlocker {
             } else {
                 occupation.occupyRouting(vertexMatching.getPlacementUnsafe().size(), pathList.get(pathList.size() - 1).intermediate());
                 pathfinders.remove(tail, head);
-                headMap2.get(head).remove(pathfinder);
-                tailMap2.get(tail).remove(pathfinder);
+                headMap2[head.data()].remove(pathfinder);
+                tailMap2[tail.data()].remove(pathfinder);
                 removeLastPath();
             }
 
@@ -106,21 +107,23 @@ public class EdgeMatching extends VertexBlocker {
         Vertex from = vertexMatching.getPlacementUnsafe().get(edges[lastPlacedIndex][paths.get(lastPlacedIndex).size()].data());
         Vertex to = vertexMatching.getPlacementUnsafe().get(lastPlacedIndex);
         Vertex tail = from.data() < to.data() ? from : to;
+        int tailData = tail.data();
         Vertex head = tail == from ? to : from;
+        int headData = head.data();
         assert tail.data() < head.data();
         if (!pathfinders.containsKey(tail, head)) {
             PathIterator toAdd = new PathIterator(domainSize, data.getTargetNeighbours(), tail, head, occupation);
-            if (!headMap2.get(head).contains(toAdd)) {
-                headMap2.get(head).add(toAdd);
+            if (!headMap2[headData].contains(toAdd)) {
+                headMap2[headData].add(toAdd);
             } else {
-                headMap2.get(head).remove(toAdd);
-                headMap2.get(head).add(toAdd);
+                headMap2[headData].remove(toAdd);
+                headMap2[headData].add(toAdd);
             }
-            if (!tailMap2.get(tail).contains(toAdd)) {
-                tailMap2.get(tail).add(toAdd);
+            if (!tailMap2[tailData].contains(toAdd)) {
+                tailMap2[tailData].add(toAdd);
             } else {
-                tailMap2.get(tail).remove(toAdd);
-                tailMap2.get(tail).add(toAdd);
+                tailMap2[tailData].remove(toAdd);
+                tailMap2[tailData].add(toAdd);
             }
             pathfinders.put(tail, head, toAdd);
         }
@@ -141,7 +144,7 @@ public class EdgeMatching extends VertexBlocker {
 
     private void initPathsEdges(UtilityData data) {
         edges = new Vertex[source.getGraph().vertexSet().size()][];
-        paths = new LinkedList<>();
+        paths = new ArrayList<>(data.getOrder().size());
         for (int i = 0; i < data.getOrder().size(); i++) {
             int tempi = i;
             edges[i] = data.getOrder().subList(0, i)
@@ -176,17 +179,18 @@ public class EdgeMatching extends VertexBlocker {
     }
 
     public void synchronize(Vertex vertex) {
+        int vertexData = vertex.data();
         assert !vertexMatching.getPlacementUnsafe().contains(vertex);
         paths.get(vertexMatching.getPlacementUnsafe().size()).forEach(x -> x.intermediate().forEach(y -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), y)));
         paths.get(vertexMatching.getPlacementUnsafe().size()).clear();
-        for (Iterator<PathIterator> i = headMap2.get(vertex).iterator(); i.hasNext();) {
+        for (Iterator<PathIterator> i = headMap2[vertexData].iterator(); i.hasNext();) {
             PathIterator pathIt = i.next();
-            pathfinders.removeIfPresent(pathIt.tail(), pathIt.head());
+            pathfinders.remove(pathIt.tail(), pathIt.head());
             i.remove();
         }
-        for (Iterator<PathIterator> i = tailMap2.get(vertex).iterator(); i.hasNext();) {
+        for (Iterator<PathIterator> i = tailMap2[vertexData].iterator(); i.hasNext();) {
             PathIterator pathIt = i.next();
-            pathfinders.removeIfPresent(pathIt.tail(), pathIt.head());
+            pathfinders.remove(pathIt.tail(), pathIt.head());
             i.remove();
         }
     }

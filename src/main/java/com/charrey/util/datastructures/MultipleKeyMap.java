@@ -2,38 +2,30 @@ package com.charrey.util.datastructures;
 
 import com.charrey.graph.Vertex;
 
-import java.util.Map;
+import java.lang.reflect.Array;
 
 public class MultipleKeyMap<V> {
 
-    private final int secondDomainSize;
+    private final V[][] nestedMap;
 
-    public MultipleKeyMap(int firstDomainSize, int secondDomainSize) {
-        nestedMap = new IndexMap<>(firstDomainSize);
-        this.secondDomainSize = secondDomainSize;
+    @SuppressWarnings("unchecked")
+    public MultipleKeyMap(int firstDomainSize, int secondDomainSize, Class<?> clazz) {
+        nestedMap = (V[][] ) Array.newInstance(clazz, firstDomainSize, secondDomainSize);
     }
 
-    private final Map<Vertex, Map<Vertex, V>> nestedMap;
     public boolean containsKey(Vertex a, Vertex b) {
-        return nestedMap.containsKey(a) && nestedMap.get(a).containsKey(b);
+        return nestedMap[a.data()][b.data()] != null;
     }
 
     public void put(Vertex a, Vertex b, V pathIterator) {
-        nestedMap.putIfAbsent(a, new IndexMap<>(secondDomainSize));
-        nestedMap.get(a).put(b, pathIterator);
+        nestedMap[a.data()][b.data()] = pathIterator;
     }
 
     public V get(Vertex a, Vertex b) {
-        return nestedMap.get(a).get(b);
+        return nestedMap[a.data()][b.data()];
     }
 
     public void remove(Vertex key, Vertex key1) {
-        nestedMap.get(key).remove(key1);
-    }
-
-    public void removeIfPresent(Vertex key, Vertex key2) {
-        if (containsKey(key, key2)) {
-            remove(key, key2);
-        }
+        nestedMap[key.data()][key1.data()] = null;
     }
 }

@@ -134,19 +134,17 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
         int next = pointersForward[data];
         if (previous != END) {
             pointersForward[previous] = next;
+        } else {
+            oldest = pointersForward[data];
         }
         if (next != END) {
             pointersBack[next] = previous;
+        } else {
+            newest = previous;
         }
         pointersBack[data] = ABSENT;
         this.data[data] = null;
-        if (oldest == data) {
-            oldest = pointersForward[data];
-        }
         pointersForward[data] = ABSENT;
-        if (newest == data) {
-            newest = previous;
-        }
         size--;
         return true;
     }

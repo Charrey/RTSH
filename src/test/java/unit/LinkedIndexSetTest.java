@@ -18,10 +18,9 @@ public class LinkedIndexSetTest {
 
     @BeforeEach
     public void init() {
-        ITS = 1000000;
-        hashSet = new HashSet<>((int) (ITS * 1.3), 1);
+        ITS = 100000;
+        hashSet = new HashSet<>(ITS);
         linkedIndexSet = new LinkedIndexSet<>(ITS, IndexableImpl.class);
-
 
         assertEquals(0, hashSet.size());
         assertEquals(0, linkedIndexSet.size());
@@ -32,6 +31,8 @@ public class LinkedIndexSetTest {
 
     @Test
     public void testInsert() {
+//        hashSet.addAll(elements);
+//        hashSet.removeAll(elements);
         long start = System.currentTimeMillis();
         hashSet.addAll(elements);
         long duration = System.currentTimeMillis() - start;
