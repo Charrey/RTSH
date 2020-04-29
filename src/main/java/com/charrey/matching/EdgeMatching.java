@@ -132,7 +132,8 @@ public class EdgeMatching extends VertexBlocker {
         try {
             toReturn = iterator.next();
         } catch (AssertionError e) {
-            pathfinders.remove(tail, head);
+            pathfinders.get(tail, head).reset();
+            //pathfinders.remove(tail, head);
         }
         if (toReturn != null) {
             addPath(toReturn);
@@ -185,12 +186,12 @@ public class EdgeMatching extends VertexBlocker {
         paths.get(vertexMatching.getPlacementUnsafe().size()).clear();
         for (Iterator<PathIterator> i = headMap2[vertexData].iterator(); i.hasNext();) {
             PathIterator pathIt = i.next();
-            pathfinders.remove(pathIt.tail(), pathIt.head());
+            pathfinders.get(pathIt.tail(), pathIt.head()).reset();
             i.remove();
         }
         for (Iterator<PathIterator> i = tailMap2[vertexData].iterator(); i.hasNext();) {
             PathIterator pathIt = i.next();
-            pathfinders.remove(pathIt.tail(), pathIt.head());
+            pathfinders.get(pathIt.tail(), pathIt.head()).reset();
             i.remove();
         }
     }

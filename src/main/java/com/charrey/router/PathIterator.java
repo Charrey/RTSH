@@ -13,10 +13,14 @@ public class PathIterator implements Indexable {
 
     private final Vertex[][] neighbours;
     private final int[] chosen;
-    private final Path exploration;
+    private Path exploration;
     private final Occupation occupation;
     private final int domainSize;
 
+    public void reset() {
+        exploration.reinit();
+        Arrays.fill(chosen, 0);
+    }
 
     public PathIterator(int domainSize, Vertex[][] neighbours, Vertex tail, Vertex head, Occupation occupation) {
         this.head = head;
@@ -27,21 +31,6 @@ public class PathIterator implements Indexable {
         Arrays.fill(chosen, 0);
         this.occupation = occupation;
         this.domainSize = domainSize;
-    }
-
-
-    public PathIterator(PathIterator pathIterator) {
-        this.head = pathIterator.head;
-        this.tail = pathIterator.tail;
-        this.neighbours = pathIterator.neighbours;
-        this.chosen = Arrays.copyOf(pathIterator.chosen, pathIterator.chosen.length);
-        this.exploration = new Path(pathIterator.exploration);
-        this.occupation = new Occupation(pathIterator.occupation);
-        this.domainSize = pathIterator.domainSize;
-    }
-
-    public boolean hasNext() {
-        return new PathIterator(this).next() != null;
     }
 
 
@@ -108,4 +97,6 @@ public class PathIterator implements Indexable {
     public int data() {
         return (domainSize + 1) * head.data() + tail.data();
     }
+
+
 }

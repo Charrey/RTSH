@@ -21,22 +21,9 @@ public abstract class SystemTest {
 
     private final Object challengeLock = new Object();
 
-    protected void printPercentage(int iterationsDone, int totalIterations) {
-        System.out.println((100 * iterationsDone / (double) totalIterations) + "% done");
-    }
-
     @BeforeAll
     public static void init() {
         Logger.getLogger("IsoFinder").addHandler(new LogHandler());
-    }
-
-    protected void printTime(long actualTime) {
-        long hours = actualTime / 3600000;
-        long minutes = (actualTime % 3600000) / 60000;
-        double seconds = (actualTime % 60000) / 1000d;
-        String positive = String.format(
-                "%d:%02d:%09f", hours, minutes, seconds);
-        System.out.println(positive);
     }
 
     protected Homeomorphism testSucceed(RandomTestCaseGenerator.TestCase testCase, boolean writeChallenge) throws IOException {

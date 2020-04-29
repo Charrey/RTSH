@@ -13,6 +13,7 @@ import org.jgrapht.generate.GnmRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +25,9 @@ public class RandomTestCaseGenerator {
     private final double extraRoutingNodes;
     private final int extraNodes;
 
+    private static final Random staticRandom = new Random();
     public RandomTestCaseGenerator(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes) {
-        this(patternNodes, patternEdges, extraRoutingNodes, extraNodes, System.currentTimeMillis());
+        this(patternNodes, patternEdges, extraRoutingNodes, extraNodes, staticRandom.nextLong());
     }
 
     public RandomTestCaseGenerator(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes, long seed) {
@@ -128,7 +130,7 @@ public class RandomTestCaseGenerator {
 
 
 
-    public static class TestCase {
+    public static class TestCase implements Serializable {
         public final GraphGeneration target;
         public final GraphGeneration source;
 

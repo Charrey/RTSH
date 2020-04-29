@@ -19,7 +19,7 @@ public class RandomSystemTests extends SystemTest {
         int patternNodes = 1;
         int patternEdges = 0;
         long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < (1000 * 60)) {
+        while (true) {
             RandomTestCaseGenerator graphGen = new RandomTestCaseGenerator(patternNodes, patternEdges, 0.1, 2);
             try {
                 graphGen.init(ITERATIONS, false);
@@ -30,6 +30,9 @@ public class RandomSystemTests extends SystemTest {
             }
             double total = 0.;
             for (int i = 0; i < ITERATIONS; i++) {
+                if (System.currentTimeMillis() - start > 60000) {
+                    return;
+                }
                 RandomTestCaseGenerator.TestCase testCase = graphGen.getNext();
                 Homeomorphism homeomorphism = testSucceed(testCase, true);
                 total += homeomorphism.getIterations();

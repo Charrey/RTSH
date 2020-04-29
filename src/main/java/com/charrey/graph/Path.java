@@ -8,16 +8,25 @@ public class Path {
 
     private final ArrayList<Vertex> path;
     private final BitSet containing;
+    private final Vertex initialVertex;
 
-    public Path(Vertex init, int maxSize) {
+    public Path(Vertex initialVertex, int maxSize) {
+        this.initialVertex = initialVertex;
         path = new ArrayList<>(maxSize);
         containing = new BitSet(maxSize);
-        append(init);
+        append(initialVertex);
+    }
+
+    public void reinit() {
+        containing.clear();
+        path.clear();
+        path.add(initialVertex);
     }
 
     public Path(Path found) {
         this.path = new ArrayList<>(found.path);
         this.containing = (BitSet) found.containing.clone();
+        this.initialVertex = found.initialVertex;
     }
 
     public boolean append(Vertex toAdd) {
@@ -71,4 +80,6 @@ public class Path {
     public String toString() {
         return "Path{" + path + '}';
     }
+
+
 }
