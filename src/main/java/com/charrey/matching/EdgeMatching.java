@@ -1,6 +1,7 @@
 package com.charrey.matching;
 
 import com.charrey.Occupation;
+import com.charrey.exceptions.EmptyDomainException;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
@@ -11,6 +12,7 @@ import com.charrey.util.datastructures.MultipleKeyMap;
 
 import java.lang.reflect.Array;
 import java.util.*;
+
 
 public class EdgeMatching extends VertexBlocker {
 
@@ -87,22 +89,29 @@ public class EdgeMatching extends VertexBlocker {
             if (pathFound != null) {
                 Path toAdd = new Path(pathFound);
                 pathList.set(pathList.size() - 1, toAdd);
-                occupation.occupyRouting(vertexMatching.getPlacementUnsafe().size(), pathList.get(pathList.size() - 1).intermediate());
+                try {
+                    occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), pathList.get(pathList.size() - 1).intermediate());
+                } catch (EmptyDomainException e) {
+                    pathList.remove(pathList.size()-1);
+                    return false;
+                }
                 return true;
             } else {
-                occupation.occupyRouting(vertexMatching.getPlacementUnsafe().size(), pathList.get(pathList.size() - 1).intermediate());
+                try {
+                    occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), pathList.get(pathList.size() - 1).intermediate());
+                } catch (EmptyDomainException ignored) {}
                 pathfinders.remove(tail, head);
                 headMap2[head.data()].remove(pathfinder);
                 tailMap2[tail.data()].remove(pathfinder);
                 removeLastPath();
             }
-
         }
         return false;
     }
 
     public Path placeNextUnmatched() {
         assert this.hasUnmatched();
+        //get things
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
         Vertex from = vertexMatching.getPlacementUnsafe().get(edges[lastPlacedIndex][paths.get(lastPlacedIndex).size()].data());
         Vertex to = vertexMatching.getPlacementUnsafe().get(lastPlacedIndex);
@@ -111,6 +120,7 @@ public class EdgeMatching extends VertexBlocker {
         Vertex head = tail == from ? to : from;
         int headData = head.data();
         assert tail.data() < head.data();
+        //get pathIterator
         if (!pathfinders.containsKey(tail, head)) {
             PathIterator toAdd = new PathIterator(domainSize, data.getTargetNeighbours(), tail, head, occupation);
             headMap2[headData].remove(toAdd);
@@ -125,10 +135,13 @@ public class EdgeMatching extends VertexBlocker {
             toReturn = iterator.next();
         } catch (AssertionError e) {
             pathfinders.get(tail, head).reset();
-            //pathfinders.remove(tail, head);
         }
         if (toReturn != null) {
-            addPath(toReturn);
+            try {
+                addPath(toReturn);
+            } catch (EmptyDomainException e) {
+                return placeNextUnmatched();
+            }
             return toReturn;
         }
         return null;
@@ -150,14 +163,18 @@ public class EdgeMatching extends VertexBlocker {
 
     }
 
-    private void addPath(Path found) {
+    private void addPath(Path found) throws EmptyDomainException {
         assert !found.isEmpty();
         assert found.head().data() > found.tail().data();
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
         Path added = new Path(found);
         paths.get(lastPlacedIndex).add(added);
-        occupation.occupyRouting(vertexMatching.getPlacementUnsafe().size(), added.intermediate());
-
+        try {
+            occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), added.intermediate());
+        } catch (EmptyDomainException e) {
+            paths.get(lastPlacedIndex).removeLast();
+            throw e;
+        }
     }
 
     @Override

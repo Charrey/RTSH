@@ -1,11 +1,13 @@
 package com.charrey;
 
+import com.charrey.exceptions.EmptyDomainException;
 import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.DomainChecker;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.ListIterator;
 
 public class Occupation {
 
@@ -22,8 +24,16 @@ public class Occupation {
     public void occupyRouting(int verticesPlaced, Vertex v) {
         assert !routingBits.get(v.data());
         routingBits.set(v.data());
-        domainChecker.afterOccupy(verticesPlaced, v);
+        try {
+            domainChecker.afterOccupy(verticesPlaced, v);
+        } catch (EmptyDomainException ignored) {
+        }
+    }
 
+    public void occupyRoutingAndCheck(int verticesPlaced, Vertex v) throws EmptyDomainException {
+        assert !routingBits.get(v.data());
+        routingBits.set(v.data());
+        domainChecker.afterOccupy(verticesPlaced, v);
     }
 
     public void occupyRouting(int verticesPlaced, List<Vertex> vs)  {
@@ -32,11 +42,44 @@ public class Occupation {
         }
     }
 
+    public void occupyRoutingAndCheck(int verticesPlaced, List<Vertex> vs) throws EmptyDomainException {
+        ListIterator<Vertex> it = vs.listIterator();
+        while (it.hasNext()) {
+            Vertex item = it.next();
+            try {
+                occupyRoutingAndCheck(verticesPlaced, item);
+            } catch (EmptyDomainException e) {
+                while (it.hasPrevious()) {
+                    item = it.previous();
+                    releaseRouting(verticesPlaced, item);
+                }
+                throw new EmptyDomainException();
+            }
+        }
+    }
+    //2m8s
+
+//    public void occupyRoutingAndCheck(int verticesPlaced, List<Vertex> vs) throws EmptyDomainException {
+//        ListIterator<Vertex> it = vs.listIterator();
+//        while (it.hasNext()) {
+//            Vertex item = it.next();
+//            try {
+//                occupyRoutingAndCheck(verticesPlaced, item);
+//            } catch (EmptyDomainException e) {
+//                while (it.hasPrevious()) {
+//                    item = it.previous();
+//                    releaseRouting(verticesPlaced, item);
+//                }
+//                throw new EmptyDomainException();
+//            }
+//        }
+//    }
+
     public void occupyVertex(int source, Vertex target) {
         assert !routingBits.get(target.data());
         assert !vertexBits.get(target.data());
         vertexBits.set(target.data());
-        domainChecker.afterOccupy(source, target);
+        //domainChecker.afterOccupy(source, target);
     }
 
 
@@ -65,4 +108,7 @@ public class Occupation {
     }
 
 
+    public BitSet getRoutingBits() {
+        return routingBits;
+    }
 }

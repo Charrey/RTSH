@@ -1,5 +1,6 @@
 package com.charrey.util.datastructures;
 
+import com.charrey.exceptions.EmptyDomainException;
 import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
 
@@ -28,7 +29,7 @@ public class DomainChecker {
         }
     }
 
-    public void afterOccupy(int verticesPlaced, Vertex v) {
+    public void afterOccupy(int verticesPlaced, Vertex v) throws EmptyDomainException {
         boolean bad = false;
         int revertFrom = reverseDomain[v.data()].length;
         for (int i = reverseDomain[v.data()].length - 1; i >= 0; i--) {
@@ -48,7 +49,7 @@ public class DomainChecker {
             domainSizes[reverseDomain[v.data()][i].data()]++;
         }
         if (bad) {
-            //throw new EmptyDomainException();
+            throw new EmptyDomainException();
         }
     }
 

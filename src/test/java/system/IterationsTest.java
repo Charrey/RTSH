@@ -5,10 +5,7 @@ import com.charrey.graph.generation.RandomTestCaseGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.time.Duration;
 import java.util.*;
 
@@ -17,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTimeout;
 public class IterationsTest extends SystemTest {
 
 //    public static void main(String[] args) throws IOException {
-//        for (int i = 0; i < 300; i++) {
+//        for (int i = 0; i < 100; i++) {
 //            List<Integer> patternNodesDomain = new java.util.ArrayList<>(List.of(5, 6, 7, 8, 9, 10, 11, 12));
 //            Collections.shuffle(patternNodesDomain);
 //            int patternNodes = patternNodesDomain.get(0);
@@ -38,8 +35,8 @@ public class IterationsTest extends SystemTest {
 //    }
 
 
-    private final long iterations = 187292466; // 29-04-2020 15:19
-    private final long bestTime = 70000; // 29-04-2020 15:39
+    private static final long iterations = 323443735; // 29-04-2020 15:19
+    private static final long bestTime = 118000; // 29-04-2020 15:39
     @Test
     public void testSmall() {
         List<RandomTestCaseGenerator.TestCase> res = new ArrayList<>();
@@ -58,7 +55,6 @@ public class IterationsTest extends SystemTest {
             }
         }
 
-        long start = System.currentTimeMillis();
         its = 0;
         assertTimeout(Duration.ofMillis((long) (bestTime * 1.1)), () -> {
             for(RandomTestCaseGenerator.TestCase tc : res) {
@@ -69,7 +65,6 @@ public class IterationsTest extends SystemTest {
         });
 
         Assertions.assertEquals(iterations, its);
-        Assertions.assertEquals(bestTime, System.currentTimeMillis() - start);
     }
 
     long its;
