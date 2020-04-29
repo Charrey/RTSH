@@ -4,7 +4,6 @@ import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.DomainChecker;
 
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
@@ -18,12 +17,6 @@ public class Occupation {
         this.domainChecker = new DomainChecker(data);
         this.routingBits = new BitSet(size);
         this.vertexBits = new BitSet(size);
-    }
-
-    public Occupation(Occupation copy) {
-        this.routingBits = (BitSet) copy.routingBits.clone();
-        this.vertexBits = (BitSet) copy.vertexBits.clone();
-        domainChecker = copy.domainChecker;
     }
 
     public void occupyRouting(int verticesPlaced, Vertex v) {
@@ -72,8 +65,4 @@ public class Occupation {
     }
 
 
-    private final List<OccupationListener> listeners = new ArrayList<>();
-    public void register(OccupationListener listener) {
-        listeners.add(listener);
-    }
 }

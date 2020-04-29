@@ -38,13 +38,14 @@ public class IterationsTest extends SystemTest {
 //    }
 
 
-    long iterations = 187292466; // 29-04-2020 15:19
-    long bestTime = 70000; // 29-04-2020 15:39
+    private final long iterations = 187292466; // 29-04-2020 15:19
+    private final long bestTime = 70000; // 29-04-2020 15:39
     @Test
     public void testSmall() {
         List<RandomTestCaseGenerator.TestCase> res = new ArrayList<>();
         File folder = new File("performanceTests/5-12");
         File[] listOfFiles = folder.listFiles();
+        assert listOfFiles != null;
         Arrays.sort(listOfFiles, Comparator.comparingInt(o -> Integer.parseInt(o.getName().split("\\.")[0])));
         Map<RandomTestCaseGenerator.TestCase, String> filenames = new HashMap<>();
         for (File listOfFile : listOfFiles) {

@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 public class IndexMap <T> implements Map<Vertex, T> {
 
-    Vertex[] keys;
-    List<T> values;
+    private Vertex[] keys;
+    private final List<T> values;
     private int size = 0;
 
     public IndexMap(int maxSize) {

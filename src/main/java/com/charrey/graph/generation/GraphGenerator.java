@@ -15,13 +15,9 @@ public class GraphGenerator {
     public static GraphGeneration getTarget() {
         Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new IntGenerator(), DefaultEdge::new, false);
         Vertex p1 = pattern.addVertex().addLabel("normal");
-        p1.setGraph(pattern);
         Vertex p2 = pattern.addVertex().addLabel("normal");
-        p2.setGraph(pattern);
         Vertex p3 = pattern.addVertex().addLabel("normal");
-        p3.setGraph(pattern);
         Vertex p4 = pattern.addVertex().addLabel("normal");
-        p4.setGraph(pattern);
         pattern.addEdge(p1, p2);
         pattern.addEdge(p1, p3);
         pattern.addEdge(p1, p4);
@@ -35,15 +31,10 @@ public class GraphGenerator {
     public static GraphGeneration getPattern() {
         Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new IntGenerator(), new BasicEdgeSupplier(), false);
         Vertex p0 = pattern.addVertex().addLabel("normal");
-        p0.setGraph(pattern);
         Vertex p1 = pattern.addVertex().addLabel("normal");
-        p1.setGraph(pattern);
         Vertex p2 = pattern.addVertex().addLabel("normal");
-        p2.setGraph(pattern);
         Vertex p3 = pattern.addVertex().addLabel("normal");
-        p3.setGraph(pattern);
         Vertex p4 = pattern.addVertex().addLabel("normal");
-        p4.setGraph(pattern);
         pattern.addEdge(p0, p1);
         pattern.addEdge(p1, p2);
         pattern.addEdge(p0, p2);

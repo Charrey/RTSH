@@ -102,7 +102,7 @@ public class LinkedIndexSetTest {
 
 
     private static class IndexableImpl implements Indexable {
-        private int data;
+        private final int data;
 
         public IndexableImpl(int data) {
             this.data = data;

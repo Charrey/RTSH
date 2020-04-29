@@ -13,7 +13,7 @@ public class PathIterator implements Indexable {
 
     private final Vertex[][] neighbours;
     private final int[] chosen;
-    private Path exploration;
+    private final Path exploration;
     private final Occupation occupation;
     private final int domainSize;
 

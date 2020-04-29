@@ -35,7 +35,7 @@ public class IsoFinder {
         boolean exhausedAllPaths = false;
 
         long iterations = 0;
-        while (!allDone(testcase.source.getGraph(), testcase.target.getGraph(), vertexMatching, edgeMatching)) {
+        while (!allDone(testcase.source.getGraph(), vertexMatching, edgeMatching)) {
             iterations++;
             LOG.fine(vertexMatching::toString);
             LOG.fine(edgeMatching::toString);
@@ -69,7 +69,7 @@ public class IsoFinder {
 
 
 
-    private static boolean allDone(Graph<Vertex, DefaultEdge> pattern, Graph<Vertex, DefaultEdge> target, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
+    private static boolean allDone(Graph<Vertex, DefaultEdge> pattern, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
         boolean completeV = vertexMatching.getPlacementUnsafe().size() == pattern.vertexSet().size();
         if (!completeV) {
             return false;
@@ -79,7 +79,7 @@ public class IsoFinder {
             return false;
         }
         LOG.info(() -> "Done, checking...");
-        assert  Util.isCorrect(pattern, target, vertexMatching, edgeMatching);
+        assert  Util.isCorrect(pattern, vertexMatching, edgeMatching);
         return true;
     }
 

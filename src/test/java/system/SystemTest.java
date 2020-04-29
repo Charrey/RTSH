@@ -41,6 +41,7 @@ public abstract class SystemTest {
     private void writeChallenge(Pair<GraphGeneration, GraphGeneration> pair) throws IOException {
         synchronized (challengeLock) {
             File file = new File("challenges/challenge-" + new SimpleDateFormat("yyyyMMddHHmm'.txt'").format(new Date()) + ".txt");
+            //noinspection ResultOfMethodCallIgnored
             file.createNewFile();
             FileOutputStream fos = new FileOutputStream(file);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -111,10 +112,6 @@ public abstract class SystemTest {
             this.file = file;
             this.target = target;
             this.source = source;
-        }
-
-        public void delete() {
-            file.delete();
         }
     }
 }

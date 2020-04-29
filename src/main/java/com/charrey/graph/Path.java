@@ -29,13 +29,11 @@ public class Path {
         this.initialVertex = found.initialVertex;
     }
 
-    public boolean append(Vertex toAdd) {
-        if (containing.get(toAdd.data())) {
-            return false;
+    public void append(Vertex toAdd) {
+        if (!containing.get(toAdd.data())) {
+            containing.set(toAdd.data());
+            path.add(toAdd);
         }
-        containing.set(toAdd.data());
-        path.add(toAdd);
-        return true;
     }
 
     public Vertex head() {
@@ -62,10 +60,6 @@ public class Path {
 
     public Vertex get(int i) {
         return path.get(i);
-    }
-
-    public List<Vertex> getPath() {
-        return path;
     }
 
     public List<Vertex> intermediate() {

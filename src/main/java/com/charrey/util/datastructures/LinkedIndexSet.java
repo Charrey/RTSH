@@ -205,7 +205,6 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
 
     private class LinkedIndexSetIterator implements Iterator<T> {
         int cursor = oldest;
-        boolean calledNext;
 
         @Override
         public boolean hasNext() {
@@ -216,7 +215,6 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
         public T next() {
             T nextElem = data[cursor];
             cursor = pointersForward[cursor];
-            calledNext = true;
             return nextElem;
         }
 

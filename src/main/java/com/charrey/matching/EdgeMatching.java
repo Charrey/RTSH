@@ -113,18 +113,10 @@ public class EdgeMatching extends VertexBlocker {
         assert tail.data() < head.data();
         if (!pathfinders.containsKey(tail, head)) {
             PathIterator toAdd = new PathIterator(domainSize, data.getTargetNeighbours(), tail, head, occupation);
-            if (!headMap2[headData].contains(toAdd)) {
-                headMap2[headData].add(toAdd);
-            } else {
-                headMap2[headData].remove(toAdd);
-                headMap2[headData].add(toAdd);
-            }
-            if (!tailMap2[tailData].contains(toAdd)) {
-                tailMap2[tailData].add(toAdd);
-            } else {
-                tailMap2[tailData].remove(toAdd);
-                tailMap2[tailData].add(toAdd);
-            }
+            headMap2[headData].remove(toAdd);
+            headMap2[headData].add(toAdd);
+            tailMap2[tailData].remove(toAdd);
+            tailMap2[tailData].add(toAdd);
             pathfinders.put(tail, head, toAdd);
         }
         PathIterator iterator = pathfinders.get(tail, head);
@@ -139,7 +131,7 @@ public class EdgeMatching extends VertexBlocker {
             addPath(toReturn);
             return toReturn;
         }
-        return toReturn;
+        return null;
 
     }
 

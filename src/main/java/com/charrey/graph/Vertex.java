@@ -16,20 +16,12 @@ public class Vertex implements Serializable, Comparable<Vertex> {
     private final int counterValue;
     private Graph<Vertex, DefaultEdge> graph;
     private int data;
-    protected Map<String, Set<Attribute>> attributes = new HashMap<>();
+    protected final Map<String, Set<Attribute>> attributes = new HashMap<>();
 
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public Vertex(int data) {
         this.data = data;
         counterValue = ++counter;
-    }
-
-    public void setGraph(Graph<Vertex, DefaultEdge> graph) {
-        if (this.graph == null) {
-            this.graph = graph;
-        } else {
-            throw new RuntimeException("Graph already set");
-        }
     }
 
     public Vertex addLabel(String label) {
@@ -49,10 +41,6 @@ public class Vertex implements Serializable, Comparable<Vertex> {
 
     public void setData(int newData) {
         data = newData;
-    }
-
-    public Graph<Vertex, DefaultEdge> getGraph() {
-        return graph;
     }
 
     @Override

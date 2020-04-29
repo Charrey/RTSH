@@ -37,7 +37,6 @@ public class GraphUtil {
         Collections.shuffle(vertices, new RandomAdaptor(random));
         for (Vertex v : vertices) {
             Vertex added = res.addVertex();
-            added.setGraph(res);
             mapping[v.data()] = added;
         }
         List<DefaultEdge> edges = new LinkedList<>(pattern.edgeSet());

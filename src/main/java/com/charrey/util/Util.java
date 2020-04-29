@@ -18,7 +18,7 @@ public class Util {
         return list.get(random.nextInt(list.size()));
     }
 
-    public static boolean isCorrect(Graph<Vertex, DefaultEdge> pattern, Graph<Vertex, DefaultEdge> target, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
+    public static boolean isCorrect(Graph<Vertex, DefaultEdge> pattern, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
         //all nodes are placed
         if (vertexMatching.getPlacementUnsafe().size() < pattern.vertexSet().size()) {
             return false;

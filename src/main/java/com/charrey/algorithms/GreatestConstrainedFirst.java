@@ -29,7 +29,7 @@ public class GreatestConstrainedFirst {
         while (ordering.size() < graph.vertexSet().size()) {
             Set<Vertex> firstSelection = getFirstCriterium(graph, ordering);
             Set<Vertex> secondSelection = getSecondCriterium(graph, ordering, firstSelection);
-            List<Vertex> thirdSelection = new LinkedList<>(getThirdCriterium(graph, ordering, firstSelection, secondSelection));
+            List<Vertex> thirdSelection = new LinkedList<>(getThirdCriterium(graph, ordering, secondSelection));
             thirdSelection.sort(Comparator.comparingInt(Vertex::data));
             assert secondSelection.containsAll(thirdSelection);
             Vertex toAdd = thirdSelection.get(0);
@@ -44,7 +44,7 @@ public class GreatestConstrainedFirst {
         return Collections.unmodifiableList(ordering);
     }
 
-    private Set<Vertex> getThirdCriterium(Graph<Vertex, DefaultEdge> graph, List<Vertex> ordering, Set<Vertex> firstSelection, Set<Vertex> secondSelection) {
+    private Set<Vertex> getThirdCriterium(Graph<Vertex, DefaultEdge> graph, List<Vertex> ordering, Set<Vertex> secondSelection) {
         Set<Vertex> thirdSelection = new HashSet<>();
         long thirdValue = -1;
         for (Vertex vertex : secondSelection) {
