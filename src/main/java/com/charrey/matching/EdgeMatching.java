@@ -81,19 +81,26 @@ public class EdgeMatching extends VertexBlocker {
             Vertex head = toRetry.head();
             assert tail.data() < head.data();
             assert pathfinders.containsKey(tail, head);
+            int placementSize = vertexMatching.getPlacementUnsafe().size();
 
-
-            pathList.get(pathList.size() - 1).intermediate().forEach(x -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), x));
+            Path previousPath = pathList.get(pathList.size() - 1);
+            ArrayList<Vertex> previousOccupation = new ArrayList<Vertex>(previousPath.intermediate());
+            previousOccupation.forEach(x -> occupation.releaseRouting(placementSize, x));
             PathIterator pathfinder = pathfinders.get(tail, head);
             Path pathFound = pathfinder.next();
             if (pathFound != null) {
                 Path toAdd = new Path(pathFound);
                 pathList.set(pathList.size() - 1, toAdd);
                 try {
-                    occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), pathList.get(pathList.size() - 1).intermediate());
+                    occupation.occupyRoutingAndCheck(placementSize, pathList.get(pathList.size() - 1).intermediate());
                 } catch (EmptyDomainException e) {
-                    pathList.remove(pathList.size()-1);
-                    return false;
+                    try {
+                        occupation.occupyRoutingAndCheck(placementSize, previousOccupation);
+                    } catch (EmptyDomainException ignored) {
+                        assert false;
+                    }
+                    pathList.set(pathList.size()-1, previousPath);
+                    return retry();
                 }
                 return true;
             } else {

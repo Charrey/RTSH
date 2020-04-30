@@ -10,7 +10,8 @@ import java.util.logging.Logger;
 
 public class RandomSystemTests extends SystemTest {
 
-    private static final int ITERATIONS = 1;
+    private static final int ITERATIONS = 10;
+    private static final long TIMEOUT = 60_000;
 
 
     @Test
@@ -21,16 +22,10 @@ public class RandomSystemTests extends SystemTest {
         long start = System.currentTimeMillis();
         while (true) {
             RandomTestCaseGenerator graphGen = new RandomTestCaseGenerator(patternNodes, patternEdges, 0.1, 2);
-            try {
-                graphGen.init(ITERATIONS, false);
-            } catch (IllegalArgumentException e) {
-                patternEdges = 0;
-                patternNodes++;
-                continue;
-            }
+            graphGen.init(ITERATIONS, false);
             double total = 0.;
             for (int i = 0; i < ITERATIONS; i++) {
-                if (System.currentTimeMillis() - start > 60000) {
+                if (System.currentTimeMillis() - start > TIMEOUT) {
                     return;
                 }
                 RandomTestCaseGenerator.TestCase testCase = graphGen.getNext();
@@ -38,7 +33,13 @@ public class RandomSystemTests extends SystemTest {
                 total += homeomorphism.getIterations();
             }
             System.out.println(patternNodes + "\t" + patternEdges + "\t" + (total/ITERATIONS));
-            patternEdges++;
+            if (patternEdges < (patternNodes * (patternNodes - 1))/2) {
+                patternEdges++;
+            } else {
+                patternEdges = 0;
+                patternNodes++;
+            }
+
         }
     }
 }

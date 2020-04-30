@@ -2,6 +2,7 @@ package com.charrey.algorithms;
 
 import com.charrey.graph.Vertex;
 import com.charrey.util.GraphUtil;
+import com.charrey.util.Settings;
 import com.charrey.util.datastructures.IndexMap;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -29,8 +30,13 @@ public class CompatibilityChecker {
         }
         boolean hasChanged = true;
         while (hasChanged) {
-            hasChanged = filterNeighbourHoods(res, source, target);
-            hasChanged = hasChanged || filterGAC(res);
+            hasChanged = false;
+            if (Settings.initialLocalizedAllDifferent) {
+                hasChanged = filterNeighbourHoods(res, source, target);
+            }
+            if (Settings.initialGlobalAllDifferent) {
+                hasChanged = hasChanged || filterGAC(res);
+            }
         }
         return res;
     }

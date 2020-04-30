@@ -3,6 +3,7 @@ package com.charrey.router;
 import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
+import com.charrey.util.Settings;
 import com.charrey.util.datastructures.Indexable;
 
 import java.util.Arrays;
@@ -34,10 +35,13 @@ public class PathIterator implements Indexable {
     }
 
     private boolean isCandidate(Vertex from, Vertex vertex) {
-        return !exploration.contains(vertex) &&
+        boolean isCandidate = !exploration.contains(vertex) &&
                 !occupation.isOccupiedRouting(vertex) &&
-                !(occupation.isOccupiedVertex(vertex) && vertex != head) &&
-                Arrays.stream(neighbours[vertex.data()]).noneMatch(x -> x != from && exploration.contains(x));
+                !(occupation.isOccupiedVertex(vertex) && vertex != head);
+        if (!Settings.refuseLongerPaths) {
+            isCandidate = isCandidate && Arrays.stream(neighbours[vertex.data()]).noneMatch(x -> x != from && exploration.contains(x));
+        }
+        return isCandidate;
     }
 
 

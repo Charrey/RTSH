@@ -6,11 +6,12 @@ import com.charrey.util.UtilityData;
 
 import java.util.Arrays;
 
+import static com.charrey.util.Settings.checkForEmptyDomain;
+
 public class DomainChecker {
 
     private final Vertex[][] reverseDomain;
     private final int[] domainSizes;
-    private static final boolean checkForEmptyDomain = true;
 
 
     public DomainChecker(UtilityData data) {
