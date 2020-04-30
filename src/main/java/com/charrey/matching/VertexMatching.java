@@ -1,6 +1,7 @@
 package com.charrey.matching;
 
 import com.charrey.Occupation;
+import com.charrey.exceptions.EmptyDomainException;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.util.UtilityData;
@@ -35,7 +36,7 @@ public class VertexMatching extends VertexBlocker {
         }
     }
 
-    public VertexMatching placeNext() {
+    public void placeNext() {
         assert canPlaceNext();
         while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
             candidateToChooseNext[placement.size()] = 0;
@@ -51,15 +52,19 @@ public class VertexMatching extends VertexBlocker {
         if (occupied) {
             candidateToChooseNext[placement.size()] += 1;
             if (canPlaceNext()) {
-                return placeNext();
-            } else {
-                return null;
+                placeNext();
             }
         } else {
-            occupation.occupyVertex(placement.size(), toAdd);
-            placement.add(toAdd);
+            try {
+                occupation.occupyVertex(placement.size(), toAdd);
+                placement.add(toAdd);
+            } catch (EmptyDomainException e) {
+                candidateToChooseNext[placement.size()] += 1;
+                if (canPlaceNext()) {
+                    placeNext();
+                }
+            }
         }
-        return this;
     }
 
 

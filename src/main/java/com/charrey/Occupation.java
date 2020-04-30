@@ -75,11 +75,16 @@ public class Occupation {
 //        }
 //    }
 
-    public void occupyVertex(int source, Vertex target) {
+    public void occupyVertex(int source, Vertex target) throws EmptyDomainException {
         assert !routingBits.get(target.data());
         assert !vertexBits.get(target.data());
         vertexBits.set(target.data());
-        //domainChecker.afterOccupy(source, target);
+        try {
+            domainChecker.afterOccupy(source, target);
+        } catch (EmptyDomainException e) {
+            vertexBits.clear(target.data());
+            throw e;
+        }
     }
 
 

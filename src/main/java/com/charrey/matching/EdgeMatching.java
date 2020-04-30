@@ -99,7 +99,9 @@ public class EdgeMatching extends VertexBlocker {
             } else {
                 try {
                     occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), pathList.get(pathList.size() - 1).intermediate());
-                } catch (EmptyDomainException ignored) {}
+                } catch (EmptyDomainException ignored) {
+                    assert false;
+                }
                 pathfinders.remove(tail, head);
                 headMap2[head.data()].remove(pathfinder);
                 tailMap2[tail.data()].remove(pathfinder);

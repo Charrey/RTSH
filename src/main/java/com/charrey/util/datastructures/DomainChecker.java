@@ -10,6 +10,7 @@ public class DomainChecker {
 
     private final Vertex[][] reverseDomain;
     private final int[] domainSizes;
+    private static final boolean checkForEmptyDomain = true;
 
 
     public DomainChecker(UtilityData data) {
@@ -19,6 +20,9 @@ public class DomainChecker {
 
 
     public void afterRelease(int verticesPlaced, Vertex v) {
+        if (!checkForEmptyDomain) {
+            return;
+        }
         for (int i = reverseDomain[v.data()].length - 1; i >= 0; i--) {
             int candidate = reverseDomain[v.data()][i].data();
             if (candidate < verticesPlaced) {
@@ -30,11 +34,15 @@ public class DomainChecker {
     }
 
     public void afterOccupy(int verticesPlaced, Vertex v) throws EmptyDomainException {
+        if (!checkForEmptyDomain) {
+            return;
+        }
         boolean bad = false;
-        int revertFrom = reverseDomain[v.data()].length;
-        for (int i = reverseDomain[v.data()].length - 1; i >= 0; i--) {
-            int candidate = reverseDomain[v.data()][i].data();
-            if (candidate < verticesPlaced) {
+        int vId = v.data();
+        int revertFrom = reverseDomain[vId].length;
+        for (int i = reverseDomain[vId].length - 1; i >= 0; i--) {
+            int candidate = reverseDomain[vId][i].data();
+            if (candidate <= verticesPlaced) {
                 return;
             } else {
                 domainSizes[candidate]--;
@@ -45,8 +53,8 @@ public class DomainChecker {
                 }
             }
         }
-        for (int i = revertFrom; i < reverseDomain[v.data()].length; i++) {
-            domainSizes[reverseDomain[v.data()][i].data()]++;
+        for (int i = revertFrom; i < reverseDomain[vId].length; i++) {
+            domainSizes[reverseDomain[vId][i].data()]++;
         }
         if (bad) {
             throw new EmptyDomainException();

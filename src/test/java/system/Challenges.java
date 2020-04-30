@@ -28,6 +28,13 @@ public class Challenges extends SystemTest{
     //6--7 (3--9--7) (5--7) (6--7)
     //7--8 (0--8) (3--8) (7--8)
     //8--4 (1--4) (2--4) (7--4)
+    //challenge-202004301006.txt.txt
+    //0--3
+    //1--0
+    //2--4
+    //3--1
+    //4--5
+    //5--6
     @Test
     public void challenges() throws IOException {
         List<SystemTest.Challenge> challenges = readChallenges();

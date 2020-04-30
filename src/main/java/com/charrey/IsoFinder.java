@@ -36,9 +36,6 @@ public class IsoFinder {
 
         long iterations = 0;
         while (!allDone(testcase.source.getGraph(), vertexMatching, edgeMatching)) {
-            if (testcase.source.getGraph().vertexSet().size() == 9 && testcase.source.getGraph().edgeSet().size() == 19) {
-                System.out.println();
-            }
             iterations++;
             LOG.fine(vertexMatching::toString);
             LOG.fine(edgeMatching::toString);
