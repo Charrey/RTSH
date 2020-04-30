@@ -6,6 +6,7 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.router.PathIterator;
+import com.charrey.util.Settings;
 import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.LinkedIndexSet;
 import com.charrey.util.datastructures.MultipleKeyMap;
@@ -84,7 +85,7 @@ public class EdgeMatching extends VertexBlocker {
             int placementSize = vertexMatching.getPlacementUnsafe().size();
 
             Path previousPath = pathList.get(pathList.size() - 1);
-            ArrayList<Vertex> previousOccupation = new ArrayList<Vertex>(previousPath.intermediate());
+            List<Vertex> previousOccupation = previousPath.intermediate();
             previousOccupation.forEach(x -> occupation.releaseRouting(placementSize, x));
             PathIterator pathfinder = pathfinders.get(tail, head);
             Path pathFound = pathfinder.next();
@@ -131,7 +132,7 @@ public class EdgeMatching extends VertexBlocker {
         assert tail.data() < head.data();
         //get pathIterator
         if (!pathfinders.containsKey(tail, head)) {
-            PathIterator toAdd = new PathIterator(domainSize, data.getTargetNeighbours(), tail, head, occupation);
+            PathIterator toAdd = new PathIterator(domainSize, data.getTargetNeighbours(Settings.DFSSetting)[head.data()], tail, head, occupation);
             headMap2[headData].remove(toAdd);
             headMap2[headData].add(toAdd);
             tailMap2[tailData].remove(toAdd);

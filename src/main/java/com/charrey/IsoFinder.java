@@ -21,34 +21,24 @@ public class IsoFinder {
     private static final Logger LOG = Logger.getLogger("IsoFinder");
 
     public static Optional<Homeomorphism> getHomeomorphism(RandomTestCaseGenerator.TestCase testcase) {
-        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.source.getGraph().vertexSet().size())).pow(testcase.target.getGraph().vertexSet().size());
         UtilityData data = new UtilityData(testcase.source.getGraph(), testcase.target.getGraph());
-        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility()).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
-        LOG.info(() -> "Reduced domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
-
+        logDomainReduction(testcase, data);
         if (Arrays.stream(data.getCompatibility()).anyMatch(x -> x.length == 0)) {
             return Optional.empty();
         }
         Occupation occupation         = new Occupation(data, testcase.target.getGraph().vertexSet().size());
         VertexMatching vertexMatching = new VertexMatching(data, testcase.source, occupation);
         EdgeMatching edgeMatching     = new EdgeMatching(vertexMatching, data, testcase.source, testcase.target, occupation);
-        boolean exhausedAllPaths = false;
 
         long iterations = 0;
         while (!allDone(testcase.source.getGraph(), vertexMatching, edgeMatching)) {
             iterations++;
             LOG.fine(vertexMatching::toString);
             LOG.fine(edgeMatching::toString);
-            if (exhausedAllPaths) {
-                exhausedAllPaths = false;
-                vertexMatching.removeLast();
-                continue;
-            }
-
             if (edgeMatching.hasUnmatched()) {
                 Path nextpath = edgeMatching.placeNextUnmatched();
                 if (nextpath == null) {
-                    exhausedAllPaths = true;
+                    vertexMatching.removeLast();
                 }
             } else if (vertexMatching.canPlaceNext()) {
                 vertexMatching.placeNext();
@@ -67,6 +57,11 @@ public class IsoFinder {
         }
     }
 
+    private static void logDomainReduction(RandomTestCaseGenerator.TestCase testcase, UtilityData data) {
+        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.source.getGraph().vertexSet().size())).pow(testcase.target.getGraph().vertexSet().size());
+        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility()).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
+        LOG.info(() -> "Reduced domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
+    }
 
 
     private static boolean allDone(Graph<Vertex, DefaultEdge> pattern, VertexMatching vertexMatching, EdgeMatching edgeMatching) {

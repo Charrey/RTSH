@@ -4,6 +4,9 @@ import com.charrey.algorithms.CompatibilityChecker;
 import com.charrey.algorithms.GreatestConstrainedFirst;
 import com.charrey.graph.Vertex;
 import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
@@ -65,21 +68,55 @@ public class UtilityData {
 
 
 
-    private Vertex[][] targetNeighbours;
-    public Vertex[][] getTargetNeighbours() {
+    private Vertex[][][] targetNeighbours;
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public Vertex[][][] getTargetNeighbours(Settings.DFSStrategy strategy) {
         if (targetNeighbours == null) {
-            List<Vertex> routing = targetGraph.vertexSet()
+            List<Vertex> targetVertices = targetGraph.vertexSet()
                     .stream()
                     .sorted(Comparator.comparingInt(Vertex::data)).collect(Collectors.toList());
-            targetNeighbours = new Vertex[routing.size()][];
-            for (int i = 0; i < targetNeighbours.length; i++) {
-                targetNeighbours[i] = GraphUtil.neighboursOf(targetGraph, routing.get(i))
-                        .stream()
-                        .sorted(Comparator.comparingInt(Vertex::data))
-                        .collect(Collectors.toList()).toArray(Vertex[]::new);
+            switch (strategy) {
+                case ARBITRARY:
+                    Vertex[][] sharedTargetNeighbours = new Vertex[targetVertices.size()][];
+                    targetNeighbours = new Vertex[targetGraph.vertexSet().size()][][];
+                    for (int i = 0; i < sharedTargetNeighbours.length; i++) {
+                        sharedTargetNeighbours[i] = GraphUtil.neighboursOf(targetGraph, targetVertices.get(i))
+                                .stream()
+                                .sorted(Comparator.comparingInt(Vertex::data))
+                                .collect(Collectors.toList()).toArray(Vertex[]::new);
+                    }
+                    for (int i = 0; i < targetGraph.vertexSet().size(); i++) {
+                        targetNeighbours[i] = Arrays.copyOf(sharedTargetNeighbours, sharedTargetNeighbours.length);
+                    }
+                    break;
+                case GREEDY:
+                    targetNeighbours = getTargetNeighbours(Settings.DFSStrategy.ARBITRARY);
+                    List[][] tempTargetNeigbours = new List[targetNeighbours.length][targetNeighbours.length];
+                    for (int i = 0; i < tempTargetNeigbours.length; i++) {
+                        for (int j = 0; j < tempTargetNeigbours[i].length; j++) {
+                            tempTargetNeigbours[i][j] = new LinkedList(Arrays.asList(targetNeighbours[i][j]));
+                        }
+                    }
+                    ShortestPathAlgorithm<Vertex, DefaultEdge> dijkstra = new DijkstraShortestPath<>(targetGraph);
+                    for (int i = 0; i < targetNeighbours.length; i++) {
+                        int[] distances = new int[tempTargetNeigbours.length];
+                        for (int j = 0; j < tempTargetNeigbours[i].length; j++) {
+                            List<Vertex> toSort = (List<Vertex>) tempTargetNeigbours[i][j];
+                            Set<Vertex> toRemove = new HashSet<>();
+                            for (Vertex neighbour : toSort) {
+                                GraphPath<Vertex, DefaultEdge> path = dijkstra.getPath(neighbour, targetVertices.get(i));
+                                if (path == null) {
+                                    toRemove.add(neighbour);
+                                } else {
+                                    distances[neighbour.data()] = path.getLength();
+                                }
+                            }
+                            toSort.removeAll(toRemove);
+                            toSort.sort(Comparator.comparingInt(o -> distances[o.data()]));
+                            targetNeighbours[i][j] = toSort.toArray(Vertex[]::new);
+                        }
+                    }
             }
-
-
         }
         return targetNeighbours;
     }
