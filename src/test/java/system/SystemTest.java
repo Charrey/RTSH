@@ -113,5 +113,9 @@ public abstract class SystemTest {
             this.target = target;
             this.source = source;
         }
+
+        public File getFile() {
+            return file;
+        }
     }
 }

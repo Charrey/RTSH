@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 public class RandomSystemTests extends SystemTest {
 
-    private static final int ITERATIONS = 10;
+    private static final int ITERATIONS = 1;
 
 
     @Test

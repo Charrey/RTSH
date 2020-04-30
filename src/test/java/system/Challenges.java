@@ -18,10 +18,21 @@ public class Challenges extends SystemTest{
     //5--0
     //6--3
     //7--2
+    //challenge-202004292044.txt.txt
+    //0--3
+    //1--1 (1--3)
+    //2--0 (0--3) (0--1)
+    //3--2 (2--3) (0--10--2)
+    //4--5 (2--5) (3--5)
+    //5--6 (0--6) (5--6) (1--11--6)
+    //6--7 (3--9--7) (5--7) (6--7)
+    //7--8 (0--8) (3--8) (7--8)
+    //8--4 (1--4) (2--4) (7--4)
     @Test
     public void challenges() throws IOException {
         List<SystemTest.Challenge> challenges = readChallenges();
         for (SystemTest.Challenge challenge : challenges) {
+            System.out.println(challenge.getFile().getName());
             testSucceed(new RandomTestCaseGenerator.TestCase(challenge.source, challenge.target), false);
         }
     }

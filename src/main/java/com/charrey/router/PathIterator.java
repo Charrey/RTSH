@@ -33,6 +33,13 @@ public class PathIterator implements Indexable {
         this.domainSize = domainSize;
     }
 
+    private boolean isCandidate(Vertex from, Vertex vertex) {
+        return !exploration.contains(vertex) &&
+                !occupation.isOccupiedRouting(vertex) &&
+                !(occupation.isOccupiedVertex(vertex) && vertex != head) &&
+                Arrays.stream(neighbours[vertex.data()]).noneMatch(x -> x != from && exploration.contains(x));
+    }
+
 
     public Path next() {
         assert !exploration.isEmpty();
@@ -57,10 +64,7 @@ public class PathIterator implements Indexable {
             //iterate over neighbours until we find an unused vertex
             for (int i = chosen[index]; i < neighbours[exploration.head().data()].length; i++) {
                 Vertex neighbour = neighbours[exploration.head().data()][i];
-                if (!exploration.contains(neighbour) && !occupation.isOccupiedRouting(neighbour)) {
-                    if (occupation.isOccupiedVertex(neighbour) && neighbour != head) {
-                        continue;
-                    }
+                if (isCandidate(exploration.head(), neighbour)) {
                     //if found, update chosen, update exploration
                     exploration.append(neighbour);
                     chosen[index] = i;
@@ -100,3 +104,4 @@ public class PathIterator implements Indexable {
 
 
 }
+

@@ -35,8 +35,8 @@ public class IterationsTest extends SystemTest {
 //    }
 
 
-    private static final long iterations = 323443735; // 29-04-2020 15:19
-    private static final long bestTime = 118000; // 29-04-2020 15:39
+    private static final long iterations = 6763722; // 29-04-2020 15:19
+    private static final long bestTime = (long) (12.4 * 1000); // 29-04-2020 15:39
     @Test
     public void testSmall() {
         List<RandomTestCaseGenerator.TestCase> res = new ArrayList<>();
