@@ -1,9 +1,8 @@
 package com.charrey.util.datastructures;
 
 import org.jetbrains.annotations.NotNull;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
+
+import java.util.*;
 
 public class LinkedIndexSet<T extends Indexable> implements Set<T> {
 
@@ -29,6 +28,11 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
         }
         data = (T[]) java.lang.reflect.Array.newInstance(clazz, size);
         this.clazz = clazz;
+    }
+
+    public <V> LinkedIndexSet(int maxSize, Collection<T> from, Class<T> clazz) {
+        this(maxSize, clazz);
+        addAll(from);
     }
 
     @Override
@@ -181,8 +185,7 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
     @Override
     public boolean retainAll(@NotNull Collection<?> c) {
         boolean changed = false;
-        for (Iterator<T> iterator = iterator(); iterator.hasNext();) {
-            T item = iterator.next();
+        for (T item : this) {
             if (!c.contains(item)) {
                 remove(item);
                 changed = true;
@@ -224,5 +227,10 @@ public class LinkedIndexSet<T extends Indexable> implements Set<T> {
                 LinkedIndexSet.this.remove(pointersBack[cursor]);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return new HashSet<>(this).toString();
     }
 }

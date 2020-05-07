@@ -1,7 +1,6 @@
 package com.charrey.matching;
 
 import com.charrey.Occupation;
-import com.charrey.exceptions.EmptyDomainException;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
@@ -10,9 +9,12 @@ import com.charrey.util.Settings;
 import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.LinkedIndexSet;
 import com.charrey.util.datastructures.MultipleKeyMap;
+import com.charrey.util.datastructures.checker.DomainCheckerException;
 
 import java.lang.reflect.Array;
 import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 public class EdgeMatching extends VertexBlocker {
@@ -76,38 +78,45 @@ public class EdgeMatching extends VertexBlocker {
         if (pathList.isEmpty()) {
             return false;
         }
+        int placementSize = vertexMatching.getPlacementUnsafe().size();
+        assert occupation.domainCheckerLoose.checkOK(placementSize);
         for (int i = pathList.size() - 1; i >= 0; i--) {
             Path toRetry = pathList.get(i);
             Vertex tail = toRetry.tail();
             Vertex head = toRetry.head();
             assert tail.data() < head.data();
             assert pathfinders.containsKey(tail, head);
-            int placementSize = vertexMatching.getPlacementUnsafe().size();
-
-            Path previousPath = pathList.get(pathList.size() - 1);
-            List<Vertex> previousOccupation = previousPath.intermediate();
-            previousOccupation.forEach(x -> occupation.releaseRouting(placementSize, x));
+            Path previousPath = new Path(pathList.get(pathList.size() - 1));
+            previousPath.intermediate().forEach(x -> occupation.releaseRouting(placementSize, x));
             PathIterator pathfinder = pathfinders.get(tail, head);
             Path pathFound = pathfinder.next();
             if (pathFound != null) {
                 Path toAdd = new Path(pathFound);
                 pathList.set(pathList.size() - 1, toAdd);
+                String previous = null;
+                String previous2 = null;
                 try {
-                    occupation.occupyRoutingAndCheck(placementSize, pathList.get(pathList.size() - 1).intermediate());
-                } catch (EmptyDomainException e) {
+                    previous = occupation.toString();
+                    previous2 = occupation.domainCheckerLoose.toString();
+                    occupation.occupyRoutingAndCheck(placementSize, new Path(toAdd));
+                } catch (DomainCheckerException e) {
+                    assertEquals(previous, occupation.toString());
+                    assertEquals(previous2, occupation.domainCheckerLoose.toString());
                     try {
-                        occupation.occupyRoutingAndCheck(placementSize, previousOccupation);
-                    } catch (EmptyDomainException ignored) {
+                        occupation.occupyRoutingAndCheck(placementSize, new Path(previousPath));
+                    } catch (DomainCheckerException ignored) {
                         assert false;
                     }
                     pathList.set(pathList.size()-1, previousPath);
+                    assert occupation.domainCheckerLoose.checkOK(placementSize);
                     return retry();
                 }
+                assert occupation.domainCheckerLoose.checkOK(placementSize);
                 return true;
             } else {
                 try {
-                    occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), pathList.get(pathList.size() - 1).intermediate());
-                } catch (EmptyDomainException ignored) {
+                    occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), new Path(previousPath));
+                } catch (DomainCheckerException ignored) {
                     assert false;
                 }
                 pathfinders.remove(tail, head);
@@ -116,10 +125,12 @@ public class EdgeMatching extends VertexBlocker {
                 removeLastPath();
             }
         }
+        assert occupation.domainCheckerLoose.checkOK(placementSize);
         return false;
     }
 
     public Path placeNextUnmatched() {
+        assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
         assert this.hasUnmatched();
         //get things
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
@@ -149,11 +160,14 @@ public class EdgeMatching extends VertexBlocker {
         if (toReturn != null) {
             try {
                 addPath(toReturn);
-            } catch (EmptyDomainException e) {
+            } catch (DomainCheckerException e) {
+                assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
                 return placeNextUnmatched();
             }
+            assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
             return toReturn;
         }
+        assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
         return null;
 
     }
@@ -173,15 +187,15 @@ public class EdgeMatching extends VertexBlocker {
 
     }
 
-    private void addPath(Path found) throws EmptyDomainException {
+    private void addPath(Path found) throws DomainCheckerException {
         assert !found.isEmpty();
         assert found.head().data() > found.tail().data();
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
         Path added = new Path(found);
         paths.get(lastPlacedIndex).add(added);
         try {
-            occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), added.intermediate());
-        } catch (EmptyDomainException e) {
+            occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), new Path(added));
+        } catch (DomainCheckerException e) {
             paths.get(lastPlacedIndex).removeLast();
             throw e;
         }
@@ -199,6 +213,7 @@ public class EdgeMatching extends VertexBlocker {
     }
 
     public void synchronize(Vertex vertex) {
+        assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
         int vertexData = vertex.data();
         assert !vertexMatching.getPlacementUnsafe().contains(vertex);
         paths.get(vertexMatching.getPlacementUnsafe().size()).forEach(x -> x.intermediate().forEach(y -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), y)));
@@ -213,6 +228,7 @@ public class EdgeMatching extends VertexBlocker {
             pathfinders.get(pathIt.tail(), pathIt.head()).reset();
             i.remove();
         }
+        assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
     }
 
     public Set<Path> allPaths() {

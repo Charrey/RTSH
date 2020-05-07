@@ -1,5 +1,6 @@
 package com.charrey.graph;
 
+import com.charrey.util.datastructures.Indexable;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.nio.Attribute;
@@ -10,7 +11,7 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.*;
 
-public class Vertex implements Serializable, Comparable<Vertex> {
+public class Vertex implements Serializable, Comparable<Vertex>, Indexable {
 
     private static int counter = 0;
     private final int counterValue;
@@ -61,6 +62,7 @@ public class Vertex implements Serializable, Comparable<Vertex> {
         return counterValue;
     }
 
+    @Override
     public int data() {
         return data;
     }

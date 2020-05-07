@@ -1,10 +1,10 @@
 package com.charrey.matching;
 
 import com.charrey.Occupation;
-import com.charrey.exceptions.EmptyDomainException;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.util.UtilityData;
+import com.charrey.util.datastructures.checker.DomainCheckerException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +37,7 @@ public class VertexMatching extends VertexBlocker {
     }
 
     public void placeNext() {
+        assert occupation.domainCheckerLoose.checkOK(placement.size());
         assert canPlaceNext();
         while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
             candidateToChooseNext[placement.size()] = 0;
@@ -56,15 +57,16 @@ public class VertexMatching extends VertexBlocker {
             }
         } else {
             try {
-                occupation.occupyVertex(placement.size(), toAdd);
+                occupation.occupyVertex(placement.size() + 1, toAdd);
                 placement.add(toAdd);
-            } catch (EmptyDomainException e) {
+            } catch (DomainCheckerException e) {
                 candidateToChooseNext[placement.size()] += 1;
                 if (canPlaceNext()) {
                     placeNext();
                 }
             }
         }
+        assert occupation.domainCheckerLoose.checkOK(placement.size());
     }
 
 
@@ -84,6 +86,7 @@ public class VertexMatching extends VertexBlocker {
     }
 
     public void removeLast() {
+        assert occupation.domainCheckerLoose.checkOK(placement.size());
         if (placement.size() < candidateToChooseNext.length) {
             candidateToChooseNext[placement.size()] = 0;
         }
@@ -91,6 +94,7 @@ public class VertexMatching extends VertexBlocker {
         occupation.releaseVertex(placement.size(), removed);
         this.onDeletion.run(removed);
         candidateToChooseNext[placement.size()] += 1;
+        assert occupation.domainCheckerLoose.checkOK(placement.size());
     }
 
     public void setOnDeletion(DeletionFunction x) {

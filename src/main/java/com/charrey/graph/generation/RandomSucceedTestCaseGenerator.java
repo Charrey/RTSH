@@ -13,24 +13,20 @@ import org.jgrapht.generate.GnmRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RandomTestCaseGenerator {
+public class RandomSucceedTestCaseGenerator extends TestCaseGenerator{
 
     private final Random random;
-    private final int patternNodes;
-    private final int patternEdges;
+    private int patternNodes;
+    private int patternEdges;
     private final double extraRoutingNodes;
     private final int extraNodes;
 
     private static final Random staticRandom = new Random();
-    public RandomTestCaseGenerator(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes) {
-        this(patternNodes, patternEdges, extraRoutingNodes, extraNodes, staticRandom.nextLong());
-    }
 
-    public RandomTestCaseGenerator(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes, long seed) {
+    public RandomSucceedTestCaseGenerator(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes, long seed) {
         this.patternNodes = patternNodes;
         this.patternEdges = patternEdges;
         this.extraRoutingNodes = extraRoutingNodes;
@@ -38,24 +34,16 @@ public class RandomTestCaseGenerator {
         this.random = new Random(seed);
     }
 
-    private final Deque<TestCase> testCases = new ArrayDeque<>();
-    public void init(int amount, boolean print) {
-        testCases.clear();
-        if (print) {
-            System.out.println("Generating graphs..");
-        }
-        for (int i = 0; i < amount; i++) {
-            testCases.add(getRandom());
-            if (print) {
-                System.out.println(i + "/" + amount);
-            }
+
+    @Override
+    public void makeHarder() {
+        if (patternEdges == (patternNodes * (patternNodes - 1))/2) {
+            patternEdges = 0;
+            patternNodes++;
+        } else {
+            patternEdges++;
         }
     }
-
-    public TestCase getNext() {
-        return testCases.pop();
-    }
-
 
     public TestCase getRandom() {
         final RandomGenerator randomGen = new Well512a();
@@ -123,15 +111,4 @@ public class RandomTestCaseGenerator {
     }
 
 
-
-
-    public static class TestCase implements Serializable {
-        public final GraphGeneration target;
-        public final GraphGeneration source;
-
-        public TestCase(GraphGeneration source, GraphGeneration target) {
-            this.source = source;
-            this.target = target;
-        }
-    }
 }

@@ -2,7 +2,7 @@ package com.charrey;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.RandomTestCaseGenerator;
+import com.charrey.graph.generation.TestCase;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import com.charrey.util.Util;
@@ -12,7 +12,6 @@ import org.jgrapht.graph.DefaultEdge;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 
@@ -20,11 +19,11 @@ public class IsoFinder {
 
     private static final Logger LOG = Logger.getLogger("IsoFinder");
 
-    public static Optional<Homeomorphism> getHomeomorphism(RandomTestCaseGenerator.TestCase testcase) {
+    public static HomeomorphismResult getHomeomorphism(TestCase testcase) {
         UtilityData data = new UtilityData(testcase.source.getGraph(), testcase.target.getGraph());
         logDomainReduction(testcase, data);
         if (Arrays.stream(data.getCompatibility()).anyMatch(x -> x.length == 0)) {
-            return Optional.empty();
+            return HomeomorphismResult.COMPATIBILITY_FAIL;
         }
         Occupation occupation         = new Occupation(data, testcase.target.getGraph().vertexSet().size());
         VertexMatching vertexMatching = new VertexMatching(data, testcase.source, occupation);
@@ -47,17 +46,17 @@ public class IsoFinder {
             } else if (vertexMatching.canRetry()) {
                 vertexMatching.removeLast();
             } else {
-                return Optional.empty();
+                return HomeomorphismResult.ofFailed(iterations);
             }
         }
         if (vertexMatching.getPlacementUnsafe().size() < testcase.source.getGraph().vertexSet().size()) {
-            return Optional.empty();
+            return HomeomorphismResult.ofFailed(iterations);
         } else {
-            return Optional.of(new Homeomorphism(vertexMatching, edgeMatching, iterations));
+            return HomeomorphismResult.ofSucceed(vertexMatching, edgeMatching, iterations);
         }
     }
 
-    private static void logDomainReduction(RandomTestCaseGenerator.TestCase testcase, UtilityData data) {
+    private static void logDomainReduction(TestCase testcase, UtilityData data) {
         BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.source.getGraph().vertexSet().size())).pow(testcase.target.getGraph().vertexSet().size());
         BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility()).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
         LOG.info(() -> "Reduced domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);

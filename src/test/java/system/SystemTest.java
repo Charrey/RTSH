@@ -1,15 +1,17 @@
 package system;
 
-import com.charrey.Homeomorphism;
+import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
 import com.charrey.graph.generation.GraphGeneration;
-import com.charrey.graph.generation.RandomTestCaseGenerator;
+import com.charrey.graph.generation.TestCase;
 import org.jgrapht.alg.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -26,16 +28,16 @@ public abstract class SystemTest {
         Logger.getLogger("IsoFinder").addHandler(new LogHandler());
     }
 
-    protected Homeomorphism testSucceed(RandomTestCaseGenerator.TestCase testCase, boolean writeChallenge) throws IOException {
-        Optional<Homeomorphism> morph = IsoFinder.getHomeomorphism(testCase);
-        if (morph.isEmpty()) {
+    protected HomeomorphismResult testSucceed(TestCase testCase, boolean writeChallenge) throws IOException {
+        HomeomorphismResult morph = IsoFinder.getHomeomorphism(testCase);
+        if (morph.failed) {
             openInBrowser(testCase.source.toString(), testCase.target.toString());
             if (writeChallenge) {
                 writeChallenge(new Pair<>(testCase.source, testCase.target));
             }
             fail();
         }
-        return morph.get();
+        return morph;
     }
 
     private void writeChallenge(Pair<GraphGeneration, GraphGeneration> pair) throws IOException {
@@ -49,14 +51,6 @@ public abstract class SystemTest {
         }
     }
 
-//    protected Pair<GraphGeneration, GraphGeneration> readChallenge() throws IOException, ClassNotFoundException {
-//        try (ObjectInputStream oos = new ObjectInputStream(new FileInputStream(new File("challenge.txt")))) {
-//            //noinspection unchecked
-//            return (Pair<GraphGeneration, GraphGeneration>) oos.readObject();
-//        } catch (FileNotFoundException e) {
-//            return null;
-//        }
-//    }
 
     @SuppressWarnings("unchecked")
     protected List<Challenge> readChallenges() {

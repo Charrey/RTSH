@@ -1,49 +1,66 @@
 package system;
 
-import com.charrey.Homeomorphism;
-import com.charrey.graph.generation.RandomTestCaseGenerator;
+import com.charrey.HomeomorphismResult;
+import com.charrey.IsoFinder;
+import com.charrey.graph.generation.RandomSucceedTestCaseGenerator;
+import com.charrey.graph.generation.TestCase;
+import com.charrey.graph.generation.TestCaseGenerator;
+import com.charrey.graph.generation.TrulyRandomTestCaseGenerator;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RandomSystemTests extends SystemTest {
 
-    private static final int ITERATIONS = 200;
-    private static final long TIMEOUT = Long.MAX_VALUE;
-
+    @Test
+    public void findCasesRandom() throws IOException {
+        findCases(60*1000, 100, new TrulyRandomTestCaseGenerator(1, 0, 1.5, 6), false);
+    }
 
     @Test
-    public void findCases() throws IOException {
+    public void findCasesSucceed() throws IOException {
+        findCases(6000*1000, 1, new RandomSucceedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+    }
+
+
+    private void findCases(long time, int iterations, TestCaseGenerator graphGen, boolean writeChallenge) throws IOException {
         Logger.getLogger("IsoFinder").setLevel(Level.OFF);
-        int patternNodes = 1;
-        int patternEdges = 0;
         long start = System.currentTimeMillis();
         double totalIterations = 0L;
-        Random random = new Random(670);
-        while (patternNodes < 8) {
-            RandomTestCaseGenerator graphGen = new RandomTestCaseGenerator(patternNodes, patternEdges, 0.1, 2, random.nextInt());
-            graphGen.init(ITERATIONS, false);
+        while (true) {
+            graphGen.init(iterations, false);
             double total = 0.;
-            for (int i = 0; i < ITERATIONS; i++) {
-                if (System.currentTimeMillis() - start > TIMEOUT) {
+            int patternNodes = 0;
+            int patternEdges = 0;
+
+            int casesSucceed = 0;
+            int casesFailed = 0;
+            int casesCompatibilityFailed = 0;
+
+            for (int i = 0; i < iterations; i++) {
+                if (System.currentTimeMillis() - start > time) {
                     return;
                 }
-                RandomTestCaseGenerator.TestCase testCase = graphGen.getNext();
-                Homeomorphism homeomorphism = testSucceed(testCase, true);
-                total += homeomorphism.getIterations();
+                TestCase testCase = graphGen.getNext();
+                patternNodes = testCase.source.getGraph().vertexSet().size();
+                patternEdges = testCase.source.getGraph().edgeSet().size();
+                HomeomorphismResult homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge) : IsoFinder.getHomeomorphism(testCase);
+                total += homeomorphism.iterations;
+                if (!homeomorphism.failed) {
+                    casesSucceed++;
+                } else if (homeomorphism.iterations == 0) {
+                    casesCompatibilityFailed++;
+                } else {
+                    casesFailed++;
+                }
             }
-            totalIterations += (total/ (double) ITERATIONS);
-            System.out.println(patternNodes + "\t" + patternEdges + "\t" + totalIterations);
-            if (patternEdges < (patternNodes * (patternNodes - 1))/2) {
-                patternEdges++;
-            } else {
-                patternEdges = 0;
-                patternNodes++;
-            }
-
+            totalIterations += (total/ (double) iterations);
+            System.out.println(patternNodes + "\t" + patternEdges + "\t" + (long)totalIterations + "\t" + casesSucceed + "/" + iterations + "\t"+ casesCompatibilityFailed + "/" + iterations + "\t"+ casesFailed + "/" + iterations + "\t");
+            graphGen.makeHarder();
         }
     }
+
+
 }

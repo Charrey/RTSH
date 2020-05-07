@@ -1,87 +1,73 @@
 package com.charrey;
 
-import com.charrey.exceptions.EmptyDomainException;
+import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.DomainChecker;
+import com.charrey.util.datastructures.checker.DomainChecker;
+import com.charrey.util.datastructures.checker.DomainCheckerException;
+import com.charrey.util.datastructures.checker.EmptyDomainChecker;
 
-import java.util.BitSet;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Occupation {
 
-    private final BitSet routingBits;
+    private final List<Path> routingBits;
     private final BitSet vertexBits;
-    private final DomainChecker domainChecker;
+    public final DomainChecker domainCheckerLoose;
 
     public Occupation(UtilityData data, int size){
-        this.domainChecker = new DomainChecker(data);
-        this.routingBits = new BitSet(size);
+        domainCheckerLoose = new EmptyDomainChecker(data);
+        this.routingBits = new ArrayList<>(size);
         this.vertexBits = new BitSet(size);
+        for (int i = 0; i < size; i++) {
+            routingBits.add(null);
+        }
     }
 
-    public void occupyRouting(int verticesPlaced, Vertex v) {
-        assert !routingBits.get(v.data());
-        routingBits.set(v.data());
+    public void occupyRoutingAndCheck(int verticesPlaced, Vertex v, Path path) throws DomainCheckerException {
+        assert routingBits.get(v.data()) == null;
+        routingBits.set(v.data(), path);
         try {
-            domainChecker.afterOccupy(verticesPlaced, v);
-        } catch (EmptyDomainException ignored) {
+            domainCheckerLoose.afterOccupyEdge(this, verticesPlaced, v);
+        } catch (DomainCheckerException e) {
+            routingBits.set(v.data(), null);
+            throw e;
         }
     }
 
-    public void occupyRoutingAndCheck(int verticesPlaced, Vertex v) throws EmptyDomainException {
-        assert !routingBits.get(v.data());
-        routingBits.set(v.data());
-        domainChecker.afterOccupy(verticesPlaced, v);
-    }
-
-    public void occupyRouting(int verticesPlaced, List<Vertex> vs)  {
-        for (Vertex v : vs) {
-            occupyRouting(verticesPlaced, v);
-        }
-    }
-
-    public void occupyRoutingAndCheck(int verticesPlaced, List<Vertex> vs) throws EmptyDomainException {
-        ListIterator<Vertex> it = vs.listIterator();
+    public void occupyRoutingAndCheck(int verticesPlaced, Path path) throws DomainCheckerException {
+        ListIterator<Vertex> it = path.intermediate().listIterator();
+        List<Path> previous = new ArrayList<>(routingBits);
         while (it.hasNext()) {
             Vertex item = it.next();
+            String previousCheck = null;
             try {
-                occupyRoutingAndCheck(verticesPlaced, item);
-            } catch (EmptyDomainException e) {
+                previousCheck = this.domainCheckerLoose.toString();
+                occupyRoutingAndCheck(verticesPlaced, item, path);
+                assert isOccupiedRouting(item);
+            } catch (DomainCheckerException e) {
+                assertEquals(previousCheck, domainCheckerLoose.toString());
+                it.previous();
                 while (it.hasPrevious()) {
                     item = it.previous();
                     releaseRouting(verticesPlaced, item);
                 }
-                throw new EmptyDomainException();
+                assertEquals(previous, routingBits);
+                throw e;
             }
         }
     }
-    //2m8s
 
-//    public void occupyRoutingAndCheck(int verticesPlaced, List<Vertex> vs) throws EmptyDomainException {
-//        ListIterator<Vertex> it = vs.listIterator();
-//        while (it.hasNext()) {
-//            Vertex item = it.next();
-//            try {
-//                occupyRoutingAndCheck(verticesPlaced, item);
-//            } catch (EmptyDomainException e) {
-//                while (it.hasPrevious()) {
-//                    item = it.previous();
-//                    releaseRouting(verticesPlaced, item);
-//                }
-//                throw new EmptyDomainException();
-//            }
-//        }
-//    }
-
-    public void occupyVertex(int source, Vertex target) throws EmptyDomainException {
-        assert !routingBits.get(target.data());
+    public void occupyVertex(int source, Vertex target) throws DomainCheckerException {
+        assert routingBits.get(target.data()) == null;
         assert !vertexBits.get(target.data());
         vertexBits.set(target.data());
         try {
-            domainChecker.afterOccupy(source, target);
-        } catch (EmptyDomainException e) {
+            domainCheckerLoose.afterOccupyVertex(this, source, target);
+        } catch (DomainCheckerException e) {
             vertexBits.clear(target.data());
             throw e;
         }
@@ -89,19 +75,20 @@ public class Occupation {
 
 
     public void releaseRouting(int verticesPlaced, Vertex v) {
-        assert routingBits.get(v.data());
-        routingBits.clear(v.data());
-        domainChecker.afterRelease(verticesPlaced, v);
+        assert isOccupiedRouting(v);
+        routingBits.set(v.data(), null);
+        domainCheckerLoose.afterReleaseEdge(this, verticesPlaced, v);
     }
 
     public void releaseVertex(int verticesPlaced, Vertex v) {
         assert vertexBits.get(v.data());
         vertexBits.clear(v.data());
-        domainChecker.afterRelease(verticesPlaced, v);
+        domainCheckerLoose.afterReleaseVertex(this, verticesPlaced, v);
     }
 
     public boolean isOccupiedRouting(Vertex v) {
-        return routingBits.get(v.data());
+        Path gotten = routingBits.get(v.data());
+        return gotten != null;
     }
 
     public boolean isOccupiedVertex(Vertex v) {
@@ -112,8 +99,19 @@ public class Occupation {
         return isOccupiedRouting(v) || isOccupiedVertex(v);
     }
 
+    @Override
+    public String toString() {
+        Set<Integer> myList = new HashSet<>();
+        for (Path i : this.routingBits) {
+            if (i != null) {
+                myList.addAll(i.intermediate().stream().mapToInt(Vertex::data).boxed().collect(Collectors.toSet()));
+            }
+        }
+        myList.addAll(this.vertexBits.stream().boxed().collect(Collectors.toSet()));
+        assert myList.stream().allMatch(x -> isOccupied(new Vertex(x)));
+        List<Integer> res = new LinkedList<>(myList);
+        Collections.sort(res);
+        return res.toString();
 
-    public BitSet getRoutingBits() {
-        return routingBits;
     }
 }

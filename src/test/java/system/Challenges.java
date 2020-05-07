@@ -1,6 +1,6 @@
 package system;
 
-import com.charrey.graph.generation.RandomTestCaseGenerator;
+import com.charrey.graph.generation.TestCase;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -47,7 +47,7 @@ public class Challenges extends SystemTest{
         List<SystemTest.Challenge> challenges = readChallenges();
         for (SystemTest.Challenge challenge : challenges) {
             System.out.println(challenge.getFile().getName());
-            testSucceed(new RandomTestCaseGenerator.TestCase(challenge.source, challenge.target), false);
+            testSucceed(new TestCase(challenge.source, challenge.target), false);
         }
     }
 

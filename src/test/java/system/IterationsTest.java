@@ -1,7 +1,7 @@
 package system;
 
-import com.charrey.Homeomorphism;
-import com.charrey.graph.generation.RandomTestCaseGenerator;
+import com.charrey.HomeomorphismResult;
+import com.charrey.graph.generation.TestCase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -39,15 +39,15 @@ public class IterationsTest extends SystemTest {
     private static final long bestTime = (long) (12.4 * 1000); // 29-04-2020 15:39
     @Test
     public void testSmall() {
-        List<RandomTestCaseGenerator.TestCase> res = new ArrayList<>();
+        List<TestCase> res = new ArrayList<>();
         File folder = new File("performanceTests/5-12");
         File[] listOfFiles = folder.listFiles();
         assert listOfFiles != null;
         Arrays.sort(listOfFiles, Comparator.comparingInt(o -> Integer.parseInt(o.getName().split("\\.")[0])));
-        Map<RandomTestCaseGenerator.TestCase, String> filenames = new HashMap<>();
+        Map<TestCase, String> filenames = new HashMap<>();
         for (File listOfFile : listOfFiles) {
             try (ObjectInputStream oos = new ObjectInputStream(new FileInputStream(listOfFile))) {
-                RandomTestCaseGenerator.TestCase tc = (RandomTestCaseGenerator.TestCase) oos.readObject();
+                TestCase tc = (TestCase) oos.readObject();
                 filenames.put(tc, listOfFile.getName());
                 res.add(tc);
             } catch (IOException | ClassNotFoundException e) {
@@ -57,10 +57,10 @@ public class IterationsTest extends SystemTest {
 
         its = 0;
         assertTimeout(Duration.ofMillis((long) (bestTime * 1.1)), () -> {
-            for(RandomTestCaseGenerator.TestCase tc : res) {
+            for(TestCase tc : res) {
                 System.out.println(filenames.get(tc));
-                Homeomorphism result = testSucceed(tc, false);
-                addIterations(result.getIterations());
+                HomeomorphismResult result = testSucceed(tc, false);
+                addIterations(result.iterations);
             }
         });
 
