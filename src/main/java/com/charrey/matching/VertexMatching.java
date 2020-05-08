@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class VertexMatching extends VertexBlocker {
 
 
@@ -37,7 +39,7 @@ public class VertexMatching extends VertexBlocker {
     }
 
     public void placeNext() {
-        assert occupation.domainCheckerLoose.checkOK(placement.size());
+        assert occupation.domainChecker.checkOK(placement.size());
         assert canPlaceNext();
         while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
             candidateToChooseNext[placement.size()] = 0;
@@ -46,27 +48,40 @@ public class VertexMatching extends VertexBlocker {
             this.onDeletion.run(removed);
             candidateToChooseNext[placement.size()] += 1;
             assert canPlaceNext();
-
         }
+        assert occupation.domainChecker.checkOK(placement.size());
         Vertex toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
         boolean occupied = occupation.isOccupied(toAdd);
+        assert occupation.domainChecker.checkOK(placement.size());
         if (occupied) {
             candidateToChooseNext[placement.size()] += 1;
             if (canPlaceNext()) {
                 placeNext();
             }
         } else {
+            String previousString = null;
             try {
+                assert occupation.domainChecker.checkOK(placement.size());
+                previousString = occupation.domainChecker.toString();
+                assert occupation.domainChecker.checkOK(placement.size());
                 occupation.occupyVertex(placement.size() + 1, toAdd);
+                assert occupation.domainChecker.checkOK(placement.size());
                 placement.add(toAdd);
             } catch (DomainCheckerException e) {
+                String foo2 = occupation.domainChecker.toString();
+                assertEquals(previousString, occupation.domainChecker.toString());
+                assert occupation.domainChecker.checkOK(placement.size());
                 candidateToChooseNext[placement.size()] += 1;
                 if (canPlaceNext()) {
                     placeNext();
+                    assert occupation.domainChecker.checkOK(placement.size());
+                    return;
+                } else {
+                    return;
                 }
             }
         }
-        assert occupation.domainCheckerLoose.checkOK(placement.size());
+        assert occupation.domainChecker.checkOK(placement.size());
     }
 
 
@@ -86,7 +101,7 @@ public class VertexMatching extends VertexBlocker {
     }
 
     public void removeLast() {
-        assert occupation.domainCheckerLoose.checkOK(placement.size());
+        assert occupation.domainChecker.checkOK(placement.size());
         if (placement.size() < candidateToChooseNext.length) {
             candidateToChooseNext[placement.size()] = 0;
         }
@@ -94,7 +109,7 @@ public class VertexMatching extends VertexBlocker {
         occupation.releaseVertex(placement.size(), removed);
         this.onDeletion.run(removed);
         candidateToChooseNext[placement.size()] += 1;
-        assert occupation.domainCheckerLoose.checkOK(placement.size());
+        assert occupation.domainChecker.checkOK(placement.size());
     }
 
     public void setOnDeletion(DeletionFunction x) {

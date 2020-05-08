@@ -2,10 +2,9 @@ package com.charrey;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
+import com.charrey.util.Settings;
 import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.checker.DomainChecker;
-import com.charrey.util.datastructures.checker.DomainCheckerException;
-import com.charrey.util.datastructures.checker.EmptyDomainChecker;
+import com.charrey.util.datastructures.checker.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,10 +15,22 @@ public class Occupation {
 
     private final List<Path> routingBits;
     private final BitSet vertexBits;
-    public final DomainChecker domainCheckerLoose;
+    public final DomainChecker domainChecker;
 
     public Occupation(UtilityData data, int size){
-        domainCheckerLoose = new EmptyDomainChecker(data);
+        switch (Settings.runTimeCheck) {
+            case NONE:
+                domainChecker = new DummyDomainChecker();
+                break;
+            case EMPTY_DOMAIN:
+                domainChecker = new EmptyDomainChecker(data);
+                break;
+            case ALLDIFFERENT:
+                domainChecker = new AllDifferentChecker(data);
+                break;
+            default:
+                throw new UnsupportedOperationException();
+        }
         this.routingBits = new ArrayList<>(size);
         this.vertexBits = new BitSet(size);
         for (int i = 0; i < size; i++) {
@@ -30,9 +41,12 @@ public class Occupation {
     public void occupyRoutingAndCheck(int verticesPlaced, Vertex v, Path path) throws DomainCheckerException {
         assert routingBits.get(v.data()) == null;
         routingBits.set(v.data(), path);
+        String previous = null;
         try {
-            domainCheckerLoose.afterOccupyEdge(this, verticesPlaced, v);
+            previous = domainChecker.toString();
+            domainChecker.afterOccupyEdge(this, verticesPlaced, v);
         } catch (DomainCheckerException e) {
+            assertEquals(previous, domainChecker.toString());
             routingBits.set(v.data(), null);
             throw e;
         }
@@ -45,11 +59,11 @@ public class Occupation {
             Vertex item = it.next();
             String previousCheck = null;
             try {
-                previousCheck = this.domainCheckerLoose.toString();
+                previousCheck = this.domainChecker.toString();
                 occupyRoutingAndCheck(verticesPlaced, item, path);
                 assert isOccupiedRouting(item);
             } catch (DomainCheckerException e) {
-                assertEquals(previousCheck, domainCheckerLoose.toString());
+                assertEquals(previousCheck, domainChecker.toString());
                 it.previous();
                 while (it.hasPrevious()) {
                     item = it.previous();
@@ -66,7 +80,7 @@ public class Occupation {
         assert !vertexBits.get(target.data());
         vertexBits.set(target.data());
         try {
-            domainCheckerLoose.afterOccupyVertex(this, source, target);
+            domainChecker.beforeOccupyVertex(this, source, target);
         } catch (DomainCheckerException e) {
             vertexBits.clear(target.data());
             throw e;
@@ -77,13 +91,13 @@ public class Occupation {
     public void releaseRouting(int verticesPlaced, Vertex v) {
         assert isOccupiedRouting(v);
         routingBits.set(v.data(), null);
-        domainCheckerLoose.afterReleaseEdge(this, verticesPlaced, v);
+        domainChecker.afterReleaseEdge(this, verticesPlaced, v);
     }
 
     public void releaseVertex(int verticesPlaced, Vertex v) {
         assert vertexBits.get(v.data());
         vertexBits.clear(v.data());
-        domainCheckerLoose.afterReleaseVertex(this, verticesPlaced, v);
+        domainChecker.afterReleaseVertex(this, verticesPlaced, v);
     }
 
     public boolean isOccupiedRouting(Vertex v) {

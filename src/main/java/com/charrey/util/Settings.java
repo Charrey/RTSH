@@ -13,6 +13,6 @@ public class Settings {
     }
 
     public enum RunTimeCheck {
-        EMPTY_DOMAIN, ALLDIFFERENT
+        EMPTY_DOMAIN, ALLDIFFERENT, NONE;
     }
 }

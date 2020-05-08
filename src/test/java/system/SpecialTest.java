@@ -12,16 +12,20 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SpecialTest extends SystemTest {
 
     private static final String patternDOT = "strict graph G {\n" +
             "  0;\n" +
-            "  2;\n" +
-            "  3;\n" +
             "  1;\n" +
+            "  3;\n" +
+            "  2;\n" +
             "  0 -- 1;\n" +
-            "  3 -- 2;\n" +
+            "  0 -- 3;\n" +
+            "  0 -- 2;\n" +
+            "  1 -- 2;\n" +
             "}\n";
 
     private static final String targetDOT = "strict graph G {\n" +
@@ -31,12 +35,14 @@ public class SpecialTest extends SystemTest {
             "  3;\n" +
             "  4;\n" +
             "  5;\n" +
-            "  0 -- 3;\n" +
-            "  1 -- 2;\n" +
-            "  4 -- 0;\n" +
-            "  4 -- 1;\n" +
+            "  1 -- 3;\n" +
+            "  2 -- 3;\n" +
+            "  2 -- 1;\n" +
+            "  2 -- 0;\n" +
             "  4 -- 5;\n" +
             "  4 -- 3;\n" +
+            "  4 -- 1;\n" +
+            "  4 -- 0;\n" +
             "  4 -- 2;\n" +
             "}\n";
 
@@ -44,7 +50,7 @@ public class SpecialTest extends SystemTest {
     @Test
     public void specialTest() throws IOException {
         DOTImporter<Vertex, DefaultEdge> importer = new DOTImporter<>();
-
+        Logger.getLogger("IsoFinder").setLevel(Level.ALL);
         Graph<Vertex, DefaultEdge> patternGraph = new SimpleGraph<>(new GraphGenerator.IntGenerator(), DefaultEdge::new, false);
         importer.importGraph(patternGraph, new StringReader(patternDOT));
 

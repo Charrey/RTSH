@@ -79,7 +79,7 @@ public class EdgeMatching extends VertexBlocker {
             return false;
         }
         int placementSize = vertexMatching.getPlacementUnsafe().size();
-        assert occupation.domainCheckerLoose.checkOK(placementSize);
+        assert occupation.domainChecker.checkOK(placementSize);
         for (int i = pathList.size() - 1; i >= 0; i--) {
             Path toRetry = pathList.get(i);
             Vertex tail = toRetry.tail();
@@ -97,21 +97,21 @@ public class EdgeMatching extends VertexBlocker {
                 String previous2 = null;
                 try {
                     previous = occupation.toString();
-                    previous2 = occupation.domainCheckerLoose.toString();
+                    previous2 = occupation.domainChecker.toString();
                     occupation.occupyRoutingAndCheck(placementSize, new Path(toAdd));
                 } catch (DomainCheckerException e) {
                     assertEquals(previous, occupation.toString());
-                    assertEquals(previous2, occupation.domainCheckerLoose.toString());
+                    assertEquals(previous2, occupation.domainChecker.toString());
                     try {
                         occupation.occupyRoutingAndCheck(placementSize, new Path(previousPath));
                     } catch (DomainCheckerException ignored) {
                         assert false;
                     }
                     pathList.set(pathList.size()-1, previousPath);
-                    assert occupation.domainCheckerLoose.checkOK(placementSize);
+                    assert occupation.domainChecker.checkOK(placementSize);
                     return retry();
                 }
-                assert occupation.domainCheckerLoose.checkOK(placementSize);
+                assert occupation.domainChecker.checkOK(placementSize);
                 return true;
             } else {
                 try {
@@ -125,12 +125,12 @@ public class EdgeMatching extends VertexBlocker {
                 removeLastPath();
             }
         }
-        assert occupation.domainCheckerLoose.checkOK(placementSize);
+        assert occupation.domainChecker.checkOK(placementSize);
         return false;
     }
 
     public Path placeNextUnmatched() {
-        assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
+        assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
         assert this.hasUnmatched();
         //get things
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
@@ -161,13 +161,13 @@ public class EdgeMatching extends VertexBlocker {
             try {
                 addPath(toReturn);
             } catch (DomainCheckerException e) {
-                assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
+                assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
                 return placeNextUnmatched();
             }
-            assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
+            assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
             return toReturn;
         }
-        assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
+        assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
         return null;
 
     }
@@ -213,7 +213,7 @@ public class EdgeMatching extends VertexBlocker {
     }
 
     public void synchronize(Vertex vertex) {
-        assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
+        assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
         int vertexData = vertex.data();
         assert !vertexMatching.getPlacementUnsafe().contains(vertex);
         paths.get(vertexMatching.getPlacementUnsafe().size()).forEach(x -> x.intermediate().forEach(y -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), y)));
@@ -228,7 +228,7 @@ public class EdgeMatching extends VertexBlocker {
             pathfinders.get(pathIt.tail(), pathIt.head()).reset();
             i.remove();
         }
-        assert occupation.domainCheckerLoose.checkOK(vertexMatching.getPlacementUnsafe().size());
+        assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
     }
 
     public Set<Path> allPaths() {

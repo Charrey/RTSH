@@ -11,13 +11,11 @@ public class EmptyDomainChecker extends DomainChecker {
 
     private final Vertex[][] reverseDomain;
     private final LinkedIndexSet<Vertex>[] domain;
-    private final UtilityData data;
 
     @SuppressWarnings("unchecked")
     public EmptyDomainChecker(UtilityData data) {
         this.reverseDomain = data.getReverseCompatibility();
         this.domain = (LinkedIndexSet<Vertex>[]) Arrays.stream(data.getCompatibility()).map(x -> new LinkedIndexSet<>(reverseDomain.length, Arrays.asList(x), Vertex.class)).toArray(LinkedIndexSet[]::new);
-        this.data = data;
     }
 
     @Override
@@ -38,24 +36,19 @@ public class EmptyDomainChecker extends DomainChecker {
         }
     }
 
+
+
     @Override
-    public void afterOccupyVertex(Occupation occupation, int verticesPlaced, Vertex v) throws DomainCheckerException {
-        int dataOfPlacedVertex = verticesPlaced - 1;
-        assert dataOfPlacedVertex >= 0;
-        Vertex[] candidates = reverseDomain[v.data()];
-        for (int i = candidates.length - 1; i >= 0; i--) {
-            domain[candidates[i].data()].remove(v);
-        }
-        if (Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().anyMatch(LinkedIndexSet::isEmpty)) {
-            for (int i = candidates.length - 1; i >= 0; i--) {
-                domain[candidates[i].data()].add(v);
-            }
-            throw new DomainCheckerException();
-        }
+    public void beforeOccupyVertex(Occupation occupation, int verticesPlaced, Vertex v) throws DomainCheckerException {
+        afterOccupy(verticesPlaced, v);
     }
 
     @Override
     public void afterOccupyEdge(Occupation occupation, int verticesPlaced, Vertex v) throws DomainCheckerException {
+        afterOccupy(verticesPlaced, v);
+    }
+
+    private void afterOccupy(int verticesPlaced, Vertex v) throws DomainCheckerException {
         Vertex[] candidates = reverseDomain[v.data()];
         for (int i = candidates.length - 1; i >= 0; i--) {
             domain[candidates[i].data()].remove(v);

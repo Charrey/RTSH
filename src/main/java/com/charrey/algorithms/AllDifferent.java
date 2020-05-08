@@ -17,15 +17,15 @@ public class AllDifferent {
 
     private static final Settings settings = new DefaultSettings();
 
-    private final Set<Map<Vertex, Set<Vertex>>> cacheYes = new HashSet<>();
-    private final Set<Map<Vertex, Set<Vertex>>> cacheNo = new HashSet<>();
-    public boolean get(int graphSize, Map<Vertex, Set<Vertex>> allDifferentMap) {
-        if (cacheYes.contains(allDifferentMap)) {
+    private final Set<Map<Vertex, Set<Vertex>>> cacheYesA = new HashSet<>();
+    private final Set<Map<Vertex, Set<Vertex>>> cacheNoA = new HashSet<>();
+    public boolean get(int patternGraphSize, Map<Vertex, Set<Vertex>> allDifferentMap) {
+        if (cacheYesA.contains(allDifferentMap)) {
             return true;
-        } else if (cacheNo.contains(allDifferentMap)) {
+        } else if (cacheNoA.contains(allDifferentMap)) {
             return false;
         } else {
-            final Map<Vertex, int[]> domains = new IndexMap<>(graphSize);
+            final Map<Vertex, int[]> domains = new IndexMap<>(patternGraphSize);
             allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::data).toArray()));
             if (domains.values().stream().anyMatch(x -> x.length == 0)) {
                 return false;
@@ -34,21 +34,45 @@ public class AllDifferent {
             IntVar[] variables = new IntVar[allDifferentMap.size()];
             List<Vertex> ordered = new ArrayList<>(allDifferentMap.keySet());
             for (int i = 0; i < allDifferentMap.size(); i++) {
-                variables[i] = model.intVar("foo", domains.get(ordered.get(i)));
+                variables[i] = model.intVar(String.valueOf(i), domains.get(ordered.get(i)));
             }
             model.allDifferent(variables).post();
             boolean result = model.getSolver().solve();
             if (result) {
-                cacheYes.add(allDifferentMap);
+                cacheYesA.add(allDifferentMap);
             } else {
-                cacheNo.add(allDifferentMap);
+                cacheNoA.add(allDifferentMap);
             }
             return result;
         }
     }
 
+    //private final Set<List<Set<Vertex>>> cacheYesB = new HashSet<>();
+    //private final Set<List<Set<Vertex>>> cacheNoB = new HashSet<>();
+    public boolean get(List<Set<Vertex>> compatibility) {
+//        if (cacheYesB.contains(compatibility)) {
+//            return true;
+//        } else if (cacheNoB.contains(compatibility)) {
+//            return false;
+//        }
+        Model model = new Model(settings);
+        IntVar[] variables = new IntVar[compatibility.size()];
+        for (int i = 0; i < compatibility.size(); i++) {
+            variables[i] = model.intVar(String.valueOf(i), compatibility.get(i).stream().mapToInt(Vertex::data).toArray());
+        }
+        model.allDifferent(variables).post();
+        boolean result = model.getSolver().solve();
+//        if (result) {
+//            cacheYesB.add(new ArrayList<>(compatibility));
+//        } else {
+//            cacheNoB.add(new ArrayList<>(compatibility));
+//        }
+        return result;
+    }
 
-    public static Set<Pair<Integer, Integer>> checkAll(Map<Integer, Set<Integer>> allDifferentMap) {
+
+
+        public static Set<Pair<Integer, Integer>> checkAll(Map<Integer, Set<Integer>> allDifferentMap) {
         Set<Pair<Integer, Integer>> res = new HashSet<>();
         final int[][] domains = new int[allDifferentMap.size()][];
         allDifferentMap.forEach((key, value) -> domains[key] = (value.stream().mapToInt(x -> x).toArray()));
