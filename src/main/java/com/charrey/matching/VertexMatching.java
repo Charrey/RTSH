@@ -65,7 +65,7 @@ public class VertexMatching extends VertexBlocker {
                 previousString = occupation.domainChecker.toString();
                 assert occupation.domainChecker.checkOK(placement.size());
                 occupation.occupyVertex(placement.size() + 1, toAdd);
-                assert occupation.domainChecker.checkOK(placement.size());
+                assert occupation.domainChecker.checkOK(placement.size() + 1);
                 placement.add(toAdd);
             } catch (DomainCheckerException e) {
                 String foo2 = occupation.domainChecker.toString();

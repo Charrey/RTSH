@@ -21,7 +21,7 @@ public class RandomSystemTests extends SystemTest {
 
     @Test
     public void findCasesSucceed() throws IOException {
-        findCases(6000*1000, 100, new RandomSucceedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(600*1000, 100, new RandomSucceedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
 

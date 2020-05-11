@@ -5,7 +5,7 @@ public class Settings {
     public static final boolean initialLocalizedAllDifferent = true;
     public static final boolean initialGlobalAllDifferent = true;
     public static final boolean refuseLongerPaths = true;
-    public static final RunTimeCheck runTimeCheck = RunTimeCheck.ALLDIFFERENT;
+    public static final RunTimeCheck runTimeCheck = RunTimeCheck.NONE;
     public static final DFSStrategy DFSSetting = DFSStrategy.GREEDY;
 
     public enum  DFSStrategy {
@@ -13,6 +13,6 @@ public class Settings {
     }
 
     public enum RunTimeCheck {
-        EMPTY_DOMAIN, ALLDIFFERENT, NONE;
+        EMPTY_DOMAIN, ALLDIFFERENT, NONE
     }
 }
