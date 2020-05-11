@@ -7,6 +7,7 @@ import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import com.charrey.util.Util;
 import com.charrey.util.UtilityData;
+import com.charrey.util.datastructures.checker.DomainCheckerException;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -18,17 +19,28 @@ import java.util.logging.Logger;
 public class IsoFinder {
 
     private static final Logger LOG = Logger.getLogger("IsoFinder");
+    private static EdgeMatching edgeMatching;
+    private static VertexMatching vertexMatching;
+    private static Occupation occupation;
+    private static UtilityData data;
 
-    public static HomeomorphismResult getHomeomorphism(TestCase testcase) {
-        UtilityData data = new UtilityData(testcase.source.getGraph(), testcase.target.getGraph());
+    private static void setup(TestCase testcase) throws DomainCheckerException {
+        data = new UtilityData(testcase.source.getGraph(), testcase.target.getGraph());
         logDomainReduction(testcase, data);
         if (Arrays.stream(data.getCompatibility()).anyMatch(x -> x.length == 0)) {
+            throw new DomainCheckerException();
+        }
+        occupation         = new Occupation(data, testcase.target.getGraph().vertexSet().size());
+        vertexMatching = new VertexMatching(data, testcase.source, occupation);
+        edgeMatching     = new EdgeMatching(vertexMatching, data, testcase.source, testcase.target, occupation);
+    }
+
+    public static HomeomorphismResult getHomeomorphism(TestCase testcase) {
+        try {
+            setup(testcase);
+        } catch (DomainCheckerException e) {
             return HomeomorphismResult.COMPATIBILITY_FAIL;
         }
-        Occupation occupation         = new Occupation(data, testcase.target.getGraph().vertexSet().size());
-        VertexMatching vertexMatching = new VertexMatching(data, testcase.source, occupation);
-        EdgeMatching edgeMatching     = new EdgeMatching(vertexMatching, data, testcase.source, testcase.target, occupation);
-
         long iterations = 0;
         while (!allDone(testcase.source.getGraph(), vertexMatching, edgeMatching)) {
             iterations++;
@@ -37,7 +49,11 @@ public class IsoFinder {
             if (edgeMatching.hasUnmatched()) {
                 Path nextpath = edgeMatching.placeNextUnmatched();
                 if (nextpath == null) {
-                    vertexMatching.removeLast();
+                    if (edgeMatching.retry()) {
+                        vertexMatching.giveAllowance();
+                    } else {
+                        vertexMatching.removeLast();
+                    }
                 }
             } else if (vertexMatching.canPlaceNext()) {
                 vertexMatching.placeNext();
@@ -55,6 +71,8 @@ public class IsoFinder {
             return HomeomorphismResult.ofSucceed(vertexMatching, edgeMatching, iterations);
         }
     }
+
+
 
     private static void logDomainReduction(TestCase testcase, UtilityData data) {
         BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.source.getGraph().vertexSet().size())).pow(testcase.target.getGraph().vertexSet().size());

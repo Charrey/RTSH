@@ -42,12 +42,7 @@ public class VertexMatching extends VertexBlocker {
         assert occupation.domainChecker.checkOK(placement.size());
         assert canPlaceNext();
         while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
-            candidateToChooseNext[placement.size()] = 0;
-            Vertex removed = placement.remove(placement.size()-1);
-            occupation.releaseVertex(placement.size(), removed);
-            this.onDeletion.run(removed);
-            candidateToChooseNext[placement.size()] += 1;
-            assert canPlaceNext();
+            removeLast();
         }
         assert occupation.domainChecker.checkOK(placement.size());
         Vertex toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
@@ -68,7 +63,6 @@ public class VertexMatching extends VertexBlocker {
                 assert occupation.domainChecker.checkOK(placement.size() + 1);
                 placement.add(toAdd);
             } catch (DomainCheckerException e) {
-                String foo2 = occupation.domainChecker.toString();
                 assertEquals(previousString, occupation.domainChecker.toString());
                 assert occupation.domainChecker.checkOK(placement.size());
                 candidateToChooseNext[placement.size()] += 1;

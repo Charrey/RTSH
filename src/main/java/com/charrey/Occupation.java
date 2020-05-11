@@ -25,7 +25,7 @@ public class Occupation {
             case EMPTY_DOMAIN:
                 domainChecker = new EmptyDomainChecker(data);
                 break;
-            case ALLDIFFERENT:
+            case ALL_DIFFERENT:
                 domainChecker = new AllDifferentChecker(data);
                 break;
             default:
