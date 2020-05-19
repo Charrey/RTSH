@@ -21,15 +21,18 @@ public class Util {
     public static boolean isCorrect(Graph<Vertex, DefaultEdge> pattern, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
         //all nodes are placed
         if (vertexMatching.getPlacementUnsafe().size() < pattern.vertexSet().size()) {
+            assert false;
             return false;
         }
         //all nodes are distinct
         if (vertexMatching.getPlacementUnsafe().size() != new HashSet<>(vertexMatching.getPlacementUnsafe()).size()) {
+            assert false;
             return false;
         }
 
         //all edges are placed
         if (edgeMatching.allPaths().size() != pattern.edgeSet().size()) {
+            assert false;
             return false;
         }
         for (DefaultEdge edge : pattern.edgeSet()) {
@@ -37,6 +40,7 @@ public class Util {
             Vertex edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge).data());
             long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.head(), x.tail()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
             if (matches != 1) {
+                assert false;
                 return false;
             }
         }

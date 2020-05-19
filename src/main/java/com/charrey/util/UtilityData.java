@@ -70,13 +70,13 @@ public class UtilityData {
 
     private Vertex[][][] targetNeighbours;
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public Vertex[][][] getTargetNeighbours(Settings.DFSStrategy strategy) {
+    public Vertex[][][] getTargetNeighbours(Settings.PathIterationStrategy strategy) {
         if (targetNeighbours == null) {
             List<Vertex> targetVertices = targetGraph.vertexSet()
                     .stream()
                     .sorted(Comparator.comparingInt(Vertex::data)).collect(Collectors.toList());
             switch (strategy) {
-                case ARBITRARY:
+                case DFS_ARBITRARY:
                     Vertex[][] sharedTargetNeighbours = new Vertex[targetVertices.size()][];
                     targetNeighbours = new Vertex[targetGraph.vertexSet().size()][][];
                     for (int i = 0; i < sharedTargetNeighbours.length; i++) {
@@ -89,8 +89,8 @@ public class UtilityData {
                         targetNeighbours[i] = Arrays.copyOf(sharedTargetNeighbours, sharedTargetNeighbours.length);
                     }
                     break;
-                case GREEDY:
-                    targetNeighbours = getTargetNeighbours(Settings.DFSStrategy.ARBITRARY);
+                case DFS_GREEDY:
+                    targetNeighbours = getTargetNeighbours(Settings.PathIterationStrategy.DFS_ARBITRARY);
                     List[][] tempTargetNeigbours = new List[targetNeighbours.length][targetNeighbours.length];
                     for (int i = 0; i < tempTargetNeigbours.length; i++) {
                         for (int j = 0; j < tempTargetNeigbours[i].length; j++) {

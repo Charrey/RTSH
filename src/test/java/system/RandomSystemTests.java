@@ -16,12 +16,12 @@ public class RandomSystemTests extends SystemTest {
 
     @Test
     public void findCasesRandom() throws IOException {
-        findCases(60*1000, 100, new TrulyRandomTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(60*1000, 200, new TrulyRandomTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
     @Test
     public void findCasesSucceed() throws IOException {
-        findCases(600*1000, 100, new RandomSucceedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(60*1000, 200, new RandomSucceedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
 

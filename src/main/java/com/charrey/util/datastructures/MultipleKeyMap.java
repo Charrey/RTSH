@@ -3,6 +3,8 @@ package com.charrey.util.datastructures;
 import com.charrey.graph.Vertex;
 
 import java.lang.reflect.Array;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MultipleKeyMap<V> {
 
@@ -27,5 +29,17 @@ public class MultipleKeyMap<V> {
 
     public void remove(Vertex key, Vertex key1) {
         nestedMap[key.data()][key1.data()] = null;
+    }
+
+    public Set<V> values() {
+        Set<V> res = new HashSet<>();
+        for (V[] vs : nestedMap) {
+            for (V v : vs) {
+                if (v != null) {
+                    res.add(v);
+                }
+            }
+        }
+        return res;
     }
 }

@@ -1,8 +1,12 @@
 package com.charrey.graph;
 
+import org.jgrapht.GraphPath;
+import org.jgrapht.graph.DefaultEdge;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Path {
 
@@ -15,6 +19,19 @@ public class Path {
         path = new ArrayList<>(maxSize);
         containing = new BitSet(maxSize);
         append(initialVertex);
+    }
+
+    public void forEach(Consumer<? super Vertex> consumer) {
+        path.forEach(consumer);
+    }
+
+    public Path(GraphPath<Vertex, DefaultEdge> gPath) {
+        this.path = new ArrayList<>(gPath.getLength());
+        this.containing = new BitSet(gPath.getGraph().vertexSet().size());
+        this.initialVertex = gPath.getStartVertex();
+        for (int i = 0; i <= gPath.getLength(); i++) {
+            append(gPath.getVertexList().get(i));
+        }
     }
 
     public void reinit() {
@@ -49,9 +66,10 @@ public class Path {
         return path.isEmpty();
     }
 
-    public void removeHead() {
+    public Vertex removeHead() {
         Vertex removed = path.remove(path.size()-1);
         containing.clear(removed.data());
+        return removed;
     }
 
     public boolean contains(Vertex vertex) {

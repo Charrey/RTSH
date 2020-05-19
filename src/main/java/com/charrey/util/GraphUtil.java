@@ -57,4 +57,16 @@ public class GraphUtil {
         cachedComponents.putIfAbsent(graph, new ConnectivityInspector<>(graph));
         return cachedComponents.get(graph).connectedSetOf(source).stream().filter(x -> x != source).collect(Collectors.toUnmodifiableSet());
     }
+
+    private static Graph<Vertex, DefaultEdge> graph;
+    private static List<Vertex> cachedRandomVertexOrder = null;
+    public static List<Vertex> randomVertexOrder(Graph<Vertex, DefaultEdge> graph) {
+        if (!graph.equals(GraphUtil.graph) || cachedRandomVertexOrder == null) {
+            cachedRandomVertexOrder = new ArrayList<>(graph.vertexSet());
+            Collections.shuffle(cachedRandomVertexOrder);
+            cachedRandomVertexOrder = Collections.unmodifiableList(cachedRandomVertexOrder);
+            GraphUtil.graph = graph;
+        }
+        return cachedRandomVertexOrder;
+    }
 }

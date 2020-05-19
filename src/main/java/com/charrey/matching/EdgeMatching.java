@@ -5,23 +5,20 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.GraphGeneration;
 import com.charrey.router.PathIterator;
-import com.charrey.util.Settings;
 import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.LinkedIndexSet;
 import com.charrey.util.datastructures.MultipleKeyMap;
-import com.charrey.util.datastructures.checker.DomainCheckerException;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultEdge;
 
 import java.lang.reflect.Array;
 import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 public class EdgeMatching extends VertexBlocker {
 
     private final VertexMatching vertexMatching;
     private final GraphGeneration source;
-    private final int domainSize;
+    private final Graph<Vertex, DefaultEdge> targetGraph;
 
     private MultipleKeyMap<PathIterator> pathfinders;
     private final Occupation occupation;
@@ -44,12 +41,12 @@ public class EdgeMatching extends VertexBlocker {
         EdgeMatching em = this;
         this.vertexMatching.setOnDeletion(em::synchronize);
         this.occupation = occupation;
-        this.domainSize = target.getGraph().vertexSet().size();
-        headMap2 = (LinkedIndexSet<PathIterator>[]) Array.newInstance(LinkedIndexSet.class, domainSize);
-        tailMap2 = (LinkedIndexSet<PathIterator>[]) Array.newInstance(LinkedIndexSet.class, domainSize);
+        this.targetGraph = target.getGraph();
+        headMap2 = (LinkedIndexSet<PathIterator>[]) Array.newInstance(LinkedIndexSet.class, targetGraph.vertexSet().size());
+        tailMap2 = (LinkedIndexSet<PathIterator>[]) Array.newInstance(LinkedIndexSet.class, targetGraph.vertexSet().size());
         for (Vertex v: target.getGraph().vertexSet()) {
-            headMap2[v.data()] = new LinkedIndexSet<>(domainSize * (1 + domainSize), PathIterator.class);
-            tailMap2[v.data()] = new LinkedIndexSet<>(domainSize * (1 + domainSize), PathIterator.class);
+            headMap2[v.data()] = new LinkedIndexSet<>(targetGraph.vertexSet().size() * (1 + targetGraph.vertexSet().size()), PathIterator.class);
+            tailMap2[v.data()] = new LinkedIndexSet<>(targetGraph.vertexSet().size() * (1 + targetGraph.vertexSet().size()), PathIterator.class);
         }
 
     }
@@ -86,39 +83,14 @@ public class EdgeMatching extends VertexBlocker {
             Vertex head = toRetry.head();
             assert tail.data() < head.data();
             assert pathfinders.containsKey(tail, head);
-            Path previousPath = new Path(pathList.get(pathList.size() - 1));
-            previousPath.intermediate().forEach(x -> occupation.releaseRouting(placementSize, x));
             PathIterator pathfinder = pathfinders.get(tail, head);
             Path pathFound = pathfinder.next();
             if (pathFound != null) {
                 Path toAdd = new Path(pathFound);
                 pathList.set(pathList.size() - 1, toAdd);
-                String previous = null;
-                String previous2 = null;
-                try {
-                    previous = occupation.toString();
-                    previous2 = occupation.domainChecker.toString();
-                    occupation.occupyRoutingAndCheck(placementSize, new Path(toAdd));
-                } catch (DomainCheckerException e) {
-                    assertEquals(previous, occupation.toString());
-                    assertEquals(previous2, occupation.domainChecker.toString());
-                    try {
-                        occupation.occupyRoutingAndCheck(placementSize, new Path(previousPath));
-                    } catch (DomainCheckerException ignored) {
-                        assert false;
-                    }
-                    pathList.set(pathList.size()-1, previousPath);
-                    assert occupation.domainChecker.checkOK(placementSize);
-                    return retry();
-                }
                 assert occupation.domainChecker.checkOK(placementSize);
                 return true;
             } else {
-                try {
-                    occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), new Path(previousPath));
-                } catch (DomainCheckerException ignored) {
-                    assert false;
-                }
                 pathfinders.remove(tail, head);
                 headMap2[head.data()].remove(pathfinder);
                 tailMap2[tail.data()].remove(pathfinder);
@@ -143,7 +115,7 @@ public class EdgeMatching extends VertexBlocker {
         assert tail.data() < head.data();
         //get pathIterator
         if (!pathfinders.containsKey(tail, head)) {
-            PathIterator toAdd = new PathIterator(domainSize, data.getTargetNeighbours(Settings.DFSSetting)[head.data()], tail, head, occupation);
+            PathIterator toAdd = PathIterator.get(targetGraph, data, tail, head, occupation, () -> vertexMatching.getPlacementUnsafe().size());
             headMap2[headData].remove(toAdd);
             headMap2[headData].add(toAdd);
             tailMap2[tailData].remove(toAdd);
@@ -151,25 +123,16 @@ public class EdgeMatching extends VertexBlocker {
             pathfinders.put(tail, head, toAdd);
         }
         PathIterator iterator = pathfinders.get(tail, head);
-        Path toReturn = null;
-        try {
-            toReturn = iterator.next();
-        } catch (AssertionError e) {
-            pathfinders.get(tail, head).reset();
-        }
+        Path toReturn = iterator.next();
         if (toReturn != null) {
-            try {
-                addPath(toReturn);
-            } catch (DomainCheckerException e) {
-                assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
-                return placeNextUnmatched();
-            }
+            addPath(toReturn);
             assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
             return toReturn;
+        } else {
+            iterator.reset();
+            assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
+            return null;
         }
-        assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
-        return null;
-
     }
 
     private void initPathsEdges(UtilityData data) {
@@ -187,18 +150,12 @@ public class EdgeMatching extends VertexBlocker {
 
     }
 
-    private void addPath(Path found) throws DomainCheckerException {
+    private void addPath(Path found) {
         assert !found.isEmpty();
         assert found.head().data() > found.tail().data();
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
         Path added = new Path(found);
         paths.get(lastPlacedIndex).add(added);
-        try {
-            occupation.occupyRoutingAndCheck(vertexMatching.getPlacementUnsafe().size(), new Path(added));
-        } catch (DomainCheckerException e) {
-            paths.get(lastPlacedIndex).removeLast();
-            throw e;
-        }
     }
 
     @Override
@@ -216,7 +173,6 @@ public class EdgeMatching extends VertexBlocker {
         assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
         int vertexData = vertex.data();
         assert !vertexMatching.getPlacementUnsafe().contains(vertex);
-        paths.get(vertexMatching.getPlacementUnsafe().size()).forEach(x -> x.intermediate().forEach(y -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), y)));
         paths.get(vertexMatching.getPlacementUnsafe().size()).clear();
         for (Iterator<PathIterator> i = headMap2[vertexData].iterator(); i.hasNext();) {
             PathIterator pathIt = i.next();
@@ -242,7 +198,7 @@ public class EdgeMatching extends VertexBlocker {
     public void removeLastPath() {
         List<Path> pathList = this.paths.get(this.vertexMatching.getPlacementUnsafe().size() - 1);
         Path removed = pathList.remove(pathList.size() - 1);
-        removed.intermediate().forEach(x -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), x));
+        //removed.intermediate().forEach(x -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), x)); // this should be the empty path now
         assert removed.head().data() > removed.tail().data();
     }
 

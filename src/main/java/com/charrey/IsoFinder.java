@@ -91,7 +91,7 @@ public class IsoFinder {
             return false;
         }
         LOG.info(() -> "Done, checking...");
-        assert  Util.isCorrect(pattern, vertexMatching, edgeMatching);
+        Util.isCorrect(pattern, vertexMatching, edgeMatching);
         return true;
     }
 

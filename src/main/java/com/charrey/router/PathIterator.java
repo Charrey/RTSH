@@ -4,93 +4,46 @@ import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.util.Settings;
+import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.Indexable;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultEdge;
 
-import java.util.Arrays;
+import java.util.function.Supplier;
 
-public class PathIterator implements Indexable {
+public abstract class PathIterator implements Indexable {
+
+
     private final Vertex head;
     private final Vertex tail;
+    private final int targetGraphSize;
 
-    private final Vertex[][] neighbours;
-    private final int[] chosen;
-    private final Path exploration;
-    private final Occupation occupation;
-    private final int domainSize;
-
-    public void reset() {
-        exploration.reinit();
-        Arrays.fill(chosen, 0);
-    }
-
-    public PathIterator(int domainSize, Vertex[][] neighbours, Vertex tail, Vertex head, Occupation occupation) {
-        this.head = head;
+    public PathIterator(int targetGraphSize, Vertex tail, Vertex head) {
+        this.targetGraphSize = targetGraphSize;
         this.tail = tail;
-        exploration = new Path(tail, neighbours.length);
-        this.neighbours = neighbours;
-        chosen = new int[neighbours.length];
-        Arrays.fill(chosen, 0);
-        this.occupation = occupation;
-        this.domainSize = domainSize;
+        this.head = head;
     }
 
-    private boolean isCandidate(Vertex from, Vertex vertex) {
-        boolean isCandidate = !exploration.contains(vertex) &&
-                !occupation.isOccupiedRouting(vertex) &&
-                !(occupation.isOccupiedVertex(vertex) && vertex != head);
-        if (!Settings.refuseLongerPaths) {
-            isCandidate = isCandidate && Arrays.stream(neighbours[vertex.data()]).noneMatch(x -> x != from && exploration.contains(x));
+    public static PathIterator get(Graph<Vertex, DefaultEdge> targetGraph, UtilityData data, Vertex tail, Vertex head, Occupation occupation, Supplier<Integer> placementSize) {
+        if (targetGraph.getEdge(tail, head) != null) {
+            return new SingletonPathIterator(targetGraph.vertexSet().size(), tail, head);
         }
-        return isCandidate;
+
+        switch (Settings.pathIteration) {
+            case DFS_ARBITRARY:
+            case DFS_GREEDY:
+                Vertex[][] targetNeighbours = data.getTargetNeighbours(Settings.pathIteration)[head.data()];
+                return new DFSPathIterator(targetGraph.vertexSet().size(), targetNeighbours, tail, head, occupation, placementSize);
+            case CONTROL_POINT:
+                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 4);
+            default:
+                throw new UnsupportedOperationException();
+        }
     }
 
+    public abstract void reset();
 
-    public Path next() {
-        assert !exploration.isEmpty();
-        if (exploration.head() == head) {
-            chosen[exploration.length() - 2] += 1;
-            exploration.removeHead();
-        }
-        //assert exploration.length() < 2 || exploration.intermediate().stream().noneMatch(occupation::isOccupied);
-        while (exploration.head() != head) {
-            int index = exploration.length() - 1;
-            assert index < chosen.length;
-            while (chosen[index] >= neighbours[exploration.get(index).data()].length) {
-                exploration.removeHead();
-                if (exploration.isEmpty()) {
-                    return null;
-                }
-                chosen[index] = 0;
-                chosen[index - 1] += 1;
-                index = exploration.length() - 1;
-            }
-            boolean found = false;
-            //iterate over neighbours until we find an unused vertex
-            for (int i = chosen[index]; i < neighbours[exploration.head().data()].length; i++) {
-                Vertex neighbour = neighbours[exploration.head().data()][i];
-                if (isCandidate(exploration.head(), neighbour)) {
-                    //if found, update chosen, update exploration
-                    exploration.append(neighbour);
-                    chosen[index] = i;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                //if not found, bump previous index value.
-                exploration.removeHead();
-                if (exploration.isEmpty()) {
-                    return null;
-                }
-                chosen[index] = 0;
-                chosen[index - 1] += 1;
-            }
-        }
-        assert !exploration.isEmpty();
-        //assert exploration.intermediate().stream().noneMatch(occupation::isOccupied);
-        return exploration;
-    }
-
+    public abstract Path next();
 
     public Vertex tail() {
         return tail;
@@ -100,12 +53,7 @@ public class PathIterator implements Indexable {
         return head;
     }
 
-
-    @Override
     public int data() {
-        return (domainSize + 1) * head.data() + tail.data();
+        return (targetGraphSize + 1) * head.data() + tail.data();
     }
-
-
 }
-

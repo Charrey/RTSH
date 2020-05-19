@@ -25,7 +25,13 @@ public class Vertex implements Serializable, Comparable<Vertex>, Indexable {
         counterValue = ++counter;
     }
 
-    public Vertex addLabel(String label) {
+    public void addAttribute(String key, String value) {
+        attributes.putIfAbsent(key, new HashSet<>());
+        attributes.get(key).add(new DefaultAttribute<>(value, AttributeType.STRING));
+    }
+
+
+        public Vertex addLabel(String label) {
         attributes.putIfAbsent("label", new HashSet<>());
         attributes.get("label").add(new DefaultAttribute<>(label, AttributeType.STRING));
         return this;
