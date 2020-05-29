@@ -1,6 +1,5 @@
 package com.charrey.graph.generation;
 
-import com.charrey.graph.RoutingVertexTable;
 import com.charrey.graph.Vertex;
 import com.charrey.util.GraphUtil;
 import com.charrey.util.Util;
@@ -8,15 +7,13 @@ import org.apache.commons.math3.distribution.GeometricDistribution;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
-import org.jgrapht.Graph;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleGraph;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RandomSucceedTestCaseGenerator extends TestCaseGenerator{
+public class RandomSucceedUndirectedTestCaseGenerator extends TestCaseGenerator{
 
     private final Random random;
     private int patternNodes;
@@ -26,7 +23,7 @@ public class RandomSucceedTestCaseGenerator extends TestCaseGenerator{
 
     private static final Random staticRandom = new Random();
 
-    public RandomSucceedTestCaseGenerator(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes, long seed) {
+    public RandomSucceedUndirectedTestCaseGenerator(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes, long seed) {
         this.patternNodes = patternNodes;
         this.patternEdges = patternEdges;
         this.extraRoutingNodes = extraRoutingNodes;
@@ -48,23 +45,23 @@ public class RandomSucceedTestCaseGenerator extends TestCaseGenerator{
     public TestCase getRandom() {
         final RandomGenerator randomGen = new Well512a();
         randomGen.setSeed(random.nextLong());
-        Graph<Vertex, DefaultEdge> pattern = getPattern(patternNodes, patternEdges, randomGen.nextLong());
-        Graph<Vertex, DefaultEdge> targetGraph = GraphUtil.copy(pattern, randomGen);
+        MyGraph pattern = getPattern(patternNodes, patternEdges, randomGen.nextLong());
+        MyGraph targetGraph = GraphUtil.copy(pattern, randomGen);
         insertIntermediateNodes(targetGraph, extraRoutingNodes, randomGen);
         addExtraNodes(targetGraph, extraNodes, patternNodes == 0 ? 0 : patternEdges / (double) patternNodes, randomGen);
-        return new TestCase(new GraphGeneration(pattern, new RoutingVertexTable()), new GraphGeneration(targetGraph, new RoutingVertexTable()));
+        return new TestCase(pattern, targetGraph);
     }
 
 
 
-    private Graph<Vertex, DefaultEdge> getPattern(int patternNodes, int patternEdges, long seed) {
+    private MyGraph getPattern(int patternNodes, int patternEdges, long seed) {
         GnmRandomGraphGenerator<Vertex, DefaultEdge> gen = new GnmRandomGraphGenerator<>(patternNodes, patternEdges, seed + 17);
-        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new GraphGenerator.IntGenerator(), new GraphGenerator.BasicEdgeSupplier(), false);
+        MyGraph pattern = new MyGraph(false);
         gen.generateGraph(pattern);
         return pattern;
     }
 
-    private void insertIntermediateNodes(Graph<Vertex, DefaultEdge> targetGraph, double extraRoutingNodes, RandomGenerator random) {
+    private void insertIntermediateNodes(MyGraph targetGraph, double extraRoutingNodes, RandomGenerator random) {
         IntegerDistribution distribution = new GeometricDistribution(random, 1./(extraRoutingNodes + 1));
         for (DefaultEdge edge : new HashSet<>(targetGraph.edgeSet())) {
             int toAdd = distribution.sample();
@@ -80,7 +77,7 @@ public class RandomSucceedTestCaseGenerator extends TestCaseGenerator{
         }
     }
 
-    private void addExtraNodes(Graph<Vertex, DefaultEdge> targetGraph, int extraNodes, double expectedEdges, RandomGenerator randomGen) {
+    private void addExtraNodes(MyGraph targetGraph, int extraNodes, double expectedEdges, RandomGenerator randomGen) {
         Map<Vertex, Integer> neededEdges = new HashMap<>();
         Map<Vertex, Integer> actualEdges = new HashMap<>();
         if (expectedEdges == 0) {

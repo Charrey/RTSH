@@ -1,8 +1,6 @@
 package com.charrey.graph;
 
 import com.charrey.util.datastructures.Indexable;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.AttributeType;
 import org.jgrapht.nio.DefaultAttribute;
@@ -15,7 +13,6 @@ public class Vertex implements Serializable, Comparable<Vertex>, Indexable {
 
     private static int counter = 0;
     private final int counterValue;
-    private Graph<Vertex, DefaultEdge> graph;
     private int data;
     protected final Map<String, Set<Attribute>> attributes = new HashMap<>();
 

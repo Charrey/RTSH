@@ -1,9 +1,10 @@
-package com.charrey.router;
+package com.charrey.pathiterators.dfs;
 
 import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
-import com.charrey.util.Settings;
+import com.charrey.pathiterators.PathIterator;
+import com.charrey.settings.Settings;
 import com.charrey.util.datastructures.checker.DomainCheckerException;
 
 import java.util.Arrays;
@@ -41,7 +42,7 @@ public class DFSPathIterator extends PathIterator {
         boolean isCandidate = !exploration.contains(vertex) &&
                 !occupation.isOccupiedRouting(vertex) &&
                 !(occupation.isOccupiedVertex(vertex) && vertex != head);
-        if (!Settings.refuseLongerPaths) {
+        if (!Settings.instance.refuseLongerPaths) {
             isCandidate = isCandidate && Arrays.stream(neighbours[vertex.data()]).noneMatch(x -> x != from && exploration.contains(x));
         }
         return isCandidate;
@@ -81,11 +82,15 @@ public class DFSPathIterator extends PathIterator {
                     if (neighbour != head) {
                         try {
                             occupation.occupyRoutingAndCheck(this.placementSize.get(), neighbour, exploration);
+                            break;
                         } catch (DomainCheckerException e) {
-                            assert false;
+                            exploration.removeHead();
+                            chosenOption[indexOfHeadVertex] = 0;
+                            found = false;
                         }
+                    } else {
+                        break;
                     }
-                    break;
                 }
             }
             if (!found) {
@@ -111,6 +116,11 @@ public class DFSPathIterator extends PathIterator {
     @Override
     public Vertex head() {
         return head;
+    }
+
+    @Override
+    public Object getState() {
+        return new Object[]{tail, head, chosenOption, exploration};
     }
 }
 

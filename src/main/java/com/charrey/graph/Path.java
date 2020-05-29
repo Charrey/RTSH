@@ -5,12 +5,13 @@ import org.jgrapht.graph.DefaultEdge;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class Path {
 
-    private final ArrayList<Vertex> path;
+    private final List<Vertex> path;
     private final BitSet containing;
     private final Vertex initialVertex;
 
@@ -26,11 +27,12 @@ public class Path {
     }
 
     public Path(GraphPath<Vertex, DefaultEdge> gPath) {
-        this.path = new ArrayList<>(gPath.getLength());
+        this.path = new LinkedList<>();
         this.containing = new BitSet(gPath.getGraph().vertexSet().size());
         this.initialVertex = gPath.getStartVertex();
-        for (int i = 0; i <= gPath.getLength(); i++) {
-            append(gPath.getVertexList().get(i));
+        List<Vertex> vertexList = gPath.getVertexList();
+        for (Vertex vertex : vertexList) {
+            append(vertex);
         }
     }
 

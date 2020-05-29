@@ -3,8 +3,9 @@ package com.charrey.util;
 import com.charrey.algorithms.CompatibilityChecker;
 import com.charrey.algorithms.GreatestConstrainedFirst;
 import com.charrey.graph.Vertex;
-import org.jgrapht.Graph;
+import com.charrey.graph.generation.MyGraph;
 import org.jgrapht.GraphPath;
+import org.jgrapht.Graphs;
 import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
@@ -13,11 +14,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class UtilityData {
-    private final Graph<Vertex, DefaultEdge> targetGraph;
-    private final Graph<Vertex, DefaultEdge> patternGraph;
+import static com.charrey.settings.PathIterationStrategy.DFS_ARBITRARY;
+import static com.charrey.settings.PathIterationStrategy.DFS_GREEDY;
 
-    public UtilityData(Graph<Vertex, DefaultEdge> patternGraph, Graph<Vertex, DefaultEdge> targetGraph) {
+public class UtilityData {
+    private final MyGraph targetGraph;
+    private final MyGraph patternGraph;
+
+    public UtilityData(MyGraph patternGraph, MyGraph targetGraph) {
         this.patternGraph = patternGraph;
         this.targetGraph = targetGraph;
     }
@@ -70,7 +74,7 @@ public class UtilityData {
 
     private Vertex[][][] targetNeighbours;
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public Vertex[][][] getTargetNeighbours(Settings.PathIterationStrategy strategy) {
+    public Vertex[][][] getTargetNeighbours(int strategy) {
         if (targetNeighbours == null) {
             List<Vertex> targetVertices = targetGraph.vertexSet()
                     .stream()
@@ -80,8 +84,10 @@ public class UtilityData {
                     Vertex[][] sharedTargetNeighbours = new Vertex[targetVertices.size()][];
                     targetNeighbours = new Vertex[targetGraph.vertexSet().size()][][];
                     for (int i = 0; i < sharedTargetNeighbours.length; i++) {
-                        sharedTargetNeighbours[i] = GraphUtil.neighboursOf(targetGraph, targetVertices.get(i))
+                        Vertex candidate = targetVertices.get(i);
+                        sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
                                 .stream()
+                                .map(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
                                 .sorted(Comparator.comparingInt(Vertex::data))
                                 .collect(Collectors.toList()).toArray(Vertex[]::new);
                     }
@@ -90,7 +96,7 @@ public class UtilityData {
                     }
                     break;
                 case DFS_GREEDY:
-                    targetNeighbours = getTargetNeighbours(Settings.PathIterationStrategy.DFS_ARBITRARY);
+                    targetNeighbours = getTargetNeighbours(DFS_ARBITRARY);
                     List[][] tempTargetNeigbours = new List[targetNeighbours.length][targetNeighbours.length];
                     for (int i = 0; i < tempTargetNeigbours.length; i++) {
                         for (int j = 0; j < tempTargetNeigbours[i].length; j++) {

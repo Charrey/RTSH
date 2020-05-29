@@ -11,6 +11,8 @@ public class DOTViewer {
 
 
     public static void openInBrowser(String dotPattern, String dotTarget) throws IOException {
+        System.out.println(dotPattern);
+        System.out.println(dotTarget);
         String html = new String(Files.readAllBytes(Paths.get("html/template/ExampleViewer.html").toRealPath()));
         html = html.replace("<patternGraphHere/>", "//pattern\n" + dotPattern);
         html = html.replace("<targetGraphHere/>", "//target\n" + dotTarget);

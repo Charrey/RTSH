@@ -2,23 +2,22 @@ package com.charrey.util;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
+import com.charrey.graph.generation.MyGraph;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 
 public class Util {
-    private static final Random random = new Random();
 
     public static  <V> V pickRandom(Collection<V> collection, RandomGenerator random) {
         List<V> list = new LinkedList<>(collection);
         return list.get(random.nextInt(list.size()));
     }
 
-    public static boolean isCorrect(Graph<Vertex, DefaultEdge> pattern, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
+    public static boolean isCorrect(MyGraph pattern, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
         //all nodes are placed
         if (vertexMatching.getPlacementUnsafe().size() < pattern.vertexSet().size()) {
             assert false;
@@ -35,13 +34,25 @@ public class Util {
             assert false;
             return false;
         }
-        for (DefaultEdge edge : pattern.edgeSet()) {
-            Vertex edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge).data());
-            Vertex edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge).data());
-            long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.head(), x.tail()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
-            if (matches != 1) {
-                assert false;
-                return false;
+        if (pattern.isDirected()) {
+            for (DefaultEdge edge : pattern.edgeSet()) {
+                Vertex edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge).data());
+                Vertex edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge).data());
+                long matches = edgeMatching.allPaths().stream().filter(x -> x.head().equals(edgeTargetTarget) && x.tail().equals(edgeSourceTarget)).count();
+                if (matches != 1) {
+                    assert false;
+                    return false;
+                }
+            }
+        } else {
+            for (DefaultEdge edge : pattern.edgeSet()) {
+                Vertex edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge).data());
+                Vertex edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge).data());
+                long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.head(), x.tail()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
+                if (matches != 1) {
+                    assert false;
+                    return false;
+                }
             }
         }
 

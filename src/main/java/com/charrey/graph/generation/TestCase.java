@@ -3,11 +3,11 @@ package com.charrey.graph.generation;
 import java.io.Serializable;
 
 public class TestCase implements Serializable {
-    public final GraphGeneration target;
-    public final GraphGeneration source;
+    public final MyGraph targetGraph;
+    public final MyGraph sourceGraph;
 
-    public TestCase(GraphGeneration source, GraphGeneration target) {
-        this.source = source;
-        this.target = target;
+    public TestCase(MyGraph sourceGraph, MyGraph targetGraph) {
+        this.sourceGraph = sourceGraph;
+        this.targetGraph = targetGraph;
     }
 }

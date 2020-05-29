@@ -1,25 +1,25 @@
-package com.charrey.router;
+package com.charrey.pathiterators.controlpoint;
 
 import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultEdge;
+import com.charrey.graph.generation.MyGraph;
+import com.charrey.pathiterators.PathIterator;
 
-import java.util.BitSet;
+import java.util.HashSet;
 
 public class ManagedControlPointIterator extends PathIterator {
 
 
-    private final Graph<Vertex, DefaultEdge> graph;
+    private final MyGraph graph;
     private final Occupation globalOccupation;
     private final int maxControlPoints;
     private ControlPointIterator child;
     private int controlPoints = 0;
 
-    public ManagedControlPointIterator(Graph<Vertex, DefaultEdge> graph, Vertex tail, Vertex head, Occupation globalOccupation, int maxControlPoints) {
+    public ManagedControlPointIterator(MyGraph graph, Vertex tail, Vertex head, Occupation globalOccupation, int maxControlPoints) {
         super(graph.vertexSet().size(), tail, head);
-        child = new ControlPointIterator(graph, tail, head, globalOccupation, new BitSet(graph.vertexSet().size()), controlPoints);
+        child = new ControlPointIterator(graph, tail, head, globalOccupation, new HashSet<>(), controlPoints);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.maxControlPoints = maxControlPoints;
@@ -29,7 +29,7 @@ public class ManagedControlPointIterator extends PathIterator {
     @Override
     public void reset() {
         controlPoints = 0;
-        child = new ControlPointIterator(graph, tail(), head(), globalOccupation, new BitSet(graph.vertexSet().size()), controlPoints);
+        child = new ControlPointIterator(graph, tail(), head(), globalOccupation, new HashSet<>(), controlPoints);
     }
 
     @Override
@@ -43,12 +43,17 @@ public class ManagedControlPointIterator extends PathIterator {
                 return null;
             }
             controlPoints += 1;
-            child = new ControlPointIterator(graph, tail(), head(), globalOccupation, new BitSet(graph.vertexSet().size()), controlPoints);
+            child = new ControlPointIterator(graph, tail(), head(), globalOccupation, new HashSet<>(), controlPoints);
             return next();
         }
     }
 
     public int getControlPointCount() {
         return controlPoints;
+    }
+
+    @Override
+    public Object getState() {
+        return new Object[]{maxControlPoints, controlPoints, child==null ? null : child.getState()};
     }
 }

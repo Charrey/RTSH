@@ -27,4 +27,8 @@ public class HomeomorphismResult {
         return new HomeomorphismResult(false, vertexMatching, edgeMatching, iterations);
     }
 
+    public String toString() {
+        return matching.toString() + "\n" + edgeMatching.toString();
+    }
+
 }

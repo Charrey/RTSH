@@ -1,8 +1,9 @@
 package com.charrey.matching;
 
 import com.charrey.Occupation;
+import com.charrey.Stateable;
 import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.GraphGeneration;
+import com.charrey.graph.generation.MyGraph;
 import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.checker.DomainCheckerException;
 
@@ -12,7 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class VertexMatching extends VertexBlocker {
+public class VertexMatching extends VertexBlocker implements Stateable {
 
 
     private final ArrayList<Vertex> placement = new ArrayList<>();
@@ -22,9 +23,9 @@ public class VertexMatching extends VertexBlocker {
     private DeletionFunction onDeletion;
 
 
-    public VertexMatching(UtilityData data, GraphGeneration pattern, Occupation occupation) {
+    public VertexMatching(UtilityData data, MyGraph pattern, Occupation occupation) {
         this.candidates = data.getCompatibility();
-        candidateToChooseNext = new int[pattern.getGraph().vertexSet().size()];
+        candidateToChooseNext = new int[pattern.vertexSet().size()];
         assert candidateToChooseNext.length == candidates.length;
         Arrays.fill(candidateToChooseNext, 0);
         this.occupation = occupation;
@@ -116,6 +117,10 @@ public class VertexMatching extends VertexBlocker {
         }
     }
 
+    @Override
+    public Object getState() {
+        return new Object[]{placement, candidateToChooseNext};
+    }
 
 
     public interface DeletionFunction {

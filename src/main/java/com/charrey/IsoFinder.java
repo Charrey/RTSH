@@ -1,15 +1,13 @@
 package com.charrey;
 
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
+import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import com.charrey.util.Util;
 import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.checker.DomainCheckerException;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -25,27 +23,33 @@ public class IsoFinder {
     private static UtilityData data;
 
     private static void setup(TestCase testcase) throws DomainCheckerException {
-        data = new UtilityData(testcase.source.getGraph(), testcase.target.getGraph());
+        data = new UtilityData(testcase.sourceGraph, testcase.targetGraph);
         logDomainReduction(testcase, data);
         if (Arrays.stream(data.getCompatibility()).anyMatch(x -> x.length == 0)) {
-            throw new DomainCheckerException();
+            throw new DomainCheckerException("Intial domain check failed");
         }
-        occupation         = new Occupation(data, testcase.target.getGraph().vertexSet().size());
-        vertexMatching = new VertexMatching(data, testcase.source, occupation);
-        edgeMatching     = new EdgeMatching(vertexMatching, data, testcase.source, testcase.target, occupation);
+        occupation          = new Occupation(data, testcase.targetGraph.vertexSet().size());
+        vertexMatching      = new VertexMatching(data, testcase.sourceGraph, occupation);
+        edgeMatching        = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation);
     }
 
-    public static HomeomorphismResult getHomeomorphism(TestCase testcase) {
+    public static HomeomorphismResult getHomeomorphism(TestCase testcase, long timeout) {
         try {
             setup(testcase);
         } catch (DomainCheckerException e) {
             return HomeomorphismResult.COMPATIBILITY_FAIL;
         }
         long iterations = 0;
-        while (!allDone(testcase.source.getGraph(), vertexMatching, edgeMatching)) {
+        long initialTime = System.currentTimeMillis();
+        while (!allDone(testcase.sourceGraph, vertexMatching, edgeMatching)) {
             iterations++;
-            LOG.fine(vertexMatching::toString);
-            LOG.fine(edgeMatching::toString);
+            if (iterations%1000==0) {
+                System.out.println(iterations + " iterations...");
+            }
+            if (System.currentTimeMillis() > initialTime + timeout) {
+                return null;
+            }
+            LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());
             if (edgeMatching.hasUnmatched()) {
                 Path nextpath = edgeMatching.placeNextUnmatched();
                 if (nextpath == null) {
@@ -65,7 +69,7 @@ public class IsoFinder {
                 return HomeomorphismResult.ofFailed(iterations);
             }
         }
-        if (vertexMatching.getPlacementUnsafe().size() < testcase.source.getGraph().vertexSet().size()) {
+        if (vertexMatching.getPlacementUnsafe().size() < testcase.sourceGraph.vertexSet().size()) {
             return HomeomorphismResult.ofFailed(iterations);
         } else {
             return HomeomorphismResult.ofSucceed(vertexMatching, edgeMatching, iterations);
@@ -75,13 +79,13 @@ public class IsoFinder {
 
 
     private static void logDomainReduction(TestCase testcase, UtilityData data) {
-        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.source.getGraph().vertexSet().size())).pow(testcase.target.getGraph().vertexSet().size());
+        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.sourceGraph.vertexSet().size())).pow(testcase.targetGraph.vertexSet().size());
         BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility()).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
-        LOG.info(() -> "Reduced domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
+        LOG.info(() -> "Reduced vertex matching domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
     }
 
 
-    private static boolean allDone(Graph<Vertex, DefaultEdge> pattern, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
+    private static boolean allDone(MyGraph pattern, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
         boolean completeV = vertexMatching.getPlacementUnsafe().size() == pattern.vertexSet().size();
         if (!completeV) {
             return false;

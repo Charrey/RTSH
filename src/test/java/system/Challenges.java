@@ -47,7 +47,7 @@ public class Challenges extends SystemTest{
         List<SystemTest.Challenge> challenges = readChallenges();
         for (SystemTest.Challenge challenge : challenges) {
             System.out.println(challenge.getFile().getName());
-            testSucceed(new TestCase(challenge.source, challenge.target), false);
+            testSucceed(new TestCase(challenge.sourceGraph, challenge.targetGraph), false, 3600_000);
         }
     }
 

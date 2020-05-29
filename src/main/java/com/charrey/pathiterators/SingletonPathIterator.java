@@ -1,4 +1,4 @@
-package com.charrey.router;
+package com.charrey.pathiterators;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
@@ -27,5 +27,10 @@ public class SingletonPathIterator extends PathIterator {
             done = true;
             return toReturn;
         }
+    }
+
+    @Override
+    public Object getState() {
+        return new Object[]{tail(), head(), done, toReturn};
     }
 }

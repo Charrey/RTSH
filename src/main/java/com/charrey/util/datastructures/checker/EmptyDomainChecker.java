@@ -3,19 +3,20 @@ package com.charrey.util.datastructures.checker;
 import com.charrey.Occupation;
 import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.LinkedIndexSet;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class EmptyDomainChecker extends DomainChecker {
 
     private final Vertex[][] reverseDomain;
-    private final LinkedIndexSet<Vertex>[] domain;
+    private final Set<Vertex>[] domain;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public EmptyDomainChecker(UtilityData data) {
         this.reverseDomain = data.getReverseCompatibility();
-        this.domain = (LinkedIndexSet<Vertex>[]) Arrays.stream(data.getCompatibility()).map(x -> new LinkedIndexSet<>(reverseDomain.length, Arrays.asList(x), Vertex.class)).toArray(LinkedIndexSet[]::new);
+        this.domain = (Set[]) Arrays.stream(data.getCompatibility()).map(x -> new HashSet(Arrays.asList(x))).toArray(Set[]::new);
     }
 
     @Override
@@ -53,17 +54,17 @@ public class EmptyDomainChecker extends DomainChecker {
         for (int i = candidates.length - 1; i >= 0; i--) {
             domain[candidates[i].data()].remove(v);
         }
-        if (Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().anyMatch(LinkedIndexSet::isEmpty)) {
+        if (Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().anyMatch(Set::isEmpty)) {
             for (int i = candidates.length - 1; i >= 0; i--) {
                 domain[candidates[i].data()].add(v);
             }
-            throw new DomainCheckerException();
+            throw new DomainCheckerException("EmptyDomain constraint failed after occupying " + v);
         }
     }
 
     @Override
     public boolean checkOK(int verticesPlaced) {
-        return Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().noneMatch(LinkedIndexSet::isEmpty);
+        return Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().noneMatch(Set::isEmpty);
     }
 
     @Override

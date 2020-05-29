@@ -1,14 +1,12 @@
 package com.charrey.graph.generation;
 
 import com.charrey.graph.Vertex;
-import org.jgrapht.Graph;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleGraph;
 
 import java.util.Random;
 
-public class TrulyRandomTestCaseGenerator extends TestCaseGenerator {
+public class TrulyRandomUndirectedTestCaseGenerator extends TestCaseGenerator {
 
     private final double nodeFactor;
     private int patternNodes;
@@ -18,7 +16,7 @@ public class TrulyRandomTestCaseGenerator extends TestCaseGenerator {
     private final Random random;
 
 
-    public TrulyRandomTestCaseGenerator(int patternNodes, int patternEdges, double nodeFactor, int seed) {
+    public TrulyRandomUndirectedTestCaseGenerator(int patternNodes, int patternEdges, double nodeFactor, int seed) {
         this.patternNodes = patternNodes;
         this.patternEdges = patternEdges;
         this.targetNodes = (int) Math.ceil(patternNodes * nodeFactor);
@@ -42,14 +40,14 @@ public class TrulyRandomTestCaseGenerator extends TestCaseGenerator {
 
     @Override
     protected TestCase getRandom() {
-        GraphGeneration patternGraph = new GraphGeneration(randomGraph(patternNodes, patternEdges), null);
-        GraphGeneration targetGraph = new GraphGeneration(randomGraph(targetNodes, targetEdges), null);
+        MyGraph patternGraph = randomGraph(patternNodes, patternEdges);
+        MyGraph targetGraph = randomGraph(targetNodes, targetEdges);
         return new TestCase(patternGraph, targetGraph);
     }
 
-    private Graph<Vertex, DefaultEdge> randomGraph(int nodes, int edges) {
+    private MyGraph randomGraph(int nodes, int edges) {
         GnmRandomGraphGenerator<Vertex, DefaultEdge> gen = new GnmRandomGraphGenerator<>(nodes, edges, random.nextLong());
-        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new GraphGenerator.IntGenerator(), new GraphGenerator.BasicEdgeSupplier(), false);
+       MyGraph pattern = new MyGraph(false);
         gen.generateGraph(pattern);
         return pattern;
     }

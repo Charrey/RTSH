@@ -3,11 +3,9 @@ package unit;
 import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.GraphGenerator;
-import com.charrey.router.ManagedControlPointIterator;
-import org.jgrapht.Graph;
+import com.charrey.graph.generation.MyGraph;
+import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleGraph;
 import org.jgrapht.nio.dot.DOTImporter;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +50,7 @@ public class ControlPointIteratorTest {
     @Test
     public void test() {
         DOTImporter<Vertex, DefaultEdge> importer = new DOTImporter<>();
-        Graph<Vertex, DefaultEdge> graph = new SimpleGraph<>(new GraphGenerator.IntGenerator(), DefaultEdge::new, false);
+        MyGraph graph = new MyGraph(false);
         importer.importGraph(graph, new StringReader(targetDOT));
         Occupation occupation = new Occupation(null, graph.vertexSet().size());
         Vertex tail = graph.vertexSet().stream().filter(x -> x.data() == 19).findAny().get();

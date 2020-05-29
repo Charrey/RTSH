@@ -7,18 +7,15 @@ import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.LinkedIndexSet;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class AllDifferentChecker extends DomainChecker {
 
     private final List<Vertex> order;
     AllDifferent allDifferent;
-    private final LinkedIndexSet<Vertex>[] domain;
+    private final Set<Vertex>[] domain;
     private final Vertex[][] reverseDomain;
-    private Deque<LinkedIndexSet<Vertex>>[] vertexState;
+    private Deque<Set<Vertex>>[] vertexState;
 
     private void pushVertex(int data) {
         vertexState[data].push(new LinkedIndexSet<>(reverseDomain.length, domain[data], Vertex.class));
@@ -29,13 +26,13 @@ public class AllDifferentChecker extends DomainChecker {
     }
 
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public AllDifferentChecker(UtilityData data) {
         this.order = data.getOrder();
         this.allDifferent = new AllDifferent();
         reverseDomain = data.getReverseCompatibility();
-        this.domain = (LinkedIndexSet<Vertex>[]) Arrays.stream(data.getCompatibility()).map(x -> new LinkedIndexSet<>(reverseDomain.length, Arrays.asList(x), Vertex.class)).toArray(LinkedIndexSet[]::new);
-        vertexState = (Deque<LinkedIndexSet<Vertex>>[]) Array.newInstance(Deque.class, domain.length);
+        this.domain = (Set<Vertex>[]) Arrays.stream(data.getCompatibility()).map(x -> new HashSet<>(Arrays.asList(x))).toArray(Set[]::new);
+        vertexState = (Deque<Set<Vertex>>[]) Array.newInstance(Deque.class, domain.length);
         for (int i = 0; i < domain.length; i++) {
             vertexState[i] = new LinkedList<>();
         }
@@ -77,7 +74,7 @@ public class AllDifferentChecker extends DomainChecker {
                 domain[candidates[i].data()].add(v);
             }
             popVertex(sourceVertexData);
-            throw new DomainCheckerException();
+            throw new DomainCheckerException("AllDifferent constraint failed after occupying vertex " + v);
         }
     }
 
@@ -95,21 +92,19 @@ public class AllDifferentChecker extends DomainChecker {
             for (int i = candidates.length - 1; i >= 0 && candidates[i].data() > sourceVertexData; i--) {
                 domain[candidates[i].data()].add(v);
             }
-            throw new DomainCheckerException();
+            throw new DomainCheckerException("AllDifferent constraint failed after occupying routing vertex " + v);
         }
     }
 
 
     @Override
     public boolean checkOK(int verticesPlaced) {
-        return Arrays.stream(domain).noneMatch(LinkedIndexSet::isEmpty) &&  allDifferent.get(Arrays.asList(domain));
+        return Arrays.stream(domain).noneMatch(Set::isEmpty) &&  allDifferent.get(Arrays.asList(domain));
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("AllDifferentChecker{");
-        sb.append("domain=").append(Arrays.toString(domain));
-        sb.append('}');
-        return sb.toString();
+        return "AllDifferentChecker{domain=" + Arrays.toString(domain) +
+                '}';
     }
 }

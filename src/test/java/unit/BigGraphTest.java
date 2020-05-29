@@ -1,28 +1,36 @@
 package unit;
 
 import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.GraphGenerator;
-import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleGraph;
+import com.charrey.graph.generation.MyGraph;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BigGraphTest {
 
 
-    public SimpleGraph<Vertex, DefaultEdge> targetGraph;
+    public MyGraph targetGraph;
 
     @Test
-    public void test() throws IOException {
-        targetGraph = new SimpleGraph<>(new GraphGenerator.IntGenerator(), DefaultEdge::new, false);
+    public void test() throws IOException, InterruptedException {
+        targetGraph = new MyGraph(false);
+        System.gc();
+        Thread.sleep(100);
+        long totalMemory = Runtime.getRuntime().totalMemory();
+        System.out.println("memory before import: " + totalMemory);
         importDOT(targetGraph, new File("D:\\VirtualBox VMs\\Afstuderen next attempt\\Shared Folder\\v2.dot"));
+        System.gc();
+        Thread.sleep(100);
+        totalMemory = Runtime.getRuntime().totalMemory();
+        System.out.println("memory after import: " + totalMemory);
+
         int vertexSize = targetGraph.vertexSet().size();
         int edgeSize = targetGraph.edgeSet().size();
         int vertexSizeSource = 100;
@@ -42,18 +50,15 @@ public class BigGraphTest {
     //Pattern parameterPattern = Pattern.compile("([a-zA-Z]*)=\"(.*?)\"");
     Pattern edgePattern = Pattern.compile("(\\d*) -- (\\d*)");
     private Map<Integer, Vertex> vertices = new HashMap<>(2000000);
-    private void importDOT(SimpleGraph<Vertex, DefaultEdge> targetGraph, File file) throws IOException {
-        List<String> lines = new LinkedList<>(Files.readAllLines(file.toPath(),
-                Charset.defaultCharset()));
-        ListIterator<String> linesIterator = lines.listIterator();
-        double totalSize = lines.size();
-        int counter = 0;
-        double lastPercentage = 0.0;
-        while (linesIterator.hasNext()) {
-            String line = linesIterator.next();
+    private void importDOT(MyGraph targetGraph, File file) throws IOException {
+        vertices = new HashMap<>(2000000);
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        long counter = 0;
+        String line;
+        while ((line = reader.readLine()) != null) {
             if (line.contains("--")) {
                 Matcher matcher = edgePattern.matcher(line);
-                assert matcher.find();
+                matcher.find();
                 int from = Integer.parseInt(matcher.group(1));
                 int to = Integer.parseInt(matcher.group(2));
                 targetGraph.addEdge(vertices.get(from), vertices.get(to));
@@ -61,12 +66,11 @@ public class BigGraphTest {
                //do nothing
             } else {
                 Matcher matcher = idFinder.matcher(line);
-                assert matcher.find();
+                matcher.find();
                 String id = matcher.group(1);
                 Vertex vertex = new Vertex(Integer.parseInt(id));
                 vertices.put(vertex.data(), vertex);
                 targetGraph.addVertex(vertex);
-
 //                matcher = parametersPattern.matcher(line);
 //                if (matcher.find()) {
 //                    String parameters = matcher.group(0);
@@ -78,13 +82,16 @@ public class BigGraphTest {
 //                    }
 //                }
             }
-            linesIterator.remove();
-            double newPercentage = 100.0 * counter / totalSize;
-            if (newPercentage > lastPercentage + 0.01) {
-                System.out.println(newPercentage);
-                lastPercentage = newPercentage;
+            if (counter % 100000L == 0L) {
+                if (counter < 1_000_000L) {
+                    System.out.println(counter / 1000L + "k lines processed...");
+                } else {
+                    System.out.println(Math.round(100L*counter / 1000000d) / 100. + "m lines processed...");
+                }
             }
             counter++;
         }
+        vertices = null;
+        System.gc();
     }
 }

@@ -2,7 +2,7 @@ package system;
 
 import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
-import com.charrey.graph.generation.GraphGeneration;
+import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import org.jgrapht.alg.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,19 +28,22 @@ public abstract class SystemTest {
         Logger.getLogger("IsoFinder").addHandler(new LogHandler());
     }
 
-    protected HomeomorphismResult testSucceed(TestCase testCase, boolean writeChallenge) throws IOException {
-        HomeomorphismResult morph = IsoFinder.getHomeomorphism(testCase);
+    protected HomeomorphismResult testSucceed(TestCase testCase, boolean writeChallenge, long timeout) throws IOException {
+        HomeomorphismResult morph = IsoFinder.getHomeomorphism(testCase, timeout);
+        if (morph == null) {
+            return null;
+        }
         if (morph.failed) {
-            openInBrowser(testCase.source.toString(), testCase.target.toString());
+            openInBrowser(testCase.sourceGraph.toString(), testCase.targetGraph.toString());
             if (writeChallenge) {
-                writeChallenge(new Pair<>(testCase.source, testCase.target));
+                writeChallenge(new Pair<>(testCase.sourceGraph, testCase.targetGraph));
             }
             fail();
         }
         return morph;
     }
 
-    private void writeChallenge(Pair<GraphGeneration, GraphGeneration> pair) throws IOException {
+    private void writeChallenge(Pair<MyGraph, MyGraph> pair) throws IOException {
         synchronized (challengeLock) {
             File file = new File("challenges/challenge-" + new SimpleDateFormat("yyyyMMddHHmm'.txt'").format(new Date()) + ".txt");
             //noinspection ResultOfMethodCallIgnored
@@ -60,16 +63,16 @@ public abstract class SystemTest {
             File[] listOfFiles = folder.listFiles();
             for (File listOfFile : listOfFiles) {
                 try (ObjectInputStream oos = new ObjectInputStream(new FileInputStream(listOfFile))) {
-                    Pair<GraphGeneration, GraphGeneration> pair = (Pair<GraphGeneration, GraphGeneration>) oos.readObject();
+                    Pair<MyGraph, MyGraph> pair = (Pair<MyGraph, MyGraph>) oos.readObject();
                     res.add(new Challenge(listOfFile, pair.getFirst(), pair.getSecond()));
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
             }
             res.sort((o1, o2) -> {
-                int targetSizeCompare = Integer.compare(o1.target.getGraph().vertexSet().size(), o2.target.getGraph().vertexSet().size());
+                int targetSizeCompare = Integer.compare(o1.targetGraph.vertexSet().size(), o2.targetGraph.vertexSet().size());
                 if (targetSizeCompare == 0) {
-                    return Integer.compare(o1.source.getGraph().vertexSet().size(), o2.source.getGraph().vertexSet().size());
+                    return Integer.compare(o1.sourceGraph.vertexSet().size(), o2.sourceGraph.vertexSet().size());
                 } else {
                     return targetSizeCompare;
                 }
@@ -83,7 +86,7 @@ public abstract class SystemTest {
     private static class LogHandler extends Handler {
         @Override
         public void publish(LogRecord record) {
-            System.out.println(record.getMessage());
+            //System.out.println(record.getMessage());
         }
 
         @Override
@@ -98,14 +101,14 @@ public abstract class SystemTest {
     }
 
     protected class Challenge {
-        public final GraphGeneration source;
-        public final GraphGeneration target;
+        public final MyGraph sourceGraph;
+        public final MyGraph targetGraph;
         private final File file;
 
-        public Challenge(File file, GraphGeneration source, GraphGeneration target) {
+        public Challenge(File file, MyGraph sourceGraph, MyGraph targetGraph) {
             this.file = file;
-            this.target = target;
-            this.source = source;
+            this.targetGraph = targetGraph;
+            this.sourceGraph = sourceGraph;
         }
 
         public File getFile() {

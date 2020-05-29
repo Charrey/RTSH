@@ -1,6 +1,5 @@
 package com.charrey.graph.generation;
 
-import com.charrey.graph.RoutingVertexTable;
 import com.charrey.graph.Vertex;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
@@ -12,8 +11,8 @@ import java.util.function.Supplier;
 public class GraphGenerator {
 
 
-    public static GraphGeneration getTarget() {
-        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new IntGenerator(), DefaultEdge::new, false);
+    public static MyGraph getTarget() {
+        MyGraph pattern = new MyGraph(false);
         Vertex p1 = pattern.addVertex().addLabel("normal");
         Vertex p2 = pattern.addVertex().addLabel("normal");
         Vertex p3 = pattern.addVertex().addLabel("normal");
@@ -24,12 +23,12 @@ public class GraphGenerator {
         pattern.addEdge(p2, p3);
         pattern.addEdge(p2, p4);
         pattern.addEdge(p3, p4);
-        return new GraphGeneration(pattern, new RoutingVertexTable());
+        return pattern;
     }
 
 
-    public static GraphGeneration getPattern() {
-        Graph<Vertex, DefaultEdge> pattern = new SimpleGraph<>(new IntGenerator(), new BasicEdgeSupplier(), false);
+    public static MyGraph getPattern() {
+        MyGraph pattern = new MyGraph(false);
         Vertex p0 = pattern.addVertex().addLabel("normal");
         Vertex p1 = pattern.addVertex().addLabel("normal");
         Vertex p2 = pattern.addVertex().addLabel("normal");
@@ -40,7 +39,7 @@ public class GraphGenerator {
         pattern.addEdge(p0, p2);
         pattern.addEdge(p3, p1);
         pattern.addEdge(p3, p4);
-        return new GraphGeneration(pattern, new RoutingVertexTable());
+        return pattern;
     }
 
 

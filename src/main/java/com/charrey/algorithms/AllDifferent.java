@@ -2,7 +2,6 @@ package com.charrey.algorithms;
 
 
 import com.charrey.graph.Vertex;
-import com.charrey.util.datastructures.IndexMap;
 import org.chocosolver.solver.DefaultSettings;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Settings;
@@ -12,30 +11,28 @@ import org.chocosolver.util.iterators.ValueIterator;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class AllDifferent {
 
     private static final Settings settings = new DefaultSettings();
-
     private final Set<Map<Vertex, Set<Vertex>>> cacheYesA = new HashSet<>();
     private final Set<Map<Vertex, Set<Vertex>>> cacheNoA = new HashSet<>();
-    public boolean get(int patternGraphSize, Map<Vertex, Set<Vertex>> allDifferentMap) {
+    public boolean get(Map<Vertex, Set<Vertex>> allDifferentMap) {
         if (cacheYesA.contains(allDifferentMap)) {
             return true;
         } else if (cacheNoA.contains(allDifferentMap)) {
             return false;
         } else {
-            final Map<Vertex, int[]> domains = new IndexMap<>(patternGraphSize);
-            allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::data).toArray()));
-            if (domains.values().stream().anyMatch(x -> x.length == 0)) {
+            final Map<Vertex, int[]> domains = new HashMap<>();
+            if (allDifferentMap.values().stream().anyMatch(x -> x.size() == 0)) {
                 return false;
             }
+            allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::data).toArray()));
             Model model = new Model(settings);
-            IntVar[] variables = new IntVar[allDifferentMap.size()];
             List<Vertex> ordered = new ArrayList<>(allDifferentMap.keySet());
-            for (int i = 0; i < allDifferentMap.size(); i++) {
-                variables[i] = model.intVar(String.valueOf(i), domains.get(ordered.get(i)));
-            }
+            IntVar[] variables = ordered.stream().map(x -> model.intVar(String.valueOf(ordered.indexOf(x)), domains.get(x))).toArray(IntVar[]::new);
+
             model.allDifferent(variables).post();
             boolean result = model.getSolver().solve();
             if (result) {
@@ -47,36 +44,20 @@ public class AllDifferent {
         }
     }
 
-    //private final Set<List<Set<Vertex>>> cacheYesB = new HashSet<>();
-    //private final Set<List<Set<Vertex>>> cacheNoB = new HashSet<>();
     public boolean get(List<Set<Vertex>> compatibility) {
-//        if (cacheYesB.contains(compatibility)) {
-//            return true;
-//        } else if (cacheNoB.contains(compatibility)) {
-//            return false;
-//        }
         Model model = new Model(settings);
-        IntVar[] variables = new IntVar[compatibility.size()];
-        for (int i = 0; i < compatibility.size(); i++) {
-            variables[i] = model.intVar(String.valueOf(i), compatibility.get(i).stream().mapToInt(Vertex::data).toArray());
-        }
+        IntVar[] variables = IntStream.range(0, compatibility.size())
+                .boxed()
+                .map(i -> model.intVar(String.valueOf(i), compatibility.get(i).stream().mapToInt(Vertex::data).toArray()))
+                .toArray(IntVar[]::new);
         model.allDifferent(variables).post();
-        boolean result = model.getSolver().solve();
-//        if (result) {
-//            cacheYesB.add(new ArrayList<>(compatibility));
-//        } else {
-//            cacheNoB.add(new ArrayList<>(compatibility));
-//        }
-        return result;
+        return model.getSolver().solve();
     }
 
 
-
-        public static Set<Pair<Integer, Integer>> checkAll(Map<Integer, Set<Integer>> allDifferentMap) {
-        Set<Pair<Integer, Integer>> res = new HashSet<>();
+    public static Set<Pair<Integer, Integer>> checkAll(Map<Integer, Set<Integer>> allDifferentMap) {
         final int[][] domains = new int[allDifferentMap.size()][];
         allDifferentMap.forEach((key, value) -> domains[key] = (value.stream().mapToInt(x -> x).toArray()));
-
         Model model = new Model(settings);
         IntVar[] variables = new IntVar[domains.length];
         for (int i = 0; i < domains.length; i++) {
@@ -86,6 +67,7 @@ public class AllDifferent {
             variables[i] = model.intVar("foo", domains[i]);
         }
         model.allDifferent(variables).post();
+        Set<Pair<Integer, Integer>> res = new HashSet<>();
         for (int i = 0; i < variables.length; i++) {
             ValueIterator iterator = variables[i].getValueIterator(false);
             iterator.bottomUpInit();
@@ -101,7 +83,6 @@ public class AllDifferent {
             }
         }
         return res;
-        //return model.getSolver().solve();
     }
 
     private static Set<Pair<Integer, Integer>> constructSetOfPairs(Map<Integer, Set<Integer>> allDifferentMap) {

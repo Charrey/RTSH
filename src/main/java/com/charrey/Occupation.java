@@ -2,7 +2,8 @@ package com.charrey;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
-import com.charrey.util.Settings;
+import com.charrey.settings.RunTimeCheck;
+import com.charrey.settings.Settings;
 import com.charrey.util.UtilityData;
 import com.charrey.util.datastructures.checker.*;
 
@@ -18,14 +19,14 @@ public class Occupation {
     public final DomainChecker domainChecker;
 
     public Occupation(UtilityData data, int size){
-        switch (Settings.runTimeCheck) {
-            case NONE:
+        switch (Settings.instance.runTimeCheck) {
+            case RunTimeCheck.NONE:
                 domainChecker = new DummyDomainChecker();
                 break;
-            case EMPTY_DOMAIN:
+            case RunTimeCheck.EMPTY_DOMAIN:
                 domainChecker = new EmptyDomainChecker(data);
                 break;
-            case ALL_DIFFERENT:
+            case RunTimeCheck.ALL_DIFFERENT:
                 domainChecker = new AllDifferentChecker(data);
                 break;
             default:
@@ -52,28 +53,6 @@ public class Occupation {
         }
     }
 
-    public void occupyRoutingAndCheck(int verticesPlaced, Path path) throws DomainCheckerException {
-        ListIterator<Vertex> it = path.intermediate().listIterator();
-        List<Path> previous = new ArrayList<>(routingBits);
-        while (it.hasNext()) {
-            Vertex item = it.next();
-            String previousCheck = null;
-            try {
-                previousCheck = this.domainChecker.toString();
-                occupyRoutingAndCheck(verticesPlaced, item, path);
-                assert isOccupiedRouting(item);
-            } catch (DomainCheckerException e) {
-                assertEquals(previousCheck, domainChecker.toString());
-                it.previous();
-                while (it.hasPrevious()) {
-                    item = it.previous();
-                    releaseRouting(verticesPlaced, item);
-                }
-                assertEquals(previous, routingBits);
-                throw e;
-            }
-        }
-    }
 
     public void occupyVertex(int source, Vertex target) throws DomainCheckerException {
         assert routingBits.get(target.data()) == null;

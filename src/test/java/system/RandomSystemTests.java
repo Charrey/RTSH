@@ -2,10 +2,9 @@ package system;
 
 import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
-import com.charrey.graph.generation.RandomSucceedTestCaseGenerator;
-import com.charrey.graph.generation.TestCase;
-import com.charrey.graph.generation.TestCaseGenerator;
-import com.charrey.graph.generation.TrulyRandomTestCaseGenerator;
+import com.charrey.graph.generation.*;
+import com.charrey.settings.PathIterationStrategy;
+import com.charrey.settings.Settings;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -15,13 +14,29 @@ import java.util.logging.Logger;
 public class RandomSystemTests extends SystemTest {
 
     @Test
-    public void findCasesRandom() throws IOException {
-        findCases(60*1000, 200, new TrulyRandomTestCaseGenerator(1, 0, 1.5, 6), false);
+    public void findCasesUndirectedRandom() throws IOException {
+        if (Settings.instance.pathIteration == PathIterationStrategy.EPPSTEIN || Settings.instance.pathIteration == PathIterationStrategy.YEN) {
+            return;
+        }
+        findCases(10*1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
     @Test
-    public void findCasesSucceed() throws IOException {
-        findCases(60*1000, 200, new RandomSucceedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+    public void findCasesUndirectedSucceed() throws IOException {
+        if (Settings.instance.pathIteration == PathIterationStrategy.EPPSTEIN || Settings.instance.pathIteration == PathIterationStrategy.YEN) {
+            return;
+        }
+        findCases(10*1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+    }
+
+    @Test
+    public void findCasesDirectedSucceed() throws IOException {
+        findCases(10*1000, 5, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+    }
+
+    @Test
+    public void findCasesDirectedRandom() throws IOException {
+        findCases(10*1000, 5, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
 
@@ -40,13 +55,15 @@ public class RandomSystemTests extends SystemTest {
             int casesCompatibilityFailed = 0;
 
             for (int i = 0; i < iterations; i++) {
-                if (System.currentTimeMillis() - start > time) {
+                TestCase testCase = graphGen.getNext();
+                System.out.println(testCase.sourceGraph.toString().replaceAll("\r\n", ""));
+                System.out.println(testCase.targetGraph.toString().replaceAll("\r\n", ""));
+                patternNodes = testCase.sourceGraph.vertexSet().size();
+                patternEdges = testCase.sourceGraph.edgeSet().size();
+                HomeomorphismResult homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge, time - (System.currentTimeMillis() - start)) : IsoFinder.getHomeomorphism(testCase, time - (System.currentTimeMillis() - start));
+                if (homeomorphism == null) {
                     return;
                 }
-                TestCase testCase = graphGen.getNext();
-                patternNodes = testCase.source.getGraph().vertexSet().size();
-                patternEdges = testCase.source.getGraph().edgeSet().size();
-                HomeomorphismResult homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge) : IsoFinder.getHomeomorphism(testCase);
                 total += homeomorphism.iterations;
                 if (!homeomorphism.failed) {
                     casesSucceed++;

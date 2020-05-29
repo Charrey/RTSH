@@ -1,9 +1,8 @@
 package com.charrey.algorithms;
 
 import com.charrey.graph.Vertex;
+import com.charrey.graph.generation.MyGraph;
 import com.charrey.util.GraphUtil;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -11,7 +10,7 @@ import java.util.stream.Collectors;
 public class GreatestConstrainedFirst {
 
 
-    public List<Vertex> apply(Graph<Vertex, DefaultEdge> graph) {
+    public List<Vertex> apply(MyGraph graph) {
         List<Vertex> ordering = new ArrayList<>(graph.vertexSet().size());
         if (graph.vertexSet().isEmpty()) {
             return ordering;
@@ -44,7 +43,7 @@ public class GreatestConstrainedFirst {
         return Collections.unmodifiableList(ordering);
     }
 
-    private Set<Vertex> getThirdCriterium(Graph<Vertex, DefaultEdge> graph, List<Vertex> ordering, Set<Vertex> secondSelection) {
+    private Set<Vertex> getThirdCriterium(MyGraph graph, List<Vertex> ordering, Set<Vertex> secondSelection) {
         Set<Vertex> thirdSelection = new HashSet<>();
         long thirdValue = -1;
         for (Vertex vertex : secondSelection) {
@@ -67,7 +66,7 @@ public class GreatestConstrainedFirst {
         return thirdSelection;
     }
 
-    private Set<Vertex> getSecondCriterium(Graph<Vertex, DefaultEdge> graph, List<Vertex> ordering, Set<Vertex> firstSelections) {
+    private Set<Vertex> getSecondCriterium(MyGraph graph, List<Vertex> ordering, Set<Vertex> firstSelections) {
         Set<Vertex> secondSelection = new HashSet<>();
         long secondValue = -1;
         for (Vertex vertex : firstSelections) {
@@ -90,7 +89,7 @@ public class GreatestConstrainedFirst {
         return secondSelection;
     }
 
-    private Set<Vertex> getFirstCriterium(Graph<Vertex, DefaultEdge> graph, List<Vertex> ordering) {
+    private Set<Vertex> getFirstCriterium(MyGraph graph, List<Vertex> ordering) {
         Set<Vertex> firstSelection = new HashSet<>();
         long firstValue = -1;
         for (Vertex vertex : graph.vertexSet().stream().filter(x -> !ordering.contains(x)).collect(Collectors.toSet())) {

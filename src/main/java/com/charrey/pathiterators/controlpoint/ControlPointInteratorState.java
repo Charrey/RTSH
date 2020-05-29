@@ -1,4 +1,4 @@
-package com.charrey.router;
+package com.charrey.pathiterators.controlpoint;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
