@@ -4,7 +4,6 @@ import com.charrey.Occupation;
 import com.charrey.algorithms.AllDifferent;
 import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.LinkedIndexSet;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -18,7 +17,7 @@ public class AllDifferentChecker extends DomainChecker {
     private Deque<Set<Vertex>>[] vertexState;
 
     private void pushVertex(int data) {
-        vertexState[data].push(new LinkedIndexSet<>(reverseDomain.length, domain[data], Vertex.class));
+        vertexState[data].push(new HashSet<>(domain[data]));
     }
 
     private void popVertex(int data) {
@@ -26,12 +25,12 @@ public class AllDifferentChecker extends DomainChecker {
     }
 
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     public AllDifferentChecker(UtilityData data) {
         this.order = data.getOrder();
         this.allDifferent = new AllDifferent();
         reverseDomain = data.getReverseCompatibility();
-        this.domain = (Set<Vertex>[]) Arrays.stream(data.getCompatibility()).map(x -> new HashSet<>(Arrays.asList(x))).toArray(Set[]::new);
+        this.domain = Arrays.stream(data.getCompatibility()).map(x -> new HashSet<>(Arrays.asList(x))).toArray(value -> (Set<Vertex>[])new Set[value]);
         vertexState = (Deque<Set<Vertex>>[]) Array.newInstance(Deque.class, domain.length);
         for (int i = 0; i < domain.length; i++) {
             vertexState[i] = new LinkedList<>();

@@ -4,6 +4,7 @@ import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
+import com.charrey.util.LogHandler;
 import org.jgrapht.alg.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -12,8 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import static com.charrey.util.DOTViewer.openInBrowser;
@@ -61,6 +60,7 @@ public abstract class SystemTest {
             List<Challenge> res = new ArrayList<>();
             File folder = new File("challenges");
             File[] listOfFiles = folder.listFiles();
+            assert listOfFiles != null;
             for (File listOfFile : listOfFiles) {
                 try (ObjectInputStream oos = new ObjectInputStream(new FileInputStream(listOfFile))) {
                     Pair<MyGraph, MyGraph> pair = (Pair<MyGraph, MyGraph>) oos.readObject();
@@ -83,22 +83,7 @@ public abstract class SystemTest {
     }
 
 
-    private static class LogHandler extends Handler {
-        @Override
-        public void publish(LogRecord record) {
-            //System.out.println(record.getMessage());
-        }
 
-        @Override
-        public void flush() {
-
-        }
-
-        @Override
-        public void close() throws SecurityException {
-
-        }
-    }
 
     protected class Challenge {
         public final MyGraph sourceGraph;

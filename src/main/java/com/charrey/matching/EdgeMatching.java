@@ -7,10 +7,8 @@ import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.LinkedIndexSet;
 import com.charrey.util.datastructures.MultipleKeyMap;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,11 +27,8 @@ public class EdgeMatching extends VertexBlocker implements Stateable {
 
     public ArrayList<LinkedList<Path>> paths;
 
-    private final LinkedIndexSet<PathIterator>[] headMap;
-    private final LinkedIndexSet<PathIterator>[] tailMap;
     private final UtilityData data;
 
-    @SuppressWarnings("unchecked")
     public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, MyGraph target, Occupation occupation) {
         this.vertexMatching = vertexMatching;
         this.source = source;
@@ -46,12 +41,6 @@ public class EdgeMatching extends VertexBlocker implements Stateable {
         EdgeMatching em = this;
         this.vertexMatching.setOnDeletion(em::synchronize);
         this.occupation = occupation;
-        headMap = (LinkedIndexSet<PathIterator>[]) Array.newInstance(LinkedIndexSet.class, targetGraph.vertexSet().size());
-        tailMap = (LinkedIndexSet<PathIterator>[]) Array.newInstance(LinkedIndexSet.class, targetGraph.vertexSet().size());
-        for (Vertex v: target.vertexSet()) {
-            headMap[v.data()] = new LinkedIndexSet<>(targetGraph.vertexSet().size() * (1 + targetGraph.vertexSet().size()), PathIterator.class);
-            tailMap[v.data()] = new LinkedIndexSet<>(targetGraph.vertexSet().size() * (1 + targetGraph.vertexSet().size()), PathIterator.class);
-        }
     }
 
     private void initPathFinders() {
@@ -98,8 +87,6 @@ public class EdgeMatching extends VertexBlocker implements Stateable {
                 return true;
             } else {
                 pathfinders.remove(tail, head);
-                headMap[head.data()].remove(pathfinder);
-                tailMap[tail.data()].remove(pathfinder);
                 removeLastPath();
             }
         }
@@ -126,22 +113,21 @@ public class EdgeMatching extends VertexBlocker implements Stateable {
         int headData = head.data();
         assert directed || tail.data() < head.data();
         //get pathIterator
-        if (!pathfinders.containsKey(tail, head)) {
-            PathIterator toAdd = PathIterator.get(targetGraph, data, tail, head, occupation, () -> vertexMatching.getPlacementUnsafe().size());
-            headMap[headData].remove(toAdd);
-            headMap[headData].add(toAdd);
-            tailMap[tailData].remove(toAdd);
-            tailMap[tailData].add(toAdd);
-            pathfinders.put(tail, head, toAdd);
+
+        if (pathfinders.containsKey(tail, head)) {
+            pathfinders.remove(tail, head);
+            assert false;
         }
-        PathIterator iterator = pathfinders.get(tail, head);
+        PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> vertexMatching.getPlacementUnsafe().size());
+        pathfinders.put(tail, head, iterator);
         Path toReturn = iterator.next();
         if (toReturn != null) {
             addPath(toReturn);
             assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
             return toReturn;
         } else {
-            iterator.reset();
+            pathfinders.remove(tail, head);
+            //iterator.reset();
             assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
             return null;
         }
@@ -204,19 +190,8 @@ public class EdgeMatching extends VertexBlocker implements Stateable {
 
     public void synchronize(Vertex vertex) {
         assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
-        int vertexData = vertex.data();
         assert !vertexMatching.getPlacementUnsafe().contains(vertex);
         paths.get(vertexMatching.getPlacementUnsafe().size()).clear();
-        for (Iterator<PathIterator> i = headMap[vertexData].iterator(); i.hasNext();) {
-            PathIterator pathIt = i.next();
-            pathfinders.get(pathIt.tail(), pathIt.head()).reset();
-            i.remove();
-        }
-        for (Iterator<PathIterator> i = tailMap[vertexData].iterator(); i.hasNext();) {
-            PathIterator pathIt = i.next();
-            pathfinders.get(pathIt.tail(), pathIt.head()).reset();
-            i.remove();
-        }
         assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
     }
 

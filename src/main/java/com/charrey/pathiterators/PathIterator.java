@@ -7,7 +7,6 @@ import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
-import com.charrey.pathiterators.eppstein.EppsteinPathIterator;
 import com.charrey.pathiterators.yen.YenPathIterator;
 import com.charrey.settings.Settings;
 import com.charrey.util.UtilityData;
@@ -42,8 +41,6 @@ public abstract class PathIterator implements Indexable, Stateable {
                 return new DFSPathIterator(targetGraph.vertexSet().size(), targetNeighbours, tail, head, occupation, placementSize);
             case CONTROL_POINT:
                 return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 3);
-            case EPPSTEIN:
-                return new EppsteinPathIterator(targetGraph, tail, head, occupation, placementSize);
             case YEN:
                 return new YenPathIterator(targetGraph, tail, head, occupation, placementSize);
             default:

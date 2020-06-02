@@ -17,7 +17,7 @@ public class Settings {
             true,
             true,
             RunTimeCheck.ALL_DIFFERENT,
-            PathIterationStrategy.YEN,
+            PathIterationStrategy.DFS_ARBITRARY,
             new Random(300));
 
 

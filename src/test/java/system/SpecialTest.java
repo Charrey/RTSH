@@ -14,30 +14,9 @@ import java.util.logging.Logger;
 
 public class SpecialTest extends SystemTest {
 
-    private static final String patternDOT = "strict digraph G {\n" +
-            "  1;\n" +
-            "  2;\n" +
-            "  0;\n" +
-            "  0 -> 2;\n" +
-            "  0 -> 1;\n" +
-            "  2 -> 0;\n" +
-            "}\n";
+    private static final String patternDOT = "strict digraph G {  0;  1;  2;  2 -> 1;  2 -> 0;  1 -> 2;}\n";
 
-    private static final String targetDOT = "strict digraph G {\n" +
-            "  0;\n" +
-            "  1;\n" +
-            "  2;\n" +
-            "  3;\n" +
-            "  4;\n" +
-            "  5;\n" +
-            "  2 -> 0;\n" +
-            "  1 -> 2;\n" +
-            "  3 -> 1;\n" +
-            "  2 -> 3;\n" +
-            "  1 -> 4;\n" +
-            "  3 -> 4;\n" +
-            "  2 -> 4;\n" +
-            "}\n";
+    private static final String targetDOT = "strict digraph G {  0;  1;  2;  3;  4;  5;  2 -> 1;  2 -> 0;  3 -> 2;  1 -> 3;  1 -> 4;  3 -> 4;  2 -> 4;}\n";
 
 
     @Test

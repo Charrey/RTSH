@@ -15,7 +15,7 @@ public class RandomSystemTests extends SystemTest {
 
     @Test
     public void findCasesUndirectedRandom() throws IOException {
-        if (Settings.instance.pathIteration == PathIterationStrategy.EPPSTEIN || Settings.instance.pathIteration == PathIterationStrategy.YEN) {
+        if (Settings.instance.pathIteration == PathIterationStrategy.YEN) {
             return;
         }
         findCases(10*1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
@@ -23,7 +23,7 @@ public class RandomSystemTests extends SystemTest {
 
     @Test
     public void findCasesUndirectedSucceed() throws IOException {
-        if (Settings.instance.pathIteration == PathIterationStrategy.EPPSTEIN || Settings.instance.pathIteration == PathIterationStrategy.YEN) {
+        if (Settings.instance.pathIteration == PathIterationStrategy.YEN) {
             return;
         }
         findCases(10*1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
