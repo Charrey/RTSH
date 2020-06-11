@@ -14,6 +14,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.MaskSubgraph;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 public class ControlPointIterator extends PathIterator {
 
@@ -22,6 +23,7 @@ public class ControlPointIterator extends PathIterator {
     private final Vertex head;
     private final MyGraph targetGraph;
     private final Occupation globalOccupation;
+    private final Supplier<Integer> verticesPlaced;
 
     boolean done = false;
     public final Iterator<Vertex> controlPointCandidates;
@@ -45,7 +47,8 @@ public class ControlPointIterator extends PathIterator {
                                 Vertex head,
                                 Occupation globalOccupation,
                                 Set<Integer> localOccupation,
-                                int controlPoints) {
+                                int controlPoints,
+                                Supplier<Integer> verticesPlaced) {
         super(tail, head);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;
@@ -53,6 +56,7 @@ public class ControlPointIterator extends PathIterator {
         this.globalOccupation = globalOccupation;
         this.head = head;
         this.controlPointCandidates = new ControlPointVertexSelector(targetGraph, globalOccupation, Collections.unmodifiableSet(localOccupation), tail, head);
+        this.verticesPlaced = verticesPlaced;
     }
 
     private void setRightNeighbourOfRightNeighbour(Vertex vertex, Path localOccupiedForThatPath, Set<Integer> previousLocalOccupation) {
@@ -101,7 +105,7 @@ public class ControlPointIterator extends PathIterator {
                     }
                     Set<Integer> previousOccupation = new HashSet<>(localOccupation);
                     chosenPath.forEach(x -> localOccupation.add(x.data()));
-                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, globalOccupation, new HashSet<>(localOccupation), controlPoints - 1);
+                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, globalOccupation, new HashSet<>(localOccupation), controlPoints - 1, verticesPlaced);
                     child.setRightNeighbourOfRightNeighbour(this.head(), chosenPath, previousOccupation);
                 }
             } else {

@@ -1,5 +1,6 @@
 package com.charrey;
 
+import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
@@ -49,6 +50,21 @@ public class Occupation {
             throw e;
         }
     }
+
+    public void occupyRoutingAndCheck(int verticesPlaced, Path p) throws DomainCheckerException {
+        for (int i = 0; i < p.intermediate().size(); i++) {
+            try {
+                occupyRoutingAndCheck(verticesPlaced, p.intermediate().get(i));
+            } catch (DomainCheckerException e) {
+                for (int j = i - 1; j >= 0; j--) {
+                    releaseRouting(verticesPlaced, p.intermediate().get(j));
+                }
+                throw e;
+            }
+        }
+    }
+
+
 
 
     public void occupyVertex(int source, Vertex target) throws DomainCheckerException {

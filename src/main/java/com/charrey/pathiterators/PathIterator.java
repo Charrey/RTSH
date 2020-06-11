@@ -36,7 +36,7 @@ public abstract class PathIterator {
                 Vertex[][] targetNeighbours = data.getTargetNeighbours(Settings.instance.pathIteration)[head.data()];
                 return new DFSPathIterator(targetNeighbours, tail, head, occupation, placementSize);
             case CONTROL_POINT:
-                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 300);
+                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 300, placementSize);
             case YEN:
                 return new YenPathIterator(targetGraph, tail, head, occupation, placementSize);
             default:

@@ -55,7 +55,7 @@ public class ControlPointIteratorTest {
         Occupation occupation = new Occupation(null, graph.vertexSet().size());
         Vertex tail = graph.vertexSet().stream().filter(x -> x.data() == 19).findAny().get();
         Vertex head = graph.vertexSet().stream().filter(x -> x.data() == 0).findAny().get();
-        ManagedControlPointIterator cpIterator = new ManagedControlPointIterator(graph, tail, head, occupation, 10);
+        ManagedControlPointIterator cpIterator = new ManagedControlPointIterator(graph, tail, head, occupation, 10, () -> 0);
         Path path = cpIterator.next();
         while (path!=null) {
             System.out.println(path);

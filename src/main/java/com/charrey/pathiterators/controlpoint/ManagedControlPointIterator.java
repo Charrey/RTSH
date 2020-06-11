@@ -5,11 +5,13 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.pathiterators.PathIterator;
+import com.charrey.util.datastructures.checker.DomainCheckerException;
 
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class ManagedControlPointIterator extends PathIterator {
 
@@ -17,20 +19,27 @@ public class ManagedControlPointIterator extends PathIterator {
     private final MyGraph graph;
     private final Occupation globalOccupation;
     private final int maxControlPoints;
+    private final Supplier<Integer> verticesPlaced;
     private ControlPointIterator child;
     private int controlPoints = 0;
 
-    public ManagedControlPointIterator(MyGraph graph, Vertex tail, Vertex head, Occupation globalOccupation, int maxControlPoints) {
+    public ManagedControlPointIterator(MyGraph graph, Vertex tail, Vertex head, Occupation globalOccupation, int maxControlPoints, Supplier<Integer> verticesPlaced) {
         super(tail, head);
-        child = new ControlPointIterator(graph, tail, head, globalOccupation, new HashSet<>(), controlPoints);
+        child = new ControlPointIterator(graph, tail, head, globalOccupation, new HashSet<>(), controlPoints, verticesPlaced);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.maxControlPoints = maxControlPoints;
-
+        this.verticesPlaced = verticesPlaced;
     }
+
+    private Path returned = null;
 
     @Override
     public Path next() {
+        if (returned != null) {
+            returned.intermediate().forEach(x -> globalOccupation.releaseRouting(verticesPlaced.get(), x));
+        }
+
         while (true) {
             Path path;
             do {
@@ -38,13 +47,19 @@ public class ManagedControlPointIterator extends PathIterator {
                 System.out.print("");
             } while (path != null && controlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
-                return path;
+                try {
+                    globalOccupation.occupyRoutingAndCheck(verticesPlaced.get(), path);
+                } catch (DomainCheckerException e) {
+                    continue;
+                }
+                returned = path;
+                return returned;
             } else {
                 if (controlPoints + 1 > maxControlPoints || controlPoints + 1 > graph.vertexSet().size() - 2) {
                     return null;
                 }
                 controlPoints += 1;
-                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, new HashSet<>(), controlPoints);
+                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, new HashSet<>(), controlPoints, verticesPlaced);
             }
         }
     }

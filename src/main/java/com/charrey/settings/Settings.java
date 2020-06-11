@@ -17,7 +17,7 @@ public class Settings {
             true,
             true,
             RunTimeCheck.ALL_DIFFERENT,
-            PathIterationStrategy.CONTROL_POINT,
+            PathIterationStrategy.YEN,
             new Random(300));
 
 
