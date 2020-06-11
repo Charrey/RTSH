@@ -19,16 +19,14 @@ public class IsoFinder {
     private static final Logger LOG = Logger.getLogger("IsoFinder");
     private static EdgeMatching edgeMatching;
     private static VertexMatching vertexMatching;
-    private static Occupation occupation;
-    private static UtilityData data;
 
     private static void setup(TestCase testcase) throws DomainCheckerException {
-        data = new UtilityData(testcase.sourceGraph, testcase.targetGraph);
+        UtilityData data = new UtilityData(testcase.sourceGraph, testcase.targetGraph);
         logDomainReduction(testcase, data);
         if (Arrays.stream(data.getCompatibility()).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
-        occupation          = new Occupation(data, testcase.targetGraph.vertexSet().size());
+        Occupation occupation = new Occupation(data, testcase.targetGraph.vertexSet().size());
         vertexMatching      = new VertexMatching(data, testcase.sourceGraph, occupation);
         edgeMatching        = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation);
     }
@@ -95,7 +93,8 @@ public class IsoFinder {
             return false;
         }
         LOG.info(() -> "Done, checking...");
-        Util.isCorrect(pattern, vertexMatching, edgeMatching);
+        boolean correct = Util.isCorrect(pattern, vertexMatching, edgeMatching);
+        assert correct;
         return true;
     }
 

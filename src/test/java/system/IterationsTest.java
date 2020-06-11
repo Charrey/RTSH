@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 
 public class IterationsTest extends SystemTest {
 
-    private static final long seed = 1924;
-    private static final int minNodes = 6;
-    private static final int maxNodes = 8;
-    private static Random random = new Random();
+//    private static final long seed = 1924;
+//    private static final int minNodes = 10;
+//    private static final int maxNodes = 12;
+//    private static final Random random = new Random();
 
 //    public static void main(String[] args) throws IOException {
 //        random.setSeed(seed + 1);
@@ -42,8 +42,8 @@ public class IterationsTest extends SystemTest {
 //            Path directory = Paths.get("performanceTest/directed/" + minNodes + "-" + maxNodes + "/" + i);
 //            createDirectoryIfNotExists(directory);
 //            DOTExporter<Vertex, DefaultEdge> exporter = new DOTExporter<>();
-//            exporter.exportGraph(testCase.source.getGraph(),  directory.resolve("source.dot").toFile());
-//            exporter.exportGraph(testCase.target.getGraph(),  directory.resolve("target.dot").toFile());
+//            exporter.exportGraph(testCase.sourceGraph,  directory.resolve("source.dot").toFile());
+//            exporter.exportGraph(testCase.targetGraph,  directory.resolve("target.dot").toFile());
 //            if (!Files.exists(directory.resolve("benchmarks.txt"))) {
 //                Files.createFile(directory.resolve("benchmarks.txt"));
 //            }
@@ -60,8 +60,8 @@ public class IterationsTest extends SystemTest {
 //            Path directory = Paths.get("performanceTest/undirected/" + minNodes + "-" + maxNodes + "/" + i);
 //            createDirectoryIfNotExists(directory);
 //            DOTExporter<Vertex, DefaultEdge> exporter = new DOTExporter<>();
-//            exporter.exportGraph(testCase.source.getGraph(),  directory.resolve("source.dot").toFile());
-//            exporter.exportGraph(testCase.target.getGraph(),  directory.resolve("target.dot").toFile());
+//            exporter.exportGraph(testCase.sourceGraph,  directory.resolve("source.dot").toFile());
+//            exporter.exportGraph(testCase.targetGraph,  directory.resolve("target.dot").toFile());
 //            if (!Files.exists(directory.resolve("benchmarks.txt"))) {
 //                Files.createFile(directory.resolve("benchmarks.txt"));
 //            }
@@ -71,21 +71,21 @@ public class IterationsTest extends SystemTest {
 //        }
 //    }
 
-    private static void createDirectoryIfNotExists(Path filename) throws IOException {
-        if (!Files.exists(filename.toAbsolutePath().getParent())) {
-            createDirectoryIfNotExists(filename.toAbsolutePath().getParent());
-        }
-        if (!Files.exists(filename)) {
-            Files.createDirectory(filename);
-        }
-    }
+//    private static void createDirectoryIfNotExists(Path filename) throws IOException {
+//        if (!Files.exists(filename.toAbsolutePath().getParent())) {
+//            createDirectoryIfNotExists(filename.toAbsolutePath().getParent());
+//        }
+//        if (!Files.exists(filename)) {
+//            Files.createDirectory(filename);
+//        }
+//    }
 
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     @Order(1)
     public void testDirected() throws IOException {
         Logger.getLogger("IsoFinder").setLevel(Level.ALL);
-        List<TestCase> res = new ArrayList<>();
         File folder = new File("performanceTest/directed");
         Map<Path, Long> toWrite = new HashMap<>();
         for (File category : folder.listFiles()) {
@@ -109,7 +109,8 @@ public class IterationsTest extends SystemTest {
         for (Map.Entry<Path, Long> entry : toWrite.entrySet()) {
             Optional<Pair<Settings, Long>> existing = Files.readAllLines(entry.getKey()).stream().map(Settings::readString).filter(x -> x.getFirst().equals(Settings.instance)).findAny();
             if (existing.isPresent() && existing.get().getSecond() < entry.getValue()) {
-                //throw new RuntimeException("Performance decreased");
+                System.err.println("Performance decreased");
+                System.exit(-1);
             }
         }
         for (Map.Entry<Path, Long> entry : toWrite.entrySet()) {
@@ -118,6 +119,7 @@ public class IterationsTest extends SystemTest {
 
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     @Order(2)
     public void analyseSpeeds() throws IOException {
@@ -132,6 +134,9 @@ public class IterationsTest extends SystemTest {
                 PathIterationStrategy.CONTROL_POINT,
                 new Random(300));
         for (File category : folder.listFiles()) {
+            if (!category.getName().equals("10-12")) {
+                continue;
+            }
             List<File> testCases = Arrays.asList(category.listFiles());
             testCases.sort(Comparator.comparingInt(o -> Integer.parseInt(o.getName())));
             for (File testCase : testCases) {

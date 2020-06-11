@@ -1,26 +1,26 @@
 package com.charrey.util.datastructures.checker;
 
-import com.charrey.Occupation;
 import com.charrey.graph.Vertex;
 
+@SuppressWarnings("RedundantThrows")
 public class DummyDomainChecker extends DomainChecker {
     @Override
-    public void afterReleaseVertex(Occupation occupation, int verticesPlaced, Vertex released) {
+    public void afterReleaseVertex(int verticesPlaced, Vertex released) {
 
     }
 
     @Override
-    public void afterReleaseEdge(Occupation occupation, int verticesPlaced, Vertex released) {
+    public void afterReleaseEdge(int verticesPlaced, Vertex released) {
 
     }
 
     @Override
-    public void beforeOccupyVertex(Occupation occupation, int verticesPlaced, Vertex occupied) throws DomainCheckerException {
+    public void beforeOccupyVertex(int verticesPlaced, Vertex occupied) throws DomainCheckerException {
 
     }
 
     @Override
-    public void afterOccupyEdge(Occupation occupation, int verticesPlaced, Vertex occupied) throws DomainCheckerException {
+    public void afterOccupyEdge(int verticesPlaced, Vertex occupied) throws DomainCheckerException {
 
     }
 
@@ -28,4 +28,5 @@ public class DummyDomainChecker extends DomainChecker {
     public boolean checkOK(int verticesPlaced) {
         return true;
     }
+
 }

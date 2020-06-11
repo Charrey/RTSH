@@ -8,15 +8,10 @@ public class SingletonPathIterator extends PathIterator {
     boolean done = false;
     private final Path toReturn;
 
-    public SingletonPathIterator(int targetGraphSize, Vertex tail, Vertex head) {
-        super(targetGraphSize, tail, head);
+    public SingletonPathIterator(Vertex tail, Vertex head) {
+        super(tail, head);
         toReturn = new Path(tail, 2);
         toReturn.append(head);
-    }
-
-    @Override
-    public void reset() {
-        done = false;
     }
 
     @Override
@@ -29,8 +24,4 @@ public class SingletonPathIterator extends PathIterator {
         }
     }
 
-    @Override
-    public Object getState() {
-        return new Object[]{tail(), head(), done, toReturn};
-    }
 }

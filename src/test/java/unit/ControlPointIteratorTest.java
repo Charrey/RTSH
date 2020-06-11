@@ -13,7 +13,7 @@ import java.io.StringReader;
 
 public class ControlPointIteratorTest {
 
-    String targetDOT = "strict graph G {\n" +
+    final String targetDOT = "strict graph G {\n" +
             "  0--1;\n" +
             "  1--2;\n" +
             "  2--3;\n" +

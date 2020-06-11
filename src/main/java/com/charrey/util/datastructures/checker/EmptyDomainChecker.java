@@ -1,6 +1,5 @@
 package com.charrey.util.datastructures.checker;
 
-import com.charrey.Occupation;
 import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
 
@@ -20,7 +19,7 @@ public class EmptyDomainChecker extends DomainChecker {
     }
 
     @Override
-    public void afterReleaseVertex(Occupation occupation, int verticesPlaced, Vertex v) {
+    public void afterReleaseVertex(int verticesPlaced, Vertex v) {
         Vertex[] candidates = reverseDomain[v.data()];
         for (int i = candidates.length - 1; i >= 0; i--) {
             assert !domain[candidates[i].data()].contains(v);
@@ -29,7 +28,7 @@ public class EmptyDomainChecker extends DomainChecker {
     }
 
     @Override
-    public void afterReleaseEdge(Occupation occupation, int verticesPlaced, Vertex v) {
+    public void afterReleaseEdge(int verticesPlaced, Vertex v) {
         Vertex[] candidates = reverseDomain[v.data()];
         for (int i = candidates.length - 1; i >= 0; i--) {
             assert !domain[candidates[i].data()].contains(v);
@@ -40,12 +39,12 @@ public class EmptyDomainChecker extends DomainChecker {
 
 
     @Override
-    public void beforeOccupyVertex(Occupation occupation, int verticesPlaced, Vertex v) throws DomainCheckerException {
+    public void beforeOccupyVertex(int verticesPlaced, Vertex v) throws DomainCheckerException {
         afterOccupy(verticesPlaced, v);
     }
 
     @Override
-    public void afterOccupyEdge(Occupation occupation, int verticesPlaced, Vertex v) throws DomainCheckerException {
+    public void afterOccupyEdge(int verticesPlaced, Vertex v) throws DomainCheckerException {
         afterOccupy(verticesPlaced, v);
     }
 

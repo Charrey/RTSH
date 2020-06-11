@@ -10,7 +10,7 @@ import java.io.ByteArrayInputStream;
 
 public class EppsteinTest {
 
-    static String dot = "strict digraph G {  0;  1;  2;  3;  1 -> 0;  1 -> 3;  3 -> 0;}\n" +
+    static final String dot = "strict digraph G {  0;  1;  2;  3;  1 -> 0;  1 -> 3;  3 -> 0;}\n" +
             "strict digraph G {\n" +
             "  0;\n" +
             "  1;\n" +

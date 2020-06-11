@@ -11,6 +11,10 @@ public abstract class TestCaseGenerator {
         return testCases.pop();
     }
 
+    public boolean hasNext() {
+        return !testCases.isEmpty();
+    }
+
     public void init(int amount, boolean print) {
         testCases.clear();
         if (print) {

@@ -1,7 +1,6 @@
 package com.charrey.matching;
 
 import com.charrey.Occupation;
-import com.charrey.Stateable;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
@@ -12,7 +11,7 @@ import com.charrey.util.datastructures.MultipleKeyMap;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class EdgeMatching extends VertexBlocker implements Stateable {
+public class EdgeMatching extends VertexBlocker {
 
     private final VertexMatching vertexMatching;
     private final MyGraph source;
@@ -109,8 +108,6 @@ public class EdgeMatching extends VertexBlocker implements Stateable {
         }
         Vertex tail = directed ? from : (from.data() < to.data() ? from : to);
         Vertex head = directed ? to : (tail == from ? to : from);
-        int tailData = tail.data();
-        int headData = head.data();
         assert directed || tail.data() < head.data();
         //get pathIterator
 
@@ -201,13 +198,6 @@ public class EdgeMatching extends VertexBlocker implements Stateable {
             res.addAll(pathList);
         }
         return Collections.unmodifiableSet(res);
-    }
-
-    public Object getState() {
-        List<Object> total = new LinkedList<>();
-        total.add(paths);
-        total.add(pathfinders.values().stream().map(Stateable::getState).collect(Collectors.toSet()));
-        return total;
     }
 
     public void removeLastPath() {

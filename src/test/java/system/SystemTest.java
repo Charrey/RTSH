@@ -85,7 +85,7 @@ public abstract class SystemTest {
 
 
 
-    protected class Challenge {
+    protected static class Challenge {
         public final MyGraph sourceGraph;
         public final MyGraph targetGraph;
         private final File file;

@@ -1,6 +1,6 @@
 package com.charrey.settings;
 
-public class PathIterationStrategy {
+public final class PathIterationStrategy {
 
     public static final int DFS_ARBITRARY = 0;
     public static final int DFS_GREEDY = 1;

@@ -21,8 +21,6 @@ public class RandomSucceedUndirectedTestCaseGenerator extends TestCaseGenerator{
     private final double extraRoutingNodes;
     private final int extraNodes;
 
-    private static final Random staticRandom = new Random();
-
     public RandomSucceedUndirectedTestCaseGenerator(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes, long seed) {
         this.patternNodes = patternNodes;
         this.patternEdges = patternEdges;

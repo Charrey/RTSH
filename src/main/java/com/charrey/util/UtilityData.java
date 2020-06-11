@@ -78,13 +78,14 @@ public class UtilityData {
         if (targetNeighbours == null) {
             List<Vertex> targetVertices = targetGraph.vertexSet()
                     .stream()
-                    .sorted(Comparator.comparingInt(Vertex::data)).collect(Collectors.toList());
+                    .sorted().collect(Collectors.toList());
             switch (strategy) {
                 case DFS_ARBITRARY:
                     Vertex[][] sharedTargetNeighbours = new Vertex[targetVertices.size()][];
                     targetNeighbours = new Vertex[targetGraph.vertexSet().size()][][];
                     for (int i = 0; i < sharedTargetNeighbours.length; i++) {
                         Vertex candidate = targetVertices.get(i);
+                        assert candidate.data() == i;
                         sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
                                 .stream()
                                 .map(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))

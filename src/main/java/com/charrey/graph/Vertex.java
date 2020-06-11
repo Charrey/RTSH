@@ -1,6 +1,5 @@
 package com.charrey.graph;
 
-import com.charrey.util.datastructures.Indexable;
 import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.AttributeType;
 import org.jgrapht.nio.DefaultAttribute;
@@ -9,7 +8,7 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.*;
 
-public class Vertex implements Serializable, Comparable<Vertex>, Indexable {
+public class Vertex implements Serializable, Comparable<Vertex> {
 
     private static int counter = 0;
     private final int counterValue;
@@ -27,12 +26,6 @@ public class Vertex implements Serializable, Comparable<Vertex>, Indexable {
         attributes.get(key).add(new DefaultAttribute<>(value, AttributeType.STRING));
     }
 
-
-        public Vertex addLabel(String label) {
-        attributes.putIfAbsent("label", new HashSet<>());
-        attributes.get("label").add(new DefaultAttribute<>(label, AttributeType.STRING));
-        return this;
-    }
 
     @Override
     public String toString() {
@@ -65,7 +58,6 @@ public class Vertex implements Serializable, Comparable<Vertex>, Indexable {
         return counterValue;
     }
 
-    @Override
     public int data() {
         return data;
     }

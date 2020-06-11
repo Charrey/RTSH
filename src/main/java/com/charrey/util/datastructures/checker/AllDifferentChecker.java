@@ -1,6 +1,5 @@
 package com.charrey.util.datastructures.checker;
 
-import com.charrey.Occupation;
 import com.charrey.algorithms.AllDifferent;
 import com.charrey.graph.Vertex;
 import com.charrey.util.UtilityData;
@@ -10,11 +9,10 @@ import java.util.*;
 
 public class AllDifferentChecker extends DomainChecker {
 
-    private final List<Vertex> order;
-    AllDifferent allDifferent;
+    final AllDifferent allDifferent;
     private final Set<Vertex>[] domain;
     private final Vertex[][] reverseDomain;
-    private Deque<Set<Vertex>>[] vertexState;
+    private final Deque<Set<Vertex>>[] vertexState;
 
     private void pushVertex(int data) {
         vertexState[data].push(new HashSet<>(domain[data]));
@@ -27,10 +25,9 @@ public class AllDifferentChecker extends DomainChecker {
 
     @SuppressWarnings({"unchecked"})
     public AllDifferentChecker(UtilityData data) {
-        this.order = data.getOrder();
         this.allDifferent = new AllDifferent();
         reverseDomain = data.getReverseCompatibility();
-        this.domain = Arrays.stream(data.getCompatibility()).map(x -> new HashSet<>(Arrays.asList(x))).toArray(value -> (Set<Vertex>[])new Set[value]);
+        this.domain = Arrays.stream(data.getCompatibility()).map(x -> new HashSet<>(Arrays.asList(x))).toArray(value -> (Set<Vertex>[]) new Set[value]);
         vertexState = (Deque<Set<Vertex>>[]) Array.newInstance(Deque.class, domain.length);
         for (int i = 0; i < domain.length; i++) {
             vertexState[i] = new LinkedList<>();
@@ -39,7 +36,7 @@ public class AllDifferentChecker extends DomainChecker {
 
 
     @Override
-    public void afterReleaseVertex(Occupation occupation, int verticesPlaced, Vertex v) {
+    public void afterReleaseVertex(int verticesPlaced, Vertex v) {
         Vertex[] candidates = reverseDomain[v.data()];
         for (int i = candidates.length - 1; i >= 0 && candidates[i].data() > verticesPlaced; i--) {
             assert !domain[candidates[i].data()].contains(v);
@@ -49,7 +46,7 @@ public class AllDifferentChecker extends DomainChecker {
     }
 
     @Override
-    public void afterReleaseEdge(Occupation occupation, int verticesPlaced, Vertex v) {
+    public void afterReleaseEdge(int verticesPlaced, Vertex v) {
         Vertex[] candidates = reverseDomain[v.data()];
         for (int i = candidates.length - 1; i >= 0 && candidates[i].data() >= verticesPlaced; i--) {
             //assert !domain[candidates[i].data()].contains(v) : "The domain of " + candidates[i].data() + " should not contain " + v + " but it does.";
@@ -58,7 +55,7 @@ public class AllDifferentChecker extends DomainChecker {
     }
 
     @Override
-    public void beforeOccupyVertex(Occupation occupation, int verticesPlaced, Vertex v) throws DomainCheckerException {
+    public void beforeOccupyVertex(int verticesPlaced, Vertex v) throws DomainCheckerException {
         Vertex[] candidates = reverseDomain[v.data()];
         int sourceVertexData = verticesPlaced - 1;
         pushVertex(sourceVertexData);
@@ -80,7 +77,7 @@ public class AllDifferentChecker extends DomainChecker {
 
 
     @Override
-    public void afterOccupyEdge(Occupation occupation, int verticesPlaced, Vertex v) throws DomainCheckerException {
+    public void afterOccupyEdge(int verticesPlaced, Vertex v) throws DomainCheckerException {
         Vertex[] candidates = reverseDomain[v.data()];
         int sourceVertexData = verticesPlaced - 1;
         for (int i = candidates.length - 1; i >= 0 && candidates[i].data() > sourceVertexData; i--) {
@@ -101,9 +98,15 @@ public class AllDifferentChecker extends DomainChecker {
         return Arrays.stream(domain).noneMatch(Set::isEmpty) &&  allDifferent.get(Arrays.asList(domain));
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public String toString() {
-        return "AllDifferentChecker{domain=" + Arrays.toString(domain) +
+        List[] domainString = new List[domain.length];
+        for (int i = 0; i < domainString.length; i++) {
+            domainString[i] = new ArrayList(domain[i]);
+            domainString[i].sort(Comparator.comparingInt(o -> ((Vertex) o).data()));
+        }
+        return "AllDifferentChecker{domain=" + Arrays.toString(domainString) +
                 '}';
     }
 }

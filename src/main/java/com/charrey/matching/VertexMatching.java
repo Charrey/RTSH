@@ -1,7 +1,6 @@
 package com.charrey.matching;
 
 import com.charrey.Occupation;
-import com.charrey.Stateable;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.util.UtilityData;
@@ -13,7 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class VertexMatching extends VertexBlocker implements Stateable {
+public class VertexMatching extends VertexBlocker {
 
 
     private final ArrayList<Vertex> placement = new ArrayList<>();
@@ -115,11 +114,6 @@ public class VertexMatching extends VertexBlocker implements Stateable {
         if (placement.size() < candidateToChooseNext.length) {
             this.candidateToChooseNext[placement.size()] = 0;
         }
-    }
-
-    @Override
-    public Object getState() {
-        return new Object[]{placement, candidateToChooseNext};
     }
 
 

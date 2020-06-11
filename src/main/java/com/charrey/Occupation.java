@@ -1,6 +1,5 @@
 package com.charrey;
 
-import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
@@ -9,12 +8,13 @@ import com.charrey.util.datastructures.checker.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Occupation {
 
-    private final List<Path> routingBits;
+    private final BitSet routingBits;
     private final BitSet vertexBits;
     public final DomainChecker domainChecker;
 
@@ -32,34 +32,31 @@ public class Occupation {
             default:
                 throw new UnsupportedOperationException();
         }
-        this.routingBits = new ArrayList<>(size);
+        this.routingBits = new BitSet(size);
         this.vertexBits = new BitSet(size);
-        for (int i = 0; i < size; i++) {
-            routingBits.add(null);
-        }
     }
 
-    public void occupyRoutingAndCheck(int verticesPlaced, Vertex v, Path path) throws DomainCheckerException {
-        assert routingBits.get(v.data()) == null;
-        routingBits.set(v.data(), path);
+    public void occupyRoutingAndCheck(int verticesPlaced, Vertex v) throws DomainCheckerException {
+        assert !routingBits.get(v.data());
+        routingBits.set(v.data());
         String previous = null;
         try {
             previous = domainChecker.toString();
-            domainChecker.afterOccupyEdge(this, verticesPlaced, v);
+            domainChecker.afterOccupyEdge(verticesPlaced, v);
         } catch (DomainCheckerException e) {
             assertEquals(previous, domainChecker.toString());
-            routingBits.set(v.data(), null);
+            routingBits.clear(v.data());
             throw e;
         }
     }
 
 
     public void occupyVertex(int source, Vertex target) throws DomainCheckerException {
-        assert routingBits.get(target.data()) == null;
+        assert !routingBits.get(target.data());
         assert !vertexBits.get(target.data());
         vertexBits.set(target.data());
         try {
-            domainChecker.beforeOccupyVertex(this, source, target);
+            domainChecker.beforeOccupyVertex(source, target);
         } catch (DomainCheckerException e) {
             vertexBits.clear(target.data());
             throw e;
@@ -69,19 +66,18 @@ public class Occupation {
 
     public void releaseRouting(int verticesPlaced, Vertex v) {
         assert isOccupiedRouting(v);
-        routingBits.set(v.data(), null);
-        domainChecker.afterReleaseEdge(this, verticesPlaced, v);
+        routingBits.clear(v.data());
+        domainChecker.afterReleaseEdge(verticesPlaced, v);
     }
 
     public void releaseVertex(int verticesPlaced, Vertex v) {
         assert vertexBits.get(v.data());
         vertexBits.clear(v.data());
-        domainChecker.afterReleaseVertex(this, verticesPlaced, v);
+        domainChecker.afterReleaseVertex(verticesPlaced, v);
     }
 
     public boolean isOccupiedRouting(Vertex v) {
-        Path gotten = routingBits.get(v.data());
-        return gotten != null;
+        return routingBits.get(v.data());
     }
 
     public boolean isOccupiedVertex(Vertex v) {
@@ -95,11 +91,7 @@ public class Occupation {
     @Override
     public String toString() {
         Set<Integer> myList = new HashSet<>();
-        for (Path i : this.routingBits) {
-            if (i != null) {
-                myList.addAll(i.intermediate().stream().mapToInt(Vertex::data).boxed().collect(Collectors.toSet()));
-            }
-        }
+        myList.addAll(IntStream.range(0, routingBits.size()).filter(this.routingBits::get).boxed().collect(Collectors.toSet()));
         myList.addAll(this.vertexBits.stream().boxed().collect(Collectors.toSet()));
         assert myList.stream().allMatch(x -> isOccupied(new Vertex(x)));
         List<Integer> res = new LinkedList<>(myList);

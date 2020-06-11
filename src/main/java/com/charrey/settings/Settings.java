@@ -17,18 +17,18 @@ public class Settings {
             true,
             true,
             RunTimeCheck.ALL_DIFFERENT,
-            PathIterationStrategy.DFS_ARBITRARY,
+            PathIterationStrategy.CONTROL_POINT,
             new Random(300));
 
 
 
 
-    public boolean initialLocalizedAllDifferent;
-    public boolean initialGlobalAllDifferent;
-    public boolean refuseLongerPaths;
+    public final boolean initialLocalizedAllDifferent;
+    public final boolean initialGlobalAllDifferent;
+    public final boolean refuseLongerPaths;
     public int runTimeCheck;
     public int pathIteration;
-    public Random random;
+    public final Random random;
 
     public Settings(boolean initialLocalizedAllDifferent,
                     boolean initialGlobalAllDifferent,
@@ -81,7 +81,7 @@ public class Settings {
         return Objects.hash(initialLocalizedAllDifferent, initialGlobalAllDifferent, refuseLongerPaths, runTimeCheck, pathIteration, random);
     }
 
-    public static Comparator<Settings> comparator = Comparator.comparingInt((ToIntFunction<Settings>) value -> value.initialLocalizedAllDifferent ? 1 : 0)
+    public static final Comparator<Settings> comparator = Comparator.comparingInt((ToIntFunction<Settings>) value -> value.initialLocalizedAllDifferent ? 1 : 0)
             .thenComparingInt(o2 -> o2.initialGlobalAllDifferent ? 1 : 0)
             .thenComparingInt(o2 -> o2.refuseLongerPaths ? 1 : 0)
             .thenComparingInt(o2 -> o2.runTimeCheck)

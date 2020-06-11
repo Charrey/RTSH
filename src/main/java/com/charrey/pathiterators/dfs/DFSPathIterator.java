@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 
 public class DFSPathIterator extends PathIterator {
     private final Vertex head;
-    private final Vertex tail;
 
     private final Vertex[][] neighbours;
     private final int[] chosenOption;
@@ -20,16 +19,9 @@ public class DFSPathIterator extends PathIterator {
     private final Occupation occupation;
     private final Supplier<Integer> placementSize;
 
-    @Override
-    public void reset() {
-        exploration.reinit();
-        Arrays.fill(chosenOption, 0);
-    }
-
-    public DFSPathIterator(int domainSize, Vertex[][] neighbours, Vertex tail, Vertex head, Occupation occupation, Supplier<Integer> placementSize) {
-        super(domainSize, tail, head);
+    public DFSPathIterator(Vertex[][] neighbours, Vertex tail, Vertex head, Occupation occupation, Supplier<Integer> placementSize) {
+        super(tail, head);
         this.head = head;
-        this.tail = tail;
         exploration = new Path(tail, neighbours.length);
         this.neighbours = neighbours;
         chosenOption = new int[neighbours.length];
@@ -42,8 +34,9 @@ public class DFSPathIterator extends PathIterator {
         boolean isCandidate = !exploration.contains(vertex) &&
                 !occupation.isOccupiedRouting(vertex) &&
                 !(occupation.isOccupiedVertex(vertex) && vertex != head);
-        if (!Settings.instance.refuseLongerPaths) {
-            isCandidate = isCandidate && Arrays.stream(neighbours[vertex.data()]).noneMatch(x -> x != from && exploration.contains(x));
+        if (Settings.instance.refuseLongerPaths) {
+            isCandidate = isCandidate && exploration.stream().allMatch(x -> x == from || !Arrays.asList(neighbours[x.data()]).contains(vertex));
+            //isCandidate = isCandidate && Arrays.stream(neighbours[vertex.data()]).noneMatch(x -> x != from && exploration.contains(x));
         }
         return isCandidate;
     }
@@ -57,6 +50,7 @@ public class DFSPathIterator extends PathIterator {
         }
         //assert exploration.length() < 2 || exploration.intermediate().stream().noneMatch(occupation::isOccupied);
         while (exploration.head() != head) {
+            //System.out.println(exploration);
             int indexOfHeadVertex = exploration.length() - 1;
             assert indexOfHeadVertex < chosenOption.length;
             while (chosenOption[indexOfHeadVertex] >= neighbours[exploration.get(indexOfHeadVertex).data()].length) {
@@ -81,7 +75,7 @@ public class DFSPathIterator extends PathIterator {
                     found = true;
                     if (neighbour != head) {
                         try {
-                            occupation.occupyRoutingAndCheck(this.placementSize.get(), neighbour, exploration);
+                            occupation.occupyRoutingAndCheck(this.placementSize.get(), neighbour);
                             break;
                         } catch (DomainCheckerException e) {
                             exploration.removeHead();
@@ -118,9 +112,5 @@ public class DFSPathIterator extends PathIterator {
         return head;
     }
 
-    @Override
-    public Object getState() {
-        return new Object[]{tail, head, chosenOption, exploration};
-    }
 }
 

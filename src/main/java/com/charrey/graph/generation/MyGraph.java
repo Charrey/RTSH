@@ -10,10 +10,11 @@ import java.io.StringWriter;
 
 public class MyGraph extends AbstractBaseGraph<Vertex, DefaultEdge> {
     private final boolean directed;
+    private double maxEdgeWeight = 1d;
 
     public MyGraph(boolean directed) {
         super(
-                new GraphGenerator.IntGenerator(), DefaultEdge::new,
+                new GraphGenerator.VertexGenerator(), DefaultEdge::new,
                 directed ?
                 new DefaultGraphType.Builder()
                         .directed().allowMultipleEdges(false).allowSelfLoops(false).weighted(true)
@@ -23,6 +24,24 @@ public class MyGraph extends AbstractBaseGraph<Vertex, DefaultEdge> {
                                 .build()
                 );
         this.directed = directed;
+    }
+
+    @Override
+    public boolean addEdge(Vertex sourceVertex, Vertex targetVertex, DefaultEdge defaultEdge) {
+        boolean res = super.addEdge(sourceVertex, targetVertex, defaultEdge);
+        if (res) {
+            this.setEdgeWeight(defaultEdge, maxEdgeWeight);
+            maxEdgeWeight = Math.nextAfter(maxEdgeWeight, Double.POSITIVE_INFINITY);
+        }
+        return res;
+    }
+
+    @Override
+    public DefaultEdge addEdge(Vertex sourceVertex, Vertex targetVertex) {
+        DefaultEdge res =  super.addEdge(sourceVertex, targetVertex);
+        this.setEdgeWeight(res, maxEdgeWeight);
+        maxEdgeWeight = Math.nextAfter(maxEdgeWeight, Double.POSITIVE_INFINITY);
+        return res;
     }
 
     public boolean isDirected() {
