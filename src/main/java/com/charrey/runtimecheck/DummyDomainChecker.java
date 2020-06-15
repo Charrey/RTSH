@@ -29,4 +29,9 @@ public class DummyDomainChecker extends DomainChecker {
         return true;
     }
 
+    @Override
+    public DomainChecker copy() {
+        return this;
+    }
+
 }

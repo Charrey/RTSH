@@ -1,6 +1,6 @@
 package com.charrey.pathiterators.controlpoint;
 
-import com.charrey.Occupation;
+import com.charrey.occupation.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;

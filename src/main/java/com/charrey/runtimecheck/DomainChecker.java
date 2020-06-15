@@ -14,4 +14,5 @@ public abstract class DomainChecker {
 
     public abstract boolean checkOK(int verticesPlaced);
 
+    public abstract DomainChecker copy();
 }

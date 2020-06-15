@@ -1,9 +1,10 @@
 package com.charrey.pathiterators.controlpoint;
 
-import com.charrey.Occupation;
+import com.charrey.occupation.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
+import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,7 @@ public class ManagedControlPointIterator extends PathIterator {
     private final MyGraph graph;
     @NotNull
     private final Occupation globalOccupation;
+    private final OccupationTransaction transaction;
     private final int maxControlPoints;
     private final Supplier<Integer> verticesPlaced;
     private ControlPointIterator child;
@@ -32,6 +34,7 @@ public class ManagedControlPointIterator extends PathIterator {
         child = new ControlPointIterator(graph, tail, head, globalOccupation, new HashSet<>(), controlPoints, verticesPlaced, refuseLongerPaths);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
+        this.transaction = globalOccupation.getTransaction();
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
     }
@@ -42,10 +45,10 @@ public class ManagedControlPointIterator extends PathIterator {
     @Nullable
     @Override
     public Path next() {
+        transaction.uncommit();
         if (returned != null) {
-            returned.intermediate().forEach(x -> globalOccupation.releaseRouting(verticesPlaced.get(), x));
+            returned.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
         }
-
         while (true) {
             Path path;
             do {
@@ -54,11 +57,12 @@ public class ManagedControlPointIterator extends PathIterator {
             } while (path != null && controlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
                 try {
-                    globalOccupation.occupyRoutingAndCheck(verticesPlaced.get(), path);
+                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), path);
                 } catch (DomainCheckerException e) {
                     continue;
                 }
                 returned = path;
+                transaction.commit();
                 return returned;
             } else {
                 if (controlPoints + 1 > maxControlPoints || controlPoints + 1 > graph.vertexSet().size() - 2) {

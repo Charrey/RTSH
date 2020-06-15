@@ -1,6 +1,6 @@
 package unit.iterator;
 
-import com.charrey.Occupation;
+import com.charrey.occupation.Occupation;
 import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;

@@ -1,6 +1,6 @@
 package unit.iterator;
 
-import com.charrey.Occupation;
+import com.charrey.occupation.Occupation;
 import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
@@ -73,6 +73,9 @@ class OccupationTest {
                 Vertex tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
                 Vertex head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
                 counter++;
+                if (counter < 173) {
+                    continue;
+                }
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
@@ -85,7 +88,7 @@ class OccupationTest {
                 while ((path = iterator.next()) != null) {
                     Set<Integer> occupationSays = occupation.getRoutingOccupied().stream().boxed().collect(Collectors.toSet());
                     Set<Integer> pathSays = path.intermediate().stream().map(Vertex::data).collect(Collectors.toSet());
-                    assertEquals(occupationSays, pathSays);
+                    assertEquals(occupationSays, pathSays, "Iteration: " + counter);
                 }
             }
         }

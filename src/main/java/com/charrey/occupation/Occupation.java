@@ -1,4 +1,4 @@
-package com.charrey;
+package com.charrey.occupation;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
@@ -46,7 +46,19 @@ public class Occupation {
         this.vertexBits = new BitSet(size);
     }
 
-    public void occupyRoutingAndCheck(int verticesPlaced, @NotNull Vertex v) throws DomainCheckerException {
+    public OccupationTransaction getTransaction() {
+       return new OccupationTransaction((BitSet) routingBits.clone(), (BitSet) vertexBits.clone(), domainChecker.copy(), this);
+    }
+
+    public void commitTransaction(OccupationTransaction transaction) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void uncommitTransaction(OccupationTransaction transaction) {
+        throw new UnsupportedOperationException();
+    }
+
+    void occupyRoutingAndCheck(int verticesPlaced, @NotNull Vertex v) throws DomainCheckerException {
         assert !routingBits.get(v.data());
         routingBits.set(v.data());
         String previous = null;
@@ -60,7 +72,7 @@ public class Occupation {
         }
     }
 
-    public void occupyRoutingAndCheck(int verticesPlaced, @NotNull Path p) throws DomainCheckerException {
+    void occupyRoutingAndCheck(int verticesPlaced, @NotNull Path p) throws DomainCheckerException {
         for (int i = 0; i < p.intermediate().size(); i++) {
             try {
                 occupyRoutingAndCheck(verticesPlaced, p.intermediate().get(i));
@@ -86,7 +98,7 @@ public class Occupation {
     }
 
 
-    public void releaseRouting(int verticesPlaced, @NotNull Vertex v) {
+    void releaseRouting(int verticesPlaced, @NotNull Vertex v) {
         assert isOccupiedRouting(v);
         routingBits.clear(v.data());
         domainChecker.afterReleaseEdge(verticesPlaced, v);
@@ -137,6 +149,6 @@ public class Occupation {
     }
 
     public BitSet getRoutingOccupied() {
-        return this.routingBits;
+        return (BitSet) this.routingBits.clone();
     }
 }

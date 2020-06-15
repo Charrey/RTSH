@@ -4,6 +4,7 @@ import com.charrey.graph.Vertex;
 import com.charrey.algorithms.UtilityData;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,6 +14,24 @@ public class EmptyDomainChecker extends DomainChecker {
     private final Vertex[][] reverseDomain;
     @NotNull
     private final Set<Vertex>[] domain;
+
+    @Override
+    public DomainChecker copy() {
+        return new EmptyDomainChecker(this);
+    }
+
+    @SuppressWarnings("unchecked")
+    private EmptyDomainChecker(EmptyDomainChecker copyFrom) {
+        reverseDomain = new Vertex[copyFrom.reverseDomain.length][];
+        for (int i = 0; i < copyFrom.reverseDomain.length; i++) {
+            reverseDomain[i] = copyFrom.reverseDomain[i].clone();
+        }
+        domain = (Set<Vertex>[]) Array.newInstance(Set.class, copyFrom.domain.length);
+        for (int i = 0; i < copyFrom.domain.length; i++) {
+            domain[i] = new HashSet<>(copyFrom.domain[i]);
+        }
+    }
+
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public EmptyDomainChecker(@NotNull UtilityData data, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent) {
@@ -66,6 +85,8 @@ public class EmptyDomainChecker extends DomainChecker {
     public boolean checkOK(int verticesPlaced) {
         return Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().noneMatch(Set::isEmpty);
     }
+
+
 
     @NotNull
     @Override

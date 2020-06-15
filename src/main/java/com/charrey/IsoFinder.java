@@ -5,6 +5,7 @@ import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
+import com.charrey.occupation.Occupation;
 import com.charrey.settings.Settings;
 import com.charrey.algorithms.UtilityData;
 import org.jetbrains.annotations.NotNull;

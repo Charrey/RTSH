@@ -1,9 +1,10 @@
 package com.charrey.pathiterators.yen;
 
-import com.charrey.Occupation;
+import com.charrey.occupation.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
+import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class YenPathIterator extends PathIterator {
     @NotNull
     private final Occupation occupation;
+
     @NotNull
     private final MyGraph targetGraph;
     private final String init;
@@ -29,22 +31,29 @@ public class YenPathIterator extends PathIterator {
 
     @NotNull
     private final YenShortestPathIterator<Vertex, DefaultEdge> yen;
+
+    private OccupationTransaction transaction;
     private final Set<Vertex> occupied = new HashSet<>();
 
     public YenPathIterator(@NotNull MyGraph targetGraph, @NotNull Vertex tail, Vertex head, @NotNull Occupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
         this.targetGraph = targetGraph;
         this.occupation = occupation;
+        this.transaction = occupation.getTransaction();
         init = occupation.toString();
         this.verticesPlaced = verticesPlaced;
         yen = new YenShortestPathIterator<>(new MaskSubgraph<>(targetGraph, x -> !x.equals(tail) && !x.equals(head) && occupation.isOccupied(x), y -> false), tail, head);
     }
 
+    private Path previousPath = null;
+
     @Nullable
     @Override
     public Path next() {
-        occupied.forEach(x -> occupation.releaseRouting(verticesPlaced.get(), x));
-        occupied.clear();
+        transaction.uncommit();
+        if (previousPath != null) {
+            previousPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+        }
         assert occupation.toString().equals(init) : "Initially: " + init + "; now: " + occupation;
         while (yen.hasNext()) {
             Path pathFound = new Path(yen.next());
@@ -54,20 +63,19 @@ public class YenPathIterator extends PathIterator {
             boolean okay = true;
             for (Vertex v : pathFound.intermediate()) {
                 try {
-                    occupation.occupyRoutingAndCheck(verticesPlaced.get(), v);
-                    occupied.add(v);
+                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), v);
                 } catch (DomainCheckerException e) {
-                    occupied.forEach(x -> occupation.releaseRouting(verticesPlaced.get(), x));
-                    occupied.clear();
                     okay = false;
                     break;
                 }
             }
             if (okay) {
-                return new Path(pathFound);
+                transaction.commit();
+                previousPath = new Path(pathFound);
+                return previousPath;
             }
         }
-        assert occupied.isEmpty();
+        previousPath = null;
         return null;
 
     }
