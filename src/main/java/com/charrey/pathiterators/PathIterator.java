@@ -1,6 +1,6 @@
 package com.charrey.pathiterators;
 
-import com.charrey.occupation.Occupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
@@ -30,12 +30,12 @@ public abstract class PathIterator {
     }
 
     @NotNull
-    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, @NotNull Vertex tail, @NotNull Vertex head, @NotNull Occupation occupation, Supplier<Integer> placementSize, @NotNull Settings settings) {
+    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, @NotNull Vertex tail, @NotNull Vertex head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, @NotNull Settings settings) {
         return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration, settings.refuseLongerPaths);
     }
 
     @NotNull
-    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, @NotNull Vertex tail, @NotNull Vertex head, @NotNull Occupation occupation, Supplier<Integer> placementSize, int pathIteration, boolean refuseLongerPaths) {
+    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, @NotNull Vertex tail, @NotNull Vertex head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, int pathIteration, boolean refuseLongerPaths) {
         if (targetGraph.getEdge(tail, head) != null) {
             return new SingletonPathIterator(tail, head);
         }

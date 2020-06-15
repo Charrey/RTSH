@@ -1,6 +1,6 @@
 package com.charrey.matching;
 
-import com.charrey.occupation.Occupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
@@ -24,7 +24,7 @@ public class EdgeMatching extends VertexBlocker {
     private final int pathIteration;
 
     private MultipleKeyMap<PathIterator> pathfinders;
-    private final Occupation occupation;
+    private final GlobalOccupation occupation;
 
     private Vertex[][] edges; //do not change
     private boolean[][] incoming; //only for directed graphs
@@ -33,7 +33,7 @@ public class EdgeMatching extends VertexBlocker {
 
     private final UtilityData data;
 
-    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, Occupation occupation, int pathIteration, boolean refuseLongerPaths) {
+    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, GlobalOccupation occupation, int pathIteration, boolean refuseLongerPaths) {
         this.vertexMatching = vertexMatching;
         this.source = source;
         this.data = data;

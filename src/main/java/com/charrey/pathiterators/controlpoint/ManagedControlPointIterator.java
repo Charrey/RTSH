@@ -1,6 +1,6 @@
 package com.charrey.pathiterators.controlpoint;
 
-import com.charrey.occupation.Occupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
@@ -22,19 +22,19 @@ public class ManagedControlPointIterator extends PathIterator {
     @NotNull
     private final MyGraph graph;
     @NotNull
-    private final Occupation globalOccupation;
+    private final GlobalOccupation globalOccupation;
     private final OccupationTransaction transaction;
     private final int maxControlPoints;
     private final Supplier<Integer> verticesPlaced;
     private ControlPointIterator child;
     private int controlPoints = 0;
 
-    public ManagedControlPointIterator(@NotNull MyGraph graph, @NotNull Vertex tail, @NotNull Vertex head, @NotNull Occupation globalOccupation, int maxControlPoints, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
+    public ManagedControlPointIterator(@NotNull MyGraph graph, @NotNull Vertex tail, @NotNull Vertex head, @NotNull GlobalOccupation globalOccupation, int maxControlPoints, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
-        child = new ControlPointIterator(graph, tail, head, globalOccupation, new HashSet<>(), controlPoints, verticesPlaced, refuseLongerPaths);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.transaction = globalOccupation.getTransaction();
+        this.child = new ControlPointIterator(graph, tail, head, transaction, new HashSet<>(), controlPoints, verticesPlaced, refuseLongerPaths);
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
     }
@@ -69,7 +69,7 @@ public class ManagedControlPointIterator extends PathIterator {
                     return null;
                 }
                 controlPoints += 1;
-                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, new HashSet<>(), controlPoints, verticesPlaced, refuseLongerPaths);
+                child = new ControlPointIterator(graph, tail(), head(), transaction, new HashSet<>(), controlPoints, verticesPlaced, refuseLongerPaths);
             }
         }
     }
@@ -87,7 +87,7 @@ public class ManagedControlPointIterator extends PathIterator {
             Path middleAltToRight = new Path(middleToRight.asList().subList(i + 1, middleToRight.length()));
             Set<Integer> fictionalLocalOccupation = new HashSet<>(localOccupations.get(1));
             middleAltToRight.forEach(x -> fictionalLocalOccupation.add(x.data()));
-            Path leftToMiddleAlt = ControlPointIterator.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt);
+            Path leftToMiddleAlt = ControlPointIterator.filteredShortestPath(graph, transaction, fictionalLocalOccupation, left, middleAlt);
             assert leftToMiddleAlt != null;
             Path alternative = ControlPointIterator.merge(leftToMiddleAlt, middleAltToRight);
             if (alternative.equals(leftToRight)) {
@@ -110,7 +110,7 @@ public class ManagedControlPointIterator extends PathIterator {
 
         assert middleToRight.tail() == middle;
         assert middleToRight.head() == right;
-        Path skippedPath = ControlPointIterator.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right);
+        Path skippedPath = ControlPointIterator.filteredShortestPath(graph, transaction, localOccupations.get(1), left, right);
         assert skippedPath != null;
         assert skippedPath.tail() == left;
         assert skippedPath.head() == right;

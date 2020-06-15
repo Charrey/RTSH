@@ -12,17 +12,17 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class OccupationTransaction {
+public class OccupationTransaction extends AbstractOccupation {
 
     private final BitSet routingBits;
     private final BitSet vertexBits;
     private final DomainChecker domainChecker;
-    private final Occupation parent;
+    private final GlobalOccupation parent;
 
     private LinkedList<TransactionElement> waiting = new LinkedList<>();
     private boolean locked = false;
 
-    OccupationTransaction(BitSet routingBits, BitSet vertexBits, DomainChecker domainChecker, Occupation parent) {
+    OccupationTransaction(BitSet routingBits, BitSet vertexBits, DomainChecker domainChecker, GlobalOccupation parent) {
         this.routingBits = routingBits;
         this.vertexBits = vertexBits;
         this.domainChecker = domainChecker;

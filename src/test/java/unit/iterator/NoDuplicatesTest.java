@@ -1,6 +1,6 @@
 package unit.iterator;
 
-import com.charrey.occupation.Occupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
@@ -80,7 +80,7 @@ class NoDuplicatesTest {
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
-                Occupation occupation = new Occupation(data, targetGraph.vertexSet().size(), settings);
+                GlobalOccupation occupation = new GlobalOccupation(data, targetGraph.vertexSet().size(), settings);
                 occupation.occupyVertex(0, tail);
                 occupation.occupyVertex(1, head);
                 PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);

@@ -1,6 +1,6 @@
 package com.charrey.pathiterators.dfs;
 
-import com.charrey.occupation.Occupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.occupation.OccupationTransaction;
@@ -21,11 +21,11 @@ public class DFSPathIterator extends PathIterator {
     private final int[] chosenOption;
     @NotNull
     private final Path exploration;
-    private final Occupation occupation;
+    private final GlobalOccupation occupation;
     private final OccupationTransaction transaction;
     private final Supplier<Integer> placementSize;
 
-    public DFSPathIterator(@NotNull Vertex[][] neighbours, @NotNull Vertex tail, Vertex head, Occupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths) {
+    public DFSPathIterator(@NotNull Vertex[][] neighbours, @NotNull Vertex tail, Vertex head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
         this.head = head;
         exploration = new Path(tail, neighbours.length);

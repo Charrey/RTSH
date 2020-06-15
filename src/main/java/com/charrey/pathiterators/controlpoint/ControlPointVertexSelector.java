@@ -1,6 +1,7 @@
 package com.charrey.pathiterators.controlpoint;
 
-import com.charrey.occupation.Occupation;
+import com.charrey.occupation.AbstractOccupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
@@ -16,7 +17,7 @@ import java.util.Set;
 public class ControlPointVertexSelector implements Iterator<Vertex> {
 
     @NotNull
-    private final Occupation occupation;
+    private final AbstractOccupation occupation;
     @Nullable
     private final List<Vertex> vertices;
     @NotNull
@@ -25,7 +26,7 @@ public class ControlPointVertexSelector implements Iterator<Vertex> {
 
 
     ControlPointVertexSelector(@NotNull MyGraph graph,
-                               @NotNull Occupation occupation,
+                               @NotNull AbstractOccupation occupation,
                                @NotNull Set<Integer> initialLocalOccupation,
                                @NotNull Vertex from,
                                @NotNull Vertex to) {

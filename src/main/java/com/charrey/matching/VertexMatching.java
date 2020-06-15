@@ -1,6 +1,6 @@
 package com.charrey.matching;
 
-import com.charrey.occupation.Occupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.algorithms.UtilityData;
@@ -21,11 +21,11 @@ public class VertexMatching extends VertexBlocker {
     private final Vertex[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
     @NotNull
     private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
-    private final Occupation occupation;
+    private final GlobalOccupation occupation;
     private DeletionFunction onDeletion;
 
 
-    public VertexMatching(@NotNull UtilityData data, @NotNull MyGraph pattern, Occupation occupation, boolean initialLocalAllDifferent, boolean initialGlobalAllDifferent) {
+    public VertexMatching(@NotNull UtilityData data, @NotNull MyGraph pattern, GlobalOccupation occupation, boolean initialLocalAllDifferent, boolean initialGlobalAllDifferent) {
         this.candidates = data.getCompatibility(initialLocalAllDifferent, initialGlobalAllDifferent);
         candidateToChooseNext = new int[pattern.vertexSet().size()];
         assert candidateToChooseNext.length == candidates.length;

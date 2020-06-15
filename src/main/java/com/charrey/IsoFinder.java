@@ -5,7 +5,7 @@ import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
-import com.charrey.occupation.Occupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
 import com.charrey.algorithms.UtilityData;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ public class IsoFinder {
         if (Arrays.stream(data.getCompatibility(settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
-        Occupation occupation = new Occupation(data, testcase.targetGraph.vertexSet().size(), settings.runTimeCheck, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
+        GlobalOccupation occupation = new GlobalOccupation(data, testcase.targetGraph.vertexSet().size(), settings.runTimeCheck, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
         vertexMatching      = new VertexMatching(data, testcase.sourceGraph, occupation, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
         edgeMatching        = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
     }

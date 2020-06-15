@@ -1,6 +1,6 @@
 package com.charrey.pathiterators.yen;
 
-import com.charrey.occupation.Occupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 public class YenPathIterator extends PathIterator {
     @NotNull
-    private final Occupation occupation;
+    private final GlobalOccupation occupation;
 
     @NotNull
     private final MyGraph targetGraph;
@@ -35,7 +35,7 @@ public class YenPathIterator extends PathIterator {
     private OccupationTransaction transaction;
     private final Set<Vertex> occupied = new HashSet<>();
 
-    public YenPathIterator(@NotNull MyGraph targetGraph, @NotNull Vertex tail, Vertex head, @NotNull Occupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
+    public YenPathIterator(@NotNull MyGraph targetGraph, @NotNull Vertex tail, Vertex head, @NotNull GlobalOccupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
         this.targetGraph = targetGraph;
         this.occupation = occupation;

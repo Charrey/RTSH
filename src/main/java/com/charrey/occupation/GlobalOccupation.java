@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class Occupation {
+public class GlobalOccupation {
 
     @NotNull
     private final BitSet routingBits;
@@ -24,11 +24,11 @@ public class Occupation {
     @NotNull
     public final DomainChecker domainChecker;
 
-    public Occupation(@NotNull UtilityData data, int size, @NotNull Settings settings){
+    public GlobalOccupation(@NotNull UtilityData data, int size, @NotNull Settings settings){
         this(data, size, settings.runTimeCheck, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
     }
 
-    public Occupation(@NotNull UtilityData data, int size, int runTimeCheck, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent){
+    public GlobalOccupation(@NotNull UtilityData data, int size, int runTimeCheck, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent){
         switch (runTimeCheck) {
             case RunTimeCheck.NONE:
                 domainChecker = new DummyDomainChecker();
@@ -138,7 +138,7 @@ public class Occupation {
     public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Occupation that = (Occupation) o;
+        GlobalOccupation that = (GlobalOccupation) o;
         return routingBits.equals(that.routingBits) &&
                 vertexBits.equals(that.vertexBits);
     }
