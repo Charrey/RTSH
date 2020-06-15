@@ -8,6 +8,7 @@ import org.chocosolver.solver.Settings;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
 import org.chocosolver.util.iterators.ValueIterator;
+import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
@@ -18,7 +19,7 @@ public class AllDifferent {
     private static final Settings settings = new DefaultSettings();
     private final Set<Map<Vertex, Set<Vertex>>> cacheYesA = new HashSet<>();
     private final Set<Map<Vertex, Set<Vertex>>> cacheNoA = new HashSet<>();
-    public boolean get(Map<Vertex, Set<Vertex>> allDifferentMap) {
+    public boolean get(@NotNull Map<Vertex, Set<Vertex>> allDifferentMap) {
         if (cacheYesA.contains(allDifferentMap)) {
             return true;
         } else if (cacheNoA.contains(allDifferentMap)) {
@@ -44,7 +45,7 @@ public class AllDifferent {
         }
     }
 
-    public boolean get(List<Set<Vertex>> compatibility) {
+    public boolean get(@NotNull List<Set<Vertex>> compatibility) {
         Model model = new Model(settings);
         IntVar[] variables = IntStream.range(0, compatibility.size())
                 .boxed()
@@ -55,7 +56,8 @@ public class AllDifferent {
     }
 
 
-    public static Set<Pair<Integer, Integer>> checkAll(Map<Integer, Set<Integer>> allDifferentMap) {
+    @NotNull
+    static Set<Pair<Integer, Integer>> checkAll(@NotNull Map<Integer, Set<Integer>> allDifferentMap) {
         final int[][] domains = new int[allDifferentMap.size()][];
         allDifferentMap.forEach((key, value) -> domains[key] = (value.stream().mapToInt(x -> x).toArray()));
         Model model = new Model(settings);
@@ -85,7 +87,8 @@ public class AllDifferent {
         return res;
     }
 
-    private static Set<Pair<Integer, Integer>> constructSetOfPairs(Map<Integer, Set<Integer>> allDifferentMap) {
+    @NotNull
+    private static Set<Pair<Integer, Integer>> constructSetOfPairs(@NotNull Map<Integer, Set<Integer>> allDifferentMap) {
         Set<Pair<Integer, Integer>> toRemove = new HashSet<>();
         for (Map.Entry<Integer, Set<Integer>> entry : allDifferentMap.entrySet()) {
             for (Integer target : entry.getValue()) {

@@ -5,36 +5,44 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.util.GraphUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 public class ControlPointVertexSelector implements Iterator<Vertex> {
 
+    @NotNull
     private final Occupation occupation;
+    @Nullable
     private final List<Vertex> vertices;
-    private final Set<Integer> local;
-    int indexTried = -1;
+    @NotNull
+    private final Set<Integer> localOccupation;
+    private int indexTried = -1;
 
 
-    public ControlPointVertexSelector(MyGraph graph,
-                                      Occupation occupation,
-                                      Set<Integer> local,
-                                      Vertex from,
-                                      Vertex to) {
+    ControlPointVertexSelector(@NotNull MyGraph graph,
+                               @NotNull Occupation occupation,
+                               @NotNull Set<Integer> initialLocalOccupation,
+                               @NotNull Vertex from,
+                               @NotNull Vertex to) {
         this.occupation = occupation;
-        this.local = local;
-        vertices = GraphUtil.randomVertexOrder(graph);
-        Path path = ControlPointIterator.filteredShortestPath(graph, occupation, local, from, to);
+        this.localOccupation = initialLocalOccupation;
+        Random random = new Random(1 + 3*graph.hashCode() + 5*occupation.hashCode() + 7*initialLocalOccupation.hashCode() + 11*from.data() + 13*to.data());
+        vertices = GraphUtil.randomVertexOrder(graph, random);
+        Path path = ControlPointIterator.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to);
         if (path == null) {
             readyToDeliver = true;
             nextToReturn = null;
         }
     }
 
-    Vertex nextToReturn = null;
-    boolean readyToDeliver = false;
+    @Nullable
+    private Vertex nextToReturn = null;
+    private boolean readyToDeliver = false;
 
 
     @Override
@@ -46,7 +54,9 @@ public class ControlPointVertexSelector implements Iterator<Vertex> {
         return nextToReturn != null;
     }
 
+    @Nullable
     private Vertex iterate() {
+        assert vertices != null;
         while (true) {
             int newIndex = indexTried + 1;
             if (newIndex >= vertices.size()) {
@@ -61,10 +71,11 @@ public class ControlPointVertexSelector implements Iterator<Vertex> {
         }
     }
 
-    private boolean isSuitable(Vertex vertex) {
-        return !occupation.isOccupied(vertex) && !local.contains(vertex.data());
+    private boolean isSuitable(@NotNull Vertex vertex) {
+        return !occupation.isOccupied(vertex) && !localOccupation.contains(vertex.data());
     }
 
+    @Nullable
     @Override
     public Vertex next() {
         if (!readyToDeliver) {

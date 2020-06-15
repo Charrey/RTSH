@@ -2,6 +2,7 @@ package com.charrey;
 
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
+import org.jetbrains.annotations.NotNull;
 
 public class HomeomorphismResult {
 
@@ -17,16 +18,19 @@ public class HomeomorphismResult {
         this.iterations = iterations;
     }
 
-    public static final HomeomorphismResult COMPATIBILITY_FAIL = new HomeomorphismResult(true, null, null, 0);
+    static final HomeomorphismResult COMPATIBILITY_FAIL = new HomeomorphismResult(true, null, null, 0);
 
-    public static HomeomorphismResult ofFailed(long iterations) {
+    @NotNull
+    static HomeomorphismResult ofFailed(long iterations) {
         return new HomeomorphismResult(true, null, null, iterations);
     }
 
-    public static HomeomorphismResult ofSucceed(VertexMatching vertexMatching, EdgeMatching edgeMatching, long iterations) {
+    @NotNull
+    static HomeomorphismResult ofSucceed(VertexMatching vertexMatching, EdgeMatching edgeMatching, long iterations) {
         return new HomeomorphismResult(false, vertexMatching, edgeMatching, iterations);
     }
 
+    @NotNull
     public String toString() {
         return matching.toString() + "\n" + edgeMatching.toString();
     }

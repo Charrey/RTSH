@@ -1,4 +1,4 @@
-package com.charrey.util.datastructures.checker;
+package com.charrey.runtimecheck;
 
 import com.charrey.graph.Vertex;
 

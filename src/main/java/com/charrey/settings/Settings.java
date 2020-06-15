@@ -1,5 +1,7 @@
 package com.charrey.settings;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.Comparator;
@@ -8,19 +10,6 @@ import java.util.Random;
 import java.util.function.ToIntFunction;
 
 public class Settings {
-
-
-
-
-    public static final Settings instance = new Settings(
-            true,
-            true,
-            true,
-            RunTimeCheck.ALL_DIFFERENT,
-            PathIterationStrategy.YEN,
-            new Random(300));
-
-
 
 
     public final boolean initialLocalizedAllDifferent;
@@ -42,7 +31,8 @@ public class Settings {
         this.random = random;
     }
 
-    public static Pair<Settings, Long> readString(String content) {
+    @NotNull
+    public static Pair<Settings, Long> readString(@NotNull String content) {
         String[] separated = content.split(",");
         Settings res = new Settings(
                 separated[0].equals("1"),
@@ -55,7 +45,8 @@ public class Settings {
         return new Pair<>(res, Long.parseLong(separated[5]));
     }
 
-    public static String writeString(Pair<Settings, Long> x) {
+    @NotNull
+    public static String writeString(@NotNull Pair<Settings, Long> x) {
         return (x.getFirst().initialLocalizedAllDifferent ? "1" : "0") + "," +
                 (x.getFirst().initialGlobalAllDifferent ? "1" : "0") + "," +
                 (x.getFirst().refuseLongerPaths ? "1" : "0") + "," +
@@ -65,7 +56,7 @@ public class Settings {
 
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Settings settings = (Settings) o;

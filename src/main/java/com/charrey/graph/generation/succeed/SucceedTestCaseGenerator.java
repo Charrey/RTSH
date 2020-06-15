@@ -1,45 +1,42 @@
-package com.charrey.graph.generation;
+package com.charrey.graph.generation.succeed;
 
 import com.charrey.graph.Vertex;
+import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.generation.TestCase;
+import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.util.GraphUtil;
 import com.charrey.util.Util;
 import org.apache.commons.math3.distribution.GeometricDistribution;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
-import org.jgrapht.generate.GnmRandomGraphGenerator;
-import org.jgrapht.graph.DefaultEdge;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public class RandomSucceedDirectedTestCaseGenerator extends TestCaseGenerator {
+public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
+
+
+    protected final Random random;
     private int patternNodes;
     private int patternEdges;
     private final double extraRoutingNodes;
     private final int extraNodes;
-    private final Random random;
 
-    public RandomSucceedDirectedTestCaseGenerator(int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes, long seed) {
+    SucceedTestCaseGenerator(long seed, int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes) {
+        this.random = new Random(seed);
         this.patternNodes = patternNodes;
         this.patternEdges = patternEdges;
         this.extraRoutingNodes = extraRoutingNodes;
         this.extraNodes = extraNodes;
-        this.random = new Random(seed);
     }
 
-    @Override
-    public void makeHarder() {
-        if (patternEdges == (patternNodes * (patternNodes - 1))/2) {
-            patternEdges = 0;
-            patternNodes++;
-        } else {
-            patternEdges++;
-        }
-    }
-
-    @Override
-    protected TestCase getRandom() {
+    @NotNull
+    public TestCase getRandom() {
         final RandomGenerator randomGen = new Well512a();
         randomGen.setSeed(random.nextLong());
         MyGraph pattern = getPattern(patternNodes, patternEdges, randomGen.nextLong());
@@ -49,32 +46,9 @@ public class RandomSucceedDirectedTestCaseGenerator extends TestCaseGenerator {
         return new TestCase(pattern, targetGraph);
     }
 
+    protected abstract MyGraph getPattern(int patternNodes, int patternEdges, long seed);
 
-    private void insertIntermediateNodes(MyGraph targetGraph, double extraRoutingNodes, RandomGenerator random) {
-        IntegerDistribution distribution = new GeometricDistribution(random, 1./(extraRoutingNodes + 1));
-        for (DefaultEdge edge : new HashSet<>(targetGraph.edgeSet())) {
-            int toAdd = distribution.sample();
-            while (toAdd > 0) {
-                Vertex source = targetGraph.getEdgeSource(edge);
-                Vertex target = targetGraph.getEdgeTarget(edge);
-                targetGraph.removeEdge(source, target);
-                Vertex intermediate = targetGraph.addVertex();
-                targetGraph.addEdge(intermediate, target);
-                edge = targetGraph.addEdge(source, intermediate);
-                toAdd -= 1;
-            }
-        }
-    }
-
-    private MyGraph getPattern(int patternNodes, int patternEdges, long seed) {
-        GnmRandomGraphGenerator<Vertex, DefaultEdge> gen = new GnmRandomGraphGenerator<>(patternNodes, patternEdges, seed + 17);
-        MyGraph pattern = new MyGraph(true);
-        gen.generateGraph(pattern);
-        return pattern;
-    }
-
-
-    private void addExtraNodes(MyGraph targetGraph, int extraNodes, double expectedEdges, RandomGenerator randomGen) {
+    private void addExtraNodes(@NotNull MyGraph targetGraph, int extraNodes, double expectedEdges, @NotNull RandomGenerator randomGen) {
         Map<Vertex, Integer> neededEdges = new HashMap<>();
         if (expectedEdges == 0) {
             return;
@@ -113,4 +87,17 @@ public class RandomSucceedDirectedTestCaseGenerator extends TestCaseGenerator {
             }
         }
     }
+
+
+    @Override
+    public void makeHarder() {
+        if (patternEdges == (patternNodes * (patternNodes - 1))/2) {
+            patternEdges = 0;
+            patternNodes++;
+        } else {
+            patternEdges++;
+        }
+    }
+
+
 }

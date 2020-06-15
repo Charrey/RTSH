@@ -7,6 +7,7 @@ import com.charrey.graph.generation.TestCase;
 import com.charrey.settings.PathIterationStrategy;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
+import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.nio.dot.DOTImporter;
@@ -81,22 +82,31 @@ public class IterationsTest extends SystemTest {
 //        }
 //    }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     @Disabled
     public static void removeBenchmarks() throws IOException {
         File folder = new File("performanceTest/directed");
         for (File category : folder.listFiles()) {
-            List<File> testCases = Arrays.asList(category.listFiles());
+            File[] testCases = category.listFiles();
             for (File testCase : testCases) {
                 Files.delete(testCase.toPath().resolve("benchmarks.txt"));
             }
         }
     }
 
+
+    private final Settings settings = new Settings(
+            true,
+            true,
+            true,
+            RunTimeCheck.ALL_DIFFERENT,
+            PathIterationStrategy.CONTROL_POINT, new Random(19477));
+
     @SuppressWarnings("ConstantConditions")
     @Test
     @Order(1)
-    public void testDirected() throws IOException {
+    void testDirected() throws IOException {
         Logger.getLogger("IsoFinder").setLevel(Level.ALL);
         File folder = new File("performanceTest/directed");
         Map<Path, Long> toWrite = new HashMap<>();
@@ -112,7 +122,8 @@ public class IterationsTest extends SystemTest {
                 MyGraph target = importDot(testCase.toPath().resolve("target.dot"), true);
                 HomeomorphismResult homeomorphism = testSucceed(new TestCase(pattern, target),
                         false,
-                        1800_000);
+                        1800_000,
+                        settings);
                 Path benchmarkPath = testCase.toPath().resolve("benchmarks.txt");
                 if (!benchmarkPath.toFile().exists()) {
                     Files.createFile(benchmarkPath);
@@ -126,7 +137,7 @@ public class IterationsTest extends SystemTest {
             }
         }
         for (Map.Entry<Path, Long> entry : toWrite.entrySet()) {
-            Optional<Pair<Settings, Long>> existing = Files.readAllLines(entry.getKey()).stream().map(Settings::readString).filter(x -> x.getFirst().equals(Settings.instance)).findAny();
+            Optional<Pair<Settings, Long>> existing = Files.readAllLines(entry.getKey()).stream().map(Settings::readString).filter(x -> x.getFirst().equals(settings)).findAny();
             if (existing.isPresent() && existing.get().getSecond() < entry.getValue()) {
                 System.err.println("Performance decreased");
                 //System.exit(-1);
@@ -141,7 +152,7 @@ public class IterationsTest extends SystemTest {
     @SuppressWarnings("ConstantConditions")
     @Test
     @Order(2)
-    public void analyseSpeeds() throws IOException {
+    void analyseSpeeds() throws IOException {
         File folder = new File("performanceTest/directed");
         List<List<Integer>> count = new ArrayList<>();
         List<List<Double>> improvement = new ArrayList<>();
@@ -205,7 +216,7 @@ public class IterationsTest extends SystemTest {
 
     }
 
-    private static int getDifference(Settings a, Settings b) {
+    private static int getDifference(@NotNull Settings a, @NotNull Settings b) {
         int found = -1;
         if (a.initialLocalizedAllDifferent != b.initialLocalizedAllDifferent) {
             found = 0;
@@ -237,19 +248,19 @@ public class IterationsTest extends SystemTest {
         return found;
     }
 
-    private void exportIterations(long iterations, Path file) throws IOException {
+    private void exportIterations(long iterations, @NotNull Path file) throws IOException {
         List<String> lines = Files.readAllLines(file);
         List<Pair<Settings, Long>> settings = lines.stream().map(Settings::readString).collect(Collectors.toList());
         boolean found = false;
         for (Pair<Settings, Long> line : settings) {
-            if (Settings.instance.equals(line.getFirst())) {
+            if (this.settings.equals(line.getFirst())) {
                 found = true;
                 line.setSecond(iterations);
                 break;
             }
         }
         if (!found) {
-            settings.add(new Pair<>(Settings.instance, iterations));
+            settings.add(new Pair<>(this.settings, iterations));
         }
         settings.sort((o1, o2) -> Settings.comparator.compare(o1.getFirst(), o2.getFirst()));
         PrintWriter writer = new PrintWriter(new FileWriter(file.toFile()));
@@ -257,13 +268,14 @@ public class IterationsTest extends SystemTest {
         writer.close();
     }
 
-    private void exportResult(HomeomorphismResult homeomorphism, Path resultFile) throws IOException {
+    private void exportResult(@NotNull HomeomorphismResult homeomorphism, @NotNull Path resultFile) throws IOException {
         if (resultFile.toFile().length() == 0) {
             Files.write(resultFile, homeomorphism.toString().getBytes());
         }
     }
 
-    private MyGraph importDot(Path resolve, boolean directed) {
+    @NotNull
+    private MyGraph importDot(@NotNull Path resolve, boolean directed) {
         DOTImporter<Vertex, DefaultEdge> importer = new DOTImporter<>();
         MyGraph toImportTo = new MyGraph(directed);
         importer.importGraph(toImportTo, resolve.toFile());

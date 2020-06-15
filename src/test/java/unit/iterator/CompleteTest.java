@@ -4,29 +4,36 @@ import com.charrey.Occupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
-import com.charrey.graph.generation.RandomSucceedDirectedTestCaseGenerator;
+import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.settings.PathIterationStrategy;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
-import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.checker.DomainCheckerException;
+import com.charrey.util.Util;
+import com.charrey.algorithms.UtilityData;
+import com.charrey.runtimecheck.DomainCheckerException;
+import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class CompleteTest {
+class CompleteTest extends PathIteratorTest {
 
     private final Random random = new Random(102038);
     private static final int differentGraphSizes = 250;
     private static final int trials = 10;
+    private static final Settings settings = new Settings(
+            true,
+            true,
+            true,
+            RunTimeCheck.NONE,
+            PathIterationStrategy.YEN,
+            new Random(300));
 
     @Test
-    public void testIterators() throws DomainCheckerException {
-        Settings.instance.runTimeCheck = RunTimeCheck.NONE;
+    void testIterators() throws DomainCheckerException {
         final long seed = 1923;
         long counter = -1;
         RandomSucceedDirectedTestCaseGenerator gen = new RandomSucceedDirectedTestCaseGenerator(2, 1, 0, 0, seed);
@@ -38,8 +45,8 @@ public class CompleteTest {
                 MyGraph sourceGraph = new MyGraph(true);
                 sourceGraph.addEdge(sourceGraph.addVertex(), sourceGraph.addVertex());
                 UtilityData data = new UtilityData(sourceGraph, targetGraph);
-                Vertex tail = selectRandom(targetGraph.vertexSet(), x -> true);
-                Vertex head = selectRandom(targetGraph.vertexSet(), x -> x != tail);
+                Vertex tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
+                Vertex head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
@@ -47,12 +54,12 @@ public class CompleteTest {
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 Map<Integer, Set<Path>> pathCount = new HashMap<>(); //s
                 for (int strategy : List.of(PathIterationStrategy.DFS_ARBITRARY, PathIterationStrategy.DFS_GREEDY, PathIterationStrategy.CONTROL_POINT, PathIterationStrategy.YEN)) {
-                    Settings.instance.pathIteration = strategy;
+                    settings.pathIteration = strategy;
                     pathCount.put(strategy, new HashSet<>());
-                    Occupation occupation = new Occupation(data, targetGraph.vertexSet().size());
+                    Occupation occupation = new Occupation(data, targetGraph.vertexSet().size(), settings);
                     occupation.occupyVertex(0, tail);
                     occupation.occupyVertex(1, head);
-                    PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2);
+                    PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);
                     Path path;
                     while ((path = iterator.next()) != null) {
                         assert path.asList().size() == new HashSet<>(path.asList()).size();
@@ -64,7 +71,8 @@ public class CompleteTest {
         }
     }
 
-    private String myMaptoString(Map<Integer, Set<Path>> pathCount) {
+    @NotNull
+    private String myMaptoString(@NotNull Map<Integer, Set<Path>> pathCount) {
         StringBuilder sb = new StringBuilder();
         Set<Path> common = new HashSet<>();
         pathCount.values().forEach(common::addAll);
@@ -78,10 +86,5 @@ public class CompleteTest {
             sb.append("Option ").append(entry.getKey()).append(":\t").append(common.size()).append(" common and ").append(extra.isEmpty() ? "nothing else" : extra).append("\n");
         }
         return sb.toString();
-    }
-
-    private <V> V selectRandom(Set<V> set, Predicate<V> eligable) {
-        List<V> myList = set.stream().filter(eligable).collect(Collectors.toList());
-        return myList.get(random.nextInt(myList.size()));
     }
 }

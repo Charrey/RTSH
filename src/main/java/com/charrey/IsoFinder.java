@@ -5,9 +5,11 @@ import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
-import com.charrey.util.Util;
-import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.checker.DomainCheckerException;
+import com.charrey.settings.Settings;
+import com.charrey.algorithms.UtilityData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import com.charrey.runtimecheck.DomainCheckerException;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -20,20 +22,21 @@ public class IsoFinder {
     private static EdgeMatching edgeMatching;
     private static VertexMatching vertexMatching;
 
-    private static void setup(TestCase testcase) throws DomainCheckerException {
+    private static void setup(@NotNull TestCase testcase, @NotNull Settings settings) throws DomainCheckerException {
         UtilityData data = new UtilityData(testcase.sourceGraph, testcase.targetGraph);
-        logDomainReduction(testcase, data);
-        if (Arrays.stream(data.getCompatibility()).anyMatch(x -> x.length == 0)) {
+        logDomainReduction(testcase, data, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
+        if (Arrays.stream(data.getCompatibility(settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
-        Occupation occupation = new Occupation(data, testcase.targetGraph.vertexSet().size());
-        vertexMatching      = new VertexMatching(data, testcase.sourceGraph, occupation);
-        edgeMatching        = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation);
+        Occupation occupation = new Occupation(data, testcase.targetGraph.vertexSet().size(), settings.runTimeCheck, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
+        vertexMatching      = new VertexMatching(data, testcase.sourceGraph, occupation, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
+        edgeMatching        = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
 
-    public static HomeomorphismResult getHomeomorphism(TestCase testcase, long timeout) {
+    @Nullable
+    public static HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout) {
         try {
-            setup(testcase);
+            setup(testcase, settings);
         } catch (DomainCheckerException e) {
             return HomeomorphismResult.COMPATIBILITY_FAIL;
         }
@@ -76,14 +79,14 @@ public class IsoFinder {
 
 
 
-    private static void logDomainReduction(TestCase testcase, UtilityData data) {
+    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent) {
         BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.sourceGraph.vertexSet().size())).pow(testcase.targetGraph.vertexSet().size());
-        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility()).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
+        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialLocalizedAllDifferent, initialGlobalAllDifferent)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
         LOG.info(() -> "Reduced vertex matching domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
     }
 
 
-    private static boolean allDone(MyGraph pattern, VertexMatching vertexMatching, EdgeMatching edgeMatching) {
+    private static boolean allDone(@NotNull MyGraph pattern, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
         boolean completeV = vertexMatching.getPlacementUnsafe().size() == pattern.vertexSet().size();
         if (!completeV) {
             return false;
@@ -93,7 +96,7 @@ public class IsoFinder {
             return false;
         }
         LOG.info(() -> "Done, checking...");
-        boolean correct = Util.isCorrect(pattern, vertexMatching, edgeMatching);
+        boolean correct = Verifier.isCorrect(pattern, vertexMatching, edgeMatching);
         assert correct;
         return true;
     }

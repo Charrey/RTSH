@@ -8,7 +8,9 @@ import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.yen.YenPathIterator;
 import com.charrey.settings.Settings;
-import com.charrey.util.UtilityData;
+import com.charrey.algorithms.UtilityData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
@@ -19,31 +21,40 @@ public abstract class PathIterator {
 
     private final Vertex head;
     private final Vertex tail;
+    protected final boolean refuseLongerPaths;
 
-    protected PathIterator(Vertex tail, Vertex head) {
+    protected PathIterator(Vertex tail, Vertex head, boolean refuseLongerPaths) {
         this.tail = tail;
         this.head = head;
+        this.refuseLongerPaths = refuseLongerPaths;
     }
 
-    public static PathIterator get(MyGraph targetGraph, UtilityData data, Vertex tail, Vertex head, Occupation occupation, Supplier<Integer> placementSize) {
+    @NotNull
+    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, @NotNull Vertex tail, @NotNull Vertex head, @NotNull Occupation occupation, Supplier<Integer> placementSize, @NotNull Settings settings) {
+        return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration, settings.refuseLongerPaths);
+    }
+
+    @NotNull
+    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, @NotNull Vertex tail, @NotNull Vertex head, @NotNull Occupation occupation, Supplier<Integer> placementSize, int pathIteration, boolean refuseLongerPaths) {
         if (targetGraph.getEdge(tail, head) != null) {
             return new SingletonPathIterator(tail, head);
         }
 
-        switch (Settings.instance.pathIteration) {
+        switch (pathIteration) {
             case DFS_ARBITRARY:
             case DFS_GREEDY:
-                Vertex[][] targetNeighbours = data.getTargetNeighbours(Settings.instance.pathIteration)[head.data()];
-                return new DFSPathIterator(targetNeighbours, tail, head, occupation, placementSize);
+                Vertex[][] targetNeighbours = data.getTargetNeighbours(pathIteration)[head.data()];
+                return new DFSPathIterator(targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths);
             case CONTROL_POINT:
-                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 300, placementSize);
+                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 300, placementSize, refuseLongerPaths);
             case YEN:
-                return new YenPathIterator(targetGraph, tail, head, occupation, placementSize);
+                return new YenPathIterator(targetGraph, tail, head, occupation, placementSize, refuseLongerPaths);
             default:
                 throw new UnsupportedOperationException();
         }
     }
 
+    @Nullable
     public abstract Path next();
 
     public Vertex tail() {

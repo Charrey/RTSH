@@ -2,7 +2,7 @@ package jgrapht;
 
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
-import com.charrey.graph.generation.RandomSucceedDirectedTestCaseGenerator;
+import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import org.jgrapht.alg.interfaces.ManyToManyShortestPathsAlgorithm;
 import org.jgrapht.alg.shortestpath.CHManyToManyShortestPaths;
 import org.jgrapht.graph.DefaultEdge;

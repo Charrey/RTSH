@@ -1,9 +1,8 @@
-package com.charrey.util;
+package com.charrey.algorithms;
 
-import com.charrey.algorithms.CompatibilityChecker;
-import com.charrey.algorithms.GreatestConstrainedFirst;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
+import org.jetbrains.annotations.Nullable;
 import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
@@ -31,14 +30,14 @@ public class UtilityData {
         if (order == null) {
             order = new GreatestConstrainedFirst().apply(patternGraph);
         }
-        return order;
+        return Collections.unmodifiableList(order);
     }
 
     private Vertex[][] compatibility;
-    public Vertex[][] getCompatibility() {
+    public Vertex[][] getCompatibility(boolean initialLocalAllDifferent, boolean initialGlobalAllDifferent) {
         if (compatibility == null) {
             compatibility = new Vertex[getOrder().size()][];
-            Map<Vertex, Set<Vertex>> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph);
+            Map<Vertex, Set<Vertex>> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, initialLocalAllDifferent, initialGlobalAllDifferent);
             for (Map.Entry<Vertex, Set<Vertex>> entry : inbetween.entrySet()) {
                 compatibility[entry.getKey().data()] = entry.getValue()
                         .stream()
@@ -47,16 +46,16 @@ public class UtilityData {
                         .toArray(Vertex[]::new);
             }
         }
-        return compatibility;
+        return compatibility.clone();
     }
 
     private Vertex[][] reverseCompatibility;
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public Vertex[][] getReverseCompatibility() {
+    public Vertex[][] getReverseCompatibility(boolean initialLocalAllDifferent, boolean initialGlobalAllDifferent) {
         if (reverseCompatibility == null) {
             List[] tempReverseCompatibility = new List[targetGraph.vertexSet().size()];
             IntStream.range(0, tempReverseCompatibility.length).forEach(x -> tempReverseCompatibility[x] = new LinkedList());
-            Vertex[][] compatibility = getCompatibility();
+            Vertex[][] compatibility = getCompatibility(initialLocalAllDifferent, initialGlobalAllDifferent);
             for (int sourceVertex = 0; sourceVertex < compatibility.length; sourceVertex++){
                 for (int targetVertexIndex = 0; targetVertexIndex < compatibility[sourceVertex].length; targetVertexIndex++) {
                     tempReverseCompatibility[compatibility[sourceVertex][targetVertexIndex].data()].add(getOrder().get(sourceVertex));
@@ -67,7 +66,7 @@ public class UtilityData {
                 reverseCompatibility[i] = (Vertex[]) tempReverseCompatibility[i].toArray(Vertex[]::new);
             }
         }
-        return reverseCompatibility;
+        return reverseCompatibility.clone();
     }
 
 
@@ -125,12 +124,12 @@ public class UtilityData {
                     }
             }
         }
-        return targetNeighbours;
+        return targetNeighbours.clone();
     }
 
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UtilityData that = (UtilityData) o;

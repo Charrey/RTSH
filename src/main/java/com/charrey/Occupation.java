@@ -4,8 +4,10 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
-import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.checker.*;
+import com.charrey.algorithms.UtilityData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import com.charrey.runtimecheck.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,20 +17,27 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Occupation {
 
+    @NotNull
     private final BitSet routingBits;
+    @NotNull
     private final BitSet vertexBits;
+    @NotNull
     public final DomainChecker domainChecker;
 
-    public Occupation(UtilityData data, int size){
-        switch (Settings.instance.runTimeCheck) {
+    public Occupation(@NotNull UtilityData data, int size, @NotNull Settings settings){
+        this(data, size, settings.runTimeCheck, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
+    }
+
+    public Occupation(@NotNull UtilityData data, int size, int runTimeCheck, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent){
+        switch (runTimeCheck) {
             case RunTimeCheck.NONE:
                 domainChecker = new DummyDomainChecker();
                 break;
             case RunTimeCheck.EMPTY_DOMAIN:
-                domainChecker = new EmptyDomainChecker(data);
+                domainChecker = new EmptyDomainChecker(data, initialLocalizedAllDifferent, initialGlobalAllDifferent);
                 break;
             case RunTimeCheck.ALL_DIFFERENT:
-                domainChecker = new AllDifferentChecker(data);
+                domainChecker = new AllDifferentChecker(data, initialLocalizedAllDifferent, initialGlobalAllDifferent);
                 break;
             default:
                 throw new UnsupportedOperationException();
@@ -37,7 +46,7 @@ public class Occupation {
         this.vertexBits = new BitSet(size);
     }
 
-    public void occupyRoutingAndCheck(int verticesPlaced, Vertex v) throws DomainCheckerException {
+    public void occupyRoutingAndCheck(int verticesPlaced, @NotNull Vertex v) throws DomainCheckerException {
         assert !routingBits.get(v.data());
         routingBits.set(v.data());
         String previous = null;
@@ -51,7 +60,7 @@ public class Occupation {
         }
     }
 
-    public void occupyRoutingAndCheck(int verticesPlaced, Path p) throws DomainCheckerException {
+    public void occupyRoutingAndCheck(int verticesPlaced, @NotNull Path p) throws DomainCheckerException {
         for (int i = 0; i < p.intermediate().size(); i++) {
             try {
                 occupyRoutingAndCheck(verticesPlaced, p.intermediate().get(i));
@@ -64,10 +73,7 @@ public class Occupation {
         }
     }
 
-
-
-
-    public void occupyVertex(int source, Vertex target) throws DomainCheckerException {
+    public void occupyVertex(int source, @NotNull Vertex target) throws DomainCheckerException {
         assert !routingBits.get(target.data());
         assert !vertexBits.get(target.data());
         vertexBits.set(target.data());
@@ -80,27 +86,27 @@ public class Occupation {
     }
 
 
-    public void releaseRouting(int verticesPlaced, Vertex v) {
+    public void releaseRouting(int verticesPlaced, @NotNull Vertex v) {
         assert isOccupiedRouting(v);
         routingBits.clear(v.data());
         domainChecker.afterReleaseEdge(verticesPlaced, v);
     }
 
-    public void releaseVertex(int verticesPlaced, Vertex v) {
+    public void releaseVertex(int verticesPlaced, @NotNull Vertex v) {
         assert vertexBits.get(v.data());
         vertexBits.clear(v.data());
         domainChecker.afterReleaseVertex(verticesPlaced, v);
     }
 
-    public boolean isOccupiedRouting(Vertex v) {
+    public boolean isOccupiedRouting(@NotNull Vertex v) {
         return routingBits.get(v.data());
     }
 
-    public boolean isOccupiedVertex(Vertex v) {
+    public boolean isOccupiedVertex(@NotNull Vertex v) {
         return vertexBits.get(v.data());
     }
 
-    public boolean isOccupied(Vertex v) {
+    public boolean isOccupied(@NotNull Vertex v) {
         return isOccupiedRouting(v) || isOccupiedVertex(v);
     }
 
@@ -114,5 +120,23 @@ public class Occupation {
         Collections.sort(res);
         return res.toString();
 
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Occupation that = (Occupation) o;
+        return routingBits.equals(that.routingBits) &&
+                vertexBits.equals(that.vertexBits);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(routingBits, vertexBits);
+    }
+
+    public BitSet getRoutingOccupied() {
+        return this.routingBits;
     }
 }

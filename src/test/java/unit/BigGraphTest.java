@@ -2,6 +2,7 @@ package unit;
 
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -14,13 +15,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BigGraphTest {
+class BigGraphTest {
 
 
-    public MyGraph targetGraph;
+    private MyGraph targetGraph;
 
     @Test
-    public void test() throws IOException {
+    void importSingleTile() throws IOException {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
         removeTails(targetGraph);
@@ -28,7 +29,7 @@ public class BigGraphTest {
 
     }
 
-    private void removeTails(MyGraph graph) {
+    private void removeTails(@NotNull MyGraph graph) {
         boolean done = false;
 
         while (!done) {
@@ -53,13 +54,13 @@ public class BigGraphTest {
     }
 
 
-    final Pattern idFinder = Pattern.compile("\t(\\d*)[ ;]");
-    final Pattern parametersPattern = Pattern.compile("\\[.*]");
-    final Pattern parameterPattern = Pattern.compile("([a-zA-Z]*)=\"(.*?)\"");
-    final Pattern edgePatternUndirected = Pattern.compile("(\\d*) -- (\\d*)");
-    final Pattern edgePatternDirected = Pattern.compile("(\\d*) -> (\\d*)");
+    private final Pattern idFinder = Pattern.compile("\t(\\d*)[ ;]");
+    private final Pattern parametersPattern = Pattern.compile("\\[.*]");
+    private final Pattern parameterPattern = Pattern.compile("([a-zA-Z]*)=\"(.*?)\"");
+    private final Pattern edgePatternUndirected = Pattern.compile("(\\d*) -- (\\d*)");
+    private final Pattern edgePatternDirected = Pattern.compile("(\\d*) -> (\\d*)");
 
-    private void importDOT(MyGraph targetGraph, File file) throws IOException {
+    private void importDOT(@NotNull MyGraph targetGraph, @NotNull File file) throws IOException {
         Map<Integer, Vertex> vertices = new HashMap<>();
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;

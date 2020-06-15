@@ -5,8 +5,9 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.settings.Settings;
-import com.charrey.util.datastructures.checker.DomainCheckerException;
+import com.charrey.runtimecheck.DomainCheckerException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.shortestpath.YenShortestPathIterator;
 import org.jgrapht.graph.DefaultEdge;
@@ -19,16 +20,19 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class YenPathIterator extends PathIterator {
+    @NotNull
     private final Occupation occupation;
+    @NotNull
     private final MyGraph targetGraph;
     private final String init;
     private final Supplier<Integer> verticesPlaced;
 
+    @NotNull
     private final YenShortestPathIterator<Vertex, DefaultEdge> yen;
     private final Set<Vertex> occupied = new HashSet<>();
 
-    public YenPathIterator(MyGraph targetGraph, Vertex tail, Vertex head, Occupation occupation, Supplier<Integer> verticesPlaced) {
-        super(tail, head);
+    public YenPathIterator(@NotNull MyGraph targetGraph, @NotNull Vertex tail, Vertex head, @NotNull Occupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
+        super(tail, head, refuseLongerPaths);
         this.targetGraph = targetGraph;
         this.occupation = occupation;
         init = occupation.toString();
@@ -36,6 +40,7 @@ public class YenPathIterator extends PathIterator {
         yen = new YenShortestPathIterator<>(new MaskSubgraph<>(targetGraph, x -> !x.equals(tail) && !x.equals(head) && occupation.isOccupied(x), y -> false), tail, head);
     }
 
+    @Nullable
     @Override
     public Path next() {
         occupied.forEach(x -> occupation.releaseRouting(verticesPlaced.get(), x));
@@ -43,7 +48,7 @@ public class YenPathIterator extends PathIterator {
         assert occupation.toString().equals(init) : "Initially: " + init + "; now: " + occupation;
         while (yen.hasNext()) {
             Path pathFound = new Path(yen.next());
-            if (Settings.instance.refuseLongerPaths && hasUnnecessarilyLongPaths(pathFound)) {
+            if (refuseLongerPaths && hasUnnecessarilyLongPaths(pathFound)) {
                 continue;
             }
             boolean okay = true;
@@ -67,7 +72,7 @@ public class YenPathIterator extends PathIterator {
 
     }
 
-    private boolean hasUnnecessarilyLongPaths(Path pathFound) {
+    private boolean hasUnnecessarilyLongPaths(@NotNull Path pathFound) {
         for (int i = 0; i < pathFound.length() - 1; i++) {
             Vertex from = pathFound.get(i);
             Set<Vertex> neighbours = targetGraph.outgoingEdgesOf(from).stream().map(x -> Graphs.getOppositeVertex(targetGraph, x, from)).collect(Collectors.toUnmodifiableSet());

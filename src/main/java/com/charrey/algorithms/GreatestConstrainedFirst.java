@@ -3,6 +3,7 @@ package com.charrey.algorithms;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.util.GraphUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -10,7 +11,8 @@ import java.util.stream.Collectors;
 public class GreatestConstrainedFirst {
 
 
-    public List<Vertex> apply(MyGraph graph) {
+    @NotNull
+    public List<Vertex> apply(@NotNull MyGraph graph) {
         List<Vertex> ordering = new ArrayList<>(graph.vertexSet().size());
         if (graph.vertexSet().isEmpty()) {
             return ordering;
@@ -43,7 +45,8 @@ public class GreatestConstrainedFirst {
         return Collections.unmodifiableList(ordering);
     }
 
-    private Set<Vertex> getThirdCriterium(MyGraph graph, List<Vertex> ordering, Set<Vertex> secondSelection) {
+    @NotNull
+    private Set<Vertex> getThirdCriterium(@NotNull MyGraph graph, @NotNull List<Vertex> ordering, @NotNull Set<Vertex> secondSelection) {
         Set<Vertex> thirdSelection = new HashSet<>();
         long thirdValue = -1;
         for (Vertex vertex : secondSelection) {
@@ -66,7 +69,8 @@ public class GreatestConstrainedFirst {
         return thirdSelection;
     }
 
-    private Set<Vertex> getSecondCriterium(MyGraph graph, List<Vertex> ordering, Set<Vertex> firstSelections) {
+    @NotNull
+    private Set<Vertex> getSecondCriterium(@NotNull MyGraph graph, @NotNull List<Vertex> ordering, @NotNull Set<Vertex> firstSelections) {
         Set<Vertex> secondSelection = new HashSet<>();
         long secondValue = -1;
         for (Vertex vertex : firstSelections) {
@@ -89,7 +93,8 @@ public class GreatestConstrainedFirst {
         return secondSelection;
     }
 
-    private Set<Vertex> getFirstCriterium(MyGraph graph, List<Vertex> ordering) {
+    @NotNull
+    private Set<Vertex> getFirstCriterium(@NotNull MyGraph graph, @NotNull List<Vertex> ordering) {
         Set<Vertex> firstSelection = new HashSet<>();
         long firstValue = -1;
         for (Vertex vertex : graph.vertexSet().stream().filter(x -> !ordering.contains(x)).collect(Collectors.toSet())) {

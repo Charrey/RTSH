@@ -1,5 +1,7 @@
 package com.charrey.graph;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.AttributeType;
 import org.jgrapht.nio.DefaultAttribute;
@@ -13,7 +15,7 @@ public class Vertex implements Serializable, Comparable<Vertex> {
     private static int counter = 0;
     private final int counterValue;
     private int data;
-    protected final Map<String, Set<Attribute>> attributes = new HashMap<>();
+    private final Map<String, Set<Attribute>> attributes = new HashMap<>();
 
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public Vertex(int data) {
@@ -27,6 +29,7 @@ public class Vertex implements Serializable, Comparable<Vertex> {
     }
 
 
+    @NotNull
     @Override
     public String toString() {
         return "[" + data + "]";
@@ -46,7 +49,7 @@ public class Vertex implements Serializable, Comparable<Vertex> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Vertex that = (Vertex) o;

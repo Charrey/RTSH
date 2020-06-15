@@ -2,10 +2,10 @@ package com.charrey.algorithms;
 
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
-import com.charrey.settings.Settings;
 import com.charrey.util.GraphUtil;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.HashMap;
@@ -18,8 +18,9 @@ public class CompatibilityChecker {
 
     private final AllDifferent alldiff = new AllDifferent();
 
-    public  Map<Vertex, Set<Vertex>> get(MyGraph source,
-                                         MyGraph target) {
+    @NotNull
+    public  Map<Vertex, Set<Vertex>> get(@NotNull MyGraph source,
+                                         @NotNull MyGraph target, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent) {
 
         Map<Vertex, Set<Vertex>> res = new HashMap<>();
         for (Vertex v : source.vertexSet()) {
@@ -29,17 +30,17 @@ public class CompatibilityChecker {
         boolean hasChanged = true;
         while (hasChanged) {
             hasChanged = false;
-            if (Settings.instance.initialLocalizedAllDifferent) {
+            if (initialLocalizedAllDifferent) {
                 hasChanged = filterNeighbourHoods(res, source, target);
             }
-            if (Settings.instance.initialGlobalAllDifferent) {
+            if (initialGlobalAllDifferent) {
                 hasChanged = hasChanged || filterGAC(res);
             }
         }
         return res;
     }
 
-    private static boolean filterGAC(Map<Vertex, Set<Vertex>> compatibility) {
+    private static boolean filterGAC(@NotNull Map<Vertex, Set<Vertex>> compatibility) {
         BiMap<Vertex, Integer> map1 = HashBiMap.create();
         for (Vertex i : compatibility.keySet()) {
             map1.put(i, i.data());
@@ -67,9 +68,9 @@ public class CompatibilityChecker {
         }
     }
 
-    private boolean filterNeighbourHoods(Map<Vertex, Set<Vertex>> compatibilityMap,
-                                         MyGraph sourceGraph,
-                                         MyGraph targetGraph) {
+    private boolean filterNeighbourHoods(@NotNull Map<Vertex, Set<Vertex>> compatibilityMap,
+                                         @NotNull MyGraph sourceGraph,
+                                         @NotNull MyGraph targetGraph) {
         boolean changed = false;
         Set<Pair<Vertex, Vertex>> toRemove = new HashSet<>();
         for (Map.Entry<Vertex, Set<Vertex>> potentialSource : compatibilityMap.entrySet()) {
@@ -88,7 +89,7 @@ public class CompatibilityChecker {
         return changed;
     }
 
-    private boolean compatibleNeighbourhoods(Set<Vertex> sourceNeighbourhood, Set<Vertex> targetNeighbourhood, Map<Vertex, Set<Vertex>> compatibilityMap) {
+    private boolean compatibleNeighbourhoods(@NotNull Set<Vertex> sourceNeighbourhood, @NotNull Set<Vertex> targetNeighbourhood, @NotNull Map<Vertex, Set<Vertex>> compatibilityMap) {
         Map<Vertex, Set<Vertex>> allDifferentMap = new HashMap<>();
         for (Map.Entry<Vertex, Set<Vertex>> entry : compatibilityMap.entrySet()) {
            if (sourceNeighbourhood.contains(entry.getKey())) {
@@ -101,7 +102,7 @@ public class CompatibilityChecker {
         return alldiff.get(allDifferentMap);
     }
 
-    private static boolean isCompatible(Vertex sourceVertex, Vertex targetVertex, MyGraph sourceGraph, MyGraph targetGraph) {
+    private static boolean isCompatible(@NotNull Vertex sourceVertex, @NotNull Vertex targetVertex, @NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph) {
         assert sourceGraph.containsVertex(sourceVertex);
         assert targetGraph.containsVertex(targetVertex);
         return sourceGraph.degreeOf(sourceVertex) <= targetGraph.degreeOf(targetVertex) &&

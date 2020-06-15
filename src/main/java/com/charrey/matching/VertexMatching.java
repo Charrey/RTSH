@@ -3,11 +3,13 @@ package com.charrey.matching;
 import com.charrey.Occupation;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
-import com.charrey.util.UtilityData;
-import com.charrey.util.datastructures.checker.DomainCheckerException;
+import com.charrey.algorithms.UtilityData;
+import com.charrey.runtimecheck.DomainCheckerException;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,13 +19,14 @@ public class VertexMatching extends VertexBlocker {
 
     private final ArrayList<Vertex> placement = new ArrayList<>();
     private final Vertex[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
+    @NotNull
     private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
     private final Occupation occupation;
     private DeletionFunction onDeletion;
 
 
-    public VertexMatching(UtilityData data, MyGraph pattern, Occupation occupation) {
-        this.candidates = data.getCompatibility();
+    public VertexMatching(@NotNull UtilityData data, @NotNull MyGraph pattern, Occupation occupation, boolean initialLocalAllDifferent, boolean initialGlobalAllDifferent) {
+        this.candidates = data.getCompatibility(initialLocalAllDifferent, initialGlobalAllDifferent);
         candidateToChooseNext = new int[pattern.vertexSet().size()];
         assert candidateToChooseNext.length == candidates.length;
         Arrays.fill(candidateToChooseNext, 0);
@@ -79,11 +82,13 @@ public class VertexMatching extends VertexBlocker {
     }
 
 
+    @NotNull
     public List<Vertex> getPlacementUnsafe() {
-        return placement;
+        return Collections.unmodifiableList(placement);
     }
 
 
+    @NotNull
     @Override
     public String toString() {
         return "State {\n" + "\tplacement:\t" + placement + "\n" +
@@ -106,7 +111,7 @@ public class VertexMatching extends VertexBlocker {
         assert occupation.domainChecker.checkOK(placement.size());
     }
 
-    public void setOnDeletion(DeletionFunction x) {
+    void setOnDeletion(DeletionFunction x) {
         this.onDeletion = x;
     }
 

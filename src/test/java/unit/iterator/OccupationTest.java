@@ -7,25 +7,25 @@ import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
-import com.charrey.pathiterators.dfs.DFSPathIterator;
-import com.charrey.pathiterators.yen.YenPathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.settings.PathIterationStrategy;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
-import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-class NoDuplicatesTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class OccupationTest {
 
     private final Random random = new Random(19247);
+    private final static int differentGraphSizes = 250;
+    private final static int trials = 20;
 
     private final Settings settings = new Settings(
             true,
@@ -56,9 +56,6 @@ class NoDuplicatesTest {
         testIterator(PathIterationStrategy.CONTROL_POINT);
     }
 
-    private static final int differentGraphSizes = 250;
-    private static final int trials = 10;
-
     void testIterator(int strategy) throws DomainCheckerException {
         settings.pathIteration = strategy;
         settings.runTimeCheck = RunTimeCheck.NONE;
@@ -84,35 +81,14 @@ class NoDuplicatesTest {
                 occupation.occupyVertex(0, tail);
                 occupation.occupyVertex(1, head);
                 PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);
-                Map<Path, Witness> seen = new HashMap<>();
                 Path path;
-                //5 4 1 3 2 is reached with controlpoints {4, 3} and with {4, 1, 3}.
-                //emulate fails with controlpoints 4, 3 and no local occupation.
                 while ((path = iterator.next()) != null) {
-                    assert !seen.containsKey(path) : "\nPath:     " + path + "\nPrevious: " + seen.get(path).string + "\nNow:      " + new Witness(iterator).string + "\nAt:\n" + targetGraph.toString();
-                    seen.put(new Path(path), new Witness(iterator));
+                    Set<Integer> occupationSays = occupation.getRoutingOccupied().stream().boxed().collect(Collectors.toSet());
+                    Set<Integer> pathSays = path.intermediate().stream().map(Vertex::data).collect(Collectors.toSet());
+                    assertEquals(occupationSays, pathSays);
                 }
             }
         }
     }
 
-
-
-    private static class Witness {
-
-        @NotNull
-        private final String string;
-
-        Witness(PathIterator iterator) {
-            if (iterator instanceof ManagedControlPointIterator) {
-                string = "Control points: " + ((ManagedControlPointIterator) iterator).controlPoints();
-            } else if (iterator instanceof DFSPathIterator) {
-                string = "DFS path iterator";
-            } else if (iterator instanceof YenPathIterator) {
-                string = "YEN path iterator";
-            } else {
-                throw new UnsupportedOperationException();
-            }
-        }
-    }
 }

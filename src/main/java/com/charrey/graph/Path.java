@@ -2,6 +2,7 @@ package com.charrey.graph;
 
 import com.google.common.collect.Ordering;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jgrapht.GraphPath;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -12,17 +13,20 @@ import java.util.stream.Stream;
 
 public class Path implements Comparable<Path> {
 
+    @NotNull
     private final List<Vertex> path;
+    @NotNull
     private final BitSet containing;
     private final Vertex initialVertex;
 
-    public Path(Vertex initialVertex, int maxSize) {
+    public Path(@NotNull Vertex initialVertex, int maxSize) {
         this.initialVertex = initialVertex;
         path = new ArrayList<>(maxSize);
         containing = new BitSet(maxSize);
         append(initialVertex);
     }
 
+    @NotNull
     public List<Vertex> asList() {
         return Collections.unmodifiableList(path);
     }
@@ -35,7 +39,7 @@ public class Path implements Comparable<Path> {
         path.forEach(consumer);
     }
 
-    public Path(GraphPath<Vertex, DefaultEdge> gPath) {
+    public Path(@NotNull GraphPath<Vertex, DefaultEdge> gPath) {
         this.path = new LinkedList<>();
         this.containing = new BitSet(gPath.getGraph().vertexSet().size());
         this.initialVertex = gPath.getStartVertex();
@@ -45,20 +49,20 @@ public class Path implements Comparable<Path> {
         }
     }
 
-    public Path(List<Vertex> path) {
+    public Path(@NotNull List<Vertex> path) {
         this.path = new LinkedList<>();
         this.containing = new BitSet();
         this.initialVertex = path.get(0);
         path.forEach(this::append);
     }
 
-    public Path(Path found) {
+    public Path(@NotNull Path found) {
         this.path = new ArrayList<>(found.path);
         this.containing = (BitSet) found.containing.clone();
         this.initialVertex = found.initialVertex;
     }
 
-    public void append(Vertex toAdd) {
+    public void append(@NotNull Vertex toAdd) {
         if (!containing.get(toAdd.data())) {
             containing.set(toAdd.data());
             path.add(toAdd);
@@ -87,7 +91,7 @@ public class Path implements Comparable<Path> {
         return removed;
     }
 
-    public boolean contains(Vertex vertex) {
+    public boolean contains(@NotNull Vertex vertex) {
         return containing.get(vertex.data());
     }
 
@@ -95,6 +99,7 @@ public class Path implements Comparable<Path> {
         return path.get(i);
     }
 
+    @NotNull
     public List<Vertex> intermediate() {
         return path.subList(1, path.size() - 1);
     }
@@ -103,6 +108,7 @@ public class Path implements Comparable<Path> {
         return path.get(0);
     }
 
+    @NotNull
     @Override
     public String toString() {
         return "Path{" + path + '}';
@@ -110,7 +116,7 @@ public class Path implements Comparable<Path> {
 
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Path path1 = (Path) o;

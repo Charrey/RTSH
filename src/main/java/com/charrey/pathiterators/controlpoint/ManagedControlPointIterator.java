@@ -5,7 +5,9 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.util.datastructures.checker.DomainCheckerException;
+import com.charrey.runtimecheck.DomainCheckerException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -16,24 +18,28 @@ import java.util.function.Supplier;
 public class ManagedControlPointIterator extends PathIterator {
 
 
+    @NotNull
     private final MyGraph graph;
+    @NotNull
     private final Occupation globalOccupation;
     private final int maxControlPoints;
     private final Supplier<Integer> verticesPlaced;
     private ControlPointIterator child;
     private int controlPoints = 0;
 
-    public ManagedControlPointIterator(MyGraph graph, Vertex tail, Vertex head, Occupation globalOccupation, int maxControlPoints, Supplier<Integer> verticesPlaced) {
-        super(tail, head);
-        child = new ControlPointIterator(graph, tail, head, globalOccupation, new HashSet<>(), controlPoints, verticesPlaced);
+    public ManagedControlPointIterator(@NotNull MyGraph graph, @NotNull Vertex tail, @NotNull Vertex head, @NotNull Occupation globalOccupation, int maxControlPoints, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
+        super(tail, head, refuseLongerPaths);
+        child = new ControlPointIterator(graph, tail, head, globalOccupation, new HashSet<>(), controlPoints, verticesPlaced, refuseLongerPaths);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
     }
 
+    @Nullable
     private Path returned = null;
 
+    @Nullable
     @Override
     public Path next() {
         if (returned != null) {
@@ -59,7 +65,7 @@ public class ManagedControlPointIterator extends PathIterator {
                     return null;
                 }
                 controlPoints += 1;
-                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, new HashSet<>(), controlPoints, verticesPlaced);
+                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, new HashSet<>(), controlPoints, verticesPlaced, refuseLongerPaths);
             }
         }
     }
@@ -77,7 +83,8 @@ public class ManagedControlPointIterator extends PathIterator {
             Path middleAltToRight = new Path(middleToRight.asList().subList(i + 1, middleToRight.length()));
             Set<Integer> fictionalLocalOccupation = new HashSet<>(localOccupations.get(1));
             middleAltToRight.forEach(x -> fictionalLocalOccupation.add(x.data()));
-            Path leftToMiddleAlt = new Path(ControlPointIterator.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt));
+            Path leftToMiddleAlt = ControlPointIterator.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt);
+            assert leftToMiddleAlt != null;
             Path alternative = ControlPointIterator.merge(leftToMiddleAlt, middleAltToRight);
             if (alternative.equals(leftToRight)) {
                 return true;
@@ -100,11 +107,13 @@ public class ManagedControlPointIterator extends PathIterator {
         assert middleToRight.tail() == middle;
         assert middleToRight.head() == right;
         Path skippedPath = ControlPointIterator.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right);
+        assert skippedPath != null;
         assert skippedPath.tail() == left;
         assert skippedPath.head() == right;
         return skippedPath.equals(leftToRight);
     }
 
+    @NotNull
     private List<Path> intermediatePaths() {
         ControlPointIterator current = child;
         List<Path> res = new LinkedList<>();
@@ -115,6 +124,7 @@ public class ManagedControlPointIterator extends PathIterator {
         return res;
     }
 
+    @NotNull
     private List<Set<Integer>> localOccupations() {
         ControlPointIterator current = child;
         List<Set<Integer>> res = new LinkedList<>();
@@ -128,6 +138,7 @@ public class ManagedControlPointIterator extends PathIterator {
     }
 
 
+    @NotNull
     public List<Vertex> controlPoints() {
         return child.controlPoints();
     }

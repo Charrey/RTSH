@@ -2,9 +2,10 @@ package com.charrey.util;
 
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
-import com.charrey.settings.Settings;
 import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -14,20 +15,22 @@ import java.util.stream.Collectors;
 public class GraphUtil {
 
 
-    public static  Set<Vertex> neighboursOf(MyGraph g, Vertex vertex) {
+    public static  Set<Vertex> neighboursOf(@NotNull MyGraph g, Vertex vertex) {
         return g.edgesOf(vertex)
                 .stream()
                 .map(o -> g.getEdgeSource(o) == vertex ? g.getEdgeTarget(o) : g.getEdgeSource(o))
                 .collect(Collectors.toSet());
     }
 
-    public static  Set<Vertex> neighboursOf(MyGraph g, Collection<Vertex> vertices) {
+    @NotNull
+    public static  Set<Vertex> neighboursOf(@NotNull MyGraph g, @NotNull Collection<Vertex> vertices) {
         Set<Vertex> res = new HashSet<>();
         vertices.stream().map(x -> neighboursOf(g, x)).forEach(res::addAll);
         return res;
     }
 
-    public static MyGraph copy(MyGraph pattern, RandomGenerator random) {
+    @NotNull
+    public static MyGraph copy(@NotNull MyGraph pattern, RandomGenerator random) {
         MyGraph res = new MyGraph(pattern.isDirected());
         Vertex[] mapping = new Vertex[pattern.vertexSet().size()];
 
@@ -52,20 +55,22 @@ public class GraphUtil {
     }
 
     private static final Map<MyGraph, ConnectivityInspector<Vertex, DefaultEdge>> cachedComponents = new HashMap<>();
-    public static Set<Vertex> reachableNeighbours(MyGraph graph, Vertex source) {
+    public static Set<Vertex> reachableNeighbours(@NotNull MyGraph graph, Vertex source) {
         cachedComponents.putIfAbsent(graph, new ConnectivityInspector<>(graph));
         return cachedComponents.get(graph).connectedSetOf(source).stream().filter(x -> x != source).collect(Collectors.toUnmodifiableSet());
     }
 
     private static MyGraph graph;
+    @Nullable
     private static List<Vertex> cachedRandomVertexOrder = null;
-    public static List<Vertex> randomVertexOrder(MyGraph graph) {
+    @NotNull
+    public static List<Vertex> randomVertexOrder(@NotNull MyGraph graph, @NotNull Random random) {
         if (!graph.equals(GraphUtil.graph) || cachedRandomVertexOrder == null) {
             cachedRandomVertexOrder = new ArrayList<>(graph.vertexSet());
-            Collections.shuffle(cachedRandomVertexOrder, Settings.instance.random);
+            Collections.shuffle(cachedRandomVertexOrder, random);
             cachedRandomVertexOrder = Collections.unmodifiableList(cachedRandomVertexOrder);
             GraphUtil.graph = graph;
         }
-        return cachedRandomVertexOrder;
+        return Collections.unmodifiableList(cachedRandomVertexOrder);
     }
 }

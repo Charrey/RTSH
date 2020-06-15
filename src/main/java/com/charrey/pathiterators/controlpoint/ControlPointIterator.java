@@ -5,7 +5,8 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.settings.Settings;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
@@ -19,43 +20,56 @@ import java.util.function.Supplier;
 public class ControlPointIterator extends PathIterator {
 
     private final int controlPoints;
+    @NotNull
     private final Set<Integer> localOccupation;
+    @NotNull
     private final Vertex head;
+    @NotNull
     private final MyGraph targetGraph;
+    @NotNull
     private final Occupation globalOccupation;
     private final Supplier<Integer> verticesPlaced;
 
-    boolean done = false;
-    public final Iterator<Vertex> controlPointCandidates;
+    private boolean done = false;
+    @NotNull
+    private final Iterator<Vertex> controlPointCandidates;
 
+    @Nullable
     private ControlPointIterator child = null;
+    @Nullable
     private Vertex chosenControlPoint = null;
+    @Nullable
     private Path chosenPath = null;
 
-    public Path getChosenPath() {
+    @Nullable
+    Path getChosenPath() {
         return chosenPath;
     }
 
     //for filtering
+    @Nullable
     private Vertex rightNeighbourOfRightNeighbour = null;
+    @Nullable
     private Path pathFromRightNeighbourToItsRightNeighbour = null;
+    @Nullable
     private Set<Integer> previousLocalOccupation = null;
 
 
-    public ControlPointIterator(MyGraph targetGraph,
-                                Vertex tail,
-                                Vertex head,
-                                Occupation globalOccupation,
-                                Set<Integer> localOccupation,
-                                int controlPoints,
-                                Supplier<Integer> verticesPlaced) {
-        super(tail, head);
+    ControlPointIterator(@NotNull MyGraph targetGraph,
+                         @NotNull Vertex tail,
+                         @NotNull Vertex head,
+                         @NotNull Occupation globalOccupation,
+                         @NotNull Set<Integer> initialLocalOccupation,
+                         int controlPoints,
+                         Supplier<Integer> verticesPlaced,
+                         boolean refuseLongerPaths) {
+        super(tail, head, refuseLongerPaths);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;
-        this.localOccupation = localOccupation;
+        this.localOccupation = initialLocalOccupation;
         this.globalOccupation = globalOccupation;
         this.head = head;
-        this.controlPointCandidates = new ControlPointVertexSelector(targetGraph, globalOccupation, Collections.unmodifiableSet(localOccupation), tail, head);
+        this.controlPointCandidates = new ControlPointVertexSelector(targetGraph, globalOccupation, Collections.unmodifiableSet(initialLocalOccupation), tail, head);
         this.verticesPlaced = verticesPlaced;
     }
 
@@ -65,7 +79,8 @@ public class ControlPointIterator extends PathIterator {
         this.previousLocalOccupation = previousLocalOccupation;
     }
 
-    public static Path filteredShortestPath(Graph<Vertex, DefaultEdge> targetGraph, Occupation globalOccupation, Set<Integer> localOccupation, Vertex from, Vertex to) {
+    @Nullable
+    static Path filteredShortestPath(@NotNull Graph<Vertex, DefaultEdge> targetGraph, @NotNull Occupation globalOccupation, @NotNull Set<Integer> localOccupation, Vertex from, Vertex to) {
         assert targetGraph.containsVertex(from);
         assert targetGraph.containsVertex(to);
         Graph<Vertex, DefaultEdge> fakeGraph = new MaskSubgraph<>(targetGraph, x -> x != from && x != to && (localOccupation.contains(x.data()) || globalOccupation.isOccupied(x)), x -> false);
@@ -73,10 +88,12 @@ public class ControlPointIterator extends PathIterator {
         return algo == null ? null : new Path(algo);
     }
 
+    @Nullable
     private Path filteredShortestPath(Vertex from, Vertex to) {
         return filteredShortestPath(targetGraph, globalOccupation, localOccupation, from, to);
     }
 
+    @Nullable
     @Override
     public Path next() {
         while (!done) {
@@ -85,7 +102,7 @@ public class ControlPointIterator extends PathIterator {
                 Path shortestPath = filteredShortestPath(tail(), head);
                 assert shortestPath == null || new Path(shortestPath).intermediate().stream().noneMatch(x -> localOccupation.contains(x.data()));
                 this.chosenPath = shortestPath == null ? null : new Path(shortestPath);
-                if (Settings.instance.refuseLongerPaths && this.chosenPath != null && isUnNecessarilyLong(this.chosenPath)) {
+                if (refuseLongerPaths && this.chosenPath != null && isUnNecessarilyLong(this.chosenPath)) {
                     chosenPath = null;
                 }
                 return chosenPath;
@@ -100,18 +117,19 @@ public class ControlPointIterator extends PathIterator {
                 Path graphPath = filteredShortestPath(chosenControlPoint, head);
                 if (graphPath != null) {
                     chosenPath = new Path(graphPath);
-                    if (Settings.instance.refuseLongerPaths && isUnNecessarilyLong(chosenPath)) {
+                    if (refuseLongerPaths && isUnNecessarilyLong(chosenPath)) {
                         continue;
                     }
                     Set<Integer> previousOccupation = new HashSet<>(localOccupation);
                     chosenPath.forEach(x -> localOccupation.add(x.data()));
-                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, globalOccupation, new HashSet<>(localOccupation), controlPoints - 1, verticesPlaced);
+                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, globalOccupation, new HashSet<>(localOccupation), controlPoints - 1, verticesPlaced, refuseLongerPaths);
                     child.setRightNeighbourOfRightNeighbour(this.head(), chosenPath, previousOccupation);
                 }
             } else {
                 Set<Integer> previousLocalOccupation = new HashSet<>(localOccupation);
                 Path childsPath = child.next();
                 assert childsPath == null || childsPath.intermediate().stream().noneMatch(x -> previousLocalOccupation.contains(x.data()));
+                assert chosenPath != null;
                 if (childsPath != null) {
                     assert childsPath.tail() == tail();
                     assert chosenPath.head() == head;
@@ -129,15 +147,17 @@ public class ControlPointIterator extends PathIterator {
         return null;
     }
 
-    private boolean isUnNecessarilyLong(Path chosenPath) {
+    private boolean isUnNecessarilyLong(@NotNull Path chosenPath) {
         return chosenPath.asList().subList(0, chosenPath.length() - 1)
                 .stream()
                 .anyMatch(x -> targetGraph.outgoingEdgesOf(x).stream().map(y -> Graphs.getOppositeVertex(targetGraph, y, x)).anyMatch(y -> y != chosenPath.head() && localOccupation.contains(y.data())));
     }
 
-    private boolean rightShiftPossible(Vertex left) {
+    private boolean rightShiftPossible(@Nullable Vertex left) {
         if (left != null && this.rightNeighbourOfRightNeighbour != null) {
             Vertex middle = this.head();
+            assert pathFromRightNeighbourToItsRightNeighbour != null;
+            assert previousLocalOccupation != null;
             Path middleToRight = pathFromRightNeighbourToItsRightNeighbour;
             for (int i = 0; i < middleToRight.intermediate().size(); i++) {
                 Vertex middleAlt = middleToRight.intermediate().get(i);
@@ -166,6 +186,7 @@ public class ControlPointIterator extends PathIterator {
         if (this.rightNeighbourOfRightNeighbour == null) {
             return false;
         } else {
+            assert pathFromRightNeighbourToItsRightNeighbour != null;
             Vertex middle = this.head();
             Vertex right = this.rightNeighbourOfRightNeighbour;
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(x -> localOccupation.remove(x.data()));
@@ -179,7 +200,8 @@ public class ControlPointIterator extends PathIterator {
         }
     }
 
-    public static Path merge(Path left, Path right) {
+    @NotNull
+    static Path merge(@NotNull Path left, @NotNull Path right) {
         Path toReturn = new Path(left.tail(), left.length() + right.length() - 1);
         for (int i = 1; i < left.length() - 1; i++) {
             toReturn.append(left.get(i));
@@ -190,12 +212,14 @@ public class ControlPointIterator extends PathIterator {
         return toReturn;
     }
 
+    @NotNull
     @Override
     public String toString() {
         return "(" + chosenControlPoint + ", " + child + ")";
     }
 
-    public List<Vertex> controlPoints() {
+    @NotNull
+    List<Vertex> controlPoints() {
         List<Vertex> res = new LinkedList<>();
         if (child != null) {
             res.addAll(child.controlPoints());
@@ -206,11 +230,13 @@ public class ControlPointIterator extends PathIterator {
         return res;
     }
 
+    @Nullable
     public ControlPointIterator getChild() {
         return child;
     }
 
-    public Set<Integer> getLocalOccupation() {
-        return localOccupation;
+    @NotNull
+    Set<Integer> getLocalOccupation() {
+        return Collections.unmodifiableSet(localOccupation);
     }
 }

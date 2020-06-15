@@ -4,7 +4,10 @@ import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
+import com.charrey.settings.Settings;
 import com.charrey.util.LogHandler;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jgrapht.alg.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -27,8 +30,9 @@ public abstract class SystemTest {
         Logger.getLogger("IsoFinder").addHandler(new LogHandler());
     }
 
-    protected HomeomorphismResult testSucceed(TestCase testCase, boolean writeChallenge, long timeout) throws IOException {
-        HomeomorphismResult morph = IsoFinder.getHomeomorphism(testCase, timeout);
+    @Nullable
+    HomeomorphismResult testSucceed(@NotNull TestCase testCase, boolean writeChallenge, long timeout, @NotNull Settings settings) throws IOException {
+        HomeomorphismResult morph = IsoFinder.getHomeomorphism(testCase, settings, timeout);
         if (morph == null) {
             return null;
         }
@@ -54,6 +58,7 @@ public abstract class SystemTest {
     }
 
 
+    @NotNull
     @SuppressWarnings("unchecked")
     protected List<Challenge> readChallenges() {
         synchronized (challengeLock) {
@@ -65,7 +70,7 @@ public abstract class SystemTest {
                 try (ObjectInputStream oos = new ObjectInputStream(new FileInputStream(listOfFile))) {
                     Pair<MyGraph, MyGraph> pair = (Pair<MyGraph, MyGraph>) oos.readObject();
                     res.add(new Challenge(listOfFile, pair.getFirst(), pair.getSecond()));
-                } catch (IOException | ClassNotFoundException e) {
+                } catch (@NotNull IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
             }
@@ -86,11 +91,11 @@ public abstract class SystemTest {
 
 
     protected static class Challenge {
-        public final MyGraph sourceGraph;
-        public final MyGraph targetGraph;
+        final MyGraph sourceGraph;
+        final MyGraph targetGraph;
         private final File file;
 
-        public Challenge(File file, MyGraph sourceGraph, MyGraph targetGraph) {
+        Challenge(File file, MyGraph sourceGraph, MyGraph targetGraph) {
             this.file = file;
             this.targetGraph = targetGraph;
             this.sourceGraph = sourceGraph;

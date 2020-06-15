@@ -5,8 +5,10 @@ import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.util.UtilityData;
+import com.charrey.algorithms.UtilityData;
 import com.charrey.util.datastructures.MultipleKeyMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,8 +17,11 @@ public class EdgeMatching extends VertexBlocker {
 
     private final VertexMatching vertexMatching;
     private final MyGraph source;
+    @NotNull
     private final MyGraph targetGraph;
     private final boolean directed;
+    private final boolean refuseLongerPaths;
+    private final int pathIteration;
 
     private MultipleKeyMap<PathIterator> pathfinders;
     private final Occupation occupation;
@@ -24,11 +29,11 @@ public class EdgeMatching extends VertexBlocker {
     private Vertex[][] edges; //do not change
     private boolean[][] incoming; //only for directed graphs
 
-    public ArrayList<LinkedList<Path>> paths;
+    private ArrayList<LinkedList<Path>> paths;
 
     private final UtilityData data;
 
-    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, MyGraph target, Occupation occupation) {
+    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, Occupation occupation, int pathIteration, boolean refuseLongerPaths) {
         this.vertexMatching = vertexMatching;
         this.source = source;
         this.data = data;
@@ -40,6 +45,8 @@ public class EdgeMatching extends VertexBlocker {
         EdgeMatching em = this;
         this.vertexMatching.setOnDeletion(em::synchronize);
         this.occupation = occupation;
+        this.pathIteration = pathIteration;
+        this.refuseLongerPaths = refuseLongerPaths;
     }
 
     private void initPathFinders() {
@@ -93,6 +100,7 @@ public class EdgeMatching extends VertexBlocker {
         return false;
     }
 
+    @Nullable
     public Path placeNextUnmatched() {
         assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
         assert this.hasUnmatched();
@@ -115,7 +123,7 @@ public class EdgeMatching extends VertexBlocker {
             pathfinders.remove(tail, head);
             assert false;
         }
-        PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> vertexMatching.getPlacementUnsafe().size());
+        PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> vertexMatching.getPlacementUnsafe().size(), pathIteration, refuseLongerPaths);
         pathfinders.put(tail, head, iterator);
         Path toReturn = iterator.next();
         if (toReturn != null) {
@@ -166,7 +174,7 @@ public class EdgeMatching extends VertexBlocker {
 
     }
 
-    private void addPath(Path found) {
+    private void addPath(@NotNull Path found) {
         assert !found.isEmpty();
         assert directed || found.head().data() > found.tail().data();
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
@@ -174,6 +182,7 @@ public class EdgeMatching extends VertexBlocker {
         paths.get(lastPlacedIndex).add(added);
     }
 
+    @NotNull
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("EdgeMatching " + (directed ? "directed " : "") + "{\n");
@@ -185,13 +194,14 @@ public class EdgeMatching extends VertexBlocker {
         return sb.toString();
     }
 
-    public void synchronize(Vertex vertex) {
+    private void synchronize(Vertex vertex) {
         assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
         assert !vertexMatching.getPlacementUnsafe().contains(vertex);
         paths.get(vertexMatching.getPlacementUnsafe().size()).clear();
         assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
     }
 
+    @NotNull
     public Set<Path> allPaths() {
         Set<Path> res = new HashSet<>();
         for (List<Path> pathList : paths) {
@@ -200,7 +210,7 @@ public class EdgeMatching extends VertexBlocker {
         return Collections.unmodifiableSet(res);
     }
 
-    public void removeLastPath() {
+    private void removeLastPath() {
         List<Path> pathList = this.paths.get(this.vertexMatching.getPlacementUnsafe().size() - 1);
         Path removed = pathList.remove(pathList.size() - 1);
         //removed.intermediate().forEach(x -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), x)); // this should be the empty path now
