@@ -76,6 +76,9 @@ class NoDuplicatesTest {
                 Vertex tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
                 Vertex head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
                 counter++;
+                if (counter < 0) {
+                    continue;
+                }
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
@@ -89,7 +92,15 @@ class NoDuplicatesTest {
                 //5 4 1 3 2 is reached with controlpoints {4, 3} and with {4, 1, 3}.
                 //emulate fails with controlpoints 4, 3 and no local occupation.
                 while ((path = iterator.next()) != null) {
-                    assert !seen.containsKey(path) : "\nPath:     " + path + "\nPrevious: " + seen.get(path).string + "\nNow:      " + new Witness(iterator).string + "\nAt:\n" + targetGraph.toString();
+                    if (seen.containsKey(path)) {
+                        System.out.println("Iteration: " + counter);
+                        System.out.println("Path:      " + path);
+                        System.out.println("Previous:  " + seen.get(path).string);
+                        System.out.println("Now:       " + new Witness(iterator).string);
+                        System.out.println("At:");
+                        System.out.println(targetGraph.toString());
+                        assert false;
+                    }
                     seen.put(new Path(path), new Witness(iterator));
                 }
             }

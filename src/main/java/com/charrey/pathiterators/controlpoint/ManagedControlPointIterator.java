@@ -1,12 +1,11 @@
 package com.charrey.pathiterators.controlpoint;
 
-import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.runtimecheck.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,21 +45,12 @@ public class ManagedControlPointIterator extends PathIterator {
     @Override
     public Path next() {
         transaction.uncommit();
-        if (returned != null) {
-            returned.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
-        }
         while (true) {
             Path path;
             do {
                 path = child.next();
-                System.out.print("");
             } while (path != null && controlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
-                try {
-                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), path);
-                } catch (DomainCheckerException e) {
-                    continue;
-                }
                 returned = path;
                 transaction.commit();
                 return returned;
@@ -69,7 +59,12 @@ public class ManagedControlPointIterator extends PathIterator {
                     return null;
                 }
                 controlPoints += 1;
-                child = new ControlPointIterator(graph, tail(), head(), transaction, new HashSet<>(), controlPoints, verticesPlaced, refuseLongerPaths);
+                if (ControlPointIterator.log) {
+                    System.out.println("Raising control point count to " + controlPoints);
+                }
+                Set<Integer> localOccupation = new HashSet<>();
+                localOccupation.add(head().data());
+                child = new ControlPointIterator(graph, tail(), head(), transaction, localOccupation, controlPoints, verticesPlaced, refuseLongerPaths);
             }
         }
     }
@@ -87,10 +82,13 @@ public class ManagedControlPointIterator extends PathIterator {
             Path middleAltToRight = new Path(middleToRight.asList().subList(i + 1, middleToRight.length()));
             Set<Integer> fictionalLocalOccupation = new HashSet<>(localOccupations.get(1));
             middleAltToRight.forEach(x -> fictionalLocalOccupation.add(x.data()));
-            Path leftToMiddleAlt = ControlPointIterator.filteredShortestPath(graph, transaction, fictionalLocalOccupation, left, middleAlt);
+            Path leftToMiddleAlt = ControlPointIterator.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail());
             assert leftToMiddleAlt != null;
             Path alternative = ControlPointIterator.merge(leftToMiddleAlt, middleAltToRight);
             if (alternative.equals(leftToRight)) {
+                if (ControlPointIterator.log) {
+                    System.out.println("Right-shift possible to vertex " + middleAlt);
+                }
                 return true;
             }
         }
@@ -110,10 +108,13 @@ public class ManagedControlPointIterator extends PathIterator {
 
         assert middleToRight.tail() == middle;
         assert middleToRight.head() == right;
-        Path skippedPath = ControlPointIterator.filteredShortestPath(graph, transaction, localOccupations.get(1), left, right);
+        Path skippedPath = ControlPointIterator.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right, refuseLongerPaths, tail());
         assert skippedPath != null;
         assert skippedPath.tail() == left;
         assert skippedPath.head() == right;
+        if (skippedPath.equals(leftToRight) && ControlPointIterator.log) {
+            System.out.println("Makes last control point useless...");
+        }
         return skippedPath.equals(leftToRight);
     }
 
@@ -139,6 +140,22 @@ public class ManagedControlPointIterator extends PathIterator {
         res.add(new HashSet<>());
         res.remove(0);
         return res;
+    }
+
+    public Path finalPath() {
+        if (child == null) {
+            return null;
+        } else {
+            return child.finalPath();
+        }
+    }
+
+    public Path firstPath() {
+        if (child == null) {
+            return null;
+        } else {
+            return child.getChosenPath();
+        }
     }
 
 

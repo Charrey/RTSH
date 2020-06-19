@@ -1,10 +1,9 @@
 package com.charrey.pathiterators.controlpoint;
 
-import com.charrey.occupation.AbstractOccupation;
-import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
+import com.charrey.occupation.AbstractOccupation;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,12 +28,14 @@ public class ControlPointVertexSelector implements Iterator<Vertex> {
                                @NotNull AbstractOccupation occupation,
                                @NotNull Set<Integer> initialLocalOccupation,
                                @NotNull Vertex from,
-                               @NotNull Vertex to) {
+                               @NotNull Vertex to,
+                               boolean refuseLongerPaths,
+                               Vertex tail) {
         this.occupation = occupation;
         this.localOccupation = initialLocalOccupation;
         Random random = new Random(1 + 3*graph.hashCode() + 5*occupation.hashCode() + 7*initialLocalOccupation.hashCode() + 11*from.data() + 13*to.data());
         vertices = GraphUtil.randomVertexOrder(graph, random);
-        Path path = ControlPointIterator.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to);
+        Path path = ControlPointIterator.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail);
         if (path == null) {
             readyToDeliver = true;
             nextToReturn = null;

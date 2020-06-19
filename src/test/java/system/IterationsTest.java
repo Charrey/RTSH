@@ -4,6 +4,7 @@ import com.charrey.HomeomorphismResult;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
+import com.charrey.pathiterators.controlpoint.ControlPointIterator;
 import com.charrey.settings.PathIterationStrategy;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
@@ -120,10 +121,21 @@ public class IterationsTest extends SystemTest {
                 System.out.println(testCase);
                 MyGraph pattern = importDot(testCase.toPath().resolve("source.dot"), true);
                 MyGraph target = importDot(testCase.toPath().resolve("target.dot"), true);
-                HomeomorphismResult homeomorphism = testSucceed(new TestCase(pattern, target),
-                        false,
-                        1800_000,
-                        settings);
+                HomeomorphismResult homeomorphism;
+                try {
+                    homeomorphism = testSucceed(new TestCase(pattern, target),
+                            false,
+                            1800_000,
+                            settings);
+                } catch (AssertionError e) {
+                    ControlPointIterator.log = true;
+                    try {
+                        testSucceed(new TestCase(pattern, target),
+                                false,
+                                1800_000, settings);
+                    } catch (AssertionError ignored) {}
+                    throw e;
+                }
                 Path benchmarkPath = testCase.toPath().resolve("benchmarks.txt");
                 if (!benchmarkPath.toFile().exists()) {
                     Files.createFile(benchmarkPath);

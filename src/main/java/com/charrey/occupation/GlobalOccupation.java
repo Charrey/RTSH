@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class GlobalOccupation {
+public class GlobalOccupation extends AbstractOccupation {
 
     @NotNull
     private final BitSet routingBits;

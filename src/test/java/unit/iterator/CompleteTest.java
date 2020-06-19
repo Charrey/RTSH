@@ -1,17 +1,18 @@
 package unit.iterator;
 
-import com.charrey.occupation.GlobalOccupation;
+import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
+import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
+import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.settings.PathIterationStrategy;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
-import com.charrey.algorithms.UtilityData;
-import com.charrey.runtimecheck.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
@@ -51,20 +52,33 @@ class CompleteTest extends PathIteratorTest {
                     continue;
                 }
                 counter++;
+                if (counter < 0) {
+                    continue;
+                }
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 Map<Integer, Set<Path>> pathCount = new HashMap<>(); //s
                 for (int strategy : List.of(PathIterationStrategy.DFS_ARBITRARY, PathIterationStrategy.DFS_GREEDY, PathIterationStrategy.CONTROL_POINT, PathIterationStrategy.YEN)) {
                     settings.pathIteration = strategy;
                     pathCount.put(strategy, new HashSet<>());
                     GlobalOccupation occupation = new GlobalOccupation(data, targetGraph.vertexSet().size(), settings);
-                    occupation.occupyVertex(0, tail);
-                    occupation.occupyVertex(1, head);
+                    try {
+                        occupation.occupyVertex(0, tail);
+                        occupation.occupyVertex(1, head);
+                    } catch (DomainCheckerException e) {
+                        continue;
+                    }
                     PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);
                     Path path;
+                    //System.out.println("Strategy: " + strategy);
                     while ((path = iterator.next()) != null) {
+                        //System.out.println(path);
+                        if (iterator instanceof ManagedControlPointIterator) {
+                            //System.out.println("Control points: " + ((ManagedControlPointIterator) iterator).controlPoints());
+                        }
                         assert path.asList().size() == new HashSet<>(path.asList()).size();
                         pathCount.get(strategy).add(new Path(path));
                     }
+                    //System.out.println();
                 }
                 assert new HashSet<>(pathCount.values()).size() == 1 : counter + "\n" + myMaptoString(pathCount) + "for:\n" + targetGraph.toString();
             }
