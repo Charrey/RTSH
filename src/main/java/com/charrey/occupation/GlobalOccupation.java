@@ -25,19 +25,19 @@ public class GlobalOccupation extends AbstractOccupation {
     public final DomainChecker domainChecker;
 
     public GlobalOccupation(@NotNull UtilityData data, int size, @NotNull Settings settings){
-        this(data, size, settings.runTimeCheck, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
+        this(data, size, settings.runTimeCheck, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
     }
 
-    public GlobalOccupation(@NotNull UtilityData data, int size, int runTimeCheck, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent){
+    public GlobalOccupation(@NotNull UtilityData data, int size, int runTimeCheck, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent){
         switch (runTimeCheck) {
             case RunTimeCheck.NONE:
                 domainChecker = new DummyDomainChecker();
                 break;
             case RunTimeCheck.EMPTY_DOMAIN:
-                domainChecker = new EmptyDomainChecker(data, initialLocalizedAllDifferent, initialGlobalAllDifferent);
+                domainChecker = new EmptyDomainChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent);
                 break;
             case RunTimeCheck.ALL_DIFFERENT:
-                domainChecker = new AllDifferentChecker(data, initialLocalizedAllDifferent, initialGlobalAllDifferent);
+                domainChecker = new AllDifferentChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent);
                 break;
             default:
                 throw new UnsupportedOperationException();

@@ -85,7 +85,7 @@ public class ControlPointIterator extends PathIterator {
     }
 
     @Nullable
-    static Path filteredShortestPath(@NotNull Graph<Vertex, DefaultEdge> targetGraph, @NotNull AbstractOccupation globalOccupation, @NotNull Set<Integer> localOccupation, Vertex from, Vertex to, boolean refuseLongerPaths, Vertex tail) {
+    static Path filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull AbstractOccupation globalOccupation, @NotNull Set<Integer> localOccupation, Vertex from, Vertex to, boolean refuseLongerPaths, Vertex tail) {
         assert targetGraph.containsVertex(from);
         assert targetGraph.containsVertex(to);
         Graph<Vertex, DefaultEdge> fakeGraph = new MaskSubgraph<>(targetGraph, x ->
@@ -99,7 +99,7 @@ public class ControlPointIterator extends PathIterator {
         String dot = writer.toString();
 
         GraphPath<Vertex, DefaultEdge> algo = new BFSShortestPath<>(fakeGraph).getPath(from, to);
-        return algo == null ? null : new Path(algo);
+        return algo == null ? null : new Path(targetGraph, algo);
     }
 
     private static boolean violatesLongerPaths(Graph<Vertex, DefaultEdge> targetGraph, Vertex x, Vertex from, Vertex to, Vertex tail, Set<Integer> localOccupation) {
@@ -211,12 +211,12 @@ public class ControlPointIterator extends PathIterator {
                 assert childsPath == null || childsPath.intermediate().stream().noneMatch(x -> previousLocalOccupation.contains(x.data()));
                 assert chosenPath != null;
                 if (childsPath != null) {
-                    assert childsPath.tail() == tail();
-                    assert chosenPath.head() == head;
-                    assert childsPath.head() == chosenPath.tail();
-                    Path toReturn = merge(childsPath, chosenPath);
-                    assert toReturn.tail() == tail();
-                    assert toReturn.head() == head;
+                    assert childsPath.first() == tail();
+                    assert chosenPath.last() == head;
+                    assert childsPath.last() == chosenPath.first();
+                    Path toReturn = merge(targetGraph, childsPath, chosenPath);
+                    assert toReturn.first() == tail();
+                    assert toReturn.last() == head;
                     return toReturn;
                 } else {
                     child = null;
@@ -237,7 +237,7 @@ public class ControlPointIterator extends PathIterator {
         for (Vertex candidate : fromCandidates) {
             List<Vertex> successors = Graphs.successorListOf(targetGraph, candidate);
             for (Vertex successor : successors) {
-                boolean isHead = successor == chosenPath.head();
+                boolean isHead = successor == chosenPath.last();
                 boolean localOccupationContains = localOccupation.contains(successor.data());
                 if (!isHead && localOccupationContains) {
                     return true;
@@ -255,7 +255,7 @@ public class ControlPointIterator extends PathIterator {
             Path middleToRight = pathFromRightNeighbourToItsRightNeighbour;
             for (int i = 0; i < middleToRight.intermediate().size(); i++) {
                 Vertex middleAlt = middleToRight.intermediate().get(i);
-                Path middleAltToRight = new Path(middleToRight.asList().subList(i + 1, middleToRight.length()));
+                Path middleAltToRight = new Path(targetGraph, middleToRight.asList().subList(i + 1, middleToRight.length()));
 
                 Set<Integer> fictionalOccupation = new HashSet<>(previousLocalOccupation);
                 middleAltToRight.forEach(x -> fictionalOccupation.add(x.data()));
@@ -272,7 +272,7 @@ public class ControlPointIterator extends PathIterator {
                     });
                     return true;
                 }
-                Path leftToRightAlt = merge(leftToMiddleAlt, middleAltToRight);
+                Path leftToRightAlt = merge(targetGraph, leftToMiddleAlt, middleAltToRight);
                 Path leftToMiddle = filteredShortestPath(left, middle);
                 temporarilyRemoveGlobal.forEach(x -> {
                     try {
@@ -284,7 +284,7 @@ public class ControlPointIterator extends PathIterator {
                 if (leftToMiddle == null) {
                     return true;
                 }
-                Path leftToRight = merge(leftToMiddle, middleToRight);
+                Path leftToRight = merge(targetGraph, leftToMiddle, middleToRight);
                 if (leftToRight.equals(leftToRightAlt)) {
                     return true;
                 }
@@ -323,8 +323,8 @@ public class ControlPointIterator extends PathIterator {
     }
 
     @NotNull
-    static Path merge(@NotNull Path left, @NotNull Path right) {
-        Path toReturn = new Path(left.tail(), left.length() + right.length() - 1);
+    static Path merge(@NotNull MyGraph graph, @NotNull Path left, @NotNull Path right) {
+        Path toReturn = new Path(graph, left.first());
         for (int i = 1; i < left.length() - 1; i++) {
             toReturn.append(left.get(i));
         }

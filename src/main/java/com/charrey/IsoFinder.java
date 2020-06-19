@@ -25,12 +25,12 @@ public class IsoFinder {
 
     private static void setup(@NotNull TestCase testcase, @NotNull Settings settings) throws DomainCheckerException {
         UtilityData data = new UtilityData(testcase.sourceGraph, testcase.targetGraph);
-        logDomainReduction(testcase, data, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
-        if (Arrays.stream(data.getCompatibility(settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
+        logDomainReduction(testcase, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+        if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
-        GlobalOccupation occupation = new GlobalOccupation(data, testcase.targetGraph.vertexSet().size(), settings.runTimeCheck, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
-        vertexMatching      = new VertexMatching(data, testcase.sourceGraph, occupation, settings.initialLocalizedAllDifferent, settings.initialGlobalAllDifferent);
+        GlobalOccupation occupation = new GlobalOccupation(data, testcase.targetGraph.vertexSet().size(), settings.runTimeCheck, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+        vertexMatching      = new VertexMatching(data, testcase.sourceGraph, occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
         edgeMatching        = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
 
@@ -80,9 +80,9 @@ public class IsoFinder {
 
 
 
-    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent) {
+    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
         BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.sourceGraph.vertexSet().size())).pow(testcase.targetGraph.vertexSet().size());
-        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialLocalizedAllDifferent, initialGlobalAllDifferent)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
+        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
         LOG.info(() -> "Reduced vertex matching domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
     }
 

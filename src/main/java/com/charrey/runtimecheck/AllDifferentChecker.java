@@ -52,10 +52,10 @@ public class AllDifferentChecker extends DomainChecker {
 
 
     @SuppressWarnings({"unchecked"})
-    public AllDifferentChecker(@NotNull UtilityData data, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent) {
+    public AllDifferentChecker(@NotNull UtilityData data, boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent) {
         this.allDifferent = new AllDifferent();
-        reverseDomain = data.getReverseCompatibility(initialLocalizedAllDifferent, initialGlobalAllDifferent);
-        this.domain = Arrays.stream(data.getCompatibility(initialLocalizedAllDifferent, initialGlobalAllDifferent)).map(x -> new HashSet<>(Arrays.asList(x))).toArray(value -> (Set<Vertex>[]) new Set[value]);
+        reverseDomain = data.getReverseCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent);
+        this.domain = Arrays.stream(data.getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent)).map(x -> new HashSet<>(Arrays.asList(x))).toArray(value -> (Set<Vertex>[]) new Set[value]);
         vertexState = (Deque<Set<Vertex>>[]) Array.newInstance(Deque.class, domain.length);
         for (int i = 0; i < domain.length; i++) {
             vertexState[i] = new LinkedList<>();

@@ -37,14 +37,14 @@ public abstract class PathIterator {
     @NotNull
     public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, @NotNull Vertex tail, @NotNull Vertex head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, int pathIteration, boolean refuseLongerPaths) {
         if (targetGraph.getEdge(tail, head) != null) {
-            return new SingletonPathIterator(tail, head);
+            return new SingletonPathIterator(targetGraph, tail, head);
         }
 
         switch (pathIteration) {
             case DFS_ARBITRARY:
             case DFS_GREEDY:
                 Vertex[][] targetNeighbours = data.getTargetNeighbours(pathIteration)[head.data()];
-                return new DFSPathIterator(targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths);
+                return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths);
             case CONTROL_POINT:
                 return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 300, placementSize, refuseLongerPaths);
             case YEN:

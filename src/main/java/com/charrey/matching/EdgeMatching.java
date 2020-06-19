@@ -78,15 +78,15 @@ public class EdgeMatching extends VertexBlocker {
         assert occupation.domainChecker.checkOK(placementSize);
         for (int i = pathList.size() - 1; i >= 0; i--) {
             Path toRetry = pathList.get(i);
-            Vertex tail = toRetry.tail();
-            Vertex head = toRetry.head();
+            Vertex tail = toRetry.first();
+            Vertex head = toRetry.last();
             assert directed || tail.data() < head.data();
             assert pathfinders.containsKey(tail, head);
             PathIterator pathfinder = pathfinders.get(tail, head);
             Path pathFound = pathfinder.next();
             if (pathFound != null) {
-                assert pathFound.tail() == tail : "Expected: " + tail + ", actual: " + pathFound.tail();
-                assert pathFound.head() == head : "Expected: " + head + ", actual: " + pathFound.head();
+                assert pathFound.first() == tail : "Expected: " + tail + ", actual: " + pathFound.first();
+                assert pathFound.last() == head : "Expected: " + head + ", actual: " + pathFound.last();
                 Path toAdd = new Path(pathFound);
                 pathList.set(pathList.size() - 1, toAdd);
                 assert occupation.domainChecker.checkOK(placementSize);
@@ -176,7 +176,7 @@ public class EdgeMatching extends VertexBlocker {
 
     private void addPath(@NotNull Path found) {
         assert !found.isEmpty();
-        assert directed || found.head().data() > found.tail().data();
+        assert directed || found.last().data() > found.first().data();
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
         Path added = new Path(found);
         paths.get(lastPlacedIndex).add(added);
@@ -214,7 +214,7 @@ public class EdgeMatching extends VertexBlocker {
         List<Path> pathList = this.paths.get(this.vertexMatching.getPlacementUnsafe().size() - 1);
         Path removed = pathList.remove(pathList.size() - 1);
         //removed.intermediate().forEach(x -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), x)); // this should be the empty path now
-        assert directed || removed.head().data() > removed.tail().data();
+        assert directed || removed.last().data() > removed.first().data();
     }
 
 

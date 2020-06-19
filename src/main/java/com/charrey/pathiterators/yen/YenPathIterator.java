@@ -56,7 +56,7 @@ public class YenPathIterator extends PathIterator {
         }
         assert occupation.toString().equals(init) : "Initially: " + init + "; now: " + occupation;
         while (yen.hasNext()) {
-            Path pathFound = new Path(yen.next());
+            Path pathFound = new Path(targetGraph, yen.next());
             if (refuseLongerPaths && hasUnnecessarilyLongPaths(pathFound)) {
                 continue;
             }

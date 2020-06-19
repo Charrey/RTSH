@@ -34,9 +34,9 @@ public class EmptyDomainChecker extends DomainChecker {
 
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public EmptyDomainChecker(@NotNull UtilityData data, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent) {
-        this.reverseDomain = data.getReverseCompatibility(initialLocalizedAllDifferent, initialGlobalAllDifferent);
-        this.domain = (Set[]) Arrays.stream(data.getCompatibility(initialLocalizedAllDifferent, initialGlobalAllDifferent)).map(x -> new HashSet(Arrays.asList(x))).toArray(Set[]::new);
+    public EmptyDomainChecker(@NotNull UtilityData data, boolean intialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
+        this.reverseDomain = data.getReverseCompatibility(intialNeighbourHoodFiltering, initialGlobalAllDifferent);
+        this.domain = (Set[]) Arrays.stream(data.getCompatibility(intialNeighbourHoodFiltering, initialGlobalAllDifferent)).map(x -> new HashSet(Arrays.asList(x))).toArray(Set[]::new);
     }
 
     @Override

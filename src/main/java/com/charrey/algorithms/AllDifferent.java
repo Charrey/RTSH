@@ -14,11 +14,21 @@ import org.jgrapht.alg.util.Pair;
 import java.util.*;
 import java.util.stream.IntStream;
 
+/**
+ * The AllDifferent algorithm
+ */
 public class AllDifferent {
 
     private static final Settings settings = new DefaultSettings();
     private final Set<Map<Vertex, Set<Vertex>>> cacheYesA = new HashSet<>();
     private final Set<Map<Vertex, Set<Vertex>>> cacheNoA = new HashSet<>();
+
+    /**
+     * Returns whether the domain satisfies an AllDifferent constraint. This is needed for a node disjoint subgraph homeomorphism.
+     *
+     * @param allDifferentMap a map that indicates for each source vertex its domain in target graph vertices
+     * @return whether the constraint is satisfied.
+     */
     public boolean get(@NotNull Map<Vertex, Set<Vertex>> allDifferentMap) {
         if (cacheYesA.contains(allDifferentMap)) {
             return true;
@@ -45,6 +55,12 @@ public class AllDifferent {
         }
     }
 
+    /**
+     * Returns whether the domain satisfies an AllDifferent constraint. This is needed for a node disjoint subgraph homeomorphism.
+     *
+     * @param compatibility  a map that indicates for each source vertex (as index of a list) its domain in target graph vertices
+     * @return whether the constraint is satisfied.
+     */
     public boolean get(@NotNull List<Set<Vertex>> compatibility) {
         Model model = new Model(settings);
         IntVar[] variables = IntStream.range(0, compatibility.size())
@@ -56,6 +72,13 @@ public class AllDifferent {
     }
 
 
+    /**
+     * Given a domain map, runs AllDifferent after each possible single mapping. This method returns a set of mappings that lead to contradictions,
+     * i.e. that need to be removed.
+     *
+     * @param allDifferentMap a map that indicates for each source vertex its domain in target graph vertices
+     * @return a set of pairs such that the key of the pair may not be mapped to the value of the pair.
+     */
     @NotNull
     static Set<Pair<Integer, Integer>> checkAll(@NotNull Map<Integer, Set<Integer>> allDifferentMap) {
         final int[][] domains = new int[allDifferentMap.size()][];

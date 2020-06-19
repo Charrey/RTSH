@@ -14,13 +14,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Class that provides a target graph domain for each source graph vertex.
+ */
 public class CompatibilityChecker {
 
     private final AllDifferent alldiff = new AllDifferent();
 
+    /**
+     * Returns a map from source graph vertices to the target graph vertices they are compatible with.
+     *
+     * @param source                    the source graph
+     * @param target                    the target graph
+     * @param neighbourhoodFiltering    whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
+     * @param initialGlobalAllDifferent whether to apply AllDifferent to each possible matching to filter out candidates.
+     * @return the map
+     */
     @NotNull
     public  Map<Vertex, Set<Vertex>> get(@NotNull MyGraph source,
-                                         @NotNull MyGraph target, boolean initialLocalizedAllDifferent, boolean initialGlobalAllDifferent) {
+                                         @NotNull MyGraph target, boolean neighbourhoodFiltering, boolean initialGlobalAllDifferent) {
 
         Map<Vertex, Set<Vertex>> res = new HashMap<>();
         for (Vertex v : source.vertexSet()) {
@@ -30,7 +42,7 @@ public class CompatibilityChecker {
         boolean hasChanged = true;
         while (hasChanged) {
             hasChanged = false;
-            if (initialLocalizedAllDifferent) {
+            if (neighbourhoodFiltering) {
                 hasChanged = filterNeighbourHoods(res, source, target);
             }
             if (initialGlobalAllDifferent) {

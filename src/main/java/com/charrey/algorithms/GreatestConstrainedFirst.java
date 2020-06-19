@@ -8,9 +8,20 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Returns a vertex order using the GreatestConstraintFirst algorithm. This vertex order attempts to have each
+ *      * consecutive vertex be connected with as many already already matched vertices possible.
+ */
 public class GreatestConstrainedFirst {
 
 
+    /**
+     * Returns a source graph vertex ordering to apply homeomorphism finding to. This vertex order attempts to have each
+     * consecutive vertex be connected with as many already already matched vertices possible.
+     *
+     * @param graph the source graph
+     * @return an appropriate vertex ordering.
+     */
     @NotNull
     public List<Vertex> apply(@NotNull MyGraph graph) {
         List<Vertex> ordering = new ArrayList<>(graph.vertexSet().size());

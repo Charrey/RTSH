@@ -75,16 +75,16 @@ public class ManagedControlPointIterator extends PathIterator {
         List<Set<Integer>> localOccupations = localOccupations();
         Path leftToMiddle = intermediatePaths.get(0);
         Path middleToRight = intermediatePaths.get(1);
-        Path leftToRight = ControlPointIterator.merge(leftToMiddle, middleToRight);
+        Path leftToRight = ControlPointIterator.merge(graph, leftToMiddle, middleToRight);
 
         for (int i = 0; i < middleToRight.intermediate().size(); i++){
             Vertex middleAlt = middleToRight.intermediate().get(i);
-            Path middleAltToRight = new Path(middleToRight.asList().subList(i + 1, middleToRight.length()));
+            Path middleAltToRight = new Path(graph, middleToRight.asList().subList(i + 1, middleToRight.length()));
             Set<Integer> fictionalLocalOccupation = new HashSet<>(localOccupations.get(1));
             middleAltToRight.forEach(x -> fictionalLocalOccupation.add(x.data()));
             Path leftToMiddleAlt = ControlPointIterator.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail());
             assert leftToMiddleAlt != null;
-            Path alternative = ControlPointIterator.merge(leftToMiddleAlt, middleAltToRight);
+            Path alternative = ControlPointIterator.merge(graph, leftToMiddleAlt, middleAltToRight);
             if (alternative.equals(leftToRight)) {
                 if (ControlPointIterator.log) {
                     System.out.println("Right-shift possible to vertex " + middleAlt);
@@ -104,14 +104,14 @@ public class ManagedControlPointIterator extends PathIterator {
         List<Path> intermediatePaths = intermediatePaths();
         List<Set<Integer>> localOccupations = localOccupations();
         Path middleToRight = intermediatePaths.get(1);
-        Path leftToRight = ControlPointIterator.merge(intermediatePaths.get(0), intermediatePaths.get(1));
+        Path leftToRight = ControlPointIterator.merge(graph, intermediatePaths.get(0), intermediatePaths.get(1));
 
-        assert middleToRight.tail() == middle;
-        assert middleToRight.head() == right;
+        assert middleToRight.first() == middle;
+        assert middleToRight.last() == right;
         Path skippedPath = ControlPointIterator.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right, refuseLongerPaths, tail());
         assert skippedPath != null;
-        assert skippedPath.tail() == left;
-        assert skippedPath.head() == right;
+        assert skippedPath.first() == left;
+        assert skippedPath.last() == right;
         if (skippedPath.equals(leftToRight) && ControlPointIterator.log) {
             System.out.println("Makes last control point useless...");
         }

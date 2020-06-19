@@ -230,7 +230,7 @@ public class IterationsTest extends SystemTest {
 
     private static int getDifference(@NotNull Settings a, @NotNull Settings b) {
         int found = -1;
-        if (a.initialLocalizedAllDifferent != b.initialLocalizedAllDifferent) {
+        if (a.initialNeighbourhoodFiltering != b.initialNeighbourhoodFiltering) {
             found = 0;
         }
         if (a.initialGlobalAllDifferent != b.initialGlobalAllDifferent) {

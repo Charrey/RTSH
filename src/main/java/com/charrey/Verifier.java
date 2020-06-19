@@ -35,7 +35,7 @@ class Verifier {
             for (DefaultEdge edge : pattern.edgeSet()) {
                 Vertex edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge).data());
                 Vertex edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge).data());
-                long matches = edgeMatching.allPaths().stream().filter(x -> x.head().equals(edgeTargetTarget) && x.tail().equals(edgeSourceTarget)).count();
+                long matches = edgeMatching.allPaths().stream().filter(x -> x.last().equals(edgeTargetTarget) && x.first().equals(edgeSourceTarget)).count();
                 if (matches != 1) {
                     assert false;
                     return false;
@@ -45,7 +45,7 @@ class Verifier {
             for (DefaultEdge edge : pattern.edgeSet()) {
                 Vertex edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge).data());
                 Vertex edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge).data());
-                long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.head(), x.tail()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
+                long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
                 if (matches != 1) {
                     assert false;
                     return false;
