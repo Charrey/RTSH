@@ -15,9 +15,7 @@ import org.jgrapht.Graphs;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.MaskSubgraph;
-import org.jgrapht.nio.dot.DOTExporter;
 
-import java.io.*;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -94,9 +92,9 @@ public class ControlPointIterator extends PathIterator {
                         (localOccupation.contains(x.data()) || globalOccupation.isOccupied(x) ||
                                 (refuseLongerPaths && violatesLongerPaths(targetGraph, x, from, to, tail, localOccupation))), x -> false);
 
-        StringWriter writer = new StringWriter();
-        new DOTExporter<Vertex, DefaultEdge>(vertex -> String.valueOf(vertex.data())).exportGraph(fakeGraph, writer);
-        String dot = writer.toString();
+//        StringWriter writer = new StringWriter();
+//        new DOTExporter<Vertex, DefaultEdge>(vertex -> String.valueOf(vertex.data())).exportGraph(fakeGraph, writer);
+//        String dot = writer.toString();
 
         GraphPath<Vertex, DefaultEdge> algo = new BFSShortestPath<>(fakeGraph).getPath(from, to);
         return algo == null ? null : new Path(targetGraph, algo);
@@ -230,6 +228,11 @@ public class ControlPointIterator extends PathIterator {
             chosenPath = null;
         }
         return null;
+    }
+
+    @Override
+    public String debugInfo() {
+        throw new IllegalStateException("Call ManagedControlPointIterator insead");
     }
 
     private boolean isUnNecessarilyLong(@NotNull Path chosenPath) {

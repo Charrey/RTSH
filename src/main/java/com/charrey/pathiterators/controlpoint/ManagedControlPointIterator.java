@@ -69,6 +69,11 @@ public class ManagedControlPointIterator extends PathIterator {
         }
     }
 
+    @Override
+    public String debugInfo() {
+        return "controlpoints(" + controlPoints + ")";
+    }
+
     private boolean rightShiftPossible() {
         Vertex left = tail();
         List<Path> intermediatePaths = intermediatePaths();

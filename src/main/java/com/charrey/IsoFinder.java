@@ -1,31 +1,44 @@
 package com.charrey;
 
+import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
+import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
+import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.settings.Settings;
-import com.charrey.algorithms.UtilityData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.charrey.runtimecheck.DomainCheckerException;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 
 public class IsoFinder {
 
     private static final Logger LOG = Logger.getLogger("IsoFinder");
-    private static EdgeMatching edgeMatching;
-    private static VertexMatching vertexMatching;
+    private EdgeMatching edgeMatching;
+    private VertexMatching vertexMatching;
 
-    private static void setup(@NotNull TestCase testcase, @NotNull Settings settings) throws DomainCheckerException {
+    private void setup(@NotNull TestCase testcase, @NotNull Settings settings) throws DomainCheckerException {
         UtilityData data = new UtilityData(testcase.sourceGraph, testcase.targetGraph);
         logDomainReduction(testcase, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+
+        for (MyGraph graph : testcase) {
+            Iterator<Vertex> iterator = graph.vertexSet().iterator();
+            final int[] counter = {0};
+            Vertex v = null;
+            iterator.forEachRemaining(vertex -> {
+                vertex.setData(counter[0]);
+                counter[0]++;
+            });
+        }
+
         if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
@@ -34,8 +47,9 @@ public class IsoFinder {
         edgeMatching        = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
 
+    private long lastPrint = 0;
     @Nullable
-    public static HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout) {
+    public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout) {
         try {
             setup(testcase, settings);
         } catch (DomainCheckerException e) {
@@ -45,8 +59,9 @@ public class IsoFinder {
         long initialTime = System.currentTimeMillis();
         while (!allDone(testcase.sourceGraph, vertexMatching, edgeMatching)) {
             iterations++;
-            if (iterations%1000==0) {
+            if (System.currentTimeMillis() - lastPrint > 2000) {
                 System.out.println(iterations + " iterations...");
+                lastPrint = System.currentTimeMillis();
             }
             if (System.currentTimeMillis() > initialTime + timeout) {
                 return null;

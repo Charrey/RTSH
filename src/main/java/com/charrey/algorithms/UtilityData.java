@@ -2,6 +2,7 @@ package com.charrey.algorithms;
 
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
@@ -112,7 +113,7 @@ public class UtilityData {
      * result are neighbours of that vertex in the order that they need to be tried.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public Vertex[][][] getTargetNeighbours(int strategy) {
+    public @NotNull Vertex[][][] getTargetNeighbours(int strategy) {
         if (targetNeighbours == null) {
             List<Vertex> targetVertices = targetGraph.vertexSet()
                     .stream()
@@ -123,7 +124,7 @@ public class UtilityData {
                     targetNeighbours = new Vertex[targetGraph.vertexSet().size()][][];
                     for (int i = 0; i < sharedTargetNeighbours.length; i++) {
                         Vertex candidate = targetVertices.get(i);
-                        assert candidate.data() == i;
+                        assert candidate.data() == i : "Target graph does not have consecutive vertex data starting from zero. Index: " + i + ", data: " + candidate.data();
                         sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
                                 .stream()
                                 .map(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
@@ -166,7 +167,7 @@ public class UtilityData {
                     throw new UnsupportedOperationException();
             }
         }
-        return targetNeighbours.clone();
+        return targetNeighbours;
     }
 
 

@@ -25,6 +25,7 @@ public class DFSPathIterator extends PathIterator {
     private final GlobalOccupation occupation;
     private final OccupationTransaction transaction;
     private final Supplier<Integer> placementSize;
+    private int counter = 0;
 
     public DFSPathIterator(@NotNull MyGraph graph, @NotNull Vertex[][] neighbours, @NotNull Vertex tail, Vertex head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
@@ -99,6 +100,7 @@ public class DFSPathIterator extends PathIterator {
         }
         transaction.commit();
         assert !exploration.isEmpty();
+        counter++;
         return exploration;
     }
 
@@ -123,6 +125,11 @@ public class DFSPathIterator extends PathIterator {
     @Override
     public Vertex head() {
         return head;
+    }
+
+    @Override
+    public String debugInfo() {
+        return String.valueOf(counter);
     }
 
 }

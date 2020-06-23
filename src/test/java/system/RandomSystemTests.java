@@ -71,7 +71,7 @@ class RandomSystemTests extends SystemTest {
                 System.out.println(testCase.targetGraph.toString().replaceAll("\r\n", ""));
                 patternNodes = testCase.sourceGraph.vertexSet().size();
                 patternEdges = testCase.sourceGraph.edgeSet().size();
-                HomeomorphismResult homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge, time - (System.currentTimeMillis() - start), settings) : IsoFinder.getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start));
+                HomeomorphismResult homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge, time - (System.currentTimeMillis() - start), settings) : new IsoFinder().getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start));
                 if (homeomorphism == null) {
                     return;
                 }

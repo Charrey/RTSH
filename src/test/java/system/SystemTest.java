@@ -32,7 +32,7 @@ public abstract class SystemTest {
 
     @Nullable
     HomeomorphismResult testSucceed(@NotNull TestCase testCase, boolean writeChallenge, long timeout, @NotNull Settings settings) throws IOException {
-        HomeomorphismResult morph = IsoFinder.getHomeomorphism(testCase, settings, timeout);
+        HomeomorphismResult morph = new IsoFinder().getHomeomorphism(testCase, settings, timeout);
         if (morph == null) {
             return null;
         }

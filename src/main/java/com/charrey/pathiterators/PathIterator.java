@@ -65,4 +65,5 @@ public abstract class PathIterator {
         return head;
     }
 
+    public abstract String debugInfo();
 }

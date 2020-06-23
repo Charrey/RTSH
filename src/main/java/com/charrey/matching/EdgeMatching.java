@@ -1,14 +1,15 @@
 package com.charrey.matching;
 
-import com.charrey.occupation.GlobalOccupation;
+import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.algorithms.UtilityData;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,7 +30,7 @@ public class EdgeMatching extends VertexBlocker {
     private Vertex[][] edges; //do not change
     private boolean[][] incoming; //only for directed graphs
 
-    private ArrayList<LinkedList<Path>> paths;
+    private ArrayList<LinkedList<Pair<Path, String>>> paths;
 
     private final UtilityData data;
 
@@ -41,7 +42,7 @@ public class EdgeMatching extends VertexBlocker {
         this.directed = target.isDirected();
         initPathsEdges();
         initPathFinders();
-        assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
+        assert paths.stream().allMatch(x -> x.stream().noneMatch(y -> y.getFirst().isEmpty()));
         EdgeMatching em = this;
         this.vertexMatching.setOnDeletion(em::synchronize);
         this.occupation = occupation;
@@ -55,7 +56,7 @@ public class EdgeMatching extends VertexBlocker {
         while (paths.size() < data.getOrder().size()) {
             paths.add(new LinkedList<>());
         }
-        assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
+        assert paths.stream().allMatch(x -> x.stream().noneMatch(y -> y.getFirst().isEmpty()));
     }
 
     public boolean hasUnmatched() {
@@ -70,14 +71,14 @@ public class EdgeMatching extends VertexBlocker {
         if (vertexMatching.getPlacementUnsafe().isEmpty()) {
             return false;
         }
-        List<Path> pathList = paths.get(vertexMatching.getPlacementUnsafe().size()-1);
+        List<Pair<Path, String>> pathList = paths.get(vertexMatching.getPlacementUnsafe().size()-1);
         if (pathList.isEmpty()) {
             return false;
         }
         int placementSize = vertexMatching.getPlacementUnsafe().size();
         assert occupation.domainChecker.checkOK(placementSize);
         for (int i = pathList.size() - 1; i >= 0; i--) {
-            Path toRetry = pathList.get(i);
+            Path toRetry = pathList.get(i).getFirst();
             Vertex tail = toRetry.first();
             Vertex head = toRetry.last();
             assert directed || tail.data() < head.data();
@@ -88,7 +89,7 @@ public class EdgeMatching extends VertexBlocker {
                 assert pathFound.first() == tail : "Expected: " + tail + ", actual: " + pathFound.first();
                 assert pathFound.last() == head : "Expected: " + head + ", actual: " + pathFound.last();
                 Path toAdd = new Path(pathFound);
-                pathList.set(pathList.size() - 1, toAdd);
+                pathList.set(pathList.size() - 1, new Pair<>(toAdd, pathfinder.debugInfo()));
                 assert occupation.domainChecker.checkOK(placementSize);
                 return true;
             } else {
@@ -127,7 +128,7 @@ public class EdgeMatching extends VertexBlocker {
         pathfinders.put(tail, head, iterator);
         Path toReturn = iterator.next();
         if (toReturn != null) {
-            addPath(toReturn);
+            addPath(toReturn, iterator.debugInfo());
             assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
             return toReturn;
         } else {
@@ -170,27 +171,27 @@ public class EdgeMatching extends VertexBlocker {
             }
             paths.add(new LinkedList<>());
         }
-        assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
+        assert paths.stream().allMatch(x -> x.stream().noneMatch(y -> y.getFirst().isEmpty()));
 
     }
 
-    private void addPath(@NotNull Path found) {
+    private void addPath(@NotNull Path found, String debugInfo) {
         assert !found.isEmpty();
         assert directed || found.last().data() > found.first().data();
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
         Path added = new Path(found);
-        paths.get(lastPlacedIndex).add(added);
+        paths.get(lastPlacedIndex).add(new Pair<>(added, debugInfo));
     }
 
     @NotNull
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("EdgeMatching " + (directed ? "directed " : "") + "{\n");
-        for (List<Path> pathAddition : paths) {
+        for (List<Pair<Path, String>> pathAddition : paths) {
             sb.append("\t").append(pathAddition).append("\n");
         }
         sb.append("}\n");
-        assert paths.stream().allMatch(x -> x.stream().noneMatch(Path::isEmpty));
+        assert paths.stream().allMatch(x -> x.stream().noneMatch(y -> y.getFirst().isEmpty()));
         return sb.toString();
     }
 
@@ -204,15 +205,15 @@ public class EdgeMatching extends VertexBlocker {
     @NotNull
     public Set<Path> allPaths() {
         Set<Path> res = new HashSet<>();
-        for (List<Path> pathList : paths) {
-            res.addAll(pathList);
+        for (LinkedList<Pair<Path, String>> pathList : paths) {
+            pathList.forEach(x -> res.add(x.getFirst()));
         }
         return Collections.unmodifiableSet(res);
     }
 
     private void removeLastPath() {
-        List<Path> pathList = this.paths.get(this.vertexMatching.getPlacementUnsafe().size() - 1);
-        Path removed = pathList.remove(pathList.size() - 1);
+        List<Pair<Path, String>> pathList = this.paths.get(this.vertexMatching.getPlacementUnsafe().size() - 1);
+        Path removed = pathList.remove(pathList.size() - 1).getFirst();
         //removed.intermediate().forEach(x -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), x)); // this should be the empty path now
         assert directed || removed.last().data() > removed.first().data();
     }

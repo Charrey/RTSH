@@ -29,4 +29,9 @@ public class SingletonPathIterator extends PathIterator {
         }
     }
 
+    @Override
+    public String debugInfo() {
+        return "single";
+    }
+
 }

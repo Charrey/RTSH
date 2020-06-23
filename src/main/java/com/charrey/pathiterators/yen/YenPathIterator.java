@@ -1,9 +1,9 @@
 package com.charrey.pathiterators.yen;
 
-import com.charrey.occupation.GlobalOccupation;
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
 import com.charrey.graph.generation.MyGraph;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
@@ -14,7 +14,6 @@ import org.jgrapht.alg.shortestpath.YenShortestPathIterator;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.MaskSubgraph;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -33,7 +32,7 @@ public class YenPathIterator extends PathIterator {
     private final YenShortestPathIterator<Vertex, DefaultEdge> yen;
 
     private OccupationTransaction transaction;
-    private final Set<Vertex> occupied = new HashSet<>();
+    private int counter = 0;
 
     public YenPathIterator(@NotNull MyGraph targetGraph, @NotNull Vertex tail, Vertex head, @NotNull GlobalOccupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
@@ -72,12 +71,18 @@ public class YenPathIterator extends PathIterator {
             if (okay) {
                 transaction.commit();
                 previousPath = new Path(pathFound);
+                counter++;
                 return previousPath;
             }
         }
         previousPath = null;
         return null;
 
+    }
+
+    @Override
+    public String debugInfo() {
+        return String.valueOf(counter);
     }
 
     private boolean hasUnnecessarilyLongPaths(@NotNull Path pathFound) {

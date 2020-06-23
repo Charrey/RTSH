@@ -2,9 +2,6 @@ package com.charrey.graph;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jgrapht.nio.Attribute;
-import org.jgrapht.nio.AttributeType;
-import org.jgrapht.nio.DefaultAttribute;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
@@ -12,12 +9,11 @@ import java.util.*;
 
 public class Vertex implements Serializable, Comparable<Vertex> {
 
-    private static int counter = 0;
+    private static volatile int counter = 0;
     private final int counterValue;
     private int data;
-    private final Map<String, Set<Attribute>> attributes = new HashMap<>();
+    private final Map<String, Set<String>> attributes = new HashMap<>();
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public Vertex(int data) {
         this.data = data;
         counterValue = ++counter;
@@ -25,17 +21,21 @@ public class Vertex implements Serializable, Comparable<Vertex> {
 
     public void addAttribute(String key, String value) {
         attributes.putIfAbsent(key, new HashSet<>());
-        attributes.get(key).add(new DefaultAttribute<>(value, AttributeType.STRING));
+        attributes.get(key).add(value);
+    }
+
+    public Set<String> getAttribute(String key) {
+        return attributes.get(key);
     }
 
 
     @NotNull
     @Override
     public String toString() {
-        return "[" + data + "]";
+        return "[" + data + "(" + attributes + ")" +"]";
     }
 
-    public Set<Attribute> getLabels() {
+    public Set<String> getLabels() {
         return attributes.getOrDefault("label", Collections.emptySet());
     }
 
@@ -63,5 +63,9 @@ public class Vertex implements Serializable, Comparable<Vertex> {
 
     public int data() {
         return data;
+    }
+
+    public void removeLabels() {
+        attributes.remove("label");
     }
 }
