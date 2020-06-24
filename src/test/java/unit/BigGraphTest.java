@@ -54,6 +54,9 @@ class BigGraphTest {
     }
 
 
+    private static volatile boolean failed = false;
+
+    @SuppressWarnings("ProhibitedExceptionThrown")
     @Test
     void importSingleTile() throws IOException, InterruptedException {
         targetGraph = new MyGraph(true);
@@ -78,31 +81,51 @@ class BigGraphTest {
         TestCase testCase = new TestCase(sourceGraph, targetGraph);
         Thread thread1 = new Thread(() -> {
             Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.YEN, new Random(1234));
-            HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60*60*1000);
-            System.out.println(result);
-            System.out.println("YEN");
-            System.out.flush();
+            try {
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
+                System.out.println(result);
+                System.out.println("YEN");
+                System.out.flush();
+            } catch (Exception e) {
+                failed = true;
+                throw e;
+            }
         });
         Thread thread2 = new Thread(() -> {
             Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.DFS_ARBITRARY, new Random(1234));
-            HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60*60*1000);
-            System.out.println(result);
-            System.out.println("DFS Arbitrary");
-            System.out.flush();
+            try {
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
+                System.out.println(result);
+                System.out.println("DFS Arbitrary");
+                System.out.flush();
+            } catch (Exception e) {
+                failed = true;
+                throw e;
+            }
         });
         Thread thread3 = new Thread(() -> {
             Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.DFS_GREEDY, new Random(1234));
-            HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60*60*1000);
-            System.out.println(result);
-            System.out.println("DFS Greedy");
-            System.out.flush();
+            try {
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
+                System.out.println(result);
+                System.out.println("DFS Greedy");
+                System.out.flush();
+            } catch (Exception e) {
+                failed = true;
+                throw e;
+            }
         });
         Thread thread4 = new Thread(() -> {
             Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.CONTROL_POINT, new Random(1234));
-            HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60*60*1000);
-            System.out.println(result);
-            System.out.println("Controlpoint");
-            System.out.flush();
+            try {
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
+                System.out.println(result);
+                System.out.println("Controlpoint");
+                System.out.flush();
+            } catch (Exception e) {
+                failed = true;
+                throw e;
+            }
         });
         thread1.start();
         thread2.start();
@@ -112,6 +135,7 @@ class BigGraphTest {
         thread2.join();
         thread3.join();
         thread4.join();
+        assert !failed;
     }
 
     private void removeTails(@NotNull MyGraph graph) {

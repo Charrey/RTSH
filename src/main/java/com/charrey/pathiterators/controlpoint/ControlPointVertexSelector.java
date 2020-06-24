@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * Class that iterates over vertex suitable as control point for the ControlPointIterator class
+ */
 public class ControlPointVertexSelector implements Iterator<Integer> {
 
     @NotNull
@@ -23,6 +26,17 @@ public class ControlPointVertexSelector implements Iterator<Integer> {
     private int indexTried = -1;
 
 
+    /**
+     * Creates a new instance of this object.
+     *
+     * @param graph                  the target graph
+     * @param occupation             the global occupation in which used vertices are registered
+     * @param initialLocalOccupation the local occupation in which locally used vertices are registered
+     * @param from                   source vertex of the path
+     * @param to                     target vertex of the path
+     * @param refuseLongerPaths      whether to refuse paths that take unnecessarily many resources
+     * @param tail                   end goal vertex of this path (since ControlPointIterator is recursive)
+     */
     ControlPointVertexSelector(@NotNull MyGraph graph,
                                @NotNull AbstractOccupation occupation,
                                @NotNull Set<Integer> initialLocalOccupation,
@@ -32,7 +46,7 @@ public class ControlPointVertexSelector implements Iterator<Integer> {
                                int tail) {
         this.occupation = occupation;
         this.localOccupation = initialLocalOccupation;
-        Random random = new Random(1 + 3*graph.hashCode() + 5*occupation.hashCode() + 7*initialLocalOccupation.hashCode() + 11*from + 13*to);
+        Random random = new Random(1 + 3 * graph.hashCode() + 5 * occupation.hashCode() + 7 * initialLocalOccupation.hashCode() + 11 * from + 13 * to);
         vertices = GraphUtil.randomVertexOrder(graph, random);
         Path path = ControlPointIterator.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail);
         if (path == null) {

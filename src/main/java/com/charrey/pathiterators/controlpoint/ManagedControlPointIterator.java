@@ -14,6 +14,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+/**
+ * A path iterator that iterates over paths by adding intermediate vertices that must be visited before the end vertex.
+ * A shortest path algorithm is then applied to obtain the resulting path. The number of intermediate vertices increases
+ * the more often next() is called.
+ */
 public class ManagedControlPointIterator extends PathIterator {
 
 
@@ -24,15 +29,28 @@ public class ManagedControlPointIterator extends PathIterator {
     private final OccupationTransaction transaction;
     private final int maxControlPoints;
     private final Supplier<Integer> verticesPlaced;
+    private final ControlPointIteratorSettings settings;
     private ControlPointIterator child;
     private int controlPoints = 0;
 
+    /**
+     * Instantiates a new ManagedControlPointIterator.
+     *
+     * @param graph             the target graph
+     * @param tail              the source of the path
+     * @param head              the target of the path
+     * @param globalOccupation  the GlobalOccupation where intermediate nodes are registered
+     * @param maxControlPoints  the maximum number of control points used (lower this for 'simpler' paths)
+     * @param verticesPlaced    supplier of the number of source graph vertices placed at this point in the search
+     * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
+     */
     public ManagedControlPointIterator(@NotNull MyGraph graph, int tail, int head, @NotNull GlobalOccupation globalOccupation, int maxControlPoints, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.transaction = globalOccupation.getTransaction();
-        this.child = new ControlPointIterator(graph, tail, head, transaction, new HashSet<>(), controlPoints, verticesPlaced, refuseLongerPaths);
+        this.settings = new ControlPointIteratorSettings(true);
+        this.child = new ControlPointIterator(graph, tail, head, transaction, new HashSet<>(), controlPoints, verticesPlaced, settings);
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
     }
@@ -58,12 +76,12 @@ public class ManagedControlPointIterator extends PathIterator {
                     return null;
                 }
                 controlPoints += 1;
-                if (ControlPointIterator.log) {
+                if (settings.log) {
                     System.out.println("Raising control point count to " + controlPoints);
                 }
                 Set<Integer> localOccupation = new HashSet<>();
                 localOccupation.add(head());
-                child = new ControlPointIterator(graph, tail(), head(), transaction, localOccupation, controlPoints, verticesPlaced, refuseLongerPaths);
+                child = new ControlPointIterator(graph, tail(), head(), transaction, localOccupation, controlPoints, verticesPlaced, settings);
             }
         }
     }
@@ -90,7 +108,7 @@ public class ManagedControlPointIterator extends PathIterator {
             assert leftToMiddleAlt != null;
             Path alternative = ControlPointIterator.merge(graph, leftToMiddleAlt, middleAltToRight);
             if (alternative.equals(leftToRight)) {
-                if (ControlPointIterator.log) {
+                if (settings.log) {
                     System.out.println("Right-shift possible to vertex " + middleAlt);
                 }
                 return true;
@@ -116,7 +134,7 @@ public class ManagedControlPointIterator extends PathIterator {
         assert skippedPath != null;
         assert skippedPath.first() == left;
         assert skippedPath.last() == right;
-        if (skippedPath.equals(leftToRight) && ControlPointIterator.log) {
+        if (skippedPath.equals(leftToRight) && settings.log) {
             System.out.println("Makes last control point useless...");
         }
         return skippedPath.equals(leftToRight);
@@ -146,6 +164,11 @@ public class ManagedControlPointIterator extends PathIterator {
         return res;
     }
 
+    /**
+     * Returns the last path returned by this path iterator.
+     *
+     * @return the last path returned
+     */
     public Path finalPath() {
         if (child == null) {
             return null;
@@ -154,6 +177,11 @@ public class ManagedControlPointIterator extends PathIterator {
         }
     }
 
+    /**
+     * Returns the first path segment (up to the first control point) of the last returned path
+     *
+     * @return the first path segment
+     */
     public Path firstPath() {
         if (child == null) {
             return null;
@@ -163,6 +191,11 @@ public class ManagedControlPointIterator extends PathIterator {
     }
 
 
+    /**
+     * Returns a list of control points from left (source) to right (target).
+     *
+     * @return the control points
+     */
     @NotNull
     public List<Integer> controlPoints() {
         return child.controlPoints();

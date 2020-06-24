@@ -12,11 +12,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
+/**
+ * A path iterator that performs DFS to obtain paths.
+ */
 public class DFSPathIterator extends PathIterator {
     private final int head;
 
     @NotNull
-    private final Integer[][] outgoingNeighbours;
+    private final int[][] outgoingNeighbours;
     @NotNull
     private final int[] chosenOption;
     @NotNull
@@ -26,7 +29,18 @@ public class DFSPathIterator extends PathIterator {
     private final Supplier<Integer> placementSize;
     private int counter = 0;
 
-    public DFSPathIterator(@NotNull MyGraph graph, @NotNull Integer[][] neighbours, int tail, int head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths) {
+    /**
+     * Instantiates a new DFS path iterator.
+     *
+     * @param graph             the target graph
+     * @param neighbours        the neighbours
+     * @param tail              the tail
+     * @param head              the head
+     * @param occupation        the occupation
+     * @param placementSize     the placement size
+     * @param refuseLongerPaths the refuse longer paths
+     */
+    public DFSPathIterator(@NotNull MyGraph graph, @NotNull int[][] neighbours, int tail, int head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
         this.head = head;
         exploration = new Path(graph, tail);

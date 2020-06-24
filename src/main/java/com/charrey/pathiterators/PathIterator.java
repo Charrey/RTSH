@@ -42,7 +42,7 @@ public abstract class PathIterator {
         switch (pathIteration) {
             case DFS_ARBITRARY:
             case DFS_GREEDY:
-                Integer[][] targetNeighbours = data.getTargetNeighbours(pathIteration)[head];
+                int[][] targetNeighbours = data.getTargetNeighbours(pathIteration)[head];
                 return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths);
             case CONTROL_POINT:
                 return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 300, placementSize, refuseLongerPaths);

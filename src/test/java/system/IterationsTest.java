@@ -3,7 +3,7 @@ package system;
 import com.charrey.HomeomorphismResult;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
-import com.charrey.pathiterators.controlpoint.ControlPointIterator;
+import com.charrey.pathiterators.controlpoint.ControlPointIteratorSettings;
 import com.charrey.settings.PathIterationStrategy;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
@@ -140,7 +140,7 @@ public class IterationsTest extends SystemTest {
                             1800_000,
                             settings);
                 } catch (AssertionError e) {
-                    ControlPointIterator.log = true;
+                    ControlPointIteratorSettings.defaultLog = true;
                     try {
                         testSucceed(new TestCase(pattern, target),
                                 false,

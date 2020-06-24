@@ -69,25 +69,13 @@ public class GlobalOccupation extends AbstractOccupation {
         return new OccupationTransaction(new HashSet<>(routingBits), new HashSet<>(vertexBits), domainChecker.copy(), this);
     }
 
+
     /**
      * Occupies a vertex in the target graph and marks it as being used as 'intermediate' vertex.
      *
      * @param vertexPlacementSize the number of source graph vertices placed
      * @param vertex              the vertex being occupied for routing purposes
-     * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.
-     *                                If this is thrown, this class remains unchanged.
      */
-    void occupyRoutingAndCheck(int vertexPlacementSize, int vertex) throws DomainCheckerException {
-        assert !routingBits.contains(vertex);
-        routingBits.add(vertex);
-        try {
-            domainChecker.afterOccupyEdge(vertexPlacementSize, vertex);
-        } catch (DomainCheckerException e) {
-            routingBits.remove(vertex);
-            throw e;
-        }
-    }
-
     void occupyRoutingWithoutCheck(int vertexPlacementSize, int vertex) {
         assert !routingBits.contains(vertex);
         routingBits.add(vertex);

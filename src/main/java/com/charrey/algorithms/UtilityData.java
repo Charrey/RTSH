@@ -107,7 +107,7 @@ public class UtilityData {
 
 
 
-    private Integer[][][] targetNeighbours;
+    private int[][][] targetNeighbours;
 
     /**
      * Returns an array that provides for each target vertex an ordering in which to try other target vertices in DFS.
@@ -117,23 +117,23 @@ public class UtilityData {
      * @return a 3-d array where the first argument is the goal vertex, the second argument is some target graph vertex and the result are neighbours of that vertex in the order that they need to be tried.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public @NotNull Integer[][][] getTargetNeighbours(int strategy) {
+    public @NotNull
+    int[][][] getTargetNeighbours(int strategy) {
         if (targetNeighbours == null) {
             List<Integer> targetVertices = targetGraph.vertexSet()
                     .stream()
                     .sorted().collect(Collectors.toList());
             switch (strategy) {
                 case DFS_ARBITRARY:
-                    Integer[][] sharedTargetNeighbours = new Integer[targetVertices.size()][];
-                    targetNeighbours = new Integer[targetGraph.vertexSet().size()][][];
+                    int[][] sharedTargetNeighbours = new int[targetVertices.size()][];
+                    targetNeighbours = new int[targetGraph.vertexSet().size()][][];
                     for (int i = 0; i < sharedTargetNeighbours.length; i++) {
                         int candidate = targetVertices.get(i);
                         assert candidate == i : "Target graph does not have consecutive vertex data starting from zero. Index: " + i + ", data: " + candidate;
                         sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
                                 .stream()
-                                .map(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
-                                .sorted()
-                                .collect(Collectors.toList()).toArray(Integer[]::new);
+                                .mapToInt(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
+                                .sorted().toArray();
                     }
                     for (int i = 0; i < targetGraph.vertexSet().size(); i++) {
                         targetNeighbours[i] = Arrays.copyOf(sharedTargetNeighbours, sharedTargetNeighbours.length);
@@ -144,7 +144,7 @@ public class UtilityData {
                     List[][] tempTargetNeigbours = new List[targetNeighbours.length][targetNeighbours.length];
                     for (int i = 0; i < tempTargetNeigbours.length; i++) {
                         for (int j = 0; j < tempTargetNeigbours[i].length; j++) {
-                            tempTargetNeigbours[i][j] = new LinkedList(Arrays.asList(targetNeighbours[i][j]));
+                            tempTargetNeigbours[i][j] = Arrays.stream(targetNeighbours[i][j]).boxed().collect(Collectors.toList());
                         }
                     }
                     ShortestPathAlgorithm<Integer, DefaultEdge> dijkstra = new DijkstraShortestPath<>(targetGraph);
@@ -163,7 +163,7 @@ public class UtilityData {
                             }
                             toSort.removeAll(toRemove);
                             toSort.sort(Comparator.comparingInt(o -> distances[o]));
-                            targetNeighbours[i][j] = toSort.toArray(Integer[]::new);
+                            targetNeighbours[i][j] = toSort.stream().mapToInt(x -> x).toArray();
                         }
                     }
                     break;
