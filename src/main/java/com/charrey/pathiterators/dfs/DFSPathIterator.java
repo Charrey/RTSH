@@ -58,7 +58,7 @@ public class DFSPathIterator extends PathIterator {
                 !occupation.isOccupiedRouting(vertex) &&
                 !(occupation.isOccupiedVertex(vertex) && vertex != head);
         if (refuseLongerPaths) {
-            isCandidate = isCandidate && exploration.stream().allMatch(x -> x == from || !Arrays.asList(outgoingNeighbours[x]).contains(vertex));
+            isCandidate = isCandidate && exploration.stream().allMatch(x -> x == from || Arrays.stream(outgoingNeighbours[x]).noneMatch(y -> y == vertex));
         }
         return isCandidate;
     }

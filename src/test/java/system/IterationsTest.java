@@ -4,8 +4,8 @@ import com.charrey.HomeomorphismResult;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.pathiterators.controlpoint.ControlPointIteratorSettings;
-import com.charrey.settings.PathIterationStrategy;
-import com.charrey.settings.RunTimeCheck;
+import com.charrey.settings.PathIterationConstants;
+import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
@@ -108,8 +108,8 @@ public class IterationsTest extends SystemTest {
             true,
             true,
             true,
-            RunTimeCheck.ALL_DIFFERENT,
-            PathIterationStrategy.CONTROL_POINT, new Random(19477));
+            PruningConstants.ALL_DIFFERENT,
+            PathIterationConstants.CONTROL_POINT);
 
     /**
      * Test directed.
@@ -173,6 +173,38 @@ public class IterationsTest extends SystemTest {
 
     }
 
+    private static int getDifference(@NotNull Settings a, @NotNull Settings b) {
+        int found = -1;
+        if (a.initialNeighbourhoodFiltering != b.initialNeighbourhoodFiltering) {
+            found = 0;
+        }
+        if (a.initialGlobalAllDifferent != b.initialGlobalAllDifferent) {
+            if (found != -1) {
+                return -1;
+            }
+            found = 1;
+        }
+        if (a.refuseLongerPaths != b.refuseLongerPaths) {
+            if (found != -1) {
+                return -1;
+            }
+            found = 2;
+        }
+        if (a.pruningMethod != b.pruningMethod) {
+            if (found != -1) {
+                return -1;
+            }
+            found = 3;
+        }
+        if (a.pathIteration != b.pathIteration) {
+            if (found != -1) {
+                return -1;
+            }
+            return 4;
+        }
+        return found;
+    }
+
     /**
      * Analyse speeds.
      *
@@ -189,9 +221,8 @@ public class IterationsTest extends SystemTest {
                 true,
                 true,
                 true,
-                RunTimeCheck.ALL_DIFFERENT,
-                PathIterationStrategy.CONTROL_POINT,
-                new Random(300));
+                PruningConstants.ALL_DIFFERENT,
+                PathIterationConstants.CONTROL_POINT);
         for (File category : folder.listFiles()) {
             if (!category.getName().equals("6-8")) {
                 continue;
@@ -245,38 +276,6 @@ public class IterationsTest extends SystemTest {
 
     }
 
-    private static int getDifference(@NotNull Settings a, @NotNull Settings b) {
-        int found = -1;
-        if (a.initialNeighbourhoodFiltering != b.initialNeighbourhoodFiltering) {
-            found = 0;
-        }
-        if (a.initialGlobalAllDifferent != b.initialGlobalAllDifferent) {
-            if (found != -1) {
-                return -1;
-            }
-            found = 1;
-        }
-        if (a.refuseLongerPaths != b.refuseLongerPaths) {
-            if (found != -1) {
-                return -1;
-            }
-            found = 2;
-        }
-        if (a.runTimeCheck != b.runTimeCheck) {
-            if (found != -1) {
-                return -1;
-            }
-            found = 3;
-        }
-        if (a.pathIteration != b.pathIteration) {
-            if (found != -1) {
-                return -1;
-            }
-            return 4;
-        }
-        return found;
-    }
-
     private void exportIterations(long iterations, @NotNull Path file) throws IOException {
         List<String> lines = Files.readAllLines(file);
         List<Pair<Settings, Long>> settings = lines.stream().map(Settings::readString).collect(Collectors.toList());
@@ -293,7 +292,7 @@ public class IterationsTest extends SystemTest {
         }
         settings.sort((o1, o2) -> Settings.comparator.compare(o1.getFirst(), o2.getFirst()));
         PrintWriter writer = new PrintWriter(new FileWriter(file.toFile()));
-        settings.forEach(x -> writer.println(Settings.writeString(x)));
+        settings.forEach(x -> writer.println(Settings.writeString(x.getFirst(), x.getSecond())));
         writer.close();
     }
 

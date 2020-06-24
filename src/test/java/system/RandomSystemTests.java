@@ -8,25 +8,24 @@ import com.charrey.graph.generation.random.TrulyRandomDirectedTestCaseGenerator;
 import com.charrey.graph.generation.random.TrulyRandomUndirectedTestCaseGenerator;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.graph.generation.succeed.RandomSucceedUndirectedTestCaseGenerator;
-import com.charrey.settings.PathIterationStrategy;
-import com.charrey.settings.RunTimeCheck;
+import com.charrey.settings.PathIterationConstants;
+import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class RandomSystemTests extends SystemTest {
 
-    private final Settings settings = new Settings(true, true, true, RunTimeCheck.ALL_DIFFERENT, PathIterationStrategy.CONTROL_POINT, new Random(1234));
+    private final Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, PathIterationConstants.CONTROL_POINT);
 
 
     @Test
     void findCasesUndirectedRandom() throws IOException {
-        if (settings.pathIteration == PathIterationStrategy.KPATH) {
+        if (settings.pathIteration == PathIterationConstants.KPATH) {
             return;
         }
         findCases(30*1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
@@ -34,7 +33,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesUndirectedSucceed() throws IOException {
-        if (settings.pathIteration == PathIterationStrategy.KPATH) {
+        if (settings.pathIteration == PathIterationConstants.KPATH) {
             return;
         }
         findCases(30*1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);

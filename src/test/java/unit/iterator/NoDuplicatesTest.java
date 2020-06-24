@@ -10,8 +10,8 @@ import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PathIterationStrategy;
-import com.charrey.settings.RunTimeCheck;
+import com.charrey.settings.PathIterationConstants;
+import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
 import org.jetbrains.annotations.NotNull;
@@ -30,29 +30,28 @@ class NoDuplicatesTest {
             true,
             true,
             true,
-            RunTimeCheck.ALL_DIFFERENT,
-            PathIterationStrategy.CONTROL_POINT,
-            random
+            PruningConstants.ALL_DIFFERENT,
+            PathIterationConstants.CONTROL_POINT
     );
 
     @Test
     void testArbitraryDFS() throws DomainCheckerException {
-        testIterator(PathIterationStrategy.DFS_ARBITRARY);
+        testIterator(PathIterationConstants.DFS_ARBITRARY);
     }
 
     @Test
     void testGreedyDFS() throws DomainCheckerException {
-        testIterator(PathIterationStrategy.DFS_GREEDY);
+        testIterator(PathIterationConstants.DFS_GREEDY);
     }
 
     @Test
     void testYen() throws DomainCheckerException {
-        testIterator(PathIterationStrategy.KPATH);
+        testIterator(PathIterationConstants.KPATH);
     }
 
     @Test
     void testControlPoint() throws DomainCheckerException {
-        testIterator(PathIterationStrategy.CONTROL_POINT);
+        testIterator(PathIterationConstants.CONTROL_POINT);
     }
 
     private static final int differentGraphSizes = 250;
@@ -60,7 +59,7 @@ class NoDuplicatesTest {
 
     void testIterator(int strategy) throws DomainCheckerException {
         settings.pathIteration = strategy;
-        settings.runTimeCheck = RunTimeCheck.NONE;
+        settings.pruningMethod = PruningConstants.NONE;
         final long seed = 1923;
         long counter = -1;
         RandomSucceedDirectedTestCaseGenerator gen = new RandomSucceedDirectedTestCaseGenerator(2, 1, 0, 0, seed);

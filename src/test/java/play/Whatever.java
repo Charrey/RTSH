@@ -6,8 +6,6 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.settings.Settings;
 
-import java.util.Random;
-
 public class Whatever {
 
     public static void main(String[] args) {
@@ -31,7 +29,7 @@ public class Whatever {
         target.addEdge(3, 1);
         target.addEdge(2, 3);
 
-        Settings settings = new Settings(true, true, true, 2, 2, new Random(3));
+        Settings settings = new Settings(true, true, true, 2, 2);
 
         HomeomorphismResult res = new IsoFinder().getHomeomorphism(new TestCase(source, target), settings, 10_000_000);
         System.out.println(res);

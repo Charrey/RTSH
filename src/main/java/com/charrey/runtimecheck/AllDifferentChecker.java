@@ -8,6 +8,10 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Domainchecker that prematurely stops the search when an AllDifferent constraint fails, proving the current search
+ * path is unfruitful.
+ */
 public class AllDifferentChecker extends DomainChecker {
 
     @NotNull
@@ -50,6 +54,13 @@ public class AllDifferentChecker extends DomainChecker {
     }
 
 
+    /**
+     * Instantiates a new AllDifferentChecker
+     *
+     * @param data                          utility data (for cached computation)
+     * @param initialNeighbourhoodFiltering whether domain filtering based on neighbourhoods should be performed.
+     * @param initialGlobalAllDifferent     whether alldifferent needs to be applied initially to reduce domain sizes.
+     */
     @SuppressWarnings({"unchecked"})
     public AllDifferentChecker(@NotNull UtilityData data, boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent) {
         this.allDifferent = new AllDifferent();
@@ -88,7 +99,7 @@ public class AllDifferentChecker extends DomainChecker {
         domain[sourceVertexData].clear();
         domain[sourceVertexData].add(v);
         removeFromDomains(v, candidates, sourceVertexData);
-        if (!checkOK(verticesPlaced)) {
+        if (isUnfruitful(verticesPlaced)) {
             for (int i = candidates.length - 1; i >= 0 && candidates[i] > sourceVertexData; i--) {
                 domain[candidates[i]].add(v);
             }
@@ -110,7 +121,7 @@ public class AllDifferentChecker extends DomainChecker {
         Integer[] candidates = reverseDomain[v];
         int sourceVertexData = verticesPlaced - 1;
         removeFromDomains(v, candidates, sourceVertexData);
-        if (!checkOK(verticesPlaced)) {
+        if (isUnfruitful(verticesPlaced)) {
             for (int i = candidates.length - 1; i >= 0 && candidates[i] > sourceVertexData; i--) {
                 domain[candidates[i]].add(v);
             }
@@ -128,10 +139,9 @@ public class AllDifferentChecker extends DomainChecker {
 
 
     @Override
-    public boolean checkOK(int verticesPlaced) {
-        return Arrays.stream(domain).noneMatch(Set::isEmpty) &&  allDifferent.get(Arrays.asList(domain));
+    public boolean isUnfruitful(int verticesPlaced) {
+        return Arrays.stream(domain).anyMatch(Set::isEmpty) || !allDifferent.get(Arrays.asList(domain));
     }
-
 
 
     @NotNull

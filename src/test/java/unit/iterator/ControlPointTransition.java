@@ -8,8 +8,8 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PathIterationStrategy;
-import com.charrey.settings.RunTimeCheck;
+import com.charrey.settings.PathIterationConstants;
+import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
 import org.jgrapht.Graphs;
@@ -33,9 +33,8 @@ class ControlPointTransition {
             true,
             true,
             true,
-            RunTimeCheck.NONE,
-            PathIterationStrategy.CONTROL_POINT,
-            new Random(1823)
+            PruningConstants.NONE,
+            PathIterationConstants.CONTROL_POINT
     );
 
     @Test

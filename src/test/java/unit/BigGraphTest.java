@@ -4,8 +4,8 @@ import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
-import com.charrey.settings.PathIterationStrategy;
-import com.charrey.settings.RunTimeCheck;
+import com.charrey.settings.PathIterationConstants;
+import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -80,7 +79,7 @@ class BigGraphTest {
 
         TestCase testCase = new TestCase(sourceGraph, targetGraph);
         Thread thread1 = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.KPATH, new Random(1234));
+            Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.KPATH);
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
                 System.out.println(result);
@@ -92,7 +91,7 @@ class BigGraphTest {
             }
         });
         Thread thread2 = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.DFS_ARBITRARY, new Random(1234));
+            Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.DFS_ARBITRARY);
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
                 System.out.println(result);
@@ -104,7 +103,7 @@ class BigGraphTest {
             }
         });
         Thread thread3 = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.DFS_GREEDY, new Random(1234));
+            Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.DFS_GREEDY);
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
                 System.out.println(result);
@@ -116,7 +115,7 @@ class BigGraphTest {
             }
         });
         Thread thread4 = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.CONTROL_POINT, new Random(1234));
+            Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.CONTROL_POINT);
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
                 System.out.println(result);

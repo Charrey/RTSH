@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-import static com.charrey.settings.PathIterationStrategy.*;
+import static com.charrey.settings.PathIterationConstants.*;
 
 public abstract class PathIterator {
 

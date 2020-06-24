@@ -1,5 +1,8 @@
 package com.charrey.runtimecheck;
 
+/**
+ * Domain checker class that performs no pruning.
+ */
 @SuppressWarnings("RedundantThrows")
 public class DummyDomainChecker extends DomainChecker {
     @Override
@@ -28,8 +31,8 @@ public class DummyDomainChecker extends DomainChecker {
     }
 
     @Override
-    public boolean checkOK(int verticesPlaced) {
-        return true;
+    public boolean isUnfruitful(int verticesPlaced) {
+        return false;
     }
 
     @Override

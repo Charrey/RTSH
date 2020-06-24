@@ -8,6 +8,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Domain checker class that prunes the search space if all target graph vertices in some source graph vertex' domain
+ * have been used up by other matchings.
+ */
 public class EmptyDomainChecker extends DomainChecker {
 
     private final Integer[][] reverseDomain;
@@ -32,10 +36,17 @@ public class EmptyDomainChecker extends DomainChecker {
     }
 
 
+    /**
+     * Instantiates a new EmptyDomainChecker
+     *
+     * @param data                          utility data (for cached computation)
+     * @param initialNeighbourHoodFiltering whether domain filtering based on neighbourhoods should be performed.
+     * @param initialGlobalAllDifferent     whether alldifferent needs to be applied initially to reduce domain sizes.
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public EmptyDomainChecker(@NotNull UtilityData data, boolean intialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
-        this.reverseDomain = data.getReverseCompatibility(intialNeighbourHoodFiltering, initialGlobalAllDifferent);
-        this.domain = (Set[]) Arrays.stream(data.getCompatibility(intialNeighbourHoodFiltering, initialGlobalAllDifferent)).map(x -> new HashSet(Arrays.asList(x))).toArray(Set[]::new);
+    public EmptyDomainChecker(@NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
+        this.reverseDomain = data.getReverseCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent);
+        this.domain = (Set[]) Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent)).map(x -> new HashSet(Arrays.asList(x))).toArray(Set[]::new);
     }
 
     @Override
@@ -90,10 +101,9 @@ public class EmptyDomainChecker extends DomainChecker {
     }
 
     @Override
-    public boolean checkOK(int verticesPlaced) {
-        return Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().noneMatch(Set::isEmpty);
+    public boolean isUnfruitful(int verticesPlaced) {
+        return Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().anyMatch(Set::isEmpty);
     }
-
 
 
     @NotNull

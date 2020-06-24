@@ -2,7 +2,7 @@ package com.charrey.occupation;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.runtimecheck.*;
-import com.charrey.settings.RunTimeCheck;
+import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +31,7 @@ public class GlobalOccupation extends AbstractOccupation {
      * @param settings settings for this homeomorphism search
      */
     public GlobalOccupation(@NotNull UtilityData data, @NotNull Settings settings) {
-        this(data, settings.runTimeCheck, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+        this(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
     }
 
     /**
@@ -44,13 +44,13 @@ public class GlobalOccupation extends AbstractOccupation {
      */
     public GlobalOccupation(@NotNull UtilityData data, int runTimeCheck, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
         switch (runTimeCheck) {
-            case RunTimeCheck.NONE:
+            case PruningConstants.NONE:
                 domainChecker = new DummyDomainChecker();
                 break;
-            case RunTimeCheck.EMPTY_DOMAIN:
+            case PruningConstants.EMPTY_DOMAIN:
                 domainChecker = new EmptyDomainChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent);
                 break;
-            case RunTimeCheck.ALL_DIFFERENT:
+            case PruningConstants.ALL_DIFFERENT:
                 domainChecker = new AllDifferentChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent);
                 break;
             default:

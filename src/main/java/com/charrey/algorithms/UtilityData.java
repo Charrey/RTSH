@@ -13,8 +13,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.charrey.settings.PathIterationStrategy.DFS_ARBITRARY;
-import static com.charrey.settings.PathIterationStrategy.DFS_GREEDY;
+import static com.charrey.settings.PathIterationConstants.DFS_ARBITRARY;
+import static com.charrey.settings.PathIterationConstants.DFS_GREEDY;
 
 /**
  * Class that provides several properties of graphs that are often used and difficult to calculate.
