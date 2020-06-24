@@ -29,7 +29,7 @@ class CompleteTest extends PathIteratorTest {
             true,
             true,
             RunTimeCheck.NONE,
-            PathIterationStrategy.YEN,
+            PathIterationStrategy.KPATH,
             new Random(300));
 
     @Test
@@ -56,7 +56,7 @@ class CompleteTest extends PathIteratorTest {
                 }
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 Map<Integer, Set<Path>> pathCount = new HashMap<>(); //s
-                for (int strategy : List.of(PathIterationStrategy.DFS_ARBITRARY, PathIterationStrategy.DFS_GREEDY, PathIterationStrategy.CONTROL_POINT, PathIterationStrategy.YEN)) {
+                for (int strategy : List.of(PathIterationStrategy.DFS_ARBITRARY, PathIterationStrategy.DFS_GREEDY, PathIterationStrategy.CONTROL_POINT, PathIterationStrategy.KPATH)) {
                     settings.pathIteration = strategy;
                     pathCount.put(strategy, new HashSet<>());
                     GlobalOccupation occupation = new GlobalOccupation(data, settings);

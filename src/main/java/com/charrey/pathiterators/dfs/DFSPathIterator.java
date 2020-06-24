@@ -33,12 +33,13 @@ public class DFSPathIterator extends PathIterator {
      * Instantiates a new DFS path iterator.
      *
      * @param graph             the target graph
-     * @param neighbours        the neighbours
-     * @param tail              the tail
-     * @param head              the head
-     * @param occupation        the occupation
-     * @param placementSize     the placement size
-     * @param refuseLongerPaths the refuse longer paths
+     * @param neighbours        integer array such that for any target graph vertex x, neighbours[x] is an array of
+     *                          outgoing neighbours in the order that they need to be attempted.
+     * @param tail              the start vertex of the path
+     * @param head              the end vertex of the path
+     * @param occupation        the GlobalOccupation where intermediate nodes are registered
+     * @param placementSize     supplier of the number of source graph vertices placed at this point in the search
+     * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
      */
     public DFSPathIterator(@NotNull MyGraph graph, @NotNull int[][] neighbours, int tail, int head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
@@ -58,7 +59,6 @@ public class DFSPathIterator extends PathIterator {
                 !(occupation.isOccupiedVertex(vertex) && vertex != head);
         if (refuseLongerPaths) {
             isCandidate = isCandidate && exploration.stream().allMatch(x -> x == from || !Arrays.asList(outgoingNeighbours[x]).contains(vertex));
-            //isCandidate = isCandidate && Arrays.stream(neighbours[vertex.data()]).noneMatch(x -> x != from && exploration.contains(x));
         }
         return isCandidate;
     }
@@ -76,7 +76,7 @@ public class DFSPathIterator extends PathIterator {
             int indexOfHeadVertex = exploration.length() - 1;
             assert indexOfHeadVertex < chosenOption.length;
             while (chosenOption[indexOfHeadVertex] >= outgoingNeighbours[exploration.get(indexOfHeadVertex)].length) {
-                if (!removeHead(transaction)) {
+                if (removeHead(transaction)) {
                     return null;
                 }
                 indexOfHeadVertex = exploration.length() - 1;
@@ -106,7 +106,7 @@ public class DFSPathIterator extends PathIterator {
             }
             if (!found) {
                 //if not found, bump previous index value.
-                if (!removeHead(transaction)) {
+                if (removeHead(transaction)) {
                     return null;
                 }
             }
@@ -119,19 +119,20 @@ public class DFSPathIterator extends PathIterator {
 
     /**
      * Removes the head of the current exploration queue, provided that it's not the target vertex.
-     * @return whether the operation succeeded
+     *
+     * @return whether the operation failed
      */
     private boolean removeHead(OccupationTransaction transaction) {
         int indexOfHeadVertex = exploration.length() - 1;
         int removed = exploration.removeLast();
         if (exploration.isEmpty()) {
-            return false;
+            return true;
         } else {
             transaction.releaseRouting(placementSize.get(), removed);
         }
         chosenOption[indexOfHeadVertex] = 0;
         chosenOption[indexOfHeadVertex - 1] += 1;
-        return true;
+        return false;
     }
 
 

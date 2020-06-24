@@ -6,7 +6,7 @@ import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
-import com.charrey.pathiterators.yen.YenPathIterator;
+import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,8 +46,8 @@ public abstract class PathIterator {
                 return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths);
             case CONTROL_POINT:
                 return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 300, placementSize, refuseLongerPaths);
-            case YEN:
-                return new YenPathIterator(targetGraph, tail, head, occupation, placementSize, refuseLongerPaths);
+            case KPATH:
+                return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, refuseLongerPaths);
             default:
                 throw new UnsupportedOperationException();
         }

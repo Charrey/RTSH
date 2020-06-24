@@ -8,7 +8,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
-import com.charrey.pathiterators.yen.YenPathIterator;
+import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.settings.PathIterationStrategy;
 import com.charrey.settings.RunTimeCheck;
@@ -47,7 +47,7 @@ class NoDuplicatesTest {
 
     @Test
     void testYen() throws DomainCheckerException {
-        testIterator(PathIterationStrategy.YEN);
+        testIterator(PathIterationStrategy.KPATH);
     }
 
     @Test
@@ -118,7 +118,7 @@ class NoDuplicatesTest {
                 string = "Control points: " + ((ManagedControlPointIterator) iterator).controlPoints();
             } else if (iterator instanceof DFSPathIterator) {
                 string = "DFS path iterator";
-            } else if (iterator instanceof YenPathIterator) {
+            } else if (iterator instanceof KPathPathIterator) {
                 string = "YEN path iterator";
             } else {
                 throw new UnsupportedOperationException();

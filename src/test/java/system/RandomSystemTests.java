@@ -2,7 +2,8 @@ package system;
 
 import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
-import com.charrey.graph.generation.*;
+import com.charrey.graph.generation.TestCase;
+import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.graph.generation.random.TrulyRandomDirectedTestCaseGenerator;
 import com.charrey.graph.generation.random.TrulyRandomUndirectedTestCaseGenerator;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
@@ -25,7 +26,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesUndirectedRandom() throws IOException {
-        if (settings.pathIteration == PathIterationStrategy.YEN) {
+        if (settings.pathIteration == PathIterationStrategy.KPATH) {
             return;
         }
         findCases(30*1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
@@ -33,7 +34,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesUndirectedSucceed() throws IOException {
-        if (settings.pathIteration == PathIterationStrategy.YEN) {
+        if (settings.pathIteration == PathIterationStrategy.KPATH) {
             return;
         }
         findCases(30*1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);

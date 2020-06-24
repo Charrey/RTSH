@@ -80,7 +80,7 @@ class BigGraphTest {
 
         TestCase testCase = new TestCase(sourceGraph, targetGraph);
         Thread thread1 = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.YEN, new Random(1234));
+            Settings settings = new Settings(true, true, true, RunTimeCheck.NONE, PathIterationStrategy.KPATH, new Random(1234));
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
                 System.out.println(result);

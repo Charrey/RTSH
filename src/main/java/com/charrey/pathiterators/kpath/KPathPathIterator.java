@@ -1,4 +1,4 @@
-package com.charrey.pathiterators.yen;
+package com.charrey.pathiterators.kpath;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
@@ -18,7 +18,10 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class YenPathIterator extends PathIterator {
+/**
+ * This pathiterator iterates from shortest path to longest path (i.e. solves the K-Path problem).
+ */
+public class KPathPathIterator extends PathIterator {
     @NotNull
     private final GlobalOccupation occupation;
 
@@ -30,10 +33,20 @@ public class YenPathIterator extends PathIterator {
     @NotNull
     private final YenShortestPathIterator<Integer, DefaultEdge> yen;
 
-    private OccupationTransaction transaction;
+    private final OccupationTransaction transaction;
     private int counter = 0;
 
-    public YenPathIterator(@NotNull MyGraph targetGraph, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
+    /**
+     * Instantiates a new K-Path iterator.
+     *
+     * @param targetGraph       the target graph
+     * @param tail              the source of the path
+     * @param head              the target of the path
+     * @param occupation        the GlobalOccupation where intermediate nodes are registered
+     * @param verticesPlaced    supplier of the number of source graph vertices placed at this point in the search
+     * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
+     */
+    public KPathPathIterator(@NotNull MyGraph targetGraph, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
         this.targetGraph = targetGraph;
         this.occupation = occupation;

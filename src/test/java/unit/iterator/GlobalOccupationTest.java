@@ -47,7 +47,7 @@ class GlobalOccupationTest {
 
     @Test
     void testYen() throws DomainCheckerException {
-        testIterator(PathIterationStrategy.YEN);
+        testIterator(PathIterationStrategy.KPATH);
     }
 
     @Test
