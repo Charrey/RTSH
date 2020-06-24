@@ -2,7 +2,7 @@ package system;
 
 import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.settings.Settings;
 import com.charrey.util.LogHandler;

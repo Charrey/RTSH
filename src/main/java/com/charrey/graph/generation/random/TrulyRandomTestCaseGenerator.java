@@ -1,6 +1,6 @@
 package com.charrey.graph.generation.random;
 
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.TestCaseGenerator;
 import org.jetbrains.annotations.NotNull;

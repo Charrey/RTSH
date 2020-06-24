@@ -1,6 +1,5 @@
 package com.charrey.graph;
 
-import com.charrey.graph.generation.MyGraph;
 import com.google.common.collect.Ordering;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,7 +8,6 @@ import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -18,10 +16,10 @@ import java.util.stream.Stream;
 public class Path implements Comparable<Path> {
 
     @NotNull
-    private final List<Vertex> path;
+    private final List<Integer> path;
     @NotNull
     private final Set<Integer> containing;
-    private final Vertex initialVertex;
+    private final int initialVertex;
     private final MyGraph graph;
 
     /**
@@ -30,7 +28,7 @@ public class Path implements Comparable<Path> {
      * @param graph         the graph of which vertices may be added to this Path.
      * @param initialVertex the initial vertex
      */
-    public Path(@NotNull MyGraph graph, @NotNull Vertex initialVertex) {
+    public Path(@NotNull MyGraph graph, int initialVertex) {
         this.initialVertex = initialVertex;
         path = new LinkedList<>();
         containing = new HashSet<>();
@@ -44,7 +42,7 @@ public class Path implements Comparable<Path> {
      * @return a list view of this path.
      */
     @NotNull
-    public List<Vertex> asList() {
+    public List<Integer> asList() {
         return Collections.unmodifiableList(path);
     }
 
@@ -53,7 +51,7 @@ public class Path implements Comparable<Path> {
      *
      * @return a stream of vertices in this path.
      */
-    public Stream<Vertex> stream() {
+    public Stream<Integer> stream() {
         return path.stream();
     }
 
@@ -62,7 +60,7 @@ public class Path implements Comparable<Path> {
      *
      * @param consumer the consumer
      */
-    public void forEach(Consumer<? super Vertex> consumer) {
+    public void forEach(Consumer<? super Integer> consumer) {
         path.forEach(consumer);
     }
 
@@ -72,13 +70,13 @@ public class Path implements Comparable<Path> {
      * @param graph the graph of which vertices may be added to this Path.
      * @param gPath the JGraphT path to convert to our own datatype.
      */
-    public Path(@NotNull MyGraph graph, @NotNull GraphPath<Vertex, DefaultEdge> gPath) {
+    public Path(@NotNull MyGraph graph, @NotNull GraphPath<Integer, DefaultEdge> gPath) {
         this.path = new LinkedList<>();
         this.containing = new HashSet<>();
         this.initialVertex = gPath.getStartVertex();
-        List<Vertex> vertexList = gPath.getVertexList();
+        List<Integer> vertexList = gPath.getVertexList();
         this.graph = graph;
-        for (Vertex vertex : vertexList) {
+        for (int vertex : vertexList) {
             append(vertex);
         }
     }
@@ -89,7 +87,7 @@ public class Path implements Comparable<Path> {
      * @param graph the graph of which vertices may be added to this Path.
      * @param path  the list of vertices to create a graph path from.
      */
-    public Path(@NotNull MyGraph graph, @NotNull List<Vertex> path) {
+    public Path(@NotNull MyGraph graph, @NotNull List<Integer> path) {
         this.graph = graph;
         this.path = new LinkedList<>();
         this.containing = new HashSet<>();
@@ -114,12 +112,12 @@ public class Path implements Comparable<Path> {
      *
      * @param toAdd vertex to append to this Path.
      */
-    public void append(@NotNull Vertex toAdd) {
-        if (!containing.contains(toAdd.data())) {
+    public void append(int toAdd) {
+        if (!containing.contains(toAdd)) {
             if (!containing.isEmpty() && graph.getEdge(path.get(path.size() - 1), toAdd) == null) {
                 throw new IllegalStateException("Attempt to add a vertex on this path that is not connected to the current head.");
             }
-            containing.add(toAdd.data());
+            containing.add(toAdd);
             path.add(toAdd);
         } else {
             throw new IllegalStateException("Vertex already in this path.");
@@ -131,7 +129,7 @@ public class Path implements Comparable<Path> {
      *
      * @return the last vertex
      */
-    public Vertex last() {
+    public int last() {
         return path.get(path.size() - 1);
     }
 
@@ -157,9 +155,9 @@ public class Path implements Comparable<Path> {
      * Removes the last vertex in this path. Throws IndexOutOfBoundsException if the Path is empty.
      * @return the vertex that was removed.
      */
-    public Vertex removeLast() {
-        Vertex removed = path.remove(path.size() - 1);
-        containing.remove(removed.data());
+    public int removeLast() {
+        int removed = path.remove(path.size() - 1);
+        containing.remove(removed);
         return removed;
     }
 
@@ -169,8 +167,8 @@ public class Path implements Comparable<Path> {
      * @param vertex the vertex to check
      * @return whether the path contains that vertex
      */
-    public boolean contains(@NotNull Vertex vertex) {
-        return containing.contains(vertex.data());
+    public boolean contains(int vertex) {
+        return containing.contains(vertex);
     }
 
     /**
@@ -179,7 +177,7 @@ public class Path implements Comparable<Path> {
      * @param i the index of the vertex to return
      * @return the vertex at that index
      */
-    public Vertex get(int i) {
+    public int get(int i) {
         return path.get(i);
     }
 
@@ -189,7 +187,7 @@ public class Path implements Comparable<Path> {
      * @return a list of all intermediate vertices
      */
     @NotNull
-    public List<Vertex> intermediate() {
+    public List<Integer> intermediate() {
         return path.subList(1, path.size() - 1);
     }
 
@@ -198,7 +196,7 @@ public class Path implements Comparable<Path> {
      *
      * @return the first vertex
      */
-    public Vertex first() {
+    public int first() {
         return path.get(0);
     }
 
@@ -224,6 +222,6 @@ public class Path implements Comparable<Path> {
 
     @Override
     public int compareTo(@NotNull Path o) {
-        return Ordering.natural().lexicographical().compare(this.path.stream().mapToInt(Vertex::data).boxed().collect(Collectors.toList()), o.path.stream().mapToInt(Vertex::data).boxed().collect(Collectors.toList()));
+        return Ordering.natural().lexicographical().compare(new ArrayList<>(this.path), new ArrayList<>(o.path));
     }
 }

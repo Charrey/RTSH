@@ -1,13 +1,12 @@
 package com.charrey.occupation;
 
+import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
+import com.charrey.runtimecheck.*;
 import com.charrey.settings.RunTimeCheck;
 import com.charrey.settings.Settings;
-import com.charrey.algorithms.UtilityData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.charrey.runtimecheck.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,16 +57,16 @@ public class GlobalOccupation extends AbstractOccupation {
         throw new UnsupportedOperationException();
     }
 
-    void occupyRoutingAndCheck(int verticesPlaced, @NotNull Vertex v) throws DomainCheckerException {
-        assert !routingBits.get(v.data());
-        routingBits.set(v.data());
+    void occupyRoutingAndCheck(int verticesPlaced, int v) throws DomainCheckerException {
+        assert !routingBits.get(v);
+        routingBits.set(v);
         String previous = null;
         try {
             previous = domainChecker.toString();
             domainChecker.afterOccupyEdge(verticesPlaced, v);
         } catch (DomainCheckerException e) {
             assertEquals(previous, domainChecker.toString());
-            routingBits.clear(v.data());
+            routingBits.clear(v);
             throw e;
         }
     }
@@ -85,40 +84,40 @@ public class GlobalOccupation extends AbstractOccupation {
         }
     }
 
-    public void occupyVertex(int source, @NotNull Vertex target) throws DomainCheckerException {
-        assert !routingBits.get(target.data());
-        assert !vertexBits.get(target.data());
-        vertexBits.set(target.data());
+    public void occupyVertex(int source, int target) throws DomainCheckerException {
+        assert !routingBits.get(target);
+        assert !vertexBits.get(target);
+        vertexBits.set(target);
         try {
             domainChecker.beforeOccupyVertex(source, target);
         } catch (DomainCheckerException e) {
-            vertexBits.clear(target.data());
+            vertexBits.clear(target);
             throw e;
         }
     }
 
 
-    void releaseRouting(int verticesPlaced, @NotNull Vertex v) {
+    void releaseRouting(int verticesPlaced, int v) {
         assert isOccupiedRouting(v);
-        routingBits.clear(v.data());
+        routingBits.clear(v);
         domainChecker.afterReleaseEdge(verticesPlaced, v);
     }
 
-    public void releaseVertex(int verticesPlaced, @NotNull Vertex v) {
-        assert vertexBits.get(v.data());
-        vertexBits.clear(v.data());
+    public void releaseVertex(int verticesPlaced, int v) {
+        assert vertexBits.get(v);
+        vertexBits.clear(v);
         domainChecker.afterReleaseVertex(verticesPlaced, v);
     }
 
-    public boolean isOccupiedRouting(@NotNull Vertex v) {
-        return routingBits.get(v.data());
+    public boolean isOccupiedRouting(int v) {
+        return routingBits.get(v);
     }
 
-    public boolean isOccupiedVertex(@NotNull Vertex v) {
-        return vertexBits.get(v.data());
+    public boolean isOccupiedVertex(int v) {
+        return vertexBits.get(v);
     }
 
-    public boolean isOccupied(@NotNull Vertex v) {
+    public boolean isOccupied(int v) {
         return isOccupiedRouting(v) || isOccupiedVertex(v);
     }
 
@@ -127,7 +126,7 @@ public class GlobalOccupation extends AbstractOccupation {
         Set<Integer> myList = new HashSet<>();
         myList.addAll(IntStream.range(0, routingBits.size()).filter(this.routingBits::get).boxed().collect(Collectors.toSet()));
         myList.addAll(this.vertexBits.stream().boxed().collect(Collectors.toSet()));
-        assert myList.stream().allMatch(x -> isOccupied(new Vertex(x)));
+        assert myList.stream().allMatch(this::isOccupied);
         List<Integer> res = new LinkedList<>(myList);
         Collections.sort(res);
         return res.toString();

@@ -1,14 +1,13 @@
 package com.charrey.pathiterators;
 
-import com.charrey.occupation.GlobalOccupation;
+import com.charrey.algorithms.UtilityData;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.yen.YenPathIterator;
 import com.charrey.settings.Settings;
-import com.charrey.algorithms.UtilityData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,23 +18,23 @@ import static com.charrey.settings.PathIterationStrategy.*;
 public abstract class PathIterator {
 
 
-    private final Vertex head;
-    private final Vertex tail;
+    private final int head;
+    private final int tail;
     protected final boolean refuseLongerPaths;
 
-    protected PathIterator(Vertex tail, Vertex head, boolean refuseLongerPaths) {
+    protected PathIterator(int tail, int head, boolean refuseLongerPaths) {
         this.tail = tail;
         this.head = head;
         this.refuseLongerPaths = refuseLongerPaths;
     }
 
     @NotNull
-    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, @NotNull Vertex tail, @NotNull Vertex head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, @NotNull Settings settings) {
+    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, @NotNull Settings settings) {
         return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration, settings.refuseLongerPaths);
     }
 
     @NotNull
-    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, @NotNull Vertex tail, @NotNull Vertex head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, int pathIteration, boolean refuseLongerPaths) {
+    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, int pathIteration, boolean refuseLongerPaths) {
         if (targetGraph.getEdge(tail, head) != null) {
             return new SingletonPathIterator(targetGraph, tail, head);
         }
@@ -43,7 +42,7 @@ public abstract class PathIterator {
         switch (pathIteration) {
             case DFS_ARBITRARY:
             case DFS_GREEDY:
-                Vertex[][] targetNeighbours = data.getTargetNeighbours(pathIteration)[head.data()];
+                Integer[][] targetNeighbours = data.getTargetNeighbours(pathIteration)[head];
                 return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths);
             case CONTROL_POINT:
                 return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 300, placementSize, refuseLongerPaths);
@@ -57,11 +56,11 @@ public abstract class PathIterator {
     @Nullable
     public abstract Path next();
 
-    public Vertex tail() {
+    public int tail() {
         return tail;
     }
 
-    public Vertex head() {
+    public int head() {
         return head;
     }
 

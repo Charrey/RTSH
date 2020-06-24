@@ -1,7 +1,6 @@
 package com.charrey.occupation;
 
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
 import com.charrey.runtimecheck.DomainChecker;
 import com.charrey.runtimecheck.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
@@ -29,9 +28,9 @@ public class OccupationTransaction extends AbstractOccupation {
         this.parent = parent;
     }
 
-    public void occupyRoutingAndCheck(int verticesPlaced, @NotNull Vertex v) throws DomainCheckerException {
-        assert !routingBits.get(v.data());
-        routingBits.set(v.data());
+    public void occupyRoutingAndCheck(int verticesPlaced, int v) throws DomainCheckerException {
+        assert !routingBits.get(v);
+        routingBits.set(v);
         String previous = null;
         try {
             previous = domainChecker.toString();
@@ -39,7 +38,7 @@ public class OccupationTransaction extends AbstractOccupation {
             waiting.add(new TransactionElement(verticesPlaced, v));
         } catch (DomainCheckerException e) {
             assertEquals(previous, domainChecker.toString());
-            routingBits.clear(v.data());
+            routingBits.clear(v);
             throw e;
         }
     }
@@ -57,22 +56,22 @@ public class OccupationTransaction extends AbstractOccupation {
         }
     }
 
-    public void releaseRouting(int verticesPlaced, @NotNull Vertex v) {
+    public void releaseRouting(int verticesPlaced, int v) {
         assert isOccupiedRouting(v);
-        routingBits.clear(v.data());
+        routingBits.clear(v);
         domainChecker.afterReleaseEdge(verticesPlaced, v);
         waiting.remove(new TransactionElement(verticesPlaced, v));
     }
 
-    private boolean isOccupiedRouting(@NotNull Vertex v) {
-        return routingBits.get(v.data());
+    private boolean isOccupiedRouting(int v) {
+        return routingBits.get(v);
     }
 
-    private boolean isOccupiedVertex(@NotNull Vertex v) {
-        return vertexBits.get(v.data());
+    private boolean isOccupiedVertex(int v) {
+        return vertexBits.get(v);
     }
 
-    public boolean isOccupied(@NotNull Vertex v) {
+    public boolean isOccupied(int v) {
         return isOccupiedRouting(v) || isOccupiedVertex(v);
     }
 
@@ -101,10 +100,10 @@ public class OccupationTransaction extends AbstractOccupation {
 
     private static class TransactionElement {
         private final int verticesPlaced;
-        private final Vertex added;
+        private final int added;
         private final long time;
 
-        TransactionElement(int verticesPlaced, Vertex added) {
+        TransactionElement(int verticesPlaced, int added) {
             this.verticesPlaced = verticesPlaced;
             this.added = added;
             this.time = System.currentTimeMillis();
@@ -116,7 +115,7 @@ public class OccupationTransaction extends AbstractOccupation {
             if (o == null || getClass() != o.getClass()) return false;
             TransactionElement that = (TransactionElement) o;
             return verticesPlaced == that.verticesPlaced &&
-                    added.equals(that.added);
+                    added == that.added;
         }
 
         @Override

@@ -1,7 +1,7 @@
 package com.charrey.graph.generation.succeed;
 
 import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.MyGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
@@ -29,7 +29,7 @@ public class RandomSucceedDirectedTestCaseGenerator extends SucceedTestCaseGener
     @Override
     @NotNull
     protected MyGraph getSource(int patternNodes, int patternEdges) {
-        GnmRandomGraphGenerator<Vertex, DefaultEdge> gen = new GnmRandomGraphGenerator<>(patternNodes, patternEdges, random.nextLong());
+        GnmRandomGraphGenerator<Integer, DefaultEdge> gen = new GnmRandomGraphGenerator<>(patternNodes, patternEdges, random.nextLong());
         MyGraph pattern = new MyGraph(true);
         gen.generateGraph(pattern);
         return pattern;

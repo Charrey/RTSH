@@ -1,12 +1,7 @@
 package com.charrey.util;
 
-import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
-
 import org.apache.commons.math3.random.RandomGenerator;
 import org.jetbrains.annotations.NotNull;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 import java.util.function.Predicate;

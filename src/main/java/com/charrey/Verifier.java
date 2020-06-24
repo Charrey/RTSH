@@ -1,8 +1,7 @@
 package com.charrey;
 
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import org.jetbrains.annotations.NotNull;
@@ -33,9 +32,9 @@ class Verifier {
         }
         if (pattern.isDirected()) {
             for (DefaultEdge edge : pattern.edgeSet()) {
-                Vertex edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge).data());
-                Vertex edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge).data());
-                long matches = edgeMatching.allPaths().stream().filter(x -> x.last().equals(edgeTargetTarget) && x.first().equals(edgeSourceTarget)).count();
+                int edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge));
+                int edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge));
+                long matches = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).count();
                 if (matches != 1) {
                     assert false;
                     return false;
@@ -43,8 +42,8 @@ class Verifier {
             }
         } else {
             for (DefaultEdge edge : pattern.edgeSet()) {
-                Vertex edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge).data());
-                Vertex edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge).data());
+                int edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeSource(edge));
+                int edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(pattern.getEdgeTarget(edge));
                 long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
                 if (matches != 1) {
                     assert false;
@@ -55,7 +54,7 @@ class Verifier {
 
         //the intermediate list of nodes are distinct
         for (Path path : edgeMatching.allPaths()) {
-            List<Vertex> intermediate = path.intermediate();
+            List<Integer> intermediate = path.intermediate();
             if (!edgeMatching.allPaths().stream().allMatch(x -> x == path || x.intermediate().stream().noneMatch(intermediate::contains))) {
                 return false;
             }
@@ -63,7 +62,7 @@ class Verifier {
 
         //the intermediate list of nodes are disjoint from the nodes
         for (Path path : edgeMatching.allPaths()) {
-            List<Vertex> intermediate = path.intermediate();
+            List<Integer> intermediate = path.intermediate();
             if (vertexMatching.getPlacementUnsafe().stream().anyMatch(intermediate::contains)) {
                 return false;
             }

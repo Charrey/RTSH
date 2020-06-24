@@ -1,9 +1,8 @@
 package unit.iterator;
 
 import com.charrey.algorithms.UtilityData;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
@@ -34,7 +33,7 @@ class CompleteTest extends PathIteratorTest {
             new Random(300));
 
     @Test
-    void testIterators() throws DomainCheckerException {
+    void testIterators() {
         final long seed = 1923;
         long counter = -1;
         RandomSucceedDirectedTestCaseGenerator gen = new RandomSucceedDirectedTestCaseGenerator(2, 1, 0, 0, seed);
@@ -46,8 +45,8 @@ class CompleteTest extends PathIteratorTest {
                 MyGraph sourceGraph = new MyGraph(true);
                 sourceGraph.addEdge(sourceGraph.addVertex(), sourceGraph.addVertex());
                 UtilityData data = new UtilityData(sourceGraph, targetGraph);
-                Vertex tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
-                Vertex head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
+                int tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
+                int head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }

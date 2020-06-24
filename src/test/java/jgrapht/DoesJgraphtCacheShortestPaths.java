@@ -1,7 +1,7 @@
 package jgrapht;
 
 import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import org.jgrapht.alg.interfaces.ManyToManyShortestPathsAlgorithm;
 import org.jgrapht.alg.shortestpath.CHManyToManyShortestPaths;
@@ -17,7 +17,7 @@ public class DoesJgraphtCacheShortestPaths {
             gen.init(1, false);
             MyGraph graph = gen.getNext().sourceGraph;
             long start = System.nanoTime();
-            ManyToManyShortestPathsAlgorithm<Vertex, DefaultEdge> spa = new CHManyToManyShortestPaths<>(graph);
+            ManyToManyShortestPathsAlgorithm<Integer, DefaultEdge> spa = new CHManyToManyShortestPaths<>(graph);
             spa.getManyToManyPaths(graph.vertexSet(), graph.vertexSet());
             long end = System.nanoTime();
 

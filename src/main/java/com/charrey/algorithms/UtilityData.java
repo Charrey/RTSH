@@ -1,7 +1,6 @@
 package com.charrey.algorithms;
 
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.MyGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.GraphPath;
@@ -35,21 +34,21 @@ public class UtilityData {
         this.targetGraph = targetGraph;
     }
 
-    private List<Vertex> order;
+//    private List<Integer> order;
+//
+//    /**
+//     * Returns an appropriate source graph vertex order.
+//     *
+//     * @return the vertex order to follow in the matching process
+//     */
+//    public List<Integer> getOrder() {
+//        if (order == null) {
+//            order = new GreatestConstrainedFirst().apply(patternGraph);
+//        }
+//        return Collections.unmodifiableList(order);
+//    }
 
-    /**
-     * Returns an appropriate source graph vertex order.
-     *
-     * @return the vertex order to follow in the matching process
-     */
-    public List<Vertex> getOrder() {
-        if (order == null) {
-            order = new GreatestConstrainedFirst().apply(patternGraph);
-        }
-        return Collections.unmodifiableList(order);
-    }
-
-    private Vertex[][] compatibility;
+    private Integer[][] compatibility;
 
     /**
      * Returns the compatibility of each source graph vertex to target graph vertices.
@@ -58,22 +57,22 @@ public class UtilityData {
      * @param initialGlobalAllDifferent whether to apply AllDifferent to each possible matching to filter out candidates.
      * @return A 2d array compatibility such that for each source vertex with vertex ordering x, compatibility[x] is an array of suitable target graph candidates.
      */
-    public Vertex[][] getCompatibility(boolean neighbourHoodFiltering, boolean initialGlobalAllDifferent) {
+    public Integer[][] getCompatibility(boolean neighbourHoodFiltering, boolean initialGlobalAllDifferent) {
         if (compatibility == null) {
-            compatibility = new Vertex[getOrder().size()][];
-            Map<Vertex, Set<Vertex>> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, neighbourHoodFiltering, initialGlobalAllDifferent);
-            for (Map.Entry<Vertex, Set<Vertex>> entry : inbetween.entrySet()) {
-                compatibility[entry.getKey().data()] = entry.getValue()
+            compatibility = new Integer[patternGraph.vertexSet().size()][];
+            Map<Integer, Set<Integer>> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, neighbourHoodFiltering, initialGlobalAllDifferent);
+            for (Map.Entry<Integer, Set<Integer>> entry : inbetween.entrySet()) {
+                compatibility[entry.getKey()] = entry.getValue()
                         .stream()
-                        .sorted(Comparator.comparingInt(Vertex::data))
+                        .sorted()
                         .collect(Collectors.toList())
-                        .toArray(Vertex[]::new);
+                        .toArray(Integer[]::new);
             }
         }
         return compatibility.clone();
     }
 
-    private Vertex[][] reverseCompatibility;
+    private Integer[][] reverseCompatibility;
 
     /**
      * Returns the compatibility of each target graph vertex to source graph vertices.
@@ -83,19 +82,19 @@ public class UtilityData {
      * @return A 2d array compatibility such that for each target vertex with vertex ordering x, compatibility[x] is an array of suitable source graph candidates.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public Vertex[][] getReverseCompatibility(boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent) {
+    public Integer[][] getReverseCompatibility(boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent) {
         if (reverseCompatibility == null) {
             List[] tempReverseCompatibility = new List[targetGraph.vertexSet().size()];
             IntStream.range(0, tempReverseCompatibility.length).forEach(x -> tempReverseCompatibility[x] = new LinkedList());
-            Vertex[][] compatibility = getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent);
+            Integer[][] compatibility = getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent);
             for (int sourceVertex = 0; sourceVertex < compatibility.length; sourceVertex++){
                 for (int targetVertexIndex = 0; targetVertexIndex < compatibility[sourceVertex].length; targetVertexIndex++) {
-                    tempReverseCompatibility[compatibility[sourceVertex][targetVertexIndex].data()].add(getOrder().get(sourceVertex));
+                    tempReverseCompatibility[compatibility[sourceVertex][targetVertexIndex]].add(sourceVertex);
                 }
             }
-            reverseCompatibility = new Vertex[targetGraph.vertexSet().size()][];
+            reverseCompatibility = new Integer[targetGraph.vertexSet().size()][];
             for (int i = 0; i< reverseCompatibility.length; i++) {
-                reverseCompatibility[i] = (Vertex[]) tempReverseCompatibility[i].toArray(Vertex[]::new);
+                reverseCompatibility[i] = (Integer[]) tempReverseCompatibility[i].toArray(Integer[]::new);
             }
         }
         return reverseCompatibility.clone();
@@ -103,7 +102,7 @@ public class UtilityData {
 
 
 
-    private Vertex[][][] targetNeighbours;
+    private Integer[][][] targetNeighbours;
 
     /**
      * Returns an array that provides for each target vertex an ordering in which to try other target vertices in DFS.
@@ -113,23 +112,23 @@ public class UtilityData {
      * result are neighbours of that vertex in the order that they need to be tried.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public @NotNull Vertex[][][] getTargetNeighbours(int strategy) {
+    public @NotNull Integer[][][] getTargetNeighbours(int strategy) {
         if (targetNeighbours == null) {
-            List<Vertex> targetVertices = targetGraph.vertexSet()
+            List<Integer> targetVertices = targetGraph.vertexSet()
                     .stream()
                     .sorted().collect(Collectors.toList());
             switch (strategy) {
                 case DFS_ARBITRARY:
-                    Vertex[][] sharedTargetNeighbours = new Vertex[targetVertices.size()][];
-                    targetNeighbours = new Vertex[targetGraph.vertexSet().size()][][];
+                    Integer[][] sharedTargetNeighbours = new Integer[targetVertices.size()][];
+                    targetNeighbours = new Integer[targetGraph.vertexSet().size()][][];
                     for (int i = 0; i < sharedTargetNeighbours.length; i++) {
-                        Vertex candidate = targetVertices.get(i);
-                        assert candidate.data() == i : "Target graph does not have consecutive vertex data starting from zero. Index: " + i + ", data: " + candidate.data();
+                        int candidate = targetVertices.get(i);
+                        assert candidate == i : "Target graph does not have consecutive vertex data starting from zero. Index: " + i + ", data: " + candidate;
                         sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
                                 .stream()
                                 .map(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
-                                .sorted(Comparator.comparingInt(Vertex::data))
-                                .collect(Collectors.toList()).toArray(Vertex[]::new);
+                                .sorted()
+                                .collect(Collectors.toList()).toArray(Integer[]::new);
                     }
                     for (int i = 0; i < targetGraph.vertexSet().size(); i++) {
                         targetNeighbours[i] = Arrays.copyOf(sharedTargetNeighbours, sharedTargetNeighbours.length);
@@ -143,23 +142,23 @@ public class UtilityData {
                             tempTargetNeigbours[i][j] = new LinkedList(Arrays.asList(targetNeighbours[i][j]));
                         }
                     }
-                    ShortestPathAlgorithm<Vertex, DefaultEdge> dijkstra = new DijkstraShortestPath<>(targetGraph);
+                    ShortestPathAlgorithm<Integer, DefaultEdge> dijkstra = new DijkstraShortestPath<>(targetGraph);
                     for (int i = 0; i < targetNeighbours.length; i++) {
                         int[] distances = new int[tempTargetNeigbours.length];
                         for (int j = 0; j < tempTargetNeigbours[i].length; j++) {
-                            List<Vertex> toSort = (List<Vertex>) tempTargetNeigbours[i][j];
-                            Set<Vertex> toRemove = new HashSet<>();
-                            for (Vertex neighbour : toSort) {
-                                GraphPath<Vertex, DefaultEdge> path = dijkstra.getPath(neighbour, targetVertices.get(i));
+                            List<Integer> toSort = (List<Integer>) tempTargetNeigbours[i][j];
+                            Set<Integer> toRemove = new HashSet<>();
+                            for (int neighbour : toSort) {
+                                GraphPath<Integer, DefaultEdge> path = dijkstra.getPath(neighbour, targetVertices.get(i));
                                 if (path == null) {
                                     toRemove.add(neighbour);
                                 } else {
-                                    distances[neighbour.data()] = path.getLength();
+                                    distances[neighbour] = path.getLength();
                                 }
                             }
                             toSort.removeAll(toRemove);
-                            toSort.sort(Comparator.comparingInt(o -> distances[o.data()]));
-                            targetNeighbours[i][j] = toSort.toArray(Vertex[]::new);
+                            toSort.sort(Comparator.comparingInt(o -> distances[o]));
+                            targetNeighbours[i][j] = toSort.toArray(Integer[]::new);
                         }
                     }
                     break;

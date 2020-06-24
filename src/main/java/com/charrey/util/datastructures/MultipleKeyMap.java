@@ -1,6 +1,5 @@
 package com.charrey.util.datastructures;
 
-import com.charrey.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
@@ -15,20 +14,20 @@ public class MultipleKeyMap<V> {
         nestedMap = (V[][] ) Array.newInstance(clazz, firstDomainSize, secondDomainSize);
     }
 
-    public boolean containsKey(@NotNull Vertex a, @NotNull Vertex b) {
-        return nestedMap[a.data()][b.data()] != null;
+    public boolean containsKey(int a, int b) {
+        return nestedMap[a][b] != null;
     }
 
-    public void put(@NotNull Vertex a, @NotNull Vertex b, V pathIterator) {
-        nestedMap[a.data()][b.data()] = pathIterator;
+    public void put(int a, int b, V pathIterator) {
+        nestedMap[a][b] = pathIterator;
     }
 
-    public V get(@NotNull Vertex a, @NotNull Vertex b) {
-        return nestedMap[a.data()][b.data()];
+    public V get(int a, int b) {
+        return nestedMap[a][b];
     }
 
-    public void remove(@NotNull Vertex key, @NotNull Vertex key1) {
-        nestedMap[key.data()][key1.data()] = null;
+    public void remove(int key, int key1) {
+        nestedMap[key][key1] = null;
     }
 
 }

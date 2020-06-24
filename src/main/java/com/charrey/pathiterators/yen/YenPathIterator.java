@@ -2,7 +2,7 @@ package com.charrey.pathiterators.yen;
 
 import com.charrey.graph.Path;
 import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
@@ -29,12 +29,12 @@ public class YenPathIterator extends PathIterator {
     private final Supplier<Integer> verticesPlaced;
 
     @NotNull
-    private final YenShortestPathIterator<Vertex, DefaultEdge> yen;
+    private final YenShortestPathIterator<Integer, DefaultEdge> yen;
 
     private OccupationTransaction transaction;
     private int counter = 0;
 
-    public YenPathIterator(@NotNull MyGraph targetGraph, @NotNull Vertex tail, Vertex head, @NotNull GlobalOccupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
+    public YenPathIterator(@NotNull MyGraph targetGraph, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
         this.targetGraph = targetGraph;
         this.occupation = occupation;
@@ -60,7 +60,7 @@ public class YenPathIterator extends PathIterator {
                 continue;
             }
             boolean okay = true;
-            for (Vertex v : pathFound.intermediate()) {
+            for (int v : pathFound.intermediate()) {
                 try {
                     transaction.occupyRoutingAndCheck(verticesPlaced.get(), v);
                 } catch (DomainCheckerException e) {
@@ -87,9 +87,9 @@ public class YenPathIterator extends PathIterator {
 
     private boolean hasUnnecessarilyLongPaths(@NotNull Path pathFound) {
         for (int i = 0; i < pathFound.length() - 1; i++) {
-            Vertex from = pathFound.get(i);
-            Set<Vertex> neighbours = targetGraph.outgoingEdgesOf(from).stream().map(x -> Graphs.getOppositeVertex(targetGraph, x, from)).collect(Collectors.toUnmodifiableSet());
-            List<Vertex> otherCandidates = pathFound.asList().subList(i + 2, pathFound.length());
+            int from = pathFound.get(i);
+            Set<Integer> neighbours = targetGraph.outgoingEdgesOf(from).stream().map(x -> Graphs.getOppositeVertex(targetGraph, x, from)).collect(Collectors.toUnmodifiableSet());
+            List<Integer> otherCandidates = pathFound.asList().subList(i + 2, pathFound.length());
             if (neighbours.stream().anyMatch(otherCandidates::contains)) {
                 return true;
             }

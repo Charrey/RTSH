@@ -11,9 +11,9 @@ import java.util.Set;
 
 public class EmptyDomainChecker extends DomainChecker {
 
-    private final Vertex[][] reverseDomain;
+    private final Integer[][] reverseDomain;
     @NotNull
-    private final Set<Vertex>[] domain;
+    private final Set<Integer>[] domain;
 
     @Override
     public DomainChecker copy() {
@@ -22,11 +22,11 @@ public class EmptyDomainChecker extends DomainChecker {
 
     @SuppressWarnings("unchecked")
     private EmptyDomainChecker(EmptyDomainChecker copyFrom) {
-        reverseDomain = new Vertex[copyFrom.reverseDomain.length][];
+        reverseDomain = new Integer[copyFrom.reverseDomain.length][];
         for (int i = 0; i < copyFrom.reverseDomain.length; i++) {
             reverseDomain[i] = copyFrom.reverseDomain[i].clone();
         }
-        domain = (Set<Vertex>[]) Array.newInstance(Set.class, copyFrom.domain.length);
+        domain = (Set<Integer>[]) Array.newInstance(Set.class, copyFrom.domain.length);
         for (int i = 0; i < copyFrom.domain.length; i++) {
             domain[i] = new HashSet<>(copyFrom.domain[i]);
         }
@@ -40,42 +40,42 @@ public class EmptyDomainChecker extends DomainChecker {
     }
 
     @Override
-    public void afterReleaseVertex(int verticesPlaced, @NotNull Vertex v) {
+    public void afterReleaseVertex(int verticesPlaced, int v) {
         afterRelease(v);
     }
 
     @Override
-    public void afterReleaseEdge(int verticesPlaced, @NotNull Vertex v) {
+    public void afterReleaseEdge(int verticesPlaced, int v) {
         afterRelease(v);
     }
 
 
     @Override
-    public void beforeOccupyVertex(int verticesPlaced, @NotNull Vertex v) throws DomainCheckerException {
+    public void beforeOccupyVertex(int verticesPlaced, int v) throws DomainCheckerException {
         afterOccupy(verticesPlaced, v);
     }
 
     @Override
-    public void afterOccupyEdge(int verticesPlaced, @NotNull Vertex v) throws DomainCheckerException {
+    public void afterOccupyEdge(int verticesPlaced, int v) throws DomainCheckerException {
         afterOccupy(verticesPlaced, v);
     }
 
-    private void afterRelease(@NotNull Vertex v) {
-        Vertex[] candidates = reverseDomain[v.data()];
+    private void afterRelease(int v) {
+        Integer[] candidates = reverseDomain[v];
         for (int i = candidates.length - 1; i >= 0; i--) {
-            assert !domain[candidates[i].data()].contains(v);
-            domain[candidates[i].data()].add(v);
+            assert !domain[candidates[i]].contains(v);
+            domain[candidates[i]].add(v);
         }
     }
 
-    private void afterOccupy(int verticesPlaced, @NotNull Vertex v) throws DomainCheckerException {
-        Vertex[] candidates = reverseDomain[v.data()];
+    private void afterOccupy(int verticesPlaced, int v) throws DomainCheckerException {
+        Integer[] candidates = reverseDomain[v];
         for (int i = candidates.length - 1; i >= 0; i--) {
-            domain[candidates[i].data()].remove(v);
+            domain[candidates[i]].remove(v);
         }
         if (Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().anyMatch(Set::isEmpty)) {
             for (int i = candidates.length - 1; i >= 0; i--) {
-                domain[candidates[i].data()].add(v);
+                domain[candidates[i]].add(v);
             }
             throw new DomainCheckerException("EmptyDomain constraint failed after occupying " + v);
         }

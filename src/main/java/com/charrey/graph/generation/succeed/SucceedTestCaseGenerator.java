@@ -1,7 +1,7 @@
 package com.charrey.graph.generation.succeed;
 
 import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.util.GraphUtil;
@@ -70,28 +70,28 @@ public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
     protected abstract MyGraph getSource(int patternNodes, int patternEdges);
 
     private void addExtraNodes(@NotNull MyGraph targetGraph, int extraNodes, double expectedEdges, @NotNull RandomGenerator randomGen) {
-        Map<Vertex, Integer> neededEdges = new HashMap<>();
+        Map<Integer, Integer> neededEdges = new HashMap<>();
         if (expectedEdges == 0) {
             return;
         }
         IntegerDistribution distribution = new GeometricDistribution(randomGen, 1./(expectedEdges+1));
         for (int i = 0; i < extraNodes; i++) {
-            Vertex vertex = targetGraph.addVertex();
+            int vertex = targetGraph.addVertex();
             neededEdges.put(vertex, distribution.sample());
         }
         while (!neededEdges.isEmpty()) {
-            Vertex randomKey = Util.pickRandom(neededEdges.keySet(), randomGen);
+            int randomKey = Util.pickRandom(neededEdges.keySet(), randomGen);
             if (targetGraph.incomingEdgesOf(randomKey).size() + targetGraph.outgoingEdgesOf(randomKey).size() >= neededEdges.get(randomKey)) {
                 neededEdges.remove(randomKey);
                 continue;
             }
-            Set<Vertex> targets = targetGraph.vertexSet().stream().filter(x -> x != randomKey && (!targetGraph.containsEdge(x, randomKey) || !targetGraph.containsEdge(randomKey, x))).collect(Collectors.toSet());
+            Set<Integer> targets = targetGraph.vertexSet().stream().filter(x -> x != randomKey && (!targetGraph.containsEdge(x, randomKey) || !targetGraph.containsEdge(randomKey, x))).collect(Collectors.toSet());
             if (targets.isEmpty()) {
                 neededEdges.remove(randomKey);
             } else {
-                Vertex target = Util.pickRandom(targets, randomGen);
-                Vertex from;
-                Vertex to;
+                int target = Util.pickRandom(targets, randomGen);
+                int from;
+                int to;
                 if (random.nextBoolean()) {
                     from = randomKey;
                     to = target;
@@ -100,7 +100,7 @@ public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
                     from = target;
                 }
                 if (targetGraph.containsEdge(from, to)) {
-                    Vertex temp = to;
+                    int temp = to;
                     to = from;
                     from = temp;
                 }

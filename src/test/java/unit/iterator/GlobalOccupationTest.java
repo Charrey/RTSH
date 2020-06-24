@@ -1,11 +1,10 @@
 package unit.iterator;
 
-import com.charrey.occupation.GlobalOccupation;
 import com.charrey.algorithms.UtilityData;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.settings.PathIterationStrategy;
@@ -15,6 +14,7 @@ import com.charrey.util.Util;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -70,8 +70,8 @@ class GlobalOccupationTest {
                 MyGraph sourceGraph = new MyGraph(true);
                 sourceGraph.addEdge(sourceGraph.addVertex(), sourceGraph.addVertex());
                 UtilityData data = new UtilityData(sourceGraph, targetGraph);
-                Vertex tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
-                Vertex head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
+                int tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
+                int head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
                 counter++;
                 if (counter < 173) {
                     continue;
@@ -87,7 +87,7 @@ class GlobalOccupationTest {
                 Path path;
                 while ((path = iterator.next()) != null) {
                     Set<Integer> occupationSays = occupation.getRoutingOccupied().stream().boxed().collect(Collectors.toSet());
-                    Set<Integer> pathSays = path.intermediate().stream().map(Vertex::data).collect(Collectors.toSet());
+                    Set<Integer> pathSays = new HashSet<>(path.intermediate());
                     assertEquals(occupationSays, pathSays, "Iteration: " + counter);
                 }
             }

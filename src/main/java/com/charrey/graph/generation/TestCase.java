@@ -1,5 +1,6 @@
 package com.charrey.graph.generation;
 
+import com.charrey.graph.MyGraph;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -8,7 +9,7 @@ import java.util.List;
 
 public class TestCase implements Serializable, Iterable<MyGraph> {
     public final MyGraph targetGraph;
-    public final MyGraph sourceGraph;
+    public MyGraph sourceGraph;
 
     public TestCase(MyGraph sourceGraph, MyGraph targetGraph) {
         this.sourceGraph = sourceGraph;

@@ -1,7 +1,6 @@
 package com.charrey.algorithms;
 
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.MyGraph;
 import com.charrey.util.GraphUtil;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -31,11 +30,11 @@ public class CompatibilityChecker {
      * @return the map
      */
     @NotNull
-    public  Map<Vertex, Set<Vertex>> get(@NotNull MyGraph source,
+    public  Map<Integer, Set<Integer>> get(@NotNull MyGraph source,
                                          @NotNull MyGraph target, boolean neighbourhoodFiltering, boolean initialGlobalAllDifferent) {
 
-        Map<Vertex, Set<Vertex>> res = new HashMap<>();
-        for (Vertex v : source.vertexSet()) {
+        Map<Integer, Set<Integer>> res = new HashMap<>();
+        for (Integer v : source.vertexSet()) {
             assert source.containsVertex(v);
             res.put(v, new HashSet<>(target.vertexSet().stream().filter(x -> isCompatible(v, x, source, target)).collect(Collectors.toSet())));
         }
@@ -52,58 +51,58 @@ public class CompatibilityChecker {
         return res;
     }
 
-    private static boolean filterGAC(@NotNull Map<Vertex, Set<Vertex>> compatibility) {
-        BiMap<Vertex, Integer> map1 = HashBiMap.create();
-        for (Vertex i : compatibility.keySet()) {
-            map1.put(i, i.data());
+    private static boolean filterGAC(@NotNull Map<Integer, Set<Integer>> compatibility) {
+        BiMap<Integer, Integer> map1 = HashBiMap.create();
+        for (int i : compatibility.keySet()) {
+            map1.put(i, i);
         }
-        BiMap<Vertex, Integer> map2 = HashBiMap.create();
-        for (Set<Vertex> iset : compatibility.values()) {
-            for (Vertex i : iset) {
-                map2.put(i, i.data());
+        BiMap<Integer, Integer> map2 = HashBiMap.create();
+        for (Set<Integer> iset : compatibility.values()) {
+            for (int i : iset) {
+                map2.put(i, i);
             }
         }
 
         Map<Integer, Set<Integer>> intCompatability = compatibility.entrySet().stream().collect(Collectors.toMap(x -> map1.get(x.getKey()), x -> x.getValue().stream().map(map2::get).collect(Collectors.toSet())));
 
         Set<Pair<Integer, Integer>> toRemoveInt = AllDifferent.checkAll(intCompatability);
-        Set<Pair<Vertex, Vertex>> toRemove = toRemoveInt.stream()
+        Set<Pair<Integer, Integer>> toRemove = toRemoveInt.stream()
                 .map(x -> new Pair<>(map1.inverse().get(x.getFirst()), map2.inverse().get(x.getSecond())))
                 .collect(Collectors.toSet());
         if (toRemove.isEmpty()) {
             return false;
         } else {
-            for (Pair<Vertex, Vertex> pairToRemove : toRemove) {
+            for (Pair<Integer, Integer> pairToRemove : toRemove) {
                 compatibility.get(pairToRemove.getFirst()).remove(pairToRemove.getSecond());
             }
             return true;
         }
     }
 
-    private boolean filterNeighbourHoods(@NotNull Map<Vertex, Set<Vertex>> compatibilityMap,
+    private boolean filterNeighbourHoods(@NotNull Map<Integer, Set<Integer>> compatibilityMap,
                                          @NotNull MyGraph sourceGraph,
                                          @NotNull MyGraph targetGraph) {
         boolean changed = false;
-        Set<Pair<Vertex, Vertex>> toRemove = new HashSet<>();
-        for (Map.Entry<Vertex, Set<Vertex>> potentialSource : compatibilityMap.entrySet()) {
-            for (Vertex potentialTarget : potentialSource.getValue()) {
-                Set<Vertex> sourceNeighbourHood = GraphUtil.reachableNeighbours(sourceGraph, potentialSource.getKey());
-                Set<Vertex> targetNeighbourHood = GraphUtil.reachableNeighbours(targetGraph, potentialTarget);
+        Set<Pair<Integer, Integer>> toRemove = new HashSet<>();
+        for (Map.Entry<Integer, Set<Integer>> potentialSource : compatibilityMap.entrySet()) {
+            for (Integer potentialTarget : potentialSource.getValue()) {
+                Set<Integer> sourceNeighbourHood = GraphUtil.reachableNeighbours(sourceGraph, potentialSource.getKey());
+                Set<Integer> targetNeighbourHood = GraphUtil.reachableNeighbours(targetGraph, potentialTarget);
                 if (!compatibleNeighbourhoods(sourceNeighbourHood, targetNeighbourHood, compatibilityMap)) {
                     changed = true;
                     toRemove.add(new Pair<>(potentialSource.getKey(), potentialTarget));
                 }
             }
         }
-        for (Pair<Vertex, Vertex> pair : toRemove) {
+        for (Pair<Integer, Integer> pair : toRemove) {
             compatibilityMap.get(pair.getFirst()).remove(pair.getSecond());
         }
         return changed;
     }
 
-    private boolean compatibleNeighbourhoods(@NotNull Set<Vertex> sourceNeighbourhood, @NotNull Set<Vertex> targetNeighbourhood, @NotNull Map<Vertex, Set<Vertex>> compatibilityMap) {
-        Map<Vertex, Set<Vertex>> allDifferentMap = new HashMap<>();
-        for (Map.Entry<Vertex, Set<Vertex>> entry : compatibilityMap.entrySet()) {
+    private boolean compatibleNeighbourhoods(@NotNull Set<Integer> sourceNeighbourhood, @NotNull Set<Integer> targetNeighbourhood, @NotNull Map<Integer, Set<Integer>> compatibilityMap) {
+        Map<Integer, Set<Integer>> allDifferentMap = new HashMap<>();
+        for (Map.Entry<Integer, Set<Integer>> entry : compatibilityMap.entrySet()) {
            if (sourceNeighbourhood.contains(entry.getKey())) {
                 allDifferentMap.put(entry.getKey(), entry.getValue()
                         .stream()
@@ -114,10 +113,10 @@ public class CompatibilityChecker {
         return alldiff.get(allDifferentMap);
     }
 
-    private static boolean isCompatible(@NotNull Vertex sourceVertex, @NotNull Vertex targetVertex, @NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph) {
+    private static boolean isCompatible(int sourceVertex, int targetVertex, @NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph) {
         assert sourceGraph.containsVertex(sourceVertex);
         assert targetGraph.containsVertex(targetVertex);
         return sourceGraph.degreeOf(sourceVertex) <= targetGraph.degreeOf(targetVertex) &&
-                targetVertex.getLabels().containsAll(sourceVertex.getLabels());
+                targetGraph.getLabels(targetVertex).containsAll(sourceGraph.getLabels(sourceVertex));
     }
 }

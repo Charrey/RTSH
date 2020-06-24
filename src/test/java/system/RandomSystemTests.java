@@ -36,7 +36,7 @@ class RandomSystemTests extends SystemTest {
         if (settings.pathIteration == PathIterationStrategy.YEN) {
             return;
         }
-        findCases(10*1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(10*1000, 200, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test

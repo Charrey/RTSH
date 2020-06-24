@@ -1,8 +1,7 @@
 package com.charrey.pathiterators;
 
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +11,7 @@ public class SingletonPathIterator extends PathIterator {
     @NotNull
     private final Path toReturn;
 
-    SingletonPathIterator(@NotNull MyGraph graph, @NotNull Vertex tail, @NotNull Vertex head) {
+    SingletonPathIterator(@NotNull MyGraph graph, int tail, int head) {
         super(tail, head, true);
         toReturn = new Path(graph, tail);
         toReturn.append(head);

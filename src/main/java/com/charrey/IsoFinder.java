@@ -1,9 +1,9 @@
 package com.charrey;
 
+import com.charrey.algorithms.GreatestConstrainedFirst;
 import com.charrey.algorithms.UtilityData;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 
@@ -29,16 +28,6 @@ public class IsoFinder {
         UtilityData data = new UtilityData(testcase.sourceGraph, testcase.targetGraph);
         logDomainReduction(testcase, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
 
-        for (MyGraph graph : testcase) {
-            Iterator<Vertex> iterator = graph.vertexSet().iterator();
-            final int[] counter = {0};
-            Vertex v = null;
-            iterator.forEachRemaining(vertex -> {
-                vertex.setData(counter[0]);
-                counter[0]++;
-            });
-        }
-
         if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
@@ -51,6 +40,7 @@ public class IsoFinder {
     @Nullable
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout) {
         try {
+            testcase.sourceGraph = new GreatestConstrainedFirst().apply(testcase.sourceGraph);
             setup(testcase, settings);
         } catch (DomainCheckerException e) {
             return HomeomorphismResult.COMPATIBILITY_FAIL;

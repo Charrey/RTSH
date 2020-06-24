@@ -1,9 +1,8 @@
 package unit.iterator;
 
 import com.charrey.algorithms.UtilityData;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
@@ -44,7 +43,7 @@ class ControlPointTransition {
     @Order(1)
     void TestNoMore() throws DomainCheckerException {
         test(myCase -> {
-            OptionalInt counterExample = myCase.globalOccupation.getRoutingOccupied().stream().filter(x -> myCase.path.intermediate().stream().noneMatch(y -> y.data() == x)).findAny();
+            OptionalInt counterExample = myCase.globalOccupation.getRoutingOccupied().stream().filter(x -> myCase.path.intermediate().stream().noneMatch(y -> y == x)).findAny();
             if (counterExample.isPresent()) {
                 System.err.println("In occupation but not in path: " + counterExample);
                 return false;
@@ -63,7 +62,7 @@ class ControlPointTransition {
     @Order(3)
     void TestFinalPathOccupied() throws DomainCheckerException {
         test(myCase -> {
-            Optional<Vertex> counterExample = myCase.finalPath.intermediate().stream().filter(x -> !myCase.globalOccupation.isOccupiedRouting(x)).findAny();
+            Optional<Integer> counterExample = myCase.finalPath.intermediate().stream().filter(x -> !myCase.globalOccupation.isOccupiedRouting(x)).findAny();
             if (counterExample.isPresent()) {
                 System.err.println("Final path: " + myCase.finalPath);
                 System.err.println("Occupationbits: " + myCase.globalOccupation.getRoutingOccupied());
@@ -79,7 +78,7 @@ class ControlPointTransition {
     @Order(4)
     void TestFirstPathOccupied() throws DomainCheckerException {
         test(myCase -> {
-            Optional<Vertex> counterExample = myCase.firstPath.intermediate().stream().filter(x -> !myCase.globalOccupation.isOccupiedRouting(x)).findAny();
+            Optional<Integer> counterExample = myCase.firstPath.intermediate().stream().filter(x -> !myCase.globalOccupation.isOccupiedRouting(x)).findAny();
             if (counterExample.isPresent()) {
                 System.err.println("Final path: " + myCase.firstPath);
                 System.err.println("Occupationbits: " + myCase.globalOccupation.getRoutingOccupied());
@@ -103,8 +102,8 @@ class ControlPointTransition {
                 MyGraph sourceGraph = new MyGraph(true);
                 sourceGraph.addEdge(sourceGraph.addVertex(), sourceGraph.addVertex());
                 UtilityData data = new UtilityData(sourceGraph, targetGraph);
-                Vertex tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
-                Vertex head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
+                int tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
+                int head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
                 counter++;
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
@@ -125,13 +124,13 @@ class ControlPointTransition {
 
     static class Case {
 
-        final List<Vertex> controlPoints;
+        final List<Integer> controlPoints;
         final GlobalOccupation globalOccupation;
         final Path path;
         final Path finalPath;
         final Path firstPath;
 
-        Case(List<Vertex> controlPoints, GlobalOccupation globalOccupation, Path path, Path finalPath, Path firstPath) {
+        Case(List<Integer> controlPoints, GlobalOccupation globalOccupation, Path path, Path finalPath, Path firstPath) {
             this.controlPoints = controlPoints;
             this.globalOccupation = globalOccupation;
             this.path = path;

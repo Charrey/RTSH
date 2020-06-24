@@ -1,8 +1,7 @@
 package com.charrey.pathiterators.controlpoint;
 
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
@@ -28,7 +27,7 @@ public class ManagedControlPointIterator extends PathIterator {
     private ControlPointIterator child;
     private int controlPoints = 0;
 
-    public ManagedControlPointIterator(@NotNull MyGraph graph, @NotNull Vertex tail, @NotNull Vertex head, @NotNull GlobalOccupation globalOccupation, int maxControlPoints, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
+    public ManagedControlPointIterator(@NotNull MyGraph graph, int tail, int head, @NotNull GlobalOccupation globalOccupation, int maxControlPoints, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
@@ -63,7 +62,7 @@ public class ManagedControlPointIterator extends PathIterator {
                     System.out.println("Raising control point count to " + controlPoints);
                 }
                 Set<Integer> localOccupation = new HashSet<>();
-                localOccupation.add(head().data());
+                localOccupation.add(head());
                 child = new ControlPointIterator(graph, tail(), head(), transaction, localOccupation, controlPoints, verticesPlaced, refuseLongerPaths);
             }
         }
@@ -75,7 +74,7 @@ public class ManagedControlPointIterator extends PathIterator {
     }
 
     private boolean rightShiftPossible() {
-        Vertex left = tail();
+        int left = tail();
         List<Path> intermediatePaths = intermediatePaths();
         List<Set<Integer>> localOccupations = localOccupations();
         Path leftToMiddle = intermediatePaths.get(0);
@@ -83,10 +82,10 @@ public class ManagedControlPointIterator extends PathIterator {
         Path leftToRight = ControlPointIterator.merge(graph, leftToMiddle, middleToRight);
 
         for (int i = 0; i < middleToRight.intermediate().size(); i++){
-            Vertex middleAlt = middleToRight.intermediate().get(i);
+            int middleAlt = middleToRight.intermediate().get(i);
             Path middleAltToRight = new Path(graph, middleToRight.asList().subList(i + 1, middleToRight.length()));
             Set<Integer> fictionalLocalOccupation = new HashSet<>(localOccupations.get(1));
-            middleAltToRight.forEach(x -> fictionalLocalOccupation.add(x.data()));
+            middleAltToRight.forEach(fictionalLocalOccupation::add);
             Path leftToMiddleAlt = ControlPointIterator.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail());
             assert leftToMiddleAlt != null;
             Path alternative = ControlPointIterator.merge(graph, leftToMiddleAlt, middleAltToRight);
@@ -101,10 +100,10 @@ public class ManagedControlPointIterator extends PathIterator {
     }
 
     private boolean makesLastControlPointUseless() {
-        List<Vertex> controlPoints = controlPoints();
-        Vertex left = tail();
-        Vertex middle = controlPoints.get(0);
-        Vertex right = controlPoints.size() > 1 ? controlPoints.get(1) : head();
+        List<Integer> controlPoints = controlPoints();
+        int left = tail();
+        int middle = controlPoints.get(0);
+        int right = controlPoints.size() > 1 ? controlPoints.get(1) : head();
 
         List<Path> intermediatePaths = intermediatePaths();
         List<Set<Integer>> localOccupations = localOccupations();
@@ -165,7 +164,7 @@ public class ManagedControlPointIterator extends PathIterator {
 
 
     @NotNull
-    public List<Vertex> controlPoints() {
+    public List<Integer> controlPoints() {
         return child.controlPoints();
     }
 

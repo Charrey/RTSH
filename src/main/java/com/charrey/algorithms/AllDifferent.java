@@ -1,7 +1,6 @@
 package com.charrey.algorithms;
 
 
-import com.charrey.graph.Vertex;
 import org.chocosolver.solver.DefaultSettings;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Settings;
@@ -20,8 +19,8 @@ import java.util.stream.IntStream;
 public class AllDifferent {
 
     private static final Settings settings = new DefaultSettings();
-    private final Set<Map<Vertex, Set<Vertex>>> cacheYesA = new HashSet<>();
-    private final Set<Map<Vertex, Set<Vertex>>> cacheNoA = new HashSet<>();
+    private final Set<Map<Integer, Set<Integer>>> cacheYesA = new HashSet<>();
+    private final Set<Map<Integer, Set<Integer>>> cacheNoA = new HashSet<>();
 
     /**
      * Returns whether the domain satisfies an AllDifferent constraint. This is needed for a node disjoint subgraph homeomorphism.
@@ -29,19 +28,19 @@ public class AllDifferent {
      * @param allDifferentMap a map that indicates for each source vertex its domain in target graph vertices
      * @return whether the constraint is satisfied.
      */
-    public boolean get(@NotNull Map<Vertex, Set<Vertex>> allDifferentMap) {
+    public boolean get(@NotNull Map<Integer, Set<Integer>> allDifferentMap) {
         if (cacheYesA.contains(allDifferentMap)) {
             return true;
         } else if (cacheNoA.contains(allDifferentMap)) {
             return false;
         } else {
-            final Map<Vertex, int[]> domains = new HashMap<>();
+            final Map<Integer, int[]> domains = new HashMap<>();
             if (allDifferentMap.values().stream().anyMatch(x -> x.size() == 0)) {
                 return false;
             }
-            allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(Vertex::data).toArray()));
+            allDifferentMap.forEach((key, value) -> domains.put(key, value.stream().mapToInt(x -> x).toArray()));
             Model model = new Model(settings);
-            List<Vertex> ordered = new ArrayList<>(allDifferentMap.keySet());
+            List<Integer> ordered = new ArrayList<>(allDifferentMap.keySet());
             IntVar[] variables = ordered.stream().map(x -> model.intVar(String.valueOf(ordered.indexOf(x)), domains.get(x))).toArray(IntVar[]::new);
 
             model.allDifferent(variables).post();
@@ -61,11 +60,11 @@ public class AllDifferent {
      * @param compatibility  a map that indicates for each source vertex (as index of a list) its domain in target graph vertices
      * @return whether the constraint is satisfied.
      */
-    public boolean get(@NotNull List<Set<Vertex>> compatibility) {
+    public boolean get(@NotNull List<Set<Integer>> compatibility) {
         Model model = new Model(settings);
         IntVar[] variables = IntStream.range(0, compatibility.size())
                 .boxed()
-                .map(i -> model.intVar(String.valueOf(i), compatibility.get(i).stream().mapToInt(Vertex::data).toArray()))
+                .map(i -> model.intVar(String.valueOf(i), compatibility.get(i).stream().mapToInt(x -> x).toArray()))
                 .toArray(IntVar[]::new);
         model.allDifferent(variables).post();
         return model.getSolver().solve();

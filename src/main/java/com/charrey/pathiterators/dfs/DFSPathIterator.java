@@ -1,9 +1,8 @@
 package com.charrey.pathiterators.dfs;
 
-import com.charrey.graph.generation.MyGraph;
-import com.charrey.occupation.GlobalOccupation;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
@@ -14,10 +13,10 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class DFSPathIterator extends PathIterator {
-    private final Vertex head;
+    private final int head;
 
     @NotNull
-    private final Vertex[][] outgoingNeighbours;
+    private final Integer[][] outgoingNeighbours;
     @NotNull
     private final int[] chosenOption;
     @NotNull
@@ -27,7 +26,7 @@ public class DFSPathIterator extends PathIterator {
     private final Supplier<Integer> placementSize;
     private int counter = 0;
 
-    public DFSPathIterator(@NotNull MyGraph graph, @NotNull Vertex[][] neighbours, @NotNull Vertex tail, Vertex head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths) {
+    public DFSPathIterator(@NotNull MyGraph graph, @NotNull Integer[][] neighbours, int tail, int head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths) {
         super(tail, head, refuseLongerPaths);
         this.head = head;
         exploration = new Path(graph, tail);
@@ -39,12 +38,12 @@ public class DFSPathIterator extends PathIterator {
         this.placementSize = placementSize;
     }
 
-    private boolean isCandidate(Vertex from, @NotNull Vertex vertex) {
+    private boolean isCandidate(int from, int vertex) {
         boolean isCandidate = !exploration.contains(vertex) &&
                 !occupation.isOccupiedRouting(vertex) &&
                 !(occupation.isOccupiedVertex(vertex) && vertex != head);
         if (refuseLongerPaths) {
-            isCandidate = isCandidate && exploration.stream().allMatch(x -> x == from || !Arrays.asList(outgoingNeighbours[x.data()]).contains(vertex));
+            isCandidate = isCandidate && exploration.stream().allMatch(x -> x == from || !Arrays.asList(outgoingNeighbours[x]).contains(vertex));
             //isCandidate = isCandidate && Arrays.stream(neighbours[vertex.data()]).noneMatch(x -> x != from && exploration.contains(x));
         }
         return isCandidate;
@@ -62,7 +61,7 @@ public class DFSPathIterator extends PathIterator {
         while (exploration.last() != head) {
             int indexOfHeadVertex = exploration.length() - 1;
             assert indexOfHeadVertex < chosenOption.length;
-            while (chosenOption[indexOfHeadVertex] >= outgoingNeighbours[exploration.get(indexOfHeadVertex).data()].length) {
+            while (chosenOption[indexOfHeadVertex] >= outgoingNeighbours[exploration.get(indexOfHeadVertex)].length) {
                 if (!removeHead(transaction)) {
                     return null;
                 }
@@ -70,8 +69,8 @@ public class DFSPathIterator extends PathIterator {
             }
             boolean found = false;
             //iterate over neighbours until we find an unused vertex
-            for (int i = chosenOption[indexOfHeadVertex]; i < outgoingNeighbours[exploration.last().data()].length; i++) {
-                Vertex neighbour = outgoingNeighbours[exploration.last().data()][i];
+            for (int i = chosenOption[indexOfHeadVertex]; i < outgoingNeighbours[exploration.last()].length; i++) {
+                int neighbour = outgoingNeighbours[exploration.last()][i];
                 if (isCandidate(exploration.last(), neighbour)) {
                     //if found, update chosen, update exploration
                     exploration.append(neighbour);
@@ -110,7 +109,7 @@ public class DFSPathIterator extends PathIterator {
      */
     private boolean removeHead(OccupationTransaction transaction) {
         int indexOfHeadVertex = exploration.length() - 1;
-        Vertex removed = exploration.removeLast();
+        int removed = exploration.removeLast();
         if (exploration.isEmpty()) {
             return false;
         } else {
@@ -123,7 +122,7 @@ public class DFSPathIterator extends PathIterator {
 
 
     @Override
-    public Vertex head() {
+    public int head() {
         return head;
     }
 

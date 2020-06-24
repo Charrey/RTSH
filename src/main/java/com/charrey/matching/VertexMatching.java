@@ -1,9 +1,8 @@
 package com.charrey.matching;
 
-import com.charrey.occupation.GlobalOccupation;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
 import com.charrey.algorithms.UtilityData;
+import com.charrey.graph.MyGraph;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.runtimecheck.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class VertexMatching extends VertexBlocker {
 
 
-    private final ArrayList<Vertex> placement = new ArrayList<>();
-    private final Vertex[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
+    private final ArrayList<Integer> placement = new ArrayList<>();
+    private final Integer[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
     @NotNull
     private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
     private final GlobalOccupation occupation;
@@ -48,7 +47,7 @@ public class VertexMatching extends VertexBlocker {
             removeLast();
         }
         assert occupation.domainChecker.checkOK(placement.size());
-        Vertex toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
+        int toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
         boolean occupied = occupation.isOccupied(toAdd);
         assert occupation.domainChecker.checkOK(placement.size());
         if (occupied) {
@@ -83,7 +82,7 @@ public class VertexMatching extends VertexBlocker {
 
 
     @NotNull
-    public List<Vertex> getPlacementUnsafe() {
+    public List<Integer> getPlacementUnsafe() {
         return Collections.unmodifiableList(placement);
     }
 
@@ -104,7 +103,7 @@ public class VertexMatching extends VertexBlocker {
         if (placement.size() < candidateToChooseNext.length) {
             candidateToChooseNext[placement.size()] = 0;
         }
-        Vertex removed = placement.remove(placement.size()-1);
+        int removed = placement.remove(placement.size()-1);
         occupation.releaseVertex(placement.size(), removed);
         this.onDeletion.run(removed);
         candidateToChooseNext[placement.size()] += 1;
@@ -124,7 +123,7 @@ public class VertexMatching extends VertexBlocker {
 
     public interface DeletionFunction {
 
-        void run(Vertex deleted);
+        void run(int deleted);
 
     }
 }

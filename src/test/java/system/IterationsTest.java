@@ -1,8 +1,7 @@
 package system;
 
 import com.charrey.HomeomorphismResult;
-import com.charrey.graph.Vertex;
-import com.charrey.graph.generation.MyGraph;
+import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.pathiterators.controlpoint.ControlPointIterator;
 import com.charrey.settings.PathIterationStrategy;
@@ -288,7 +287,7 @@ public class IterationsTest extends SystemTest {
 
     @NotNull
     private MyGraph importDot(@NotNull Path resolve, boolean directed) {
-        DOTImporter<Vertex, DefaultEdge> importer = new DOTImporter<>();
+        DOTImporter<Integer, DefaultEdge> importer = new DOTImporter<>();
         MyGraph toImportTo = new MyGraph(directed);
         importer.importGraph(toImportTo, resolve.toFile());
         return toImportTo;

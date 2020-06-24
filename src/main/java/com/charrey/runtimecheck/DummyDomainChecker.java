@@ -1,26 +1,24 @@
 package com.charrey.runtimecheck;
 
-import com.charrey.graph.Vertex;
-
 @SuppressWarnings("RedundantThrows")
 public class DummyDomainChecker extends DomainChecker {
     @Override
-    public void afterReleaseVertex(int verticesPlaced, Vertex released) {
+    public void afterReleaseVertex(int verticesPlaced, int released) {
 
     }
 
     @Override
-    public void afterReleaseEdge(int verticesPlaced, Vertex released) {
+    public void afterReleaseEdge(int verticesPlaced, int released) {
 
     }
 
     @Override
-    public void beforeOccupyVertex(int verticesPlaced, Vertex occupied) throws DomainCheckerException {
+    public void beforeOccupyVertex(int verticesPlaced, int occupied) throws DomainCheckerException {
 
     }
 
     @Override
-    public void afterOccupyEdge(int verticesPlaced, Vertex occupied) throws DomainCheckerException {
+    public void afterOccupyEdge(int verticesPlaced, int occupied) throws DomainCheckerException {
 
     }
 
