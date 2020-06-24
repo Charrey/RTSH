@@ -5,23 +5,23 @@ import com.charrey.runtimecheck.DomainChecker;
 import com.charrey.runtimecheck.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OccupationTransaction extends AbstractOccupation {
 
-    private final BitSet routingBits;
-    private final BitSet vertexBits;
+    private final Set<Integer> routingBits;
+    private final Set<Integer> vertexBits;
     private final DomainChecker domainChecker;
     private final GlobalOccupation parent;
 
-    private LinkedList<TransactionElement> waiting = new LinkedList<>();
+    private final LinkedList<TransactionElement> waiting = new LinkedList<>();
     private boolean locked = false;
 
-    OccupationTransaction(BitSet routingBits, BitSet vertexBits, DomainChecker domainChecker, GlobalOccupation parent) {
+    OccupationTransaction(Set<Integer> routingBits, Set<Integer> vertexBits, DomainChecker domainChecker, GlobalOccupation parent) {
         this.routingBits = routingBits;
         this.vertexBits = vertexBits;
         this.domainChecker = domainChecker;
@@ -29,8 +29,8 @@ public class OccupationTransaction extends AbstractOccupation {
     }
 
     public void occupyRoutingAndCheck(int verticesPlaced, int v) throws DomainCheckerException {
-        assert !routingBits.get(v);
-        routingBits.set(v);
+        assert !routingBits.contains(v);
+        routingBits.add(v);
         String previous = null;
         try {
             previous = domainChecker.toString();
@@ -38,7 +38,7 @@ public class OccupationTransaction extends AbstractOccupation {
             waiting.add(new TransactionElement(verticesPlaced, v));
         } catch (DomainCheckerException e) {
             assertEquals(previous, domainChecker.toString());
-            routingBits.clear(v);
+            routingBits.remove(v);
             throw e;
         }
     }
@@ -58,21 +58,21 @@ public class OccupationTransaction extends AbstractOccupation {
 
     public void releaseRouting(int verticesPlaced, int v) {
         assert isOccupiedRouting(v);
-        routingBits.clear(v);
+        routingBits.remove(v);
         domainChecker.afterReleaseEdge(verticesPlaced, v);
         waiting.remove(new TransactionElement(verticesPlaced, v));
     }
 
     private boolean isOccupiedRouting(int v) {
-        return routingBits.get(v);
+        return routingBits.contains(v);
     }
 
     private boolean isOccupiedVertex(int v) {
-        return vertexBits.get(v);
+        return vertexBits.contains(v);
     }
 
-    public boolean isOccupied(int v) {
-        return isOccupiedRouting(v) || isOccupiedVertex(v);
+    public boolean isOccupied(int vertex) {
+        return isOccupiedRouting(vertex) || isOccupiedVertex(vertex);
     }
 
 

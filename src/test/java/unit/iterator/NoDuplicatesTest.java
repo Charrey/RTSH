@@ -82,7 +82,7 @@ class NoDuplicatesTest {
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
-                GlobalOccupation occupation = new GlobalOccupation(data, targetGraph.vertexSet().size(), settings);
+                GlobalOccupation occupation = new GlobalOccupation(data, settings);
                 occupation.occupyVertex(0, tail);
                 occupation.occupyVertex(1, head);
                 PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);

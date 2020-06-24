@@ -59,7 +59,7 @@ class CompleteTest extends PathIteratorTest {
                 for (int strategy : List.of(PathIterationStrategy.DFS_ARBITRARY, PathIterationStrategy.DFS_GREEDY, PathIterationStrategy.CONTROL_POINT, PathIterationStrategy.YEN)) {
                     settings.pathIteration = strategy;
                     pathCount.put(strategy, new HashSet<>());
-                    GlobalOccupation occupation = new GlobalOccupation(data, targetGraph.vertexSet().size(), settings);
+                    GlobalOccupation occupation = new GlobalOccupation(data, settings);
                     try {
                         occupation.occupyVertex(0, tail);
                         occupation.occupyVertex(1, head);

@@ -15,7 +15,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class EdgeMatching extends VertexBlocker {
+/**
+ * A class that saves which source graph edge is mapped to which target graph path, and provides methods to facilitate
+ * such matchings.
+ */
+public class EdgeMatching {
 
     private final VertexMatching vertexMatching;
     private final MyGraph source;
@@ -35,6 +39,17 @@ public class EdgeMatching extends VertexBlocker {
 
     private final UtilityData data;
 
+    /**
+     * Instantiates a new edgematching.
+     *
+     * @param vertexMatching    the vertex matching class used in this homeomorphism finding session
+     * @param data              the utility data class of this test case (for cached computations)
+     * @param source            the source graph
+     * @param target            the target graph
+     * @param occupation        the global occupation which vertices have been used and which are available
+     * @param pathIteration     the strategy to be used to iterate different paths between pairs of vertices
+     * @param refuseLongerPaths whether to avoid mapping to paths that use up unnecessarily many resources
+     */
     public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, GlobalOccupation occupation, int pathIteration, boolean refuseLongerPaths) {
         this.vertexMatching = vertexMatching;
         this.source = source;
@@ -60,6 +75,12 @@ public class EdgeMatching extends VertexBlocker {
         assert paths.stream().allMatch(x -> x.stream().noneMatch(y -> y.getFirst().isEmpty()));
     }
 
+    /**
+     * Returns whether edges exists in the set of currently matched source graph vertices that have not been mapped
+     * to target graph paths yet
+     *
+     * @return whether some edge can be matched
+     */
     public boolean hasUnmatched() {
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
         if (lastPlacedIndex == -1) {
@@ -68,16 +89,20 @@ public class EdgeMatching extends VertexBlocker {
         return paths.get(lastPlacedIndex).size() < edges[lastPlacedIndex].length;
     }
 
+    /**
+     * Attempts to replace the last matched edge-path mapping with a new one using the provided strategy.
+     *
+     * @return whether a new path has been successfully found
+     */
     public boolean retry() {
         if (vertexMatching.getPlacementUnsafe().isEmpty()) {
             return false;
         }
-        List<Pair<Path, String>> pathList = paths.get(vertexMatching.getPlacementUnsafe().size()-1);
+        List<Pair<Path, String>> pathList = paths.get(vertexMatching.getPlacementUnsafe().size() - 1);
         if (pathList.isEmpty()) {
             return false;
         }
         int placementSize = vertexMatching.getPlacementUnsafe().size();
-        assert occupation.domainChecker.checkOK(placementSize);
         for (int i = pathList.size() - 1; i >= 0; i--) {
             Path toRetry = pathList.get(i).getFirst();
             int tail = toRetry.first();
@@ -91,20 +116,23 @@ public class EdgeMatching extends VertexBlocker {
                 assert pathFound.last() == head : "Expected: " + head + ", actual: " + pathFound.last();
                 Path toAdd = new Path(pathFound);
                 pathList.set(pathList.size() - 1, new Pair<>(toAdd, pathfinder.debugInfo()));
-                assert occupation.domainChecker.checkOK(placementSize);
                 return true;
             } else {
                 pathfinders.remove(tail, head);
                 removeLastPath();
             }
         }
-        assert occupation.domainChecker.checkOK(placementSize);
         return false;
     }
 
+    /**
+     * Adds a new mapping between a source graph edge and a target graph path (using the provided strategy) for a source
+     * graph edge that is currently not yet matched.
+     *
+     * @return if a path has been found, returns that path. Otherwise, returns null.
+     */
     @Nullable
     public Path placeNextUnmatched() {
-        assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
         assert this.hasUnmatched();
         //get things
         int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
@@ -112,7 +140,7 @@ public class EdgeMatching extends VertexBlocker {
         int to = vertexMatching.getPlacementUnsafe().get(lastPlacedIndex);
         if (directed && !incoming[lastPlacedIndex][paths.get(lastPlacedIndex).size()]) {
             //swap
-            int temp  = to;
+            int temp = to;
             to = from;
             from = temp;
         }
@@ -130,12 +158,9 @@ public class EdgeMatching extends VertexBlocker {
         Path toReturn = iterator.next();
         if (toReturn != null) {
             addPath(toReturn, iterator.debugInfo());
-            assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
             return toReturn;
         } else {
             pathfinders.remove(tail, head);
-            //iterator.reset();
-            assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
             return null;
         }
     }
@@ -192,12 +217,15 @@ public class EdgeMatching extends VertexBlocker {
     }
 
     private void synchronize(int vertex) {
-        assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
         assert !vertexMatching.getPlacementUnsafe().contains(vertex);
         paths.get(vertexMatching.getPlacementUnsafe().size()).clear();
-        assert occupation.domainChecker.checkOK(vertexMatching.getPlacementUnsafe().size());
     }
 
+    /**
+     * Returns all paths in the target graph that are part of the current matching
+     *
+     * @return all matched target graph paths
+     */
     @NotNull
     public Set<Path> allPaths() {
         Set<Path> res = new HashSet<>();
@@ -210,7 +238,6 @@ public class EdgeMatching extends VertexBlocker {
     private void removeLastPath() {
         List<Pair<Path, String>> pathList = this.paths.get(this.vertexMatching.getPlacementUnsafe().size() - 1);
         Path removed = pathList.remove(pathList.size() - 1).getFirst();
-        //removed.intermediate().forEach(x -> occupation.releaseRouting(vertexMatching.getPlacementUnsafe().size(), x)); // this should be the empty path now
         assert directed || removed.last() > removed.first();
     }
 

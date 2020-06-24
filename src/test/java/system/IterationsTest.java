@@ -26,6 +26,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/**
+ * The type Iterations test.
+ */
 public class IterationsTest extends SystemTest {
 
 //    private static final long seed = 1924;
@@ -82,6 +85,11 @@ public class IterationsTest extends SystemTest {
 //        }
 //    }
 
+    /**
+     * Remove benchmarks.
+     *
+     * @throws IOException the io exception
+     */
     @SuppressWarnings("ConstantConditions")
     @Test
     @Disabled
@@ -103,6 +111,11 @@ public class IterationsTest extends SystemTest {
             RunTimeCheck.ALL_DIFFERENT,
             PathIterationStrategy.CONTROL_POINT, new Random(19477));
 
+    /**
+     * Test directed.
+     *
+     * @throws IOException the io exception
+     */
     @SuppressWarnings("ConstantConditions")
     @Test
     @Order(1)
@@ -160,6 +173,11 @@ public class IterationsTest extends SystemTest {
 
     }
 
+    /**
+     * Analyse speeds.
+     *
+     * @throws IOException the io exception
+     */
     @SuppressWarnings("ConstantConditions")
     @Test
     @Order(2)
@@ -167,7 +185,7 @@ public class IterationsTest extends SystemTest {
         File folder = new File("performanceTest/directed");
         List<List<Integer>> count = new ArrayList<>();
         List<List<Double>> improvement = new ArrayList<>();
-        final Settings baseline =  new Settings(
+        final Settings baseline = new Settings(
                 true,
                 true,
                 true,

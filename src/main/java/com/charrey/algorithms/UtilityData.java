@@ -27,26 +27,31 @@ public class UtilityData {
      * Instantiates a new Utility data class. This needs to be done (instead of static calls) to allow for caching.
      *
      * @param sourceGraph the source graph
-     * @param targetGraph  the target graph
+     * @param targetGraph the target graph
      */
     public UtilityData(MyGraph sourceGraph, MyGraph targetGraph) {
         this.patternGraph = sourceGraph;
         this.targetGraph = targetGraph;
     }
 
-//    private List<Integer> order;
-//
-//    /**
-//     * Returns an appropriate source graph vertex order.
-//     *
-//     * @return the vertex order to follow in the matching process
-//     */
-//    public List<Integer> getOrder() {
-//        if (order == null) {
-//            order = new GreatestConstrainedFirst().apply(patternGraph);
-//        }
-//        return Collections.unmodifiableList(order);
-//    }
+    /**
+     * Returns the number of vertices in the target graph
+     *
+     * @return the number of vertices in the target graph
+     */
+    public int targetGraphSize() {
+        return targetGraph.vertexSet().size();
+    }
+
+    /**
+     * Returns the number of vertices in the source graph
+     *
+     * @return the number of vertices in the source graph
+     */
+    public int sourceGraphSize() {
+        return patternGraph.vertexSet().size();
+    }
+
 
     private Integer[][] compatibility;
 
@@ -107,9 +112,9 @@ public class UtilityData {
     /**
      * Returns an array that provides for each target vertex an ordering in which to try other target vertices in DFS.
      * Since this choice may depend on the target of the DFS, this array incorporates each possible goal vertex.
+     *
      * @param strategy the DFS strategy used
-     * @return a 3-d array where the first argument is the goal vertex, the second argument is some target graph vertex and the
-     * result are neighbours of that vertex in the order that they need to be tried.
+     * @return a 3-d array where the first argument is the goal vertex, the second argument is some target graph vertex and the result are neighbours of that vertex in the order that they need to be tried.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public @NotNull Integer[][][] getTargetNeighbours(int strategy) {

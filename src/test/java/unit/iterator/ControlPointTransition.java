@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -43,7 +42,7 @@ class ControlPointTransition {
     @Order(1)
     void TestNoMore() throws DomainCheckerException {
         test(myCase -> {
-            OptionalInt counterExample = myCase.globalOccupation.getRoutingOccupied().stream().filter(x -> myCase.path.intermediate().stream().noneMatch(y -> y == x)).findAny();
+            Optional<Integer> counterExample = myCase.globalOccupation.getRoutingOccupied().stream().filter(x -> myCase.path.intermediate().stream().mapToInt(y -> y).noneMatch(y -> y == x)).findAny();
             if (counterExample.isPresent()) {
                 System.err.println("In occupation but not in path: " + counterExample);
                 return false;
@@ -109,7 +108,7 @@ class ControlPointTransition {
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
-                GlobalOccupation occupation = new GlobalOccupation(data, targetGraph.vertexSet().size(), settings);
+                GlobalOccupation occupation = new GlobalOccupation(data, settings);
                 occupation.occupyVertex(0, tail);
                 occupation.occupyVertex(1, head);
                 ManagedControlPointIterator iterator = (ManagedControlPointIterator) PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);

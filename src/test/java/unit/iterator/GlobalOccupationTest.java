@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -80,13 +79,13 @@ class GlobalOccupationTest {
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
-                GlobalOccupation occupation = new GlobalOccupation(data, targetGraph.vertexSet().size(), settings);
+                GlobalOccupation occupation = new GlobalOccupation(data, settings);
                 occupation.occupyVertex(0, tail);
                 occupation.occupyVertex(1, head);
                 PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);
                 Path path;
                 while ((path = iterator.next()) != null) {
-                    Set<Integer> occupationSays = occupation.getRoutingOccupied().stream().boxed().collect(Collectors.toSet());
+                    Set<Integer> occupationSays = occupation.getRoutingOccupied();
                     Set<Integer> pathSays = new HashSet<>(path.intermediate());
                     assertEquals(occupationSays, pathSays, "Iteration: " + counter);
                 }

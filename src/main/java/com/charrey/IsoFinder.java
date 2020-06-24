@@ -31,7 +31,7 @@ public class IsoFinder {
         if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
-        GlobalOccupation occupation = new GlobalOccupation(data, testcase.targetGraph.vertexSet().size(), settings.runTimeCheck, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+        GlobalOccupation occupation = new GlobalOccupation(data, settings.runTimeCheck, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
         vertexMatching      = new VertexMatching(data, testcase.sourceGraph, occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
         edgeMatching        = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
