@@ -98,6 +98,12 @@ public class AllDifferentChecker extends DomainChecker {
     }
 
 
+    @Override
+    public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int v) {
+        Integer[] candidates = reverseDomain[v];
+        int sourceVertexData = verticesPlaced - 1;
+        removeFromDomains(v, candidates, sourceVertexData);
+    }
 
     @Override
     public void afterOccupyEdge(int verticesPlaced, int v) throws DomainCheckerException {
@@ -111,6 +117,7 @@ public class AllDifferentChecker extends DomainChecker {
             throw new DomainCheckerException("AllDifferent constraint failed after occupying routing vertex " + v);
         }
     }
+
 
     private void removeFromDomains(int placedTarget, Integer[] sourcegraphCandidates, int sourceVertexData) {
         for (int i = sourcegraphCandidates.length - 1; i >= 0 && sourcegraphCandidates[i] > sourceVertexData; i--) {

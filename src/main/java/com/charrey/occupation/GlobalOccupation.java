@@ -11,8 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
  * Class that tracks for an entire homeomorphism source which target graph vertices are used up for which goal.
  * This class also throws exceptions when usage of a vertex would result in a dead end in the search.
@@ -82,15 +80,18 @@ public class GlobalOccupation extends AbstractOccupation {
     void occupyRoutingAndCheck(int vertexPlacementSize, int vertex) throws DomainCheckerException {
         assert !routingBits.contains(vertex);
         routingBits.add(vertex);
-        String previous = null;
         try {
-            previous = domainChecker.toString();
             domainChecker.afterOccupyEdge(vertexPlacementSize, vertex);
         } catch (DomainCheckerException e) {
-            assertEquals(previous, domainChecker.toString());
             routingBits.remove(vertex);
             throw e;
         }
+    }
+
+    void occupyRoutingWithoutCheck(int vertexPlacementSize, int vertex) {
+        assert !routingBits.contains(vertex);
+        routingBits.add(vertex);
+        domainChecker.afterOccupyEdgeWithoutCheck(vertexPlacementSize, vertex);
     }
 
     /**

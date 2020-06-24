@@ -59,11 +59,20 @@ public class EmptyDomainChecker extends DomainChecker {
         afterOccupy(verticesPlaced, v);
     }
 
+
     private void afterRelease(int v) {
         Integer[] candidates = reverseDomain[v];
         for (int i = candidates.length - 1; i >= 0; i--) {
             assert !domain[candidates[i]].contains(v);
             domain[candidates[i]].add(v);
+        }
+    }
+
+    @Override
+    public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int v) {
+        Integer[] candidates = reverseDomain[v];
+        for (int i = candidates.length - 1; i >= 0; i--) {
+            domain[candidates[i]].remove(v);
         }
     }
 

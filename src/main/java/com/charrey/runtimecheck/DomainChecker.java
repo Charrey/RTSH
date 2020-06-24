@@ -10,6 +10,8 @@ public abstract class DomainChecker {
 
     public abstract void afterOccupyEdge(int verticesPlaced, int occupied) throws DomainCheckerException;
 
+    public abstract void afterOccupyEdgeWithoutCheck(int verticesPlaced, int occupied);
+
     public abstract boolean checkOK(int verticesPlaced);
 
     public abstract DomainChecker copy();

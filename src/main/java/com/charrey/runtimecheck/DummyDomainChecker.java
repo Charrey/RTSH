@@ -23,6 +23,11 @@ public class DummyDomainChecker extends DomainChecker {
     }
 
     @Override
+    public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int occupied) {
+
+    }
+
+    @Override
     public boolean checkOK(int verticesPlaced) {
         return true;
     }
