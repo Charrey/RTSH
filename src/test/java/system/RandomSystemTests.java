@@ -28,7 +28,7 @@ class RandomSystemTests extends SystemTest {
         if (settings.pathIteration == PathIterationStrategy.YEN) {
             return;
         }
-        findCases(10*1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(30*1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
     @Test
@@ -36,17 +36,17 @@ class RandomSystemTests extends SystemTest {
         if (settings.pathIteration == PathIterationStrategy.YEN) {
             return;
         }
-        findCases(10*1000, 200, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(30*1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(10*1000, 5, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(30*1000, 5, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
     void findCasesDirectedRandom() throws IOException {
-        findCases(10*1000, 5, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(30*1000, 5, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
 

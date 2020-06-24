@@ -1,6 +1,5 @@
 package com.charrey.runtimecheck;
 
-import com.charrey.graph.Vertex;
 import com.charrey.algorithms.UtilityData;
 import org.jetbrains.annotations.NotNull;
 

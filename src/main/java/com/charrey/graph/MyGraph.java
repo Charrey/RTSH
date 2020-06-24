@@ -11,6 +11,10 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * A graph class that uses integers for vertices and supports multiple labels for each vertex. Self-loops and multiple
+ * edges between the same pairs are disallowed.
+ */
 public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
     private final boolean directed;
     private double maxEdgeWeight = 1d;
@@ -18,6 +22,11 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
 
     private final List<Map<String, Set<String>>> labels;
 
+    /**
+     * Instantiates a new empty graph.
+     *
+     * @param directed whether the graph is directed. If false, the graph will be undirected.
+     */
     public MyGraph(boolean directed) {
         super(
                 SupplierUtil.createIntegerSupplier(), DefaultEdge::new,
@@ -73,6 +82,11 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         return res;
     }
 
+    /**
+     * Returns whether this graph is directed.
+     *
+     * @return true if this graph is directed or false if it is undirected.
+     */
     public boolean isDirected() {
         return directed;
     }
@@ -85,7 +99,14 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         return writer.toString();
     }
 
-    //values are the old ordering, position is the new ordering
+    /**
+     * Applies a new vertex ordering to a graph, yielding a new graph that has this ordering. The old graph remains
+     * unmodified.
+     *
+     * @param source     the graph to which to apply the new vertex ordering.
+     * @param new_to_old the new ordering, such that the position of integers is the new vertex value, and the value of                   the integers is the old vertex value.
+     * @return a graph such that the ordering is applied.
+     */
     public static MyGraph applyOrdering(MyGraph source, int[] new_to_old) {
         int[] old_to_new = new int[new_to_old.length];
         for (int i = 0; i < new_to_old.length; i++) {
@@ -108,12 +129,33 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         return res;
     }
 
-    public Collection<String> getLabels(int targetVertex) {
-        labels.get(targetVertex).computeIfAbsent("label", x -> new HashSet<>());
-        return labels.get(targetVertex).get("label");
+    /**
+     * Returns all labels of a specific vertex
+     *
+     * @param vertex vertex to retrieve the labels of
+     * @return set of labels of this vertex
+     * @throws IllegalArgumentException thrown if the graph did not contain the provided vertex.
+     */
+    public Collection<String> getLabels(int vertex) {
+        if (!containsVertex(vertex)) {
+            throw new IllegalArgumentException("The graph must contain the vertex " + vertex);
+        }
+        labels.get(vertex).computeIfAbsent("label", x -> new HashSet<>());
+        return labels.get(vertex).get("label");
     }
 
+    /**
+     * Stores a key-value pair of an attribute of a specific vertex. If the key is "label" it is interpreted as a label.
+     *
+     * @param vertex the vertex whose attribute is being added
+     * @param key    the attribute key
+     * @param value  the attribute value
+     * @throws IllegalArgumentException thrown if the graph did not contain the provided vertex.
+     */
     public void addAttribute(int vertex, String key, String value) {
+        if (!containsVertex(vertex)) {
+            throw new IllegalArgumentException("The graph must contain the vertex " + vertex);
+        }
         labels.get(vertex).computeIfAbsent(key, x -> new HashSet<>());
         labels.get(vertex).get(key).add(value);
     }

@@ -1,6 +1,5 @@
 package com.charrey.graph.generation.succeed;
 
-import com.charrey.graph.Vertex;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.TestCaseGenerator;
@@ -11,11 +10,9 @@ import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
+import org.jgrapht.graph.DefaultEdge;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -117,6 +114,23 @@ public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
             patternNodes++;
         } else {
             patternEdges++;
+        }
+    }
+
+
+    private static void insertIntermediateNodes(@NotNull MyGraph targetGraph, double extraRoutingNodes, RandomGenerator random) {
+        IntegerDistribution distribution = new GeometricDistribution(random, 1./(extraRoutingNodes + 1));
+        for (DefaultEdge edge : new HashSet<>(targetGraph.edgeSet())) {
+            int toAdd = distribution.sample();
+            while (toAdd > 0) {
+                int source = targetGraph.getEdgeSource(edge);
+                int target = targetGraph.getEdgeTarget(edge);
+                targetGraph.removeEdge(source, target);
+                int intermediate = targetGraph.addVertex();
+                targetGraph.addEdge(intermediate, target);
+                edge = targetGraph.addEdge(source, intermediate);
+                toAdd -= 1;
+            }
         }
     }
 

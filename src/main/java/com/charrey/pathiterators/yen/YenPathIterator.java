@@ -1,8 +1,7 @@
 package com.charrey.pathiterators.yen;
 
-import com.charrey.graph.Path;
-import com.charrey.graph.Vertex;
 import com.charrey.graph.MyGraph;
+import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;

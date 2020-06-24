@@ -1,6 +1,5 @@
 package com.charrey.graph.generation.succeed;
 
-import com.charrey.graph.Vertex;
 import com.charrey.graph.MyGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.generate.GnmRandomGraphGenerator;

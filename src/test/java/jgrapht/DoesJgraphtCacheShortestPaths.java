@@ -1,6 +1,5 @@
 package jgrapht;
 
-import com.charrey.graph.Vertex;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import org.jgrapht.alg.interfaces.ManyToManyShortestPathsAlgorithm;

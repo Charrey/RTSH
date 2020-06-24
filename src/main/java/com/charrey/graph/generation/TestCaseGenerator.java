@@ -1,44 +1,41 @@
 package com.charrey.graph.generation;
 
-import com.charrey.graph.MyGraph;
-import org.apache.commons.math3.distribution.GeometricDistribution;
-import org.apache.commons.math3.distribution.IntegerDistribution;
-import org.apache.commons.math3.random.RandomGenerator;
-import org.jetbrains.annotations.NotNull;
-import org.jgrapht.graph.DefaultEdge;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashSet;
 
+/**
+ * The type Test case generator.
+ */
 public abstract class TestCaseGenerator {
 
-    protected static void insertIntermediateNodes(@NotNull MyGraph targetGraph, double extraRoutingNodes, RandomGenerator random) {
-        IntegerDistribution distribution = new GeometricDistribution(random, 1./(extraRoutingNodes + 1));
-        for (DefaultEdge edge : new HashSet<>(targetGraph.edgeSet())) {
-            int toAdd = distribution.sample();
-            while (toAdd > 0) {
-                int source = targetGraph.getEdgeSource(edge);
-                int target = targetGraph.getEdgeTarget(edge);
-                targetGraph.removeEdge(source, target);
-                int intermediate = targetGraph.addVertex();
-                targetGraph.addEdge(intermediate, target);
-                edge = targetGraph.addEdge(source, intermediate);
-                toAdd -= 1;
-            }
-        }
-    }
+
 
     private final Deque<TestCase> testCases = new ArrayDeque<>();
 
+    /**
+     * Returns the next Testcase from this generator.
+     *
+     * @return the next
+     */
     public TestCase getNext() {
         return testCases.pop();
     }
 
+    /**
+     * Returns whether the next graph is available for usage. This can happen using the init() call.
+     *
+     * @return the boolean
+     */
     public boolean hasNext() {
         return !testCases.isEmpty();
     }
 
+    /**
+     * Pregenerate a specific number of test cases.
+     *
+     * @param amount the number of test cases to generate.
+     * @param print  whether the progress of generation should be logged to the console.
+     */
     public void init(int amount, boolean print) {
         testCases.clear();
         if (print) {
@@ -52,7 +49,16 @@ public abstract class TestCaseGenerator {
         }
     }
 
+    /**
+     * Adjusts the settings of this generator to generate graphs for which it is more difficult to find homeomorphisms. This
+     * could, for example, entail increasing the graph sizes or connectedness.
+     */
     public abstract void makeHarder();
 
+    /**
+     * Returns a random test case.
+     *
+     * @return a random test case.
+     */
     protected abstract TestCase getRandom();
 }
