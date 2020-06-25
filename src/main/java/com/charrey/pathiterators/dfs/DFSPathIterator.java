@@ -33,8 +33,7 @@ public class DFSPathIterator extends PathIterator {
      * Instantiates a new DFS path iterator.
      *
      * @param graph             the target graph
-     * @param neighbours        integer array such that for any target graph vertex x, neighbours[x] is an array of
-     *                          outgoing neighbours in the order that they need to be attempted.
+     * @param neighbours        integer array such that for any target graph vertex x, neighbours[x] is an array of                          outgoing neighbours in the order that they need to be attempted.
      * @param tail              the start vertex of the path
      * @param head              the end vertex of the path
      * @param occupation        the GlobalOccupation where intermediate nodes are registered

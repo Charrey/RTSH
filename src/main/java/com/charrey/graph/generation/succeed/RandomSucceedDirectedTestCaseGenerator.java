@@ -14,8 +14,8 @@ public class RandomSucceedDirectedTestCaseGenerator extends SucceedTestCaseGener
     /**
      * Instantiates a new Random succeed directed test case generator.
      *
-     * @param patternNodes the number of nodes the source graph should have
-     * @param patternEdges the number of edges the source graph should have
+     * @param patternNodes      the number of nodes the source graph should have
+     * @param patternEdges      the number of edges the source graph should have
      * @param extraRoutingNodes the number of intermediate nodes that should on average be added
      * @param extraNodes        the number of 'distraction' nodes that should be added
      * @param seed              a random seed used to obtain reproducibility

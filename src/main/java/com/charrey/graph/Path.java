@@ -136,6 +136,7 @@ public class Path implements Comparable<Path> {
 
     /**
      * Returns the length (in vertices) of this path.
+     *
      * @return the length of this path
      */
     public int length() {
@@ -153,6 +154,7 @@ public class Path implements Comparable<Path> {
 
     /**
      * Removes the last vertex in this path. Throws IndexOutOfBoundsException if the Path is empty.
+     *
      * @return the vertex that was removed.
      */
     public int removeLast() {

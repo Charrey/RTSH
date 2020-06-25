@@ -87,8 +87,7 @@ public class GlobalOccupation extends AbstractOccupation {
      *
      * @param source the source graph vertex
      * @param target the target graph vertex
-     * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.
-     *                                If this is thrown, this class remains unchanged.
+     * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search. If this is thrown, this class remains unchanged.
      */
     public void occupyVertex(int source, int target) throws DomainCheckerException {
         assert !routingBits.contains(target);

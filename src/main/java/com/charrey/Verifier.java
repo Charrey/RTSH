@@ -26,11 +26,11 @@ class Verifier {
      */
     static boolean isCorrect(@NotNull MyGraph sourceGraph, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
         //all nodes are placed
-        if (vertexMatching.getPlacementUnsafe().size() < sourceGraph.vertexSet().size()) {
+        if (vertexMatching.getPlacement().size() < sourceGraph.vertexSet().size()) {
             return false;
         }
         //all nodes are distinct
-        if (vertexMatching.getPlacementUnsafe().size() != new HashSet<>(vertexMatching.getPlacementUnsafe()).size()) {
+        if (vertexMatching.getPlacement().size() != new HashSet<>(vertexMatching.getPlacement()).size()) {
             return false;
         }
 
@@ -40,8 +40,8 @@ class Verifier {
         }
         if (sourceGraph.isDirected()) {
             for (DefaultEdge edge : sourceGraph.edgeSet()) {
-                int edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(sourceGraph.getEdgeSource(edge));
-                int edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(sourceGraph.getEdgeTarget(edge));
+                int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
+                int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
                 long matches = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).count();
                 if (matches != 1) {
                     return false;
@@ -49,8 +49,8 @@ class Verifier {
             }
         } else {
             for (DefaultEdge edge : sourceGraph.edgeSet()) {
-                int edgeSourceTarget = vertexMatching.getPlacementUnsafe().get(sourceGraph.getEdgeSource(edge));
-                int edgeTargetTarget = vertexMatching.getPlacementUnsafe().get(sourceGraph.getEdgeTarget(edge));
+                int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
+                int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
                 long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
                 if (matches != 1) {
                     return false;
@@ -69,7 +69,7 @@ class Verifier {
         //the intermediate list of nodes are disjoint from the nodes
         for (Path path : edgeMatching.allPaths()) {
             List<Integer> intermediate = path.intermediate();
-            if (vertexMatching.getPlacementUnsafe().stream().anyMatch(intermediate::contains)) {
+            if (vertexMatching.getPlacement().stream().anyMatch(intermediate::contains)) {
                 return false;
             }
         }

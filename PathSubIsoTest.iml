@@ -12,9 +12,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: com.levigo:gwt-awt:1.0.1" level="project" />
+    <orderEntry type="library" name="Maven: org.jgrapht:jgrapht-io:1.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.jgrapht:jgrapht-core:1.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.jheaps:jheaps:0.11" level="project" />
-    <orderEntry type="library" name="Maven: org.jgrapht:jgrapht-io:1.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.7.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-text:1.6" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.8.1" level="project" />

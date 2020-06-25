@@ -41,6 +41,28 @@ public class IsoFinder {
 
     private long lastPrint = 0;
 
+    private static boolean allDone(@NotNull MyGraph pattern, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
+        boolean completeV = vertexMatching.getPlacement().size() == pattern.vertexSet().size();
+        if (!completeV) {
+            return false;
+        }
+        boolean completeE = !edgeMatching.hasUnmatched();
+        if (!completeE) {
+            return false;
+        }
+        LOG.info(() -> "Done, checking...");
+        boolean correct = Verifier.isCorrect(pattern, vertexMatching, edgeMatching);
+        assert correct;
+        return true;
+    }
+
+
+    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
+        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.sourceGraph.vertexSet().size())).pow(testcase.targetGraph.vertexSet().size());
+        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
+        LOG.info(() -> "Reduced vertex matching domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
+    }
+
     /**
      * Searches for a node disjoint subgraph homeomorphism.
      *
@@ -88,34 +110,11 @@ public class IsoFinder {
                 return HomeomorphismResult.ofFailed(iterations);
             }
         }
-        if (vertexMatching.getPlacementUnsafe().size() < testcase.sourceGraph.vertexSet().size()) {
+        if (vertexMatching.getPlacement().size() < testcase.sourceGraph.vertexSet().size()) {
             return HomeomorphismResult.ofFailed(iterations);
         } else {
             return HomeomorphismResult.ofSucceed(vertexMatching, edgeMatching, iterations);
         }
-    }
-
-
-    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
-        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.sourceGraph.vertexSet().size())).pow(testcase.targetGraph.vertexSet().size());
-        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
-        LOG.info(() -> "Reduced vertex matching domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
-    }
-
-
-    private static boolean allDone(@NotNull MyGraph pattern, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
-        boolean completeV = vertexMatching.getPlacementUnsafe().size() == pattern.vertexSet().size();
-        if (!completeV) {
-            return false;
-        }
-        boolean completeE = !edgeMatching.hasUnmatched();
-        if (!completeE) {
-            return false;
-        }
-        LOG.info(() -> "Done, checking...");
-        boolean correct = Verifier.isCorrect(pattern, vertexMatching, edgeMatching);
-        assert correct;
-        return true;
     }
 
 

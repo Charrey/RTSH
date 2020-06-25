@@ -48,8 +48,7 @@ public class Settings {
      * Instantiates a new Settings.
      *
      * @param initialNeighbourhoodFiltering Whether to apply domain reduction by filtering for compatible neighbourhoods.
-     * @param initialGlobalAllDifferent     Whether AllDifferent needs to be applied for each possible matching at the start
-     *                                      to reduce the domains.
+     * @param initialGlobalAllDifferent     Whether AllDifferent needs to be applied for each possible matching at the start                                      to reduce the domains.
      * @param refuseLongerPaths             Whether to refuse paths that take up unnecessarily many resources.
      * @param pruningMethod                 Which pruning method to use (select from PruningConstants.java)
      * @param pathIteration                 Which method to iterate paths is used (select from PathIterationConstants.java)

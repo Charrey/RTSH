@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 /**
  * Returns a vertex order using the GreatestConstraintFirst algorithm. This vertex order attempts to have each
- *      * consecutive vertex be connected with as many already already matched vertices possible.
+ * * consecutive vertex be connected with as many already already matched vertices possible.
  */
 public class GreatestConstrainedFirst {
 

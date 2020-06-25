@@ -81,7 +81,7 @@ public class EdgeMatching {
      * @return whether some edge can be matched
      */
     public boolean hasUnmatched() {
-        int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
+        int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
         if (lastPlacedIndex == -1) {
             return false;
         }
@@ -94,14 +94,14 @@ public class EdgeMatching {
      * @return whether a new path has been successfully found
      */
     public boolean retry() {
-        if (vertexMatching.getPlacementUnsafe().isEmpty()) {
+        if (vertexMatching.getPlacement().isEmpty()) {
             return false;
         }
-        List<Pair<Path, String>> pathList = paths.get(vertexMatching.getPlacementUnsafe().size() - 1);
+        List<Pair<Path, String>> pathList = paths.get(vertexMatching.getPlacement().size() - 1);
         if (pathList.isEmpty()) {
             return false;
         }
-        int placementSize = vertexMatching.getPlacementUnsafe().size();
+        int placementSize = vertexMatching.getPlacement().size();
         for (int i = pathList.size() - 1; i >= 0; i--) {
             Path toRetry = pathList.get(i).getFirst();
             int tail = toRetry.first();
@@ -134,9 +134,9 @@ public class EdgeMatching {
     public Path placeNextUnmatched() {
         assert this.hasUnmatched();
         //get things
-        int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
-        int from = vertexMatching.getPlacementUnsafe().get(edges[lastPlacedIndex][paths.get(lastPlacedIndex).size()]);
-        int to = vertexMatching.getPlacementUnsafe().get(lastPlacedIndex);
+        int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
+        int from = vertexMatching.getPlacement().get(edges[lastPlacedIndex][paths.get(lastPlacedIndex).size()]);
+        int to = vertexMatching.getPlacement().get(lastPlacedIndex);
         if (directed && !incoming[lastPlacedIndex][paths.get(lastPlacedIndex).size()]) {
             //swap
             int temp = to;
@@ -152,7 +152,7 @@ public class EdgeMatching {
             pathfinders.remove(tail, head);
             assert false;
         }
-        PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> vertexMatching.getPlacementUnsafe().size(), pathIteration, refuseLongerPaths);
+        PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> vertexMatching.getPlacement().size(), pathIteration, refuseLongerPaths);
         pathfinders.put(tail, head, iterator);
         Path toReturn = iterator.next();
         if (toReturn != null) {
@@ -198,7 +198,7 @@ public class EdgeMatching {
     private void addPath(@NotNull Path found, String debugInfo) {
         assert !found.isEmpty();
         assert directed || found.last() > found.first();
-        int lastPlacedIndex = vertexMatching.getPlacementUnsafe().size() - 1;
+        int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
         Path added = new Path(found);
         paths.get(lastPlacedIndex).add(new Pair<>(added, debugInfo));
     }
@@ -216,8 +216,8 @@ public class EdgeMatching {
     }
 
     private void synchronize(int vertex) {
-        assert !vertexMatching.getPlacementUnsafe().contains(vertex);
-        paths.get(vertexMatching.getPlacementUnsafe().size()).clear();
+        assert !vertexMatching.getPlacement().contains(vertex);
+        paths.get(vertexMatching.getPlacement().size()).clear();
     }
 
     /**
@@ -235,7 +235,7 @@ public class EdgeMatching {
     }
 
     private void removeLastPath() {
-        List<Pair<Path, String>> pathList = this.paths.get(this.vertexMatching.getPlacementUnsafe().size() - 1);
+        List<Pair<Path, String>> pathList = this.paths.get(this.vertexMatching.getPlacement().size() - 1);
         Path removed = pathList.remove(pathList.size() - 1).getFirst();
         assert directed || removed.last() > removed.first();
     }

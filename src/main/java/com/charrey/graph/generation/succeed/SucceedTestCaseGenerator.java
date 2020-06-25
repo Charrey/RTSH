@@ -33,11 +33,11 @@ public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
     /**
      * Instantiates a new Random succeed test case generator.
      *
-     * @param patternNodes the number of nodes the source graph should have
-     * @param patternEdges the number of edges the source graph should have
+     * @param seed              a random seed used to obtain reproducibility
+     * @param patternNodes      the number of nodes the source graph should have
+     * @param patternEdges      the number of edges the source graph should have
      * @param extraRoutingNodes the number of intermediate nodes that should on average be added
      * @param extraNodes        the number of 'distraction' nodes that should be added
-     * @param seed              a random seed used to obtain reproducibility
      */
     SucceedTestCaseGenerator(long seed, int patternNodes, int patternEdges, double extraRoutingNodes, int extraNodes) {
         this.random = new Random(seed);
@@ -60,6 +60,7 @@ public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
 
     /**
      * Returns the source graph for some test case.
+     *
      * @param patternNodes the number of nodes the graph needs to have.
      * @param patternEdges the number of edges the graph needs to have.
      * @return the source graph.

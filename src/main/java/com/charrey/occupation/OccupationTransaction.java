@@ -46,8 +46,7 @@ public class OccupationTransaction extends AbstractOccupation {
      *
      * @param vertexPlacementSize the number of source graph vertices placed
      * @param vertex              the vertex being occupied for routing purposes
-     * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.
-     *                                If this is thrown, this class remains unchanged.
+     * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.                                If this is thrown, this class remains unchanged.
      */
     public void occupyRoutingAndCheck(int vertexPlacementSize, int vertex) throws DomainCheckerException {
         assert !routingOccupied.contains(vertex);
@@ -69,8 +68,7 @@ public class OccupationTransaction extends AbstractOccupation {
      *
      * @param vertexPlacementSize the number of source graph vertices placed
      * @param path                the path whose vertices to occupy
-     * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.
-     *                                If this is thrown, this class remains unchanged.
+     * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.                                If this is thrown, this class remains unchanged.
      */
     public void occupyRoutingAndCheck(int vertexPlacementSize, @NotNull Path path) throws DomainCheckerException {
         for (int i = 0; i < path.intermediate().size(); i++) {
