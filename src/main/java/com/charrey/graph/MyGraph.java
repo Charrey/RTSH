@@ -49,9 +49,9 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
      * @return a graph such that the ordering is applied.
      */
     public static MyGraph applyOrdering(MyGraph source, int[] new_to_old) {
-        int[] old_to_new = new int[new_to_old.length];
+        Map<Integer, Integer> old_to_new = new HashMap<>();
         for (int i = 0; i < new_to_old.length; i++) {
-            old_to_new[new_to_old[i]] = i;
+            old_to_new.put(new_to_old[i], i);
         }
         MyGraph res = new MyGraph(source.directed);
         for (int new_vertex = 0; new_vertex < source.vertexSet().size(); new_vertex++) {
@@ -59,9 +59,9 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
             res.addVertex(new_vertex);
             int old_vertex = new_to_old[new_vertex];
             source.attributes.get(new_vertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(i_final, key, value)));
-            Set<Integer> predecessors = Graphs.predecessorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet());
+            Set<Integer> predecessors = Graphs.predecessorListOf(source, old_vertex).stream().map(old_to_new::get).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet());
             predecessors.forEach(x -> res.addEdge(x, i_final));
-            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet()));
+            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, old_vertex).stream().map(old_to_new::get).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet()));
             if (!source.directed) {
                 successors.removeAll(predecessors);
             }

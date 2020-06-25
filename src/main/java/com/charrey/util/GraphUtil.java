@@ -102,4 +102,15 @@ public class GraphUtil {
         }
         return cachedRandomVertexOrder.get(graph);
     }
+
+    public static MyGraph repairVertices(MyGraph targetGraph) {
+        int[] permutation = new int[targetGraph.vertexSet().size()];
+        int counter = 0;
+        List<Integer> vertexList = new ArrayList<>(targetGraph.vertexSet());
+        for (Integer integer : vertexList) {
+            permutation[counter] = integer;
+            counter++;
+        }
+        return MyGraph.applyOrdering(targetGraph, permutation);
+    }
 }

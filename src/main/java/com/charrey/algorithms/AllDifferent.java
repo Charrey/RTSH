@@ -57,7 +57,7 @@ public class AllDifferent {
     /**
      * Returns whether the domain satisfies an AllDifferent constraint. This is needed for a node disjoint subgraph homeomorphism.
      *
-     * @param compatibility  a map that indicates for each source vertex (as index of a list) its domain in target graph vertices
+     * @param compatibility a map that indicates for each source vertex (as index of a list) its domain in target graph vertices
      * @return whether the constraint is satisfied.
      */
     public boolean get(@NotNull List<Set<Integer>> compatibility) {

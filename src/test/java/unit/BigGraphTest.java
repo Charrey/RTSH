@@ -7,6 +7,7 @@ import com.charrey.graph.generation.TestCase;
 import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
+import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +61,10 @@ class BigGraphTest {
     void importSingleTile() throws IOException, InterruptedException {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
-        removeTails(targetGraph);
+        removeTails();
+        //targetGraph = new GreatestConstrainedFirst().apply(targetGraph);
+
+
         for (int v : matchFrom()) {
             targetGraph.addAttribute(v, "label", "matchfrom");
         }
@@ -137,13 +141,13 @@ class BigGraphTest {
         assert !failed;
     }
 
-    private void removeTails(@NotNull MyGraph graph) {
+    private void removeTails() {
         boolean done = false;
 
         while (!done) {
             done = true;
-            for (int v : new HashSet<>(graph.vertexSet())) {
-                if (graph.inDegreeOf(v) == 0 || graph.outDegreeOf(v) == 0) {
+            for (int v : new HashSet<>(targetGraph.vertexSet())) {
+                if (targetGraph.inDegreeOf(v) == 0 || targetGraph.outDegreeOf(v) == 0) {
                     assert targetGraph.getLabels(v).size() == 1;
                     String label = targetGraph.getLabels(v).iterator().next();
                     switch (label) {
@@ -151,7 +155,7 @@ class BigGraphTest {
                         case "port":
                         case "wire":
                             done = false;
-                            graph.removeVertex(v);
+                            targetGraph.removeVertex(v);
                             continue;
                         default:
                             assert label.startsWith("matchfrom") || label.startsWith("matchto");
@@ -159,6 +163,7 @@ class BigGraphTest {
                 }
             }
         }
+        targetGraph = GraphUtil.repairVertices(targetGraph);
     }
 
 
