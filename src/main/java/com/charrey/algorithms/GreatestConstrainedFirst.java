@@ -3,6 +3,7 @@ package com.charrey.algorithms;
 import com.charrey.graph.MyGraph;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jgrapht.Graphs;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,7 +63,7 @@ public class GreatestConstrainedFirst {
         long thirdValue = -1;
         for (Integer vertex : secondSelection) {
             long score = GraphUtil.neighboursOf(graph,
-                    GraphUtil.neighboursOf(graph, vertex)
+                    Graphs.neighborSetOf(graph, vertex)
                         .stream()
                         .filter(x -> !ordering.contains(x))
                         .collect(Collectors.toSet()))
@@ -86,7 +87,7 @@ public class GreatestConstrainedFirst {
         long secondValue = -1;
         for (Integer vertex : firstSelections) {
             long score = GraphUtil.neighboursOf(graph,
-                    GraphUtil.neighboursOf(graph, vertex)
+                    Graphs.neighborSetOf(graph, vertex)
                                    .stream()
                                    .filter(x -> !ordering.contains(x))
                                    .collect(Collectors.toSet()))
@@ -109,7 +110,7 @@ public class GreatestConstrainedFirst {
         Set<Integer> firstSelection = new HashSet<>();
         long firstValue = -1;
         for (Integer vertex : graph.vertexSet().stream().filter(x -> !ordering.contains(x)).collect(Collectors.toSet())) {
-            long score = GraphUtil.neighboursOf(graph, vertex).stream()
+            long score = Graphs.neighborSetOf(graph, vertex).stream()
                     .filter(ordering::contains)
                     .count();
             if (score > firstValue) {

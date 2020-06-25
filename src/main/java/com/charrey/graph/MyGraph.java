@@ -18,9 +18,7 @@ import java.util.stream.Collectors;
 public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
     private final boolean directed;
     private double maxEdgeWeight = 1d;
-
-
-    private final List<Map<String, Set<String>>> labels;
+    private final List<Map<String, Set<String>>> attributes;
 
     /**
      * Instantiates a new empty graph.
@@ -31,32 +29,52 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         super(
                 SupplierUtil.createIntegerSupplier(), DefaultEdge::new,
                 directed ?
-                new DefaultGraphType.Builder()
-                        .directed().allowMultipleEdges(false).allowSelfLoops(false).weighted(true)
-                        .build() :
+                        new DefaultGraphType.Builder()
+                                .directed().allowMultipleEdges(false).allowSelfLoops(false).weighted(true)
+                                .build() :
                         new DefaultGraphType.Builder()
                                 .undirected().allowMultipleEdges(false).allowSelfLoops(false).weighted(true)
                                 .build()
-                );
+        );
         this.directed = directed;
-        labels = new ArrayList<>();
+        attributes = new ArrayList<>();
+    }
+
+    /**
+     * Applies a new vertex ordering to a graph, yielding a new graph that has this ordering. The old graph remains
+     * unmodified.
+     *
+     * @param source     the graph to which to apply the new vertex ordering.
+     * @param new_to_old the new ordering, such that the position of integers is the new vertex value, and the value of                   the integers is the old vertex value.
+     * @return a graph such that the ordering is applied.
+     */
+    public static MyGraph applyOrdering(MyGraph source, int[] new_to_old) {
+        int[] old_to_new = new int[new_to_old.length];
+        for (int i = 0; i < new_to_old.length; i++) {
+            old_to_new[new_to_old[i]] = i;
+        }
+        MyGraph res = new MyGraph(source.directed);
+        for (int new_vertex = 0; new_vertex < source.vertexSet().size(); new_vertex++) {
+            int i_final = new_vertex;
+            res.addVertex(new_vertex);
+            int old_vertex = new_to_old[new_vertex];
+            source.attributes.get(new_vertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(i_final, key, value)));
+            Set<Integer> predecessors = Graphs.predecessorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet());
+            predecessors.forEach(x -> res.addEdge(x, i_final));
+            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet()));
+            if (!source.directed) {
+                successors.removeAll(predecessors);
+            }
+            successors.forEach(x -> res.addEdge(i_final, x));
+        }
+        return res;
     }
 
     @Override
     public Integer addVertex() {
         int toReturn = super.addVertex();
-        labels.add(new HashMap<>());
-        assert toReturn == labels.size() - 1;
-        return toReturn;
-    }
-
-    @Override
-    public boolean addVertex(Integer vertex) {
-        boolean toReturn = super.addVertex(vertex);
-        if (toReturn) {
-            labels.add(new HashMap<>());
-            assert vertex == labels.size() - 1;
-        }
+        attributes.add(new HashMap<>());
+        assert toReturn == attributes.size() - 1;
         return toReturn;
     }
 
@@ -99,34 +117,25 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         return writer.toString();
     }
 
+    @Override
+    public boolean addVertex(Integer vertex) {
+        boolean toReturn = super.addVertex(vertex);
+        if (toReturn) {
+            attributes.add(new HashMap<>());
+            assert vertex == attributes.size() - 1;
+        }
+        return toReturn;
+    }
+
     /**
-     * Applies a new vertex ordering to a graph, yielding a new graph that has this ordering. The old graph remains
-     * unmodified.
+     * Returns all attributes of a vertex. The data at the index of the vertex in the provided
+     * list is a map that provides a set of values for each key.
      *
-     * @param source     the graph to which to apply the new vertex ordering.
-     * @param new_to_old the new ordering, such that the position of integers is the new vertex value, and the value of                   the integers is the old vertex value.
-     * @return a graph such that the ordering is applied.
+     * @param vertex the vertex to request attributes of
+     * @return all attributes of that vertex
      */
-    public static MyGraph applyOrdering(MyGraph source, int[] new_to_old) {
-        int[] old_to_new = new int[new_to_old.length];
-        for (int i = 0; i < new_to_old.length; i++) {
-            old_to_new[new_to_old[i]] = i;
-        }
-        MyGraph res = new MyGraph(source.directed);
-        for (int new_vertex = 0; new_vertex < source.vertexSet().size(); new_vertex++) {
-            int i_final = new_vertex;
-            res.addVertex(new_vertex);
-            int old_vertex = new_to_old[new_vertex];
-            source.labels.get(new_vertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(i_final, key, value)));
-            Set<Integer> predecessors = Graphs.predecessorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet());
-            predecessors.forEach(x -> res.addEdge(x, i_final));
-            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet()));
-            if (!source.directed) {
-                successors.removeAll(predecessors);
-            }
-            successors.forEach(x -> res.addEdge(i_final, x));
-        }
-        return res;
+    public Map<String, Set<String>> getAttributes(int vertex) {
+        return Collections.unmodifiableMap(attributes.get(vertex));
     }
 
     /**
@@ -140,8 +149,8 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         if (!containsVertex(vertex)) {
             throw new IllegalArgumentException("The graph must contain the vertex " + vertex);
         }
-        labels.get(vertex).computeIfAbsent("label", x -> new HashSet<>());
-        return labels.get(vertex).get("label");
+        attributes.get(vertex).computeIfAbsent("label", x -> new HashSet<>());
+        return attributes.get(vertex).get("label");
     }
 
     /**
@@ -156,7 +165,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         if (!containsVertex(vertex)) {
             throw new IllegalArgumentException("The graph must contain the vertex " + vertex);
         }
-        labels.get(vertex).computeIfAbsent(key, x -> new HashSet<>());
-        labels.get(vertex).get(key).add(value);
+        attributes.get(vertex).computeIfAbsent(key, x -> new HashSet<>());
+        attributes.get(vertex).get(key).add(value);
     }
 }

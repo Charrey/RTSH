@@ -85,7 +85,7 @@ class BigGraphTest {
                 System.out.println(result);
                 System.out.println("YEN");
                 System.out.flush();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 failed = true;
                 throw e;
             }
@@ -97,7 +97,7 @@ class BigGraphTest {
                 System.out.println(result);
                 System.out.println("DFS Arbitrary");
                 System.out.flush();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 failed = true;
                 throw e;
             }
@@ -109,7 +109,7 @@ class BigGraphTest {
                 System.out.println(result);
                 System.out.println("DFS Greedy");
                 System.out.flush();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 failed = true;
                 throw e;
             }
@@ -121,7 +121,7 @@ class BigGraphTest {
                 System.out.println(result);
                 System.out.println("Controlpoint");
                 System.out.flush();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 failed = true;
                 throw e;
             }

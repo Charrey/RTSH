@@ -18,6 +18,9 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 
+/**
+ * Class that finds node disjoint subgraph homeomorphisms
+ */
 public class IsoFinder {
 
     private static final Logger LOG = Logger.getLogger("IsoFinder");
@@ -32,11 +35,20 @@ public class IsoFinder {
             throw new DomainCheckerException("Intial domain check failed");
         }
         GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
-        vertexMatching      = new VertexMatching(data, testcase.sourceGraph, occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
-        edgeMatching        = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
+        vertexMatching = new VertexMatching(data, testcase.sourceGraph, occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+        edgeMatching = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
 
     private long lastPrint = 0;
+
+    /**
+     * Searches for a node disjoint subgraph homeomorphism.
+     *
+     * @param testcase the case that contains a source graph and a target graph
+     * @param settings settings to be used in the search
+     * @param timeout  if the algorithm takes longer than this number of milliseconds, it stops and records a failure.
+     * @return a result that provides information on the performance and which homeomorphism was found (if any).
+     */
     @Nullable
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout) {
         try {
@@ -82,7 +94,6 @@ public class IsoFinder {
             return HomeomorphismResult.ofSucceed(vertexMatching, edgeMatching, iterations);
         }
     }
-
 
 
     private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {

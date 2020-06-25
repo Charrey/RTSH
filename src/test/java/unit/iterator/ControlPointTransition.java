@@ -12,20 +12,21 @@ import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ControlPointTransition {
 
-    private final Random random = new Random(19247);
+    private final RandomGenerator random = new Well512a(19247);
     private final static int differentGraphSizes = 250;
     private final static int trials = 10;
 

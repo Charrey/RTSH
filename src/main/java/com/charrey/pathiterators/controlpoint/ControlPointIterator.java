@@ -133,11 +133,12 @@ class ControlPointIterator extends PathIterator {
         this.previousLocalOccupation = previousLocalOccupation;
     }
 
-    private static boolean violatesLongerPaths(Graph<Integer, DefaultEdge> targetGraph, int x, int from, int to, int tail, Set<Integer> localOccupation) {
-        if (tail != from && (targetGraph.getEdge(tail, x) != null)) {
+    private static boolean violatesLongerPaths(Graph<Integer, DefaultEdge> targetGraph, int allowableIntermediateVertex, int from, int to, int goal, Set<Integer> localOccupation) {
+        if (goal != from && (targetGraph.getEdge(goal, allowableIntermediateVertex) != null)) {
             return true;
         }
-        return localOccupation.stream().filter(y -> to != y).anyMatch(y -> Graphs.successorListOf(targetGraph, x).stream().anyMatch(z -> z.equals(y)));
+        List<Integer> intermediateVertexSuccessors = Graphs.successorListOf(targetGraph, allowableIntermediateVertex);
+        return localOccupation.stream().filter(y -> to != y).anyMatch(intermediateVertexSuccessors::contains);
     }
 
     @Nullable

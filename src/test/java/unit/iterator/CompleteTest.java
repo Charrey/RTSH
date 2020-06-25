@@ -11,6 +11,8 @@ import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
@@ -20,7 +22,7 @@ import java.util.stream.Collectors;
 
 class CompleteTest extends PathIteratorTest {
 
-    private final Random random = new Random(102038);
+    private final RandomGenerator random = new Well512a(102038);
     private static final int differentGraphSizes = 250;
     private static final int trials = 10;
     private static final Settings settings = new Settings(

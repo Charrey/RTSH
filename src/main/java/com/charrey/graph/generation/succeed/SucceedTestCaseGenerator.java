@@ -77,7 +77,7 @@ public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
             neededEdges.put(vertex, distribution.sample());
         }
         while (!neededEdges.isEmpty()) {
-            int randomKey = Util.pickRandom(neededEdges.keySet(), randomGen);
+            int randomKey = Util.selectRandom(neededEdges.keySet(), x -> true, randomGen);
             if (targetGraph.incomingEdgesOf(randomKey).size() + targetGraph.outgoingEdgesOf(randomKey).size() >= neededEdges.get(randomKey)) {
                 neededEdges.remove(randomKey);
                 continue;
@@ -86,7 +86,7 @@ public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
             if (targets.isEmpty()) {
                 neededEdges.remove(randomKey);
             } else {
-                int target = Util.pickRandom(targets, randomGen);
+                int target = Util.selectRandom(targets, x -> true, randomGen);
                 int from;
                 int to;
                 if (random.nextBoolean()) {

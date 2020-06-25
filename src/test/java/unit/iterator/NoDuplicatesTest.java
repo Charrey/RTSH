@@ -14,17 +14,18 @@ import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 class NoDuplicatesTest {
 
-    private final Random random = new Random(19247);
+    private final RandomGenerator random = new Well512a(19247);
 
     private final Settings settings = new Settings(
             true,
