@@ -67,8 +67,7 @@ public class EdgeMatching {
     }
 
     private void initPathFinders() {
-        int targetSize = targetGraph.vertexSet().size();
-        pathfinders = new MultipleKeyMap<>(targetSize, targetSize, PathIterator.class);
+        pathfinders = new MultipleKeyMap<>();
         while (paths.size() < source.vertexSet().size()) {
             paths.add(new LinkedList<>());
         }

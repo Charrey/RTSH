@@ -1,0 +1,4 @@
+jQuery(document).ready(function () {
+  jQuery('#graphviz_svg_div').html(Viz(jQuery("#sample1_text").text().trim(), "svg"));
+  jQuery('#graphviz_svg_div2').html(Viz(jQuery("#sample2_text").text().trim(), "svg"));
+});

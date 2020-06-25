@@ -2,32 +2,35 @@ package com.charrey.util.datastructures;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MultipleKeyMap<V> {
 
     @NotNull
-    private final V[][] nestedMap;
+    private final Map<Integer, Map<Integer, V>> nestedMap2;
 
-    @SuppressWarnings("unchecked")
-    public MultipleKeyMap(int firstDomainSize, int secondDomainSize, Class<?> clazz) {
-        nestedMap = (V[][] ) Array.newInstance(clazz, firstDomainSize, secondDomainSize);
+    public MultipleKeyMap() {
+        nestedMap2 = new HashMap<>();
     }
 
     public boolean containsKey(int a, int b) {
-        return nestedMap[a][b] != null;
+        return nestedMap2.containsKey(a) && nestedMap2.get(a).containsKey(b);
     }
 
     public void put(int a, int b, V pathIterator) {
-        nestedMap[a][b] = pathIterator;
+        nestedMap2.putIfAbsent(a, new HashMap<>());
+        nestedMap2.get(a).put(b, pathIterator);
     }
 
     public V get(int a, int b) {
-        return nestedMap[a][b];
+        return nestedMap2.containsKey(a) ? nestedMap2.get(a).get(b) : null;
     }
 
-    public void remove(int key, int key1) {
-        nestedMap[key][key1] = null;
+    public void remove(int a, int b) {
+        if (nestedMap2.containsKey(a)) {
+            nestedMap2.get(a).remove(b);
+        }
     }
 
 }
