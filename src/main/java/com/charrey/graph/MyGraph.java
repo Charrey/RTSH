@@ -19,6 +19,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
     private final boolean directed;
     private double maxEdgeWeight = 1d;
     private final List<Map<String, Set<String>>> attributes;
+    private boolean locked = false;
 
     /**
      * Instantiates a new empty graph.
@@ -72,6 +73,9 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
 
     @Override
     public Integer addVertex() {
+        if (locked) {
+            throw new IllegalStateException("Graph is locked!");
+        }
         int toReturn = super.addVertex();
         attributes.add(new HashMap<>());
         assert toReturn == attributes.size() - 1;
@@ -80,20 +84,34 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
 
     @Override
     public boolean addEdge(Integer sourceVertex, Integer targetVertex, DefaultEdge defaultEdge) {
-        boolean res = super.addEdge(sourceVertex, targetVertex, defaultEdge);
-        if (res) {
-            this.setEdgeWeight(defaultEdge, maxEdgeWeight);
-            maxEdgeWeight = Math.nextAfter(maxEdgeWeight, Double.POSITIVE_INFINITY);
+        if (locked) {
+            throw new IllegalStateException("Graph is locked!");
         }
-        return res;
+        return super.addEdge(sourceVertex, targetVertex, defaultEdge);
+    }
+
+    public void randomizeWeights() {
+        int edgeSetSize = edgeSet().size();
+        if (edgeSetSize <= 1) {
+            return;
+        }
+        double maxWeightDiff = 1d / ((edgeSetSize - 1) / 2d);
+        Random random = new Random(710);
+        for (DefaultEdge edge : edgeSet()) {
+            double weight = 1 + (random.nextDouble() * maxWeightDiff) - (0.5 * maxWeightDiff);
+            setEdgeWeight(edge, weight);
+        }
     }
 
     @Override
     public DefaultEdge addEdge(Integer sourceVertex, Integer targetVertex) {
-        assert  !containsEdge(sourceVertex, targetVertex);
-        assert sourceVertex!=null;
-        assert targetVertex!=null;
-        DefaultEdge res =  super.addEdge(sourceVertex, targetVertex);
+        if (locked) {
+            throw new IllegalStateException("Graph is locked!");
+        }
+        assert !containsEdge(sourceVertex, targetVertex);
+        assert sourceVertex != null;
+        assert targetVertex != null;
+        DefaultEdge res = super.addEdge(sourceVertex, targetVertex);
         assert res != null;
         this.setEdgeWeight(res, maxEdgeWeight);
         maxEdgeWeight = Math.nextAfter(maxEdgeWeight, Double.POSITIVE_INFINITY);
@@ -109,6 +127,10 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         return directed;
     }
 
+    public void lock() {
+        this.locked = true;
+    }
+
     @Override
     public String toString() {
         DOTExporter<Integer, DefaultEdge> exporter = new DOTExporter<>(x -> Integer.toString(x));
@@ -119,6 +141,9 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
 
     @Override
     public boolean addVertex(Integer vertex) {
+        if (locked) {
+            throw new IllegalStateException("Graph is locked!");
+        }
         boolean toReturn = super.addVertex(vertex);
         if (toReturn) {
             attributes.add(new HashMap<>());
@@ -161,11 +186,13 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
      * @param value  the attribute value
      * @throws IllegalArgumentException thrown if the graph did not contain the provided vertex.
      */
-    public void addAttribute(int vertex, String key, String value) {
+    public void addAttribute(Integer vertex, String key, String value) {
         if (!containsVertex(vertex)) {
             throw new IllegalArgumentException("The graph must contain the vertex " + vertex);
         }
         attributes.get(vertex).computeIfAbsent(key, x -> new HashSet<>());
         attributes.get(vertex).get(key).add(value);
     }
+
+
 }

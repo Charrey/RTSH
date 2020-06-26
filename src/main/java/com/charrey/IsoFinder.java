@@ -14,7 +14,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.logging.Logger;
 
 
@@ -27,16 +31,11 @@ public class IsoFinder {
     private EdgeMatching edgeMatching;
     private VertexMatching vertexMatching;
 
-    private void setup(@NotNull TestCase testcase, @NotNull Settings settings) throws DomainCheckerException {
-        UtilityData data = new UtilityData(testcase.sourceGraph, testcase.targetGraph);
-        logDomainReduction(testcase, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
-
-        if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
-            throw new DomainCheckerException("Intial domain check failed");
-        }
-        GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
-        vertexMatching = new VertexMatching(data, testcase.sourceGraph, occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
-        edgeMatching = new EdgeMatching(vertexMatching, data, testcase.sourceGraph, testcase.targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
+    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
+        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.getSourceGraph().vertexSet().size())).pow(testcase.getTargetGraph().vertexSet().size());
+        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
+        NumberFormat formatter = new DecimalFormat("0.###E0", DecimalFormatSymbols.getInstance(Locale.ROOT));
+        LOG.info(() -> "Reduced vertex matching domain from " + formatter.format(naiveVertexDomainSize) + " to " + formatter.format(vertexDomainSize));
     }
 
     private long lastPrint = 0;
@@ -56,11 +55,16 @@ public class IsoFinder {
         return true;
     }
 
+    private void setup(@NotNull TestCase testcase, @NotNull Settings settings) throws DomainCheckerException {
+        UtilityData data = new UtilityData(testcase.getSourceGraph(), testcase.getTargetGraph());
+        logDomainReduction(testcase, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
 
-    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
-        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.sourceGraph.vertexSet().size())).pow(testcase.targetGraph.vertexSet().size());
-        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
-        LOG.info(() -> "Reduced vertex matching domain by a factor of " + (naiveVertexDomainSize.doubleValue() / vertexDomainSize.doubleValue()) + " to " + vertexDomainSize);
+        if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
+            throw new DomainCheckerException("Intial domain check failed");
+        }
+        GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+        vertexMatching = new VertexMatching(data, testcase.getSourceGraph(), occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+        edgeMatching = new EdgeMatching(vertexMatching, data, testcase.getSourceGraph(), testcase.getTargetGraph(), occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
 
     /**
@@ -74,14 +78,14 @@ public class IsoFinder {
     @Nullable
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout) {
         try {
-            testcase.sourceGraph = new GreatestConstrainedFirst().apply(testcase.sourceGraph);
+            testcase.setSourceGraph(new GreatestConstrainedFirst().apply(testcase.getSourceGraph()));
             setup(testcase, settings);
         } catch (DomainCheckerException e) {
             return HomeomorphismResult.COMPATIBILITY_FAIL;
         }
         long iterations = 0;
         long initialTime = System.currentTimeMillis();
-        while (!allDone(testcase.sourceGraph, vertexMatching, edgeMatching)) {
+        while (!allDone(testcase.getSourceGraph(), vertexMatching, edgeMatching)) {
             iterations++;
             if (System.currentTimeMillis() - lastPrint > 2000) {
                 System.out.println(iterations + " iterations...");
@@ -110,7 +114,7 @@ public class IsoFinder {
                 return HomeomorphismResult.ofFailed(iterations);
             }
         }
-        if (vertexMatching.getPlacement().size() < testcase.sourceGraph.vertexSet().size()) {
+        if (vertexMatching.getPlacement().size() < testcase.getSourceGraph().vertexSet().size()) {
             return HomeomorphismResult.ofFailed(iterations);
         } else {
             return HomeomorphismResult.ofSucceed(vertexMatching, edgeMatching, iterations);

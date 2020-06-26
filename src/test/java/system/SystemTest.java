@@ -37,9 +37,9 @@ public abstract class SystemTest {
             return null;
         }
         if (morph.failed) {
-            openInBrowser(testCase.sourceGraph.toString(), testCase.targetGraph.toString());
+            openInBrowser(testCase.getSourceGraph().toString(), testCase.getTargetGraph().toString());
             if (writeChallenge) {
-                writeChallenge(new Pair<>(testCase.sourceGraph, testCase.targetGraph));
+                writeChallenge(new Pair<>(testCase.getSourceGraph(), testCase.getTargetGraph()));
             }
             fail();
         }

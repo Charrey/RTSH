@@ -62,6 +62,7 @@ class BigGraphTest {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
         removeTails();
+        targetGraph.randomizeWeights();
         //targetGraph = new GreatestConstrainedFirst().apply(targetGraph);
 
 
@@ -82,7 +83,7 @@ class BigGraphTest {
 
 
         TestCase testCase = new TestCase(sourceGraph, targetGraph);
-        Thread thread1 = new Thread(() -> {
+        Thread threadKPath = new Thread(() -> {
             Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.KPATH);
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
@@ -94,7 +95,7 @@ class BigGraphTest {
                 throw e;
             }
         });
-        Thread thread2 = new Thread(() -> {
+        Thread threadDFSArbitrary = new Thread(() -> {
             Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.DFS_ARBITRARY);
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
@@ -106,7 +107,7 @@ class BigGraphTest {
                 throw e;
             }
         });
-        Thread thread3 = new Thread(() -> {
+        Thread threadDFSGreedy = new Thread(() -> {
             Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.DFS_GREEDY);
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
@@ -118,7 +119,7 @@ class BigGraphTest {
                 throw e;
             }
         });
-        Thread thread4 = new Thread(() -> {
+        Thread threadControlPoint = new Thread(() -> {
             Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.CONTROL_POINT);
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
@@ -130,14 +131,14 @@ class BigGraphTest {
                 throw e;
             }
         });
-        thread1.start();
-        thread2.start();
-        thread3.start();
-        thread4.start();
-        thread1.join();
-        thread2.join();
-        thread3.join();
-        thread4.join();
+        //threadKPath.start();
+        //threadDFSArbitrary.start();
+        threadDFSGreedy.start();
+        //threadControlPoint.start();
+        threadKPath.join();
+        threadDFSArbitrary.join();
+        threadDFSGreedy.join();
+        threadControlPoint.join();
         assert !failed;
     }
 

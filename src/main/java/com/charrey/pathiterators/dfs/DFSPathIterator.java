@@ -8,8 +8,9 @@ import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jgrapht.Graphs;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -24,9 +25,15 @@ public class DFSPathIterator extends PathIterator {
     private final int[] chosenOption;
     @NotNull
     private final Path exploration;
+
+    private final Set<Integer> forbidden = new HashSet<>();
+    private final Deque<Set<Integer>> added = new LinkedList<>();
+
+
     private final GlobalOccupation occupation;
     private final OccupationTransaction transaction;
     private final Supplier<Integer> placementSize;
+    private final MyGraph graph;
     private int counter = 0;
 
     /**
@@ -50,14 +57,18 @@ public class DFSPathIterator extends PathIterator {
         this.occupation = occupation;
         this.transaction = occupation.getTransaction();
         this.placementSize = placementSize;
+        this.graph = graph;
     }
 
-    private boolean isCandidate(int from, int vertex) {
+    private boolean isCandidate(Integer from, Integer vertex) {
         boolean isCandidate = !exploration.contains(vertex) &&
                 !occupation.isOccupiedRouting(vertex) &&
                 !(occupation.isOccupiedVertex(vertex) && vertex != head);
         if (refuseLongerPaths) {
-            isCandidate = isCandidate && exploration.stream().allMatch(x -> x == from || Arrays.stream(outgoingNeighbours[x]).noneMatch(y -> y == vertex));
+            //boolean check1 = graph.incomingEdgesOf(vertex).stream().allMatch(y -> graph.getEdgeSource(y).equals(from) || !exploration.contains(graph.getEdgeSource(y)));
+            boolean check2 = !forbidden.contains(vertex);
+            //assert check1 == check2;
+            isCandidate = isCandidate && check2;
         }
         return isCandidate;
     }
@@ -69,13 +80,17 @@ public class DFSPathIterator extends PathIterator {
         assert !exploration.isEmpty();
         if (exploration.last() == head) {
             chosenOption[exploration.length() - 2] += 1;
+
             exploration.removeLast();
+            if (!added.isEmpty()) {
+                forbidden.removeAll(added.pop());
+            }
         }
         while (exploration.last() != head) {
             int indexOfHeadVertex = exploration.length() - 1;
             assert indexOfHeadVertex < chosenOption.length;
             while (chosenOption[indexOfHeadVertex] >= outgoingNeighbours[exploration.get(indexOfHeadVertex)].length) {
-                if (removeHead(transaction)) {
+                if (!removeHead()) {
                     return null;
                 }
                 indexOfHeadVertex = exploration.length() - 1;
@@ -86,7 +101,18 @@ public class DFSPathIterator extends PathIterator {
                 int neighbour = outgoingNeighbours[exploration.last()][i];
                 if (isCandidate(exploration.last(), neighbour)) {
                     //if found, update chosen, update exploration
+
+                    Set<Integer> newlyForbidden = new HashSet<>();
+                    List<Integer> successorlist = Graphs.successorListOf(graph, exploration.last());
+                    for (Integer j : successorlist) {
+                        if (!forbidden.contains(j)) {
+                            newlyForbidden.add(j);
+                        }
+                    }
+                    added.push(newlyForbidden);
+                    forbidden.addAll(newlyForbidden);
                     exploration.append(neighbour);
+
                     chosenOption[indexOfHeadVertex] = i;
                     found = true;
                     if (neighbour != head) {
@@ -94,6 +120,9 @@ public class DFSPathIterator extends PathIterator {
                             transaction.occupyRoutingAndCheck(this.placementSize.get(), neighbour);
                             break;
                         } catch (DomainCheckerException e) {
+                            if (!added.isEmpty()) {
+                                forbidden.removeAll(added.pop());
+                            }
                             exploration.removeLast();
                             chosenOption[indexOfHeadVertex] = 0;
                             found = false;
@@ -105,7 +134,7 @@ public class DFSPathIterator extends PathIterator {
             }
             if (!found) {
                 //if not found, bump previous index value.
-                if (removeHead(transaction)) {
+                if (!removeHead()) {
                     return null;
                 }
             }
@@ -119,19 +148,22 @@ public class DFSPathIterator extends PathIterator {
     /**
      * Removes the head of the current exploration queue, provided that it's not the target vertex.
      *
-     * @return whether the operation failed
+     * @return whether the operation succeeded
      */
-    private boolean removeHead(OccupationTransaction transaction) {
+    private boolean removeHead() {
         int indexOfHeadVertex = exploration.length() - 1;
         int removed = exploration.removeLast();
+        if (!added.isEmpty()) {
+            forbidden.removeAll(added.pop());
+        }
         if (exploration.isEmpty()) {
-            return true;
+            return false;
         } else {
             transaction.releaseRouting(placementSize.get(), removed);
         }
         chosenOption[indexOfHeadVertex] = 0;
         chosenOption[indexOfHeadVertex - 1] += 1;
-        return false;
+        return true;
     }
 
 

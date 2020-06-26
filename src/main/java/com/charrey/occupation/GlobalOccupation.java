@@ -89,7 +89,7 @@ public class GlobalOccupation extends AbstractOccupation {
      * @param target the target graph vertex
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search. If this is thrown, this class remains unchanged.
      */
-    public void occupyVertex(int source, int target) throws DomainCheckerException {
+    public void occupyVertex(Integer source, Integer target) throws DomainCheckerException {
         assert !routingBits.contains(target);
         assert !vertexBits.contains(target);
         vertexBits.add(target);
@@ -150,7 +150,7 @@ public class GlobalOccupation extends AbstractOccupation {
      * @param vertex the vertex to query
      * @return whether in the current matching this vertex is used for vertex-on-vertex matching
      */
-    public boolean isOccupiedVertex(int vertex) {
+    public boolean isOccupiedVertex(Integer vertex) {
         return vertexBits.contains(vertex);
     }
 

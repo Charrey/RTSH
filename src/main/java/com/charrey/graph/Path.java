@@ -22,6 +22,7 @@ public class Path implements Comparable<Path> {
     private final int initialVertex;
     private final MyGraph graph;
 
+
     /**
      * Instantiates a new Path, and immediately adds an initial vertex.
      *
@@ -30,10 +31,27 @@ public class Path implements Comparable<Path> {
      */
     public Path(@NotNull MyGraph graph, int initialVertex) {
         this.initialVertex = initialVertex;
-        path = new LinkedList<>();
+        path = new ArrayList<>();
         containing = new HashSet<>();
         this.graph = graph;
         append(initialVertex);
+    }
+
+    /**
+     * Instantiates a new Path from the JGraphT implementation of Path that is semantically equivalent.
+     *
+     * @param graph the graph of which vertices may be added to this Path.
+     * @param gPath the JGraphT path to convert to our own datatype.
+     */
+    public Path(@NotNull MyGraph graph, @NotNull GraphPath<Integer, DefaultEdge> gPath) {
+        this.path = new ArrayList<>();
+        this.containing = new HashSet<>();
+        this.initialVertex = gPath.getStartVertex();
+        List<Integer> vertexList = gPath.getVertexList();
+        this.graph = graph;
+        for (int vertex : vertexList) {
+            append(vertex);
+        }
     }
 
     /**
@@ -65,23 +83,6 @@ public class Path implements Comparable<Path> {
     }
 
     /**
-     * Instantiates a new Path from the JGraphT implementation of Path that is semantically equivalent.
-     *
-     * @param graph the graph of which vertices may be added to this Path.
-     * @param gPath the JGraphT path to convert to our own datatype.
-     */
-    public Path(@NotNull MyGraph graph, @NotNull GraphPath<Integer, DefaultEdge> gPath) {
-        this.path = new LinkedList<>();
-        this.containing = new HashSet<>();
-        this.initialVertex = gPath.getStartVertex();
-        List<Integer> vertexList = gPath.getVertexList();
-        this.graph = graph;
-        for (int vertex : vertexList) {
-            append(vertex);
-        }
-    }
-
-    /**
      * Creates a path from a list of vertices, reading it left to right.
      *
      * @param graph the graph of which vertices may be added to this Path.
@@ -89,7 +90,7 @@ public class Path implements Comparable<Path> {
      */
     public Path(@NotNull MyGraph graph, @NotNull List<Integer> path) {
         this.graph = graph;
-        this.path = new LinkedList<>();
+        this.path = new ArrayList<>();
         this.containing = new HashSet<>();
         this.initialVertex = path.get(0);
         path.forEach(this::append);
@@ -101,10 +102,18 @@ public class Path implements Comparable<Path> {
      * @param copyOf the path to copy from.
      */
     public Path(@NotNull Path copyOf) {
-        this.path = new LinkedList<>(copyOf.path);
+        this.path = new ArrayList<>(copyOf.path);
         this.containing = new HashSet<>(copyOf.containing);
         this.initialVertex = copyOf.initialVertex;
         this.graph = copyOf.graph;
+    }
+
+    public double getWeight() {
+        double total = 0d;
+        for (int i = 0; i < path.size() - 1; i++) {
+            total += graph.getEdgeWeight(graph.getEdge(path.get(i), path.get(i + 1)));
+        }
+        return total;
     }
 
     /**
@@ -112,7 +121,7 @@ public class Path implements Comparable<Path> {
      *
      * @param toAdd vertex to append to this Path.
      */
-    public void append(int toAdd) {
+    public void append(Integer toAdd) {
         if (!containing.contains(toAdd)) {
             if (!containing.isEmpty() && graph.getEdge(path.get(path.size() - 1), toAdd) == null) {
                 throw new IllegalStateException("Attempt to add a vertex on this path that is not connected to the current head.");
@@ -169,7 +178,7 @@ public class Path implements Comparable<Path> {
      * @param vertex the vertex to check
      * @return whether the path contains that vertex
      */
-    public boolean contains(int vertex) {
+    public boolean contains(Integer vertex) {
         return containing.contains(vertex);
     }
 

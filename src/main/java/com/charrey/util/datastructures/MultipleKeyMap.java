@@ -29,7 +29,7 @@ public class MultipleKeyMap<V> {
      * @param b the b
      * @return the boolean
      */
-    public boolean containsKey(int a, int b) {
+    public boolean containsKey(Integer a, Integer b) {
         return nestedMap2.containsKey(a) && nestedMap2.get(a).containsKey(b);
     }
 
@@ -40,7 +40,7 @@ public class MultipleKeyMap<V> {
      * @param b            the b
      * @param pathIterator the path iterator
      */
-    public void put(int a, int b, V pathIterator) {
+    public void put(Integer a, Integer b, V pathIterator) {
         nestedMap2.putIfAbsent(a, new HashMap<>());
         nestedMap2.get(a).put(b, pathIterator);
     }

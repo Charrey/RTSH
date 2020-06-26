@@ -65,7 +65,7 @@ class GlobalOccupationTest {
             gen.makeHarder();
             gen.init(trials, false);
             while (gen.hasNext()) {
-                MyGraph targetGraph = gen.getNext().sourceGraph;
+                MyGraph targetGraph = gen.getNext().getSourceGraph();
                 MyGraph sourceGraph = new MyGraph(true);
                 sourceGraph.addEdge(sourceGraph.addVertex(), sourceGraph.addVertex());
                 UtilityData data = new UtilityData(sourceGraph, targetGraph);

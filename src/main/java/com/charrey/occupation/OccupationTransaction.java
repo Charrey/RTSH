@@ -3,9 +3,9 @@ package com.charrey.occupation;
 import com.charrey.graph.Path;
 import com.charrey.runtimecheck.DomainChecker;
 import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.util.MyLinkedList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Set;
 
@@ -23,7 +23,7 @@ public class OccupationTransaction extends AbstractOccupation {
     private final DomainChecker domainChecker;
     private final GlobalOccupation parent;
 
-    private final LinkedList<TransactionElement> waiting = new LinkedList<>();
+    private final MyLinkedList<TransactionElement> waiting = new MyLinkedList<>();
     private boolean locked = false;
 
     /**
@@ -48,7 +48,7 @@ public class OccupationTransaction extends AbstractOccupation {
      * @param vertex              the vertex being occupied for routing purposes
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.                                If this is thrown, this class remains unchanged.
      */
-    public void occupyRoutingAndCheck(int vertexPlacementSize, int vertex) throws DomainCheckerException {
+    public void occupyRoutingAndCheck(Integer vertexPlacementSize, Integer vertex) throws DomainCheckerException {
         assert !routingOccupied.contains(vertex);
         routingOccupied.add(vertex);
         String previous = null;
@@ -97,7 +97,7 @@ public class OccupationTransaction extends AbstractOccupation {
         assert isOccupiedRouting(vertex);
         routingOccupied.remove(vertex);
         domainChecker.afterReleaseEdge(vertexPlacementSize, vertex);
-        waiting.remove(new TransactionElement(vertexPlacementSize, vertex));
+        waiting.removeFromBack(new TransactionElement(vertexPlacementSize, vertex));
     }
 
     private boolean isOccupiedRouting(int v) {
@@ -158,8 +158,6 @@ public class OccupationTransaction extends AbstractOccupation {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
             TransactionElement that = (TransactionElement) o;
             return verticesPlaced == that.verticesPlaced &&
                     added == that.added;

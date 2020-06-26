@@ -41,7 +41,7 @@ class CompleteTest extends PathIteratorTest {
             gen.makeHarder();
             gen.init(trials, false);
             while (gen.hasNext()) {
-                MyGraph targetGraph = gen.getNext().sourceGraph;
+                MyGraph targetGraph = gen.getNext().getSourceGraph();
                 MyGraph sourceGraph = new MyGraph(true);
                 sourceGraph.addEdge(sourceGraph.addVertex(), sourceGraph.addVertex());
                 UtilityData data = new UtilityData(sourceGraph, targetGraph);
@@ -68,9 +68,14 @@ class CompleteTest extends PathIteratorTest {
                     }
                     PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);
                     Path path;
-                    while ((path = iterator.next()) != null) {
-                        assert path.asList().size() == new HashSet<>(path.asList()).size();
-                        pathCount.get(strategy).add(new Path(path));
+                    try {
+                        while ((path = iterator.next()) != null) {
+                            assert path.asList().size() == new HashSet<>(path.asList()).size();
+                            pathCount.get(strategy).add(new Path(path));
+                        }
+                    } catch (Exception e) {
+                        System.err.println(counter);
+                        throw e;
                     }
                 }
                 assert new HashSet<>(pathCount.values()).size() == 1 : counter + "\n" + myMaptoString(pathCount) + "for:\n" + targetGraph.toString();
