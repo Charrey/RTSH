@@ -7,9 +7,9 @@ import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerat
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
+import com.charrey.settings.iteratorspecific.*;
 import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -32,30 +32,30 @@ class GlobalOccupationTest {
             true,
             true,
             PruningConstants.ALL_DIFFERENT,
-            PathIterationConstants.CONTROL_POINT
+            new ControlPointIteratorStrategy(3)
     );
 
     @Test
     void testArbitraryDFS() throws DomainCheckerException {
-        testIterator(PathIterationConstants.DFS_ARBITRARY);
+        testIterator(new DFSStrategy());
     }
 
     @Test
     void testGreedyDFS() throws DomainCheckerException {
-        testIterator(PathIterationConstants.DFS_GREEDY);
+        testIterator(new GreedyDFSStrategy());
     }
 
     @Test
     void testYen() throws DomainCheckerException {
-        testIterator(PathIterationConstants.KPATH);
+        testIterator(new KPathStrategy());
     }
 
     @Test
     void testControlPoint() throws DomainCheckerException {
-        testIterator(PathIterationConstants.CONTROL_POINT);
+        testIterator(new ControlPointIteratorStrategy(3));
     }
 
-    void testIterator(int strategy) throws DomainCheckerException {
+    void testIterator(IteratorSettings strategy) throws DomainCheckerException {
         settings.pathIteration = strategy;
         settings.pruningMethod = PruningConstants.NONE;
         final long seed = 1923;

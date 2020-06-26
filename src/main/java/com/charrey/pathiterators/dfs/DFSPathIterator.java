@@ -176,7 +176,7 @@ public class DFSPathIterator extends PathIterator {
 
     @Override
     public String debugInfo() {
-        return String.valueOf(counter);
+        return counter + "th path was successful";
     }
 
 }

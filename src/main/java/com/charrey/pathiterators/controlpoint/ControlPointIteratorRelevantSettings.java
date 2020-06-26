@@ -3,12 +3,12 @@ package com.charrey.pathiterators.controlpoint;
 /**
  * Class that contains settings for the pathiteration strategy ContolPoint
  */
-public class ControlPointIteratorSettings {
+public class ControlPointIteratorRelevantSettings {
 
     /**
      * The default value of the value of the log setting.
      */
-    public static boolean defaultLog = false;
+    private static final boolean defaultLog = false;
     /**
      * Whether the iteration process should be printed in detail.
      */
@@ -24,7 +24,7 @@ public class ControlPointIteratorSettings {
      *
      * @param refuseLongerPaths Whether to refuse paths that take unnecessarily many resources.
      */
-    ControlPointIteratorSettings(boolean refuseLongerPaths) {
+    ControlPointIteratorRelevantSettings(boolean refuseLongerPaths) {
         this.log = defaultLog;
         this.refuseLongerPaths = refuseLongerPaths;
     }

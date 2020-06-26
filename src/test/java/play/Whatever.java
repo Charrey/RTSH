@@ -5,6 +5,7 @@ import com.charrey.IsoFinder;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.settings.Settings;
+import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
 
 public class Whatever {
 
@@ -29,7 +30,7 @@ public class Whatever {
         target.addEdge(3, 1);
         target.addEdge(2, 3);
 
-        Settings settings = new Settings(true, true, true, 2, 2);
+        Settings settings = new Settings(true, true, true, 2, new ControlPointIteratorStrategy(3));
 
         HomeomorphismResult res = new IsoFinder().getHomeomorphism(new TestCase(source, target), settings, 10_000_000, "WHATEVER");
         System.out.println(res);

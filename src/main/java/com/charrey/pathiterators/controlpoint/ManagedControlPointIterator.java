@@ -29,7 +29,7 @@ public class ManagedControlPointIterator extends PathIterator {
     private final OccupationTransaction transaction;
     private final int maxControlPoints;
     private final Supplier<Integer> verticesPlaced;
-    private final ControlPointIteratorSettings settings;
+    private final ControlPointIteratorRelevantSettings settings;
     private ControlPointIterator child;
     private int controlPoints = 0;
 
@@ -49,7 +49,7 @@ public class ManagedControlPointIterator extends PathIterator {
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.transaction = globalOccupation.getTransaction();
-        this.settings = new ControlPointIteratorSettings(true);
+        this.settings = new ControlPointIteratorRelevantSettings(true);
         this.child = new ControlPointIterator(graph, tail, head, transaction, new HashSet<>(), controlPoints, verticesPlaced, settings);
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;

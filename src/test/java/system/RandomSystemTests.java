@@ -11,29 +11,32 @@ import com.charrey.graph.generation.succeed.RandomSucceedUndirectedTestCaseGener
 import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
+import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 class RandomSystemTests extends SystemTest {
 
-    private final Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, PathIterationConstants.CONTROL_POINT);
+    private static final Pattern newline = Pattern.compile("\r\n");
+    private final Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new ControlPointIteratorStrategy(5));
 
 
     @Test
     void findCasesUndirectedRandom() throws IOException {
-        if (settings.pathIteration == PathIterationConstants.KPATH) {
+        if (settings.pathIteration.iterationStrategy == PathIterationConstants.KPATH) {
             return;
         }
-        findCases(30*1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(30 * 1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
     @Test
     void findCasesUndirectedSucceed() throws IOException {
-        if (settings.pathIteration == PathIterationConstants.KPATH) {
+        if (settings.pathIteration.iterationStrategy == PathIterationConstants.KPATH) {
             return;
         }
         findCases(30*1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
@@ -67,8 +70,8 @@ class RandomSystemTests extends SystemTest {
 
             for (int i = 0; i < iterations; i++) {
                 TestCase testCase = graphGen.getNext();
-                System.out.println(testCase.getSourceGraph().toString().replaceAll("\r\n", ""));
-                System.out.println(testCase.getTargetGraph().toString().replaceAll("\r\n", ""));
+                System.out.println(newline.matcher(testCase.getSourceGraph().toString()).replaceAll(""));
+                System.out.println(newline.matcher(testCase.getTargetGraph().toString()).replaceAll(""));
                 patternNodes = testCase.getSourceGraph().vertexSet().size();
                 patternEdges = testCase.getSourceGraph().edgeSet().size();
                 HomeomorphismResult homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge, time - (System.currentTimeMillis() - start), settings) : new IsoFinder().getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start), "RANDOMSYSTEST");
@@ -84,8 +87,8 @@ class RandomSystemTests extends SystemTest {
                     casesFailed++;
                 }
             }
-            totalIterations += (total/ (double) iterations);
-            System.out.println(patternNodes + "\t" + patternEdges + "\t" + (long)totalIterations + "\t" + casesSucceed + "/" + iterations + "\t"+ casesCompatibilityFailed + "/" + iterations + "\t"+ casesFailed + "/" + iterations + "\t");
+            totalIterations += (total / iterations);
+            System.out.println(patternNodes + "\t" + patternEdges + "\t" + (long) totalIterations + "\t" + casesSucceed + "/" + iterations + "\t" + casesCompatibilityFailed + "/" + iterations + "\t" + casesFailed + "/" + iterations + "\t");
             graphGen.makeHarder();
         }
     }

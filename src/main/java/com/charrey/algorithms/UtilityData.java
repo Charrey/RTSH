@@ -1,6 +1,9 @@
 package com.charrey.algorithms;
 
 import com.charrey.graph.MyGraph;
+import com.charrey.util.Util;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.GraphPath;
@@ -109,6 +112,7 @@ public class UtilityData {
     private int[][][] targetNeighbours;
     private ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths<Integer, DefaultEdge> shortestPaths;
 
+    private final RandomGenerator random = new Well512a(49999);
     /**
      * Returns an array that provides for each target vertex an ordering in which to try other target vertices in DFS.
      * Since this choice may depend on the target of the DFS, this array incorporates each possible goal vertex.
@@ -133,7 +137,8 @@ public class UtilityData {
                         sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
                                 .stream()
                                 .mapToInt(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
-                                .sorted().toArray();
+                                .toArray();
+                        Util.shuffle(sharedTargetNeighbours[i], random);
                     }
                     for (int i = 0; i < targetGraph.vertexSet().size(); i++) {
                         targetNeighbours[i] = Arrays.copyOf(sharedTargetNeighbours, sharedTargetNeighbours.length);

@@ -1,8 +1,8 @@
 package com.charrey.settings;
 
+import com.charrey.settings.iteratorspecific.IteratorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jgrapht.alg.util.Pair;
 
 import java.util.Comparator;
 import java.util.Objects;
@@ -22,7 +22,7 @@ public class Settings {
             .thenComparingInt(o2 -> o2.initialGlobalAllDifferent ? 1 : 0)
             .thenComparingInt(o2 -> o2.refuseLongerPaths ? 1 : 0)
             .thenComparingInt(o2 -> o2.pruningMethod)
-            .thenComparingInt(o2 -> o2.pathIteration);
+            .thenComparing(o2 -> o2.pathIteration);
     /**
      * Whether to apply domain reduction by filtering for compatible neighbourhoods.
      */
@@ -42,7 +42,7 @@ public class Settings {
     /**
      * Which method to iterate paths is used (select from PathIterationConstants.java)
      */
-    public int pathIteration;
+    public IteratorSettings pathIteration;
 
     /**
      * Instantiates a new Settings.
@@ -56,7 +56,7 @@ public class Settings {
     public Settings(boolean initialNeighbourhoodFiltering,
                     boolean initialGlobalAllDifferent,
                     boolean refuseLongerPaths,
-                    int pruningMethod, int pathIteration) {
+                    int pruningMethod, IteratorSettings pathIteration) {
         this.initialNeighbourhoodFiltering = initialNeighbourhoodFiltering;
         this.initialGlobalAllDifferent = initialGlobalAllDifferent;
         this.refuseLongerPaths = refuseLongerPaths;
@@ -64,25 +64,25 @@ public class Settings {
         this.pathIteration = pathIteration;
     }
 
-    /**
-     * Reads a pair of Settings and a performance measure from a String. This may be useful for
-     * Comparing the performance of different settings on the same graph. This is the counterpart of writeString().
-     *
-     * @param serialized the serialized pair of Settings and performance metric
-     * @return a Settings object and the performance value
-     */
-    @NotNull
-    public static Pair<Settings, Long> readString(@NotNull String serialized) {
-        String[] separated = serialized.split(",");
-        Settings res = new Settings(
-                separated[0].equals("1"),
-                separated[1].equals("1"),
-                separated[2].equals("1"),
-                Integer.parseInt(separated[3]),
-                Integer.parseInt(separated[4])
-        );
-        return new Pair<>(res, Long.parseLong(separated[5]));
-    }
+//    /**
+//     * Reads a pair of Settings and a performance measure from a String. This may be useful for
+//     * Comparing the performance of different settings on the same graph. This is the counterpart of writeString().
+//     *
+//     * @param serialized the serialized pair of Settings and performance metric
+//     * @return a Settings object and the performance value
+//     */
+//    @NotNull
+//    public static Pair<Settings, Long> readString(@NotNull String serialized) {
+//        String[] separated = serialized.split(",");
+//        Settings res = new Settings(
+//                separated[0].equals("1"),
+//                separated[1].equals("1"),
+//                separated[2].equals("1"),
+//                Integer.parseInt(separated[3]),
+//                Integer.parseInt(separated[4])
+//        );
+//        return new Pair<>(res, Long.parseLong(separated[5]));
+//    }
 
     /**
      * Serializes a Settings object (and a long indicating performance) into a String. This may be useful for
@@ -118,27 +118,27 @@ public class Settings {
         return Objects.hash(initialNeighbourhoodFiltering, initialGlobalAllDifferent, refuseLongerPaths, pruningMethod, pathIteration);
     }
 
-    /**
-     * Gets an option as integer by the index of that option. Useful for serialization.
-     *
-     * @param index index of the option in this settings object
-     * @return integer value of that option (where booleans are converted to one (true) and zero (false).
-     * @throws IndexOutOfBoundsException thrown when no option has that index.
-     */
-    public int getByIndex(int index) {
-        switch (index) {
-            case 0:
-                return initialNeighbourhoodFiltering ? 1 : 0;
-            case 1:
-                return initialGlobalAllDifferent ? 1 : 0;
-            case 2:
-                return refuseLongerPaths ? 1 : 0;
-            case 3:
-                return pruningMethod;
-            case 4:
-                return pathIteration;
-            default:
-                throw new IndexOutOfBoundsException();
-        }
-    }
+//    /**
+//     * Gets an option as integer by the index of that option. Useful for serialization.
+//     *
+//     * @param index index of the option in this settings object
+//     * @return integer value of that option (where booleans are converted to one (true) and zero (false).
+//     * @throws IndexOutOfBoundsException thrown when no option has that index.
+//     */
+//    public int getByIndex(int index) {
+//        switch (index) {
+//            case 0:
+//                return initialNeighbourhoodFiltering ? 1 : 0;
+//            case 1:
+//                return initialGlobalAllDifferent ? 1 : 0;
+//            case 2:
+//                return refuseLongerPaths ? 1 : 0;
+//            case 3:
+//                return pruningMethod;
+//            case 4:
+//                return pathIteration;
+//            default:
+//                throw new IndexOutOfBoundsException();
+//        }
+//    }
 }

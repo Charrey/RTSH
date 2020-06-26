@@ -33,7 +33,7 @@ class ControlPointIterator extends PathIterator {
     @NotNull
     private final OccupationTransaction occupation;
     private final Supplier<Integer> verticesPlaced;
-    private final ControlPointIteratorSettings settings;
+    private final ControlPointIteratorRelevantSettings settings;
 
     private boolean done = false;
     @NotNull
@@ -70,7 +70,7 @@ class ControlPointIterator extends PathIterator {
                          @NotNull Set<Integer> initialLocalOccupation,
                          int controlPoints,
                          Supplier<Integer> verticesPlaced,
-                         ControlPointIteratorSettings settings) {
+                         ControlPointIteratorRelevantSettings settings) {
         super(tail, head, settings.refuseLongerPaths);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;

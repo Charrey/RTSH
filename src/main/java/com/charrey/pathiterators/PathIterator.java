@@ -55,7 +55,7 @@ public abstract class PathIterator {
      */
     @NotNull
     public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, @NotNull Settings settings) {
-        return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration, settings.refuseLongerPaths);
+        return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration.iterationStrategy, settings.refuseLongerPaths);
     }
 
     /**
@@ -83,7 +83,7 @@ public abstract class PathIterator {
                 int[][] targetNeighbours = data.getTargetNeighbours(pathIteration)[head];
                 return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths);
             case CONTROL_POINT:
-                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 300, placementSize, refuseLongerPaths);
+                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 1, placementSize, refuseLongerPaths);
             case KPATH:
                 return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, refuseLongerPaths);
             default:

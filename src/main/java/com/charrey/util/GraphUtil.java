@@ -75,7 +75,7 @@ public class GraphUtil {
      * @param source the vertex to search from
      * @return the set of all reachable vertices
      */
-    public static Set<Integer> reachableNeighbours(@NotNull MyGraph graph, int source) { //todo: only arcs, wires and SLICE
+    public synchronized static Set<Integer> reachableNeighbours(@NotNull MyGraph graph, int source) { //todo: only arcs, wires and SLICE
         cachedComponents.putIfAbsent(graph, new ConnectivityInspector<>(graph));
         return cachedComponents.get(graph).connectedSetOf(source).stream().filter(x -> x != source).collect(Collectors.toUnmodifiableSet());
     }

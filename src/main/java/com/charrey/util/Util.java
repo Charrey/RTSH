@@ -26,4 +26,18 @@ public class Util {
         List<V> myList = collection.stream().filter(eligable).collect(Collectors.toList());
         return myList.get(random.nextInt(myList.size()));
     }
+
+    /**
+     * Shuffles an integer array
+     *
+     * @param array the integer to be shuffled
+     */
+    public static void shuffle(int[] array, RandomGenerator gen) {
+        for (int i = 0; i < array.length; i++) {
+            int randomPosition = gen.nextInt(array.length);
+            int temp = array[i];
+            array[i] = array[randomPosition];
+            array[randomPosition] = temp;
+        }
+    }
 }

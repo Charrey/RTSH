@@ -2,11 +2,14 @@ package unit;
 
 import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
+import com.charrey.algorithms.GreatestConstrainedFirst;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
-import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
+import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
+import com.charrey.settings.iteratorspecific.GreedyDFSStrategy;
+import com.charrey.settings.iteratorspecific.KPathStrategy;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -62,31 +65,27 @@ class BigGraphTest {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
         removeTails();
+        targetGraph = new GreatestConstrainedFirst().apply(targetGraph);
         targetGraph.randomizeWeights();
-        //targetGraph = new GreatestConstrainedFirst().apply(targetGraph);
 
+        matchFrom().forEach(v -> targetGraph.addAttribute(v, "label", "matchfrom"));
+        matchTo().forEach(v -> targetGraph.addAttribute(v, "label", "matchto"));
 
-        for (int v : matchFrom()) {
-            targetGraph.addAttribute(v, "label", "matchfrom");
-        }
-        for (int v : matchTo()) {
-            targetGraph.addAttribute(v, "label", "matchto");
-        }
         MyGraph sourceGraph = new MyGraph(true);
-        for (int i = 0; i < 3; i++) {
-            int vertex1 = sourceGraph.addVertex();
-            sourceGraph.addAttribute(vertex1, "label", "matchfrom");
-            int vertex2 = sourceGraph.addVertex();
-            sourceGraph.addAttribute(vertex2, "label", "matchto");
-            sourceGraph.addEdge(vertex1, vertex2);
+        int startVertex = sourceGraph.addVertex();
+        int endVertex = startVertex;
+        for (int i = 0; i < 1; i++) {
+            int newVertex = sourceGraph.addVertex();
+            sourceGraph.addEdge(endVertex, newVertex);
+            endVertex = newVertex;
         }
-
+        sourceGraph.addEdge(endVertex, startVertex);
 
         TestCase testCase = new TestCase(sourceGraph, targetGraph);
         Thread threadKPath = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.KPATH);
+            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new KPathStrategy());
             try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "KPATH");
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, "KPATH");
                 System.out.println(result);
                 System.out.println("KPATH IS FINISHED ------------------------------------");
                 System.out.flush();
@@ -96,9 +95,9 @@ class BigGraphTest {
             }
         });
         Thread threadDFSArbitrary = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.DFS_ARBITRARY);
+            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new GreedyDFSStrategy());
             try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "DFS");
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, "DFS");
                 System.out.println(result);
                 System.out.println("DFS Arbitrary IS FINISHED ------------------------------------");
                 System.out.flush();
@@ -108,9 +107,9 @@ class BigGraphTest {
             }
         });
         Thread threadDFSGreedy = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.DFS_GREEDY);
+            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new GreedyDFSStrategy());
             try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "DFS GREEDY");
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, "DFS GREEDY");
                 System.out.println(result);
                 System.out.println("DFS Greedy IS FINISHED ------------------------------------");
                 System.out.flush();
@@ -120,9 +119,9 @@ class BigGraphTest {
             }
         });
         Thread threadControlPoint = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.CONTROL_POINT);
+            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new ControlPointIteratorStrategy(0));
             try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "CP");
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, "CP");
                 System.out.println(result);
                 System.out.println("Controlpoint IS FINISHED ------------------------------------");
                 System.out.flush();
@@ -131,14 +130,14 @@ class BigGraphTest {
                 throw e;
             }
         });
-        //threadKPath.start();
+        threadKPath.start();
         threadDFSArbitrary.start();
-        //threadDFSGreedy.start();
-        //threadControlPoint.start();
-        //threadKPath.join();
+        threadDFSGreedy.start();
+        threadControlPoint.start();
+        threadKPath.join();
         threadDFSArbitrary.join();
-        //threadDFSGreedy.join();
-        //threadControlPoint.join();
+        threadDFSGreedy.join();
+        threadControlPoint.join();
         assert !failed;
     }
 

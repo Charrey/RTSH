@@ -1,5 +1,6 @@
 package com.charrey.graph;
 
+import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -20,6 +21,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
     private double maxEdgeWeight = 1d;
     private final List<Map<String, Set<String>>> attributes;
     private boolean locked = false;
+    private int[] old_to_new;
 
     /**
      * Instantiates a new empty graph.
@@ -91,6 +93,9 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
     }
 
     public void randomizeWeights() {
+        if (locked) {
+            throw new IllegalStateException("Graph is locked!");
+        }
         int edgeSetSize = edgeSet().size();
         if (edgeSetSize <= 1) {
             return;
@@ -129,6 +134,10 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
 
     public void lock() {
         this.locked = true;
+        if (old_to_new == null) {
+            old_to_new = new int[vertexSet().size()];
+            vertexSet().forEach(x -> old_to_new[x] = x);
+        }
     }
 
     @Override
@@ -170,11 +179,13 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
      * @return set of labels of this vertex
      * @throws IllegalArgumentException thrown if the graph did not contain the provided vertex.
      */
+    @NotNull
     public Collection<String> getLabels(int vertex) {
         if (!containsVertex(vertex)) {
             throw new IllegalArgumentException("The graph must contain the vertex " + vertex);
         }
         attributes.get(vertex).computeIfAbsent("label", x -> new HashSet<>());
+        assert attributes.get(vertex).containsKey("label");
         return attributes.get(vertex).get("label");
     }
 

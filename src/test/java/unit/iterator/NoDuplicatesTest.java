@@ -10,9 +10,9 @@ import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
+import com.charrey.settings.iteratorspecific.*;
 import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -32,33 +32,33 @@ class NoDuplicatesTest {
             true,
             true,
             PruningConstants.ALL_DIFFERENT,
-            PathIterationConstants.CONTROL_POINT
+            new ControlPointIteratorStrategy(5)
     );
 
     @Test
     void testArbitraryDFS() throws DomainCheckerException {
-        testIterator(PathIterationConstants.DFS_ARBITRARY);
+        testIterator(new DFSStrategy());
     }
 
     @Test
     void testGreedyDFS() throws DomainCheckerException {
-        testIterator(PathIterationConstants.DFS_GREEDY);
+        testIterator(new GreedyDFSStrategy());
     }
 
     @Test
     void testYen() throws DomainCheckerException {
-        testIterator(PathIterationConstants.KPATH);
+        testIterator(new KPathStrategy());
     }
 
     @Test
     void testControlPoint() throws DomainCheckerException {
-        testIterator(PathIterationConstants.CONTROL_POINT);
+        testIterator(new ControlPointIteratorStrategy(3));
     }
 
     private static final int differentGraphSizes = 250;
     private static final int trials = 10;
 
-    void testIterator(int strategy) throws DomainCheckerException {
+    void testIterator(IteratorSettings strategy) throws DomainCheckerException {
         settings.pathIteration = strategy;
         settings.pruningMethod = PruningConstants.NONE;
         final long seed = 1923;

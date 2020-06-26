@@ -9,8 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
  * Class very similar to GlobalOccupation, but used exclusively for registration of intermediate vertices.
  * This is linked to a GlobalOccupation object that stores other occupations. All changes can be pushed to the
@@ -51,13 +49,10 @@ public class OccupationTransaction extends AbstractOccupation {
     public void occupyRoutingAndCheck(Integer vertexPlacementSize, Integer vertex) throws DomainCheckerException {
         assert !routingOccupied.contains(vertex);
         routingOccupied.add(vertex);
-        String previous = null;
         try {
-            previous = domainChecker.toString();
             domainChecker.afterOccupyEdge(vertexPlacementSize, vertex);
             waiting.add(new TransactionElement(vertexPlacementSize, vertex));
         } catch (DomainCheckerException e) {
-            assertEquals(previous, domainChecker.toString());
             routingOccupied.remove(vertex);
             throw e;
         }
@@ -156,6 +151,7 @@ public class OccupationTransaction extends AbstractOccupation {
             this.time = System.currentTimeMillis();
         }
 
+        @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         @Override
         public boolean equals(Object o) {
             TransactionElement that = (TransactionElement) o;

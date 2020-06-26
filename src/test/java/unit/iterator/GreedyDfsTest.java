@@ -9,9 +9,10 @@ import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
+import com.charrey.settings.iteratorspecific.GreedyDFSStrategy;
+import com.charrey.settings.iteratorspecific.KPathStrategy;
 import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -19,20 +20,18 @@ import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class GreedyDfsTest {
+class GreedyDfsTest {
 
-    private final int differentGraphSizes = 1;
-    private final int trials = 10;
+    private static final int differentGraphSizes = 1;
+    private static final int trials = 10;
     private final RandomGenerator random = new Well512a(188);
 
     @Test
-    void testIterator() throws DomainCheckerException, IOException {
-        Settings settingsGreedy = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.DFS_GREEDY);
-        Settings settingsKpath = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.KPATH);
+    void testIterator() throws DomainCheckerException {
+        Settings settingsGreedy = new Settings(true, true, true, PruningConstants.NONE, new GreedyDFSStrategy());
+        Settings settingsKpath = new Settings(true, true, true, PruningConstants.NONE, new KPathStrategy());
 
         final long seed = 1923;
         long counter = -1;
@@ -52,7 +51,7 @@ public class GreedyDfsTest {
                 if (counter < 0) {
                     continue;
                 }
-                System.out.print(counter % 1 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
+                System.out.print(counter % 2 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }

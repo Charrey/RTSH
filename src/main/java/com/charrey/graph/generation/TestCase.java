@@ -1,6 +1,9 @@
 package com.charrey.graph.generation;
 
 import com.charrey.graph.MyGraph;
+import com.charrey.util.GraphUtil;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -19,8 +22,8 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
      * The source graph to embed in the target graph
      */
     private MyGraph sourceGraph;
-    private boolean randomizedSourceGraph = false;
-    private boolean randomizedTargetGraph = false;
+
+    private final RandomGenerator random = new Well512a(1888939);
 
     /**
      * Creates a new Test case.
@@ -29,17 +32,15 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
      * @param targetGraph the target graph
      */
     public TestCase(MyGraph sourceGraph, MyGraph targetGraph) {
+        sourceGraph.randomizeWeights();
         sourceGraph.lock();
+        targetGraph.randomizeWeights();
         targetGraph.lock();
         this.sourceGraph = sourceGraph;
         this.targetGraph = targetGraph;
     }
 
     public MyGraph getSourceGraph() {
-        if (!randomizedSourceGraph) {
-            sourceGraph.randomizeWeights();
-            randomizedSourceGraph = true;
-        }
         return sourceGraph;
     }
 
@@ -48,10 +49,6 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
     }
 
     public MyGraph getTargetGraph() {
-        if (!randomizedTargetGraph) {
-            targetGraph.randomizeWeights();
-            randomizedTargetGraph = true;
-        }
         return targetGraph;
     }
 
@@ -59,5 +56,9 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
     @Override
     public Iterator<MyGraph> iterator() {
         return List.of(sourceGraph, targetGraph).iterator();
+    }
+
+    public synchronized TestCase copy() {
+        return new TestCase(GraphUtil.copy(sourceGraph, random), GraphUtil.copy(targetGraph, random));
     }
 }

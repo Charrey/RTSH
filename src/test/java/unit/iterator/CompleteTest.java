@@ -7,9 +7,9 @@ import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerat
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
+import com.charrey.settings.iteratorspecific.*;
 import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -30,7 +30,24 @@ class CompleteTest extends PathIteratorTest {
             true,
             true,
             PruningConstants.NONE,
-            PathIterationConstants.KPATH);
+            new KPathStrategy());
+
+    @NotNull
+    private static String myMaptoString(@NotNull Map<IteratorSettings, Set<Path>> pathCount) {
+        StringBuilder sb = new StringBuilder();
+        Set<Path> common = new HashSet<>();
+        pathCount.values().forEach(common::addAll);
+        new HashSet<>(common).forEach(path -> {
+            if (pathCount.entrySet().stream().anyMatch(x -> !x.getValue().contains(path))) {
+                common.remove(path);
+            }
+        });
+        for (Map.Entry<IteratorSettings, Set<Path>> entry : pathCount.entrySet()) {
+            List<Path> extra = entry.getValue().stream().filter(x -> !common.contains(x)).sorted().collect(Collectors.toList());
+            sb.append("Option ").append(entry.getKey()).append(":\t").append(common.size()).append(" common and ").append(extra.isEmpty() ? "nothing else" : extra).append("\n");
+        }
+        return sb.toString();
+    }
 
     @Test
     void testIterators() {
@@ -55,8 +72,8 @@ class CompleteTest extends PathIteratorTest {
                     continue;
                 }
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
-                Map<Integer, Set<Path>> pathCount = new HashMap<>(); //s
-                for (int strategy : List.of(PathIterationConstants.DFS_ARBITRARY, PathIterationConstants.DFS_GREEDY, PathIterationConstants.CONTROL_POINT, PathIterationConstants.KPATH)) {
+                Map<IteratorSettings, Set<Path>> pathCount = new HashMap<>(); //s
+                for (IteratorSettings strategy : List.of(new DFSStrategy(), new GreedyDFSStrategy(), new ControlPointIteratorStrategy(10), new KPathStrategy())) {
                     settings.pathIteration = strategy;
                     pathCount.put(strategy, new HashSet<>());
                     GlobalOccupation occupation = new GlobalOccupation(data, settings);
@@ -81,22 +98,5 @@ class CompleteTest extends PathIteratorTest {
                 assert new HashSet<>(pathCount.values()).size() == 1 : counter + "\n" + myMaptoString(pathCount) + "for:\n" + targetGraph.toString();
             }
         }
-    }
-
-    @NotNull
-    private String myMaptoString(@NotNull Map<Integer, Set<Path>> pathCount) {
-        StringBuilder sb = new StringBuilder();
-        Set<Path> common = new HashSet<>();
-        pathCount.values().forEach(common::addAll);
-        new HashSet<>(common).forEach(path -> {
-            if (pathCount.entrySet().stream().anyMatch(x -> !x.getValue().contains(path))) {
-                common.remove(path);
-            }
-        });
-        for (Map.Entry<Integer, Set<Path>> entry : pathCount.entrySet()) {
-            List<Path> extra = entry.getValue().stream().filter(x -> !common.contains(x)).sorted().collect(Collectors.toList());
-            sb.append("Option ").append(entry.getKey()).append(":\t").append(common.size()).append(" common and ").append(extra.isEmpty() ? "nothing else" : extra).append("\n");
-        }
-        return sb.toString();
     }
 }

@@ -8,9 +8,9 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
+import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
 import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -35,8 +35,8 @@ class ControlPointTransition {
             true,
             true,
             PruningConstants.NONE,
-            PathIterationConstants.CONTROL_POINT
-    );
+            new ControlPointIteratorStrategy(3));
+
 
     @Test
     @Order(1)
