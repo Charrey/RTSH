@@ -88,7 +88,7 @@ class BigGraphTest {
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "KPATH");
                 System.out.println(result);
-                System.out.println("YEN");
+                System.out.println("KPATH IS FINISHED ------------------------------------");
                 System.out.flush();
             } catch (Throwable e) {
                 failed = true;
@@ -100,7 +100,7 @@ class BigGraphTest {
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "DFS");
                 System.out.println(result);
-                System.out.println("DFS Arbitrary");
+                System.out.println("DFS Arbitrary IS FINISHED ------------------------------------");
                 System.out.flush();
             } catch (Throwable e) {
                 failed = true;
@@ -112,7 +112,7 @@ class BigGraphTest {
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "DFS GREEDY");
                 System.out.println(result);
-                System.out.println("DFS Greedy");
+                System.out.println("DFS Greedy IS FINISHED ------------------------------------");
                 System.out.flush();
             } catch (Throwable e) {
                 failed = true;
@@ -124,7 +124,7 @@ class BigGraphTest {
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "CP");
                 System.out.println(result);
-                System.out.println("Controlpoint");
+                System.out.println("Controlpoint IS FINISHED ------------------------------------");
                 System.out.flush();
             } catch (Throwable e) {
                 failed = true;
@@ -132,13 +132,13 @@ class BigGraphTest {
             }
         });
         //threadKPath.start();
-        //threadDFSArbitrary.start();
-        threadDFSGreedy.start();
+        threadDFSArbitrary.start();
+        //threadDFSGreedy.start();
         //threadControlPoint.start();
-        threadKPath.join();
+        //threadKPath.join();
         threadDFSArbitrary.join();
-        threadDFSGreedy.join();
-        threadControlPoint.join();
+        //threadDFSGreedy.join();
+        //threadControlPoint.join();
         assert !failed;
     }
 

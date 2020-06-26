@@ -62,13 +62,14 @@ public class DFSPathIterator extends PathIterator {
     }
 
     private boolean isCandidate(Integer vertex) {
+        if (vertex != head && graph.containsEdge(exploration.last(), head)) {
+            return false;
+        }
         boolean isCandidate = !exploration.contains(vertex) &&
                 !occupation.isOccupiedRouting(vertex) &&
                 !(occupation.isOccupiedVertex(vertex) && vertex != head);
         if (refuseLongerPaths) {
-            //boolean check1 = graph.incomingEdgesOf(vertex).stream().allMatch(y -> graph.getEdgeSource(y).equals(from) || !exploration.contains(graph.getEdgeSource(y)));
             boolean check2 = !forbidden.contains(vertex);
-            //assert check1 == check2;
             isCandidate = isCandidate && check2;
         }
         return isCandidate;
