@@ -154,22 +154,22 @@ public class UtilityData {
                             tempTargetNeigbours[i][j] = Arrays.stream(targetNeighbours[i][j]).boxed().collect(Collectors.toList());
                         }
                     }
-                    for (int i = 0; i < targetNeighbours.length; i++) {
-                        int[] distances = new int[tempTargetNeigbours.length];
-                        for (int j = 0; j < tempTargetNeigbours[i].length; j++) {
-                            List<Integer> toSort = (List<Integer>) tempTargetNeigbours[i][j];
+                    for (int goal = 0; goal < targetNeighbours.length; goal++) {
+                        double[] distances = new double[tempTargetNeigbours.length];
+                        for (int from = 0; from < tempTargetNeigbours[goal].length; from++) {
+                            List<Integer> toSort = (List<Integer>) tempTargetNeigbours[goal][from];
                             Set<Integer> toRemove = new HashSet<>();
-                            for (int neighbour : toSort) {
-                                GraphPath<Integer, DefaultEdge> path = shortestPaths.getPath(neighbour, targetVertices.get(i));
+                            for (int to : toSort) {
+                                GraphPath<Integer, DefaultEdge> path = shortestPaths.getPath(to, targetVertices.get(goal));
                                 if (path == null) {
-                                    toRemove.add(neighbour);
+                                    toRemove.add(to);
                                 } else {
-                                    distances[neighbour] = path.getLength();
+                                    distances[to] = targetGraph.getEdgeWeight(targetGraph.getEdge(from, to)) + path.getWeight();
                                 }
                             }
                             toSort.removeAll(toRemove);
-                            toSort.sort(Comparator.comparingInt(o -> distances[o]));
-                            targetNeighbours[i][j] = toSort.stream().mapToInt(x -> x).toArray();
+                            toSort.sort(Comparator.comparingDouble(o -> distances[o]));
+                            targetNeighbours[goal][from] = toSort.stream().mapToInt(x -> x).toArray();
                         }
                     }
                     break;
