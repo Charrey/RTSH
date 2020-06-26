@@ -86,7 +86,7 @@ class BigGraphTest {
         Thread threadKPath = new Thread(() -> {
             Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.KPATH);
             try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "KPATH");
                 System.out.println(result);
                 System.out.println("YEN");
                 System.out.flush();
@@ -98,7 +98,7 @@ class BigGraphTest {
         Thread threadDFSArbitrary = new Thread(() -> {
             Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.DFS_ARBITRARY);
             try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "DFS");
                 System.out.println(result);
                 System.out.println("DFS Arbitrary");
                 System.out.flush();
@@ -110,7 +110,7 @@ class BigGraphTest {
         Thread threadDFSGreedy = new Thread(() -> {
             Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.DFS_GREEDY);
             try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "DFS GREEDY");
                 System.out.println(result);
                 System.out.println("DFS Greedy");
                 System.out.flush();
@@ -122,7 +122,7 @@ class BigGraphTest {
         Thread threadControlPoint = new Thread(() -> {
             Settings settings = new Settings(true, true, true, PruningConstants.NONE, PathIterationConstants.CONTROL_POINT);
             try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000);
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 60 * 60 * 1000, "CP");
                 System.out.println(result);
                 System.out.println("Controlpoint");
                 System.out.flush();

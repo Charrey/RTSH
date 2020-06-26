@@ -76,7 +76,7 @@ public class IsoFinder {
      * @return a result that provides information on the performance and which homeomorphism was found (if any).
      */
     @Nullable
-    public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout) {
+    public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name) {
         try {
             testcase.setSourceGraph(new GreatestConstrainedFirst().apply(testcase.getSourceGraph()));
             setup(testcase, settings);
@@ -88,7 +88,7 @@ public class IsoFinder {
         while (!allDone(testcase.getSourceGraph(), vertexMatching, edgeMatching)) {
             iterations++;
             if (System.currentTimeMillis() - lastPrint > 2000) {
-                System.out.println(iterations + " iterations...");
+                System.out.println(name + " is at " + iterations + " iterations...");
                 lastPrint = System.currentTimeMillis();
             }
             if (System.currentTimeMillis() > initialTime + timeout) {

@@ -31,7 +31,7 @@ public class Whatever {
 
         Settings settings = new Settings(true, true, true, 2, 2);
 
-        HomeomorphismResult res = new IsoFinder().getHomeomorphism(new TestCase(source, target), settings, 10_000_000);
+        HomeomorphismResult res = new IsoFinder().getHomeomorphism(new TestCase(source, target), settings, 10_000_000, "WHATEVER");
         System.out.println(res);
     }
 }

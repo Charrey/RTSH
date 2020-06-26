@@ -15,6 +15,8 @@ import java.util.function.Supplier;
 
 /**
  * A path iterator that performs DFS to obtain paths.
+ * Space requirements (globally) for using this:
+ * O(|E1|* (|E2|+|V2|))
  */
 public class DFSPathIterator extends PathIterator {
     private final int head;
@@ -28,7 +30,6 @@ public class DFSPathIterator extends PathIterator {
 
     private final Set<Integer> forbidden = new HashSet<>();
     private final Deque<Set<Integer>> added = new LinkedList<>();
-
 
     private final GlobalOccupation occupation;
     private final OccupationTransaction transaction;
@@ -60,7 +61,7 @@ public class DFSPathIterator extends PathIterator {
         this.graph = graph;
     }
 
-    private boolean isCandidate(Integer from, Integer vertex) {
+    private boolean isCandidate(Integer vertex) {
         boolean isCandidate = !exploration.contains(vertex) &&
                 !occupation.isOccupiedRouting(vertex) &&
                 !(occupation.isOccupiedVertex(vertex) && vertex != head);
@@ -99,7 +100,7 @@ public class DFSPathIterator extends PathIterator {
             //iterate over neighbours until we find an unused vertex
             for (int i = chosenOption[indexOfHeadVertex]; i < outgoingNeighbours[exploration.last()].length; i++) {
                 int neighbour = outgoingNeighbours[exploration.last()][i];
-                if (isCandidate(exploration.last(), neighbour)) {
+                if (isCandidate(neighbour)) {
                     //if found, update chosen, update exploration
 
                     Set<Integer> newlyForbidden = new HashSet<>();
