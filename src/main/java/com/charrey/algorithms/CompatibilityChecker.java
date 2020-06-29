@@ -7,10 +7,7 @@ import com.google.common.collect.HashBiMap;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -20,38 +17,7 @@ public class CompatibilityChecker {
 
     private final AllDifferent alldiff = new AllDifferent();
 
-    /**
-     * Returns a map from source graph vertices to the target graph vertices they are compatible with.
-     *
-     * @param source                    the source graph
-     * @param target                    the target graph
-     * @param neighbourhoodFiltering    whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
-     * @param initialGlobalAllDifferent whether to apply AllDifferent to each possible matching to filter out candidates.
-     * @return the map
-     */
-    @NotNull
-    public  Map<Integer, Set<Integer>> get(@NotNull MyGraph source,
-                                         @NotNull MyGraph target, boolean neighbourhoodFiltering, boolean initialGlobalAllDifferent) {
-
-        Map<Integer, Set<Integer>> res = new HashMap<>();
-        for (Integer v : source.vertexSet()) {
-            assert source.containsVertex(v);
-            res.put(v, new HashSet<>(target.vertexSet().stream().filter(x -> isCompatible(v, x, source, target)).collect(Collectors.toSet())));
-        }
-        boolean hasChanged = true;
-        while (hasChanged) {
-            hasChanged = false;
-            if (neighbourhoodFiltering) {
-                hasChanged = filterNeighbourHoods(res, source, target);
-            }
-            if (initialGlobalAllDifferent) {
-                hasChanged = hasChanged || filterGAC(res);
-            }
-        }
-        return res;
-    }
-
-    private static boolean filterGAC(@NotNull Map<Integer, Set<Integer>> compatibility) {
+    private static boolean filterGAC(@NotNull Map<Integer, Set<Integer>> compatibility, int iteration, String name) {
         BiMap<Integer, Integer> map1 = HashBiMap.create();
         for (int i : compatibility.keySet()) {
             map1.put(i, i);
@@ -65,7 +31,7 @@ public class CompatibilityChecker {
 
         Map<Integer, Set<Integer>> intCompatability = compatibility.entrySet().stream().collect(Collectors.toMap(x -> map1.get(x.getKey()), x -> x.getValue().stream().map(map2::get).collect(Collectors.toSet())));
 
-        Set<Pair<Integer, Integer>> toRemoveInt = AllDifferent.checkAll(intCompatability);
+        Set<Pair<Integer, Integer>> toRemoveInt = AllDifferent.checkAll(intCompatability, iteration, name);
         Set<Pair<Integer, Integer>> toRemove = toRemoveInt.stream()
                 .map(x -> new Pair<>(map1.inverse().get(x.getFirst()), map2.inverse().get(x.getSecond())))
                 .collect(Collectors.toSet());
@@ -79,19 +45,70 @@ public class CompatibilityChecker {
         }
     }
 
+    /**
+     * Returns a map from source graph vertices to the target graph vertices they are compatible with.
+     *
+     * @param source                    the source graph
+     * @param target                    the target graph
+     * @param neighbourhoodFiltering    whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
+     * @param initialGlobalAllDifferent whether to apply AllDifferent to each possible matching to filter out candidates.
+     * @return the map
+     */
+    @NotNull
+    public Map<Integer, Set<Integer>> get(@NotNull MyGraph source,
+                                          @NotNull MyGraph target, boolean neighbourhoodFiltering, boolean initialGlobalAllDifferent, String name) {
+
+        Map<Integer, Set<Integer>> res = new HashMap<>();
+        for (Integer v : source.vertexSet()) {
+            assert source.containsVertex(v);
+            res.put(v, new HashSet<>(target.vertexSet().stream().filter(x -> isCompatible(v, x, source, target)).collect(Collectors.toSet())));
+        }
+        boolean hasChanged = true;
+        int iteration = 1;
+        while (hasChanged) {
+            hasChanged = false;
+            if (neighbourhoodFiltering) {
+                hasChanged = filterNeighbourHoods(res, source, target, iteration, name);
+                System.out.println(name + "completed neighbourhood filtering");
+            }
+            if (initialGlobalAllDifferent) {
+                hasChanged = hasChanged || filterGAC(res, iteration, name);
+                System.out.println(name + "completed AllDifferent filtering");
+            }
+            iteration++;
+        }
+        return res;
+    }
+
     private boolean filterNeighbourHoods(@NotNull Map<Integer, Set<Integer>> compatibilityMap,
                                          @NotNull MyGraph sourceGraph,
-                                         @NotNull MyGraph targetGraph) {
+                                         @NotNull MyGraph targetGraph,
+                                         int iteration,
+                                         String name) {
         boolean changed = false;
         Set<Pair<Integer, Integer>> toRemove = new HashSet<>();
+
+        long toProcess = 0L;
+        Collection<Set<Integer>> values = compatibilityMap.values();
+        for (Set<Integer> value : values) {
+            toProcess = toProcess + value.size();
+        }
+
+        long lastTimePrinted = System.currentTimeMillis();
+        long counter = 0;
         for (Map.Entry<Integer, Set<Integer>> potentialSource : compatibilityMap.entrySet()) {
             for (Integer potentialTarget : potentialSource.getValue()) {
+                if (System.currentTimeMillis() - lastTimePrinted > 1000) {
+                    System.out.println(name + " filtering neighbourhoods at iteration " + iteration + ": " + 100 * counter / (double) toProcess + "%");
+                    lastTimePrinted = System.currentTimeMillis();
+                }
                 Set<Integer> sourceNeighbourHood = GraphUtil.reachableNeighbours(sourceGraph, potentialSource.getKey());
                 Set<Integer> targetNeighbourHood = GraphUtil.reachableNeighbours(targetGraph, potentialTarget);
                 if (!compatibleNeighbourhoods(sourceNeighbourHood, targetNeighbourHood, compatibilityMap)) {
                     changed = true;
                     toRemove.add(new Pair<>(potentialSource.getKey(), potentialTarget));
                 }
+                counter++;
             }
         }
         for (Pair<Integer, Integer> pair : toRemove) {

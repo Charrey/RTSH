@@ -62,10 +62,10 @@ public class AllDifferentChecker extends DomainChecker {
      * @param initialGlobalAllDifferent     whether alldifferent needs to be applied initially to reduce domain sizes.
      */
     @SuppressWarnings({"unchecked"})
-    public AllDifferentChecker(@NotNull UtilityData data, boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent) {
+    public AllDifferentChecker(@NotNull UtilityData data, boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent, String name) {
         this.allDifferent = new AllDifferent();
-        reverseDomain = data.getReverseCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent);
-        this.domain = Arrays.stream(data.getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent)).map(x -> new HashSet<>(Arrays.asList(x))).toArray(value -> (Set<Integer>[]) new Set[value]);
+        reverseDomain = data.getReverseCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent, name);
+        this.domain = Arrays.stream(data.getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent, name)).map(x -> new HashSet<>(Arrays.asList(x))).toArray(value -> (Set<Integer>[]) new Set[value]);
         vertexState = (Deque<Set<Integer>>[]) Array.newInstance(Deque.class, domain.length);
         for (int i = 0; i < domain.length; i++) {
             vertexState[i] = new LinkedList<>();

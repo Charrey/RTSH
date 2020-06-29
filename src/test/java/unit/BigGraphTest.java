@@ -9,6 +9,7 @@ import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
 import com.charrey.settings.iteratorspecific.GreedyDFSStrategy;
+import com.charrey.settings.iteratorspecific.IteratorSettings;
 import com.charrey.settings.iteratorspecific.KPathStrategy;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +75,7 @@ class BigGraphTest {
         MyGraph sourceGraph = new MyGraph(true);
         int startVertex = sourceGraph.addVertex();
         int endVertex = startVertex;
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 2; i++) {
             int newVertex = sourceGraph.addVertex();
             sourceGraph.addEdge(endVertex, newVertex);
             endVertex = newVertex;
@@ -82,54 +83,10 @@ class BigGraphTest {
         sourceGraph.addEdge(endVertex, startVertex);
 
         TestCase testCase = new TestCase(sourceGraph, targetGraph);
-        Thread threadKPath = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new KPathStrategy());
-            try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, "KPATH");
-                System.out.println(result);
-                System.out.println("KPATH IS FINISHED ------------------------------------");
-                System.out.flush();
-            } catch (Throwable e) {
-                failed = true;
-                throw e;
-            }
-        });
-        Thread threadDFSArbitrary = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new GreedyDFSStrategy());
-            try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, "DFS");
-                System.out.println(result);
-                System.out.println("DFS Arbitrary IS FINISHED ------------------------------------");
-                System.out.flush();
-            } catch (Throwable e) {
-                failed = true;
-                throw e;
-            }
-        });
-        Thread threadDFSGreedy = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new GreedyDFSStrategy());
-            try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, "DFS GREEDY");
-                System.out.println(result);
-                System.out.println("DFS Greedy IS FINISHED ------------------------------------");
-                System.out.flush();
-            } catch (Throwable e) {
-                failed = true;
-                throw e;
-            }
-        });
-        Thread threadControlPoint = new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new ControlPointIteratorStrategy(0));
-            try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, "CP");
-                System.out.println(result);
-                System.out.println("Controlpoint IS FINISHED ------------------------------------");
-                System.out.flush();
-            } catch (Throwable e) {
-                failed = true;
-                throw e;
-            }
-        });
+        Thread threadKPath = getThread(testCase, new KPathStrategy());
+        Thread threadDFSArbitrary = getThread(testCase, new GreedyDFSStrategy());
+        Thread threadDFSGreedy = getThread(testCase, new GreedyDFSStrategy());
+        Thread threadControlPoint = getThread(testCase, new ControlPointIteratorStrategy(0));
         threadKPath.start();
         threadDFSArbitrary.start();
         threadDFSGreedy.start();
@@ -139,6 +96,21 @@ class BigGraphTest {
         threadDFSGreedy.join();
         threadControlPoint.join();
         assert !failed;
+    }
+
+    private Thread getThread(TestCase testCase, IteratorSettings strategy) {
+        return new Thread(() -> {
+            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, strategy);
+            try {
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, strategy.toString());
+                System.out.println(result);
+                System.out.println(strategy.toString() + " IS FINISHED ------------------------------------");
+                System.out.flush();
+            } catch (Throwable e) {
+                failed = true;
+                throw e;
+            }
+        });
     }
 
     private void removeTails() {

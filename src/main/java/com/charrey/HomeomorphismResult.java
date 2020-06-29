@@ -64,7 +64,10 @@ public class HomeomorphismResult {
 
     @NotNull
     public String toString() {
-        return matching.toString() + "\n" + edgeMatching.toString();
+        return failed ? "FAILED!" : matching.toString() + "\n" + edgeMatching.toString();
     }
 
+    public int[] getPlacement() {
+        return failed ? new int[0] : matching.getPlacement().stream().mapToInt(x -> x).toArray();
+    }
 }

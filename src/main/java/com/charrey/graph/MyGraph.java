@@ -5,6 +5,8 @@ import org.jgrapht.Graphs;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultGraphType;
+import org.jgrapht.nio.AttributeType;
+import org.jgrapht.nio.DefaultAttribute;
 import org.jgrapht.nio.dot.DOTExporter;
 import org.jgrapht.util.SupplierUtil;
 
@@ -58,17 +60,17 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         }
         MyGraph res = new MyGraph(source.directed);
         for (int new_vertex = 0; new_vertex < source.vertexSet().size(); new_vertex++) {
-            int i_final = new_vertex;
+            int new_vertex_final = new_vertex;
             res.addVertex(new_vertex);
             int old_vertex = new_to_old[new_vertex];
-            source.attributes.get(new_vertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(i_final, key, value)));
-            Set<Integer> predecessors = Graphs.predecessorListOf(source, old_vertex).stream().map(old_to_new::get).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet());
-            predecessors.forEach(x -> res.addEdge(x, i_final));
-            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, old_vertex).stream().map(old_to_new::get).filter(x -> x < i_final).collect(Collectors.toUnmodifiableSet()));
+            source.attributes.get(old_vertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(new_vertex_final, key, value)));
+            Set<Integer> predecessors = Graphs.predecessorListOf(source, old_vertex).stream().map(old_to_new::get).filter(x -> x < new_vertex_final).collect(Collectors.toUnmodifiableSet());
+            predecessors.forEach(x -> res.addEdge(x, new_vertex_final));
+            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, old_vertex).stream().map(old_to_new::get).filter(x -> x < new_vertex_final).collect(Collectors.toUnmodifiableSet()));
             if (!source.directed) {
                 successors.removeAll(predecessors);
             }
-            successors.forEach(x -> res.addEdge(i_final, x));
+            successors.forEach(x -> res.addEdge(new_vertex_final, x));
         }
         return res;
     }
@@ -143,6 +145,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
     @Override
     public String toString() {
         DOTExporter<Integer, DefaultEdge> exporter = new DOTExporter<>(x -> Integer.toString(x));
+        exporter.setVertexAttributeProvider(integer -> attributes.get(integer).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> new DefaultAttribute<>(x.getValue().toString(), AttributeType.STRING))));
         StringWriter writer = new StringWriter();
         exporter.exportGraph(this, writer);
         return writer.toString();

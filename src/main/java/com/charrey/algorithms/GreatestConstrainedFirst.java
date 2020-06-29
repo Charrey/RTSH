@@ -48,12 +48,6 @@ public class GreatestConstrainedFirst {
             assert !ordering.contains(toAdd);
             ordering.add(toAdd);
         }
-
-
-//        for (int vertex : graph.vertexSet()) {
-//            vertex.setData(ordering.indexOf(vertex));
-//        } //TODO
-
         return MyGraph.applyOrdering(graph, ordering.stream().mapToInt(x -> x).toArray());
     }
 

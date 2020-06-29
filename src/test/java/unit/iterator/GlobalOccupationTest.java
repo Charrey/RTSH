@@ -79,7 +79,7 @@ class GlobalOccupationTest {
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
-                GlobalOccupation occupation = new GlobalOccupation(data, settings);
+                GlobalOccupation occupation = new GlobalOccupation(data, settings, "OccupationTest");
                 occupation.occupyVertex(0, tail);
                 occupation.occupyVertex(1, head);
                 PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);

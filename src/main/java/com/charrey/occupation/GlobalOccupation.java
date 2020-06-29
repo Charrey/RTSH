@@ -30,8 +30,8 @@ public class GlobalOccupation extends AbstractOccupation {
      * @param data     utility data class for cached computations
      * @param settings settings for this homeomorphism search
      */
-    public GlobalOccupation(@NotNull UtilityData data, @NotNull Settings settings) {
-        this(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+    public GlobalOccupation(@NotNull UtilityData data, @NotNull Settings settings, String name) {
+        this(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
     }
 
     /**
@@ -42,16 +42,16 @@ public class GlobalOccupation extends AbstractOccupation {
      * @param initialNeighbourHoodFiltering the initial neighbour hood filtering
      * @param initialGlobalAllDifferent     the initial global all different
      */
-    public GlobalOccupation(@NotNull UtilityData data, int runTimeCheck, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
+    public GlobalOccupation(@NotNull UtilityData data, int runTimeCheck, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
         switch (runTimeCheck) {
             case PruningConstants.NONE:
                 domainChecker = new DummyDomainChecker();
                 break;
             case PruningConstants.EMPTY_DOMAIN:
-                domainChecker = new EmptyDomainChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent);
+                domainChecker = new EmptyDomainChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent, name);
                 break;
             case PruningConstants.ALL_DIFFERENT:
-                domainChecker = new AllDifferentChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent);
+                domainChecker = new AllDifferentChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent, name);
                 break;
             default:
                 throw new UnsupportedOperationException();

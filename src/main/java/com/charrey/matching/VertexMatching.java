@@ -36,8 +36,8 @@ public class VertexMatching {
      * @param initialNeighbourhoodFiltering whether to apply domain filtering based on neighbourhoods
      * @param initialGlobalAllDifferent     whether to apply domain filtering based on AllDifferent
      */
-    public VertexMatching(@NotNull UtilityData data, @NotNull MyGraph sourceGraph, GlobalOccupation occupation, boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent) {
-        this.candidates = data.getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent);
+    public VertexMatching(@NotNull UtilityData data, @NotNull MyGraph sourceGraph, GlobalOccupation occupation, boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent, String name) {
+        this.candidates = data.getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent, name);
         candidateToChooseNext = new int[sourceGraph.vertexSet().size()];
         assert candidateToChooseNext.length == candidates.length;
         Arrays.fill(candidateToChooseNext, 0);

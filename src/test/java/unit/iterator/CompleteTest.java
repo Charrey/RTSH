@@ -76,7 +76,7 @@ class CompleteTest extends PathIteratorTest {
                 for (IteratorSettings strategy : List.of(new DFSStrategy(), new GreedyDFSStrategy(), new ControlPointIteratorStrategy(100), new KPathStrategy())) {
                     settings.pathIteration = strategy;
                     pathCount.put(strategy, new HashSet<>());
-                    GlobalOccupation occupation = new GlobalOccupation(data, settings);
+                    GlobalOccupation occupation = new GlobalOccupation(data, settings, "IteratorTest");
                     try {
                         occupation.occupyVertex(0, tail);
                         occupation.occupyVertex(1, head);

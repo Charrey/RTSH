@@ -79,7 +79,7 @@ public class AllDifferent {
      * @return a set of pairs such that the key of the pair may not be mapped to the value of the pair.
      */
     @NotNull
-    static Set<Pair<Integer, Integer>> checkAll(@NotNull Map<Integer, Set<Integer>> allDifferentMap) {
+    static Set<Pair<Integer, Integer>> checkAll(@NotNull Map<Integer, Set<Integer>> allDifferentMap, int iteration, String name) {
         final int[][] domains = new int[allDifferentMap.size()][];
         allDifferentMap.forEach((key, value) -> domains[key] = (value.stream().mapToInt(x -> x).toArray()));
         Model model = new Model(settings);
@@ -92,10 +92,25 @@ public class AllDifferent {
         }
         model.allDifferent(variables).post();
         Set<Pair<Integer, Integer>> res = new HashSet<>();
+
+        long toProcess = 0L;
+        Collection<Set<Integer>> values = allDifferentMap.values();
+        for (Set<Integer> value : values) {
+            toProcess = toProcess + value.size();
+        }
+
+        long lastTimePrinted = System.currentTimeMillis();
+        long counter = 0;
+
+
         for (int i = 0; i < variables.length; i++) {
             ValueIterator iterator = variables[i].getValueIterator(false);
             iterator.bottomUpInit();
             while (iterator.hasNext()) {
+                if (System.currentTimeMillis() - lastTimePrinted > 1000) {
+                    System.out.println(name + " filtering AllDifferent at iteration " + iteration + ": " + 100 * counter / (double) toProcess + "%");
+                    lastTimePrinted = System.currentTimeMillis();
+                }
                 int value = iterator.next();
                 Constraint bind = model.allEqual(variables[i], model.intVar(value));
                 bind.post();
@@ -104,6 +119,7 @@ public class AllDifferent {
                 }
                 model.unpost(bind);
                 model.getSolver().reset();
+                counter++;
             }
         }
         return res;

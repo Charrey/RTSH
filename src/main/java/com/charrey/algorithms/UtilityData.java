@@ -63,12 +63,13 @@ public class UtilityData {
      *
      * @param neighbourHoodFiltering    whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
      * @param initialGlobalAllDifferent whether to apply AllDifferent to each possible matching to filter out candidates.
+     * @param name
      * @return A 2d array compatibility such that for each source vertex with vertex ordering x, compatibility[x] is an array of suitable target graph candidates.
      */
-    public Integer[][] getCompatibility(boolean neighbourHoodFiltering, boolean initialGlobalAllDifferent) {
+    public Integer[][] getCompatibility(boolean neighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
         if (compatibility == null) {
             compatibility = new Integer[patternGraph.vertexSet().size()][];
-            Map<Integer, Set<Integer>> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, neighbourHoodFiltering, initialGlobalAllDifferent);
+            Map<Integer, Set<Integer>> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, neighbourHoodFiltering, initialGlobalAllDifferent, name);
             for (Map.Entry<Integer, Set<Integer>> entry : inbetween.entrySet()) {
                 compatibility[entry.getKey()] = entry.getValue()
                         .stream()
@@ -90,12 +91,12 @@ public class UtilityData {
      * @return A 2d array compatibility such that for each target vertex with vertex ordering x, compatibility[x] is an array of suitable source graph candidates.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public Integer[][] getReverseCompatibility(boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent) {
+    public Integer[][] getReverseCompatibility(boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent, String name) {
         if (reverseCompatibility == null) {
             List[] tempReverseCompatibility = new List[targetGraph.vertexSet().size()];
             IntStream.range(0, tempReverseCompatibility.length).forEach(x -> tempReverseCompatibility[x] = new LinkedList());
-            Integer[][] compatibility = getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent);
-            for (int sourceVertex = 0; sourceVertex < compatibility.length; sourceVertex++){
+            Integer[][] compatibility = getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent, name);
+            for (int sourceVertex = 0; sourceVertex < compatibility.length; sourceVertex++) {
                 for (int targetVertexIndex = 0; targetVertexIndex < compatibility[sourceVertex].length; targetVertexIndex++) {
                     tempReverseCompatibility[compatibility[sourceVertex][targetVertexIndex]].add(sourceVertex);
                 }

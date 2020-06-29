@@ -55,10 +55,10 @@ class GreedyDfsTest {
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
-                GlobalOccupation occupationGreedy = new GlobalOccupation(data, settingsGreedy);
+                GlobalOccupation occupationGreedy = new GlobalOccupation(data, settingsGreedy, "Greedy");
                 occupationGreedy.occupyVertex(0, tail);
                 occupationGreedy.occupyVertex(1, head);
-                GlobalOccupation occupationKPath = new GlobalOccupation(data, settingsKpath);
+                GlobalOccupation occupationKPath = new GlobalOccupation(data, settingsKpath, "KPath");
                 occupationKPath.occupyVertex(0, tail);
                 occupationKPath.occupyVertex(1, head);
                 DFSPathIterator greedyDFSIterator = (DFSPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy);

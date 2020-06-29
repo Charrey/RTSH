@@ -31,9 +31,9 @@ public class IsoFinder {
     private EdgeMatching edgeMatching;
     private VertexMatching vertexMatching;
 
-    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
+    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
         BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.getSourceGraph().vertexSet().size())).pow(testcase.getTargetGraph().vertexSet().size());
-        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
+        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent, name)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
         NumberFormat formatter = new DecimalFormat("0.###E0", DecimalFormatSymbols.getInstance(Locale.ROOT));
         LOG.info(() -> "Reduced vertex matching domain from " + formatter.format(naiveVertexDomainSize) + " to " + formatter.format(vertexDomainSize));
     }
@@ -55,15 +55,15 @@ public class IsoFinder {
         return true;
     }
 
-    private void setup(@NotNull TestCase testcase, @NotNull Settings settings) throws DomainCheckerException {
+    private void setup(@NotNull TestCase testcase, @NotNull Settings settings, String name) throws DomainCheckerException {
         UtilityData data = new UtilityData(testcase.getSourceGraph(), testcase.getTargetGraph());
-        logDomainReduction(testcase, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+        logDomainReduction(testcase, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
 
-        if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent)).anyMatch(x -> x.length == 0)) {
+        if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name)).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
-        GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
-        vertexMatching = new VertexMatching(data, testcase.getSourceGraph(), occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
+        GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
+        vertexMatching = new VertexMatching(data, testcase.getSourceGraph(), occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
         edgeMatching = new EdgeMatching(vertexMatching, data, testcase.getSourceGraph(), testcase.getTargetGraph(), occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
 
@@ -79,7 +79,7 @@ public class IsoFinder {
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name) {
         try {
             testcase.setSourceGraph(new GreatestConstrainedFirst().apply(testcase.getSourceGraph()));
-            setup(testcase, settings);
+            setup(testcase, settings, name);
         } catch (DomainCheckerException e) {
             return HomeomorphismResult.COMPATIBILITY_FAIL;
         }
@@ -87,7 +87,7 @@ public class IsoFinder {
         long initialTime = System.currentTimeMillis();
         while (!allDone(testcase.getSourceGraph(), vertexMatching, edgeMatching)) {
             iterations++;
-            if (System.currentTimeMillis() - lastPrint > 2000) {
+            if (System.currentTimeMillis() - lastPrint > 1000) {
                 System.out.println(name + " is at " + iterations + " iterations...");
                 lastPrint = System.currentTimeMillis();
             }

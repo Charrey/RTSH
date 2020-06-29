@@ -44,9 +44,9 @@ public class EmptyDomainChecker extends DomainChecker {
      * @param initialGlobalAllDifferent     whether alldifferent needs to be applied initially to reduce domain sizes.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public EmptyDomainChecker(@NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent) {
-        this.reverseDomain = data.getReverseCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent);
-        this.domain = (Set[]) Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent)).map(x -> new HashSet(Arrays.asList(x))).toArray(Set[]::new);
+    public EmptyDomainChecker(@NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
+        this.reverseDomain = data.getReverseCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent, name);
+        this.domain = (Set[]) Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent, name)).map(x -> new HashSet(Arrays.asList(x))).toArray(Set[]::new);
     }
 
     @Override
