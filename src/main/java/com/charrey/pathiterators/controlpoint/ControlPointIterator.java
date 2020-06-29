@@ -281,7 +281,7 @@ class ControlPointIterator extends PathIterator {
                     }
                 } else {
                     if (settings.log) {
-                        System.out.println("...succeeded!");
+                        System.out.println("...succeeded: " + chosenPath);
                     }
                 }
                 return chosenPath;
@@ -349,6 +349,9 @@ class ControlPointIterator extends PathIterator {
                     assert chosenPath.last() == head;
                     assert childsPath.last() == chosenPath.first();
                     Path toReturn = merge(targetGraph, childsPath, chosenPath);
+                    if (settings.log) {
+                        System.out.println(prefix.toString() + "Merged paths into " + toReturn);
+                    }
                     assert toReturn.first() == tail();
                     assert toReturn.last() == head;
                     return toReturn;

@@ -22,4 +22,9 @@ public final class GreedyDFSStrategy extends IteratorSettings {
     public int hashCode() {
         return PathIterationConstants.DFS_GREEDY;
     }
+
+    @Override
+    public String toString() {
+        return "Greedy DFS     ";
+    }
 }

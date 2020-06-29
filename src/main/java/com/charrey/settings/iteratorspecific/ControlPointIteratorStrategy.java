@@ -30,4 +30,13 @@ public final class ControlPointIteratorStrategy extends IteratorSettings {
     public int hashCode() {
         return Objects.hash(maxControlPoints);
     }
+
+    @Override
+    public String toString() {
+        return "Control points ";
+    }
+
+    public int getMaxControlpoints() {
+        return maxControlPoints;
+    }
 }

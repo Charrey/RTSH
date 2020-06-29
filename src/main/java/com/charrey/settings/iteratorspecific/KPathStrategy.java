@@ -21,4 +21,9 @@ public final class KPathStrategy extends IteratorSettings {
     public int hashCode() {
         return PathIterationConstants.KPATH;
     }
+
+    @Override
+    public String toString() {
+        return "K-Path         ";
+    }
 }

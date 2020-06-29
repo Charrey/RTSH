@@ -24,7 +24,7 @@ class CompleteTest extends PathIteratorTest {
 
     private final RandomGenerator random = new Well512a(102038);
     private static final int differentGraphSizes = 250;
-    private static final int trials = 10;
+    private static final int trials = 100;
     private static final Settings settings = new Settings(
             true,
             true,
@@ -68,12 +68,12 @@ class CompleteTest extends PathIteratorTest {
                     continue;
                 }
                 counter++;
-                if (counter < 0) {
+                if (counter < 20199) {
                     continue;
                 }
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 Map<IteratorSettings, Set<Path>> pathCount = new HashMap<>(); //s
-                for (IteratorSettings strategy : List.of(new DFSStrategy(), new GreedyDFSStrategy(), new ControlPointIteratorStrategy(10), new KPathStrategy())) {
+                for (IteratorSettings strategy : List.of(new DFSStrategy(), new GreedyDFSStrategy(), new ControlPointIteratorStrategy(100), new KPathStrategy())) {
                     settings.pathIteration = strategy;
                     pathCount.put(strategy, new HashSet<>());
                     GlobalOccupation occupation = new GlobalOccupation(data, settings);

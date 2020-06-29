@@ -5,6 +5,7 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
+import com.charrey.settings.iteratorspecific.IteratorSettings;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +28,7 @@ public class EdgeMatching {
     private final MyGraph targetGraph;
     private final boolean directed;
     private final boolean refuseLongerPaths;
-    private final int pathIteration;
+    private final IteratorSettings pathIteration;
 
     private MultipleKeyMap<PathIterator> pathfinders;
     private final GlobalOccupation occupation;
@@ -50,7 +51,7 @@ public class EdgeMatching {
      * @param pathIteration     the strategy to be used to iterate different paths between pairs of vertices
      * @param refuseLongerPaths whether to avoid mapping to paths that use up unnecessarily many resources
      */
-    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, GlobalOccupation occupation, int pathIteration, boolean refuseLongerPaths) {
+    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, GlobalOccupation occupation, IteratorSettings pathIteration, boolean refuseLongerPaths) {
         this.vertexMatching = vertexMatching;
         this.source = source;
         this.data = data;

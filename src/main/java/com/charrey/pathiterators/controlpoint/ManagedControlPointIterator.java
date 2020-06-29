@@ -70,6 +70,9 @@ public class ManagedControlPointIterator extends PathIterator {
             if (path != null) {
                 returned = path;
                 transaction.commit();
+                if (settings.log) {
+                    System.out.println("ManagedControlPointIterator returned path " + returned);
+                }
                 return returned;
             } else {
                 if (controlPoints + 1 > maxControlPoints || controlPoints + 1 > graph.vertexSet().size() - 2) {

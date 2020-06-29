@@ -23,4 +23,9 @@ public final class DFSStrategy extends IteratorSettings {
     public int hashCode() {
         return PathIterationConstants.DFS_ARBITRARY;
     }
+
+    @Override
+    public String toString() {
+        return "DFS            ";
+    }
 }

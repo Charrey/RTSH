@@ -64,7 +64,7 @@ public class IsoFinder {
         }
         GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
         vertexMatching = new VertexMatching(data, testcase.getSourceGraph(), occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent);
-        edgeMatching = new EdgeMatching(vertexMatching, data, testcase.getSourceGraph(), testcase.getTargetGraph(), occupation, settings.pathIteration.iterationStrategy, settings.refuseLongerPaths);
+        edgeMatching = new EdgeMatching(vertexMatching, data, testcase.getSourceGraph(), testcase.getTargetGraph(), occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
 
     /**

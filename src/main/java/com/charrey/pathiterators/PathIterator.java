@@ -8,6 +8,8 @@ import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.settings.Settings;
+import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
+import com.charrey.settings.iteratorspecific.IteratorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +57,7 @@ public abstract class PathIterator {
      */
     @NotNull
     public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, @NotNull Settings settings) {
-        return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration.iterationStrategy, settings.refuseLongerPaths);
+        return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration, settings.refuseLongerPaths);
     }
 
     /**
@@ -72,18 +74,18 @@ public abstract class PathIterator {
      * @return the path iterator
      */
     @NotNull
-    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, int pathIteration, boolean refuseLongerPaths) {
+    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, IteratorSettings pathIteration, boolean refuseLongerPaths) {
         if (targetGraph.getEdge(tail, head) != null) {
             return new SingletonPathIterator(targetGraph, tail, head);
         }
 
-        switch (pathIteration) {
+        switch (pathIteration.iterationStrategy) {
             case DFS_ARBITRARY:
             case DFS_GREEDY:
-                int[][] targetNeighbours = data.getTargetNeighbours(pathIteration)[head];
+                int[][] targetNeighbours = data.getTargetNeighbours(pathIteration.iterationStrategy)[head];
                 return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths);
             case CONTROL_POINT:
-                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, 1, placementSize, refuseLongerPaths);
+                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, ((ControlPointIteratorStrategy) pathIteration).getMaxControlpoints(), placementSize, refuseLongerPaths);
             case KPATH:
                 return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, refuseLongerPaths);
             default:
