@@ -4,7 +4,6 @@ import com.google.common.collect.Ordering;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.GraphPath;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -43,7 +42,7 @@ public class Path implements Comparable<Path> {
      * @param graph the graph of which vertices may be added to this Path.
      * @param gPath the JGraphT path to convert to our own datatype.
      */
-    public Path(@NotNull MyGraph graph, @NotNull GraphPath<Integer, DefaultEdge> gPath) {
+    public Path(@NotNull MyGraph graph, @NotNull GraphPath<Integer, MyEdge> gPath) {
         this.path = new ArrayList<>();
         this.containing = new HashSet<>();
         this.initialVertex = gPath.getStartVertex();

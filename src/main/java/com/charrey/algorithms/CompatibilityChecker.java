@@ -69,11 +69,11 @@ public class CompatibilityChecker {
             hasChanged = false;
             if (neighbourhoodFiltering) {
                 hasChanged = filterNeighbourHoods(res, source, target, iteration, name);
-                System.out.println(name + "completed neighbourhood filtering");
+                //System.out.println(name + "completed neighbourhood filtering");
             }
             if (initialGlobalAllDifferent) {
                 hasChanged = hasChanged || filterGAC(res, iteration, name);
-                System.out.println(name + "completed AllDifferent filtering");
+                //System.out.println(name + "completed AllDifferent filtering");
             }
             iteration++;
         }
@@ -99,7 +99,7 @@ public class CompatibilityChecker {
         for (Map.Entry<Integer, Set<Integer>> potentialSource : compatibilityMap.entrySet()) {
             for (Integer potentialTarget : potentialSource.getValue()) {
                 if (System.currentTimeMillis() - lastTimePrinted > 1000) {
-                    System.out.println(name + " filtering neighbourhoods at iteration " + iteration + ": " + 100 * counter / (double) toProcess + "%");
+                    //System.out.println(name + " filtering neighbourhoods at iteration " + iteration + ": " + 100 * counter / (double) toProcess + "%");
                     lastTimePrinted = System.currentTimeMillis();
                 }
                 Set<Integer> sourceNeighbourHood = GraphUtil.reachableNeighbours(sourceGraph, potentialSource.getKey());

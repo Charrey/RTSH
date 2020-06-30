@@ -1,6 +1,6 @@
 //package system;
 //
-//import com.charrey.HomeomorphismResult;
+//import com.charrey.result.HomeomorphismResult;
 //import com.charrey.graph.MyGraph;
 //import com.charrey.graph.generation.TestCase;
 //import com.charrey.pathiterators.controlpoint.ControlPointIteratorRelevantSettings;

@@ -1,9 +1,9 @@
 package com.charrey.graph.generation.succeed;
 
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
-import org.jgrapht.graph.DefaultEdge;
 
 /**
  * A class that generates random test cases of undirected graphs that guarantees a homeomorphism is possible.
@@ -27,7 +27,7 @@ public class RandomSucceedUndirectedTestCaseGenerator extends SucceedTestCaseGen
     @NotNull
     @Override
     protected MyGraph getSource(int patternNodes, int patternEdges) {
-        GnmRandomGraphGenerator<Integer, DefaultEdge> gen = new GnmRandomGraphGenerator<>(patternNodes, patternEdges, random.nextLong());
+        GnmRandomGraphGenerator<Integer, MyEdge> gen = new GnmRandomGraphGenerator<>(patternNodes, patternEdges, random.nextLong());
         MyGraph pattern = new MyGraph(false);
         gen.generateGraph(pattern);
         return pattern;

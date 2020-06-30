@@ -40,6 +40,10 @@ public class EdgeMatching {
 
     private final UtilityData data;
 
+    public List<LinkedList<Pair<Path, String>>> getPathsUnsafe() {
+        return paths;
+    }
+
     /**
      * Instantiates a new edgematching.
      *

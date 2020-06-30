@@ -1,9 +1,9 @@
 package play;
 
-import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
+import com.charrey.result.HomeomorphismResult;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
 

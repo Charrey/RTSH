@@ -1,5 +1,6 @@
 package com.charrey.pathiterators.controlpoint;
 
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.AbstractOccupation;
@@ -12,7 +13,6 @@ import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.MaskSubgraph;
 
 import java.util.*;
@@ -98,12 +98,12 @@ class ControlPointIterator extends PathIterator {
     static Path filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull AbstractOccupation globalOccupation, @NotNull Set<Integer> localOccupation, int from, int to, boolean refuseLongerPaths, int tail) {
         assert targetGraph.containsVertex(from);
         assert targetGraph.containsVertex(to);
-        Graph<Integer, DefaultEdge> fakeGraph = new MaskSubgraph<>(targetGraph, x ->
+        Graph<Integer, MyEdge> fakeGraph = new MaskSubgraph<>(targetGraph, x ->
                 x != from &&
                         x != to &&
                         (localOccupation.contains(x) || globalOccupation.isOccupied(x) ||
                                 (refuseLongerPaths && violatesLongerPaths(targetGraph, x, from, to, tail, localOccupation))), x -> false);
-        GraphPath<Integer, DefaultEdge> algo = new BFSShortestPath<>(fakeGraph).getPath(from, to);
+        GraphPath<Integer, MyEdge> algo = new BFSShortestPath<>(fakeGraph).getPath(from, to);
         return algo == null ? null : new Path(targetGraph, algo);
     }
 
@@ -133,7 +133,7 @@ class ControlPointIterator extends PathIterator {
         this.previousLocalOccupation = previousLocalOccupation;
     }
 
-    private static boolean violatesLongerPaths(Graph<Integer, DefaultEdge> targetGraph, int allowableIntermediateVertex, int from, int to, int goal, Set<Integer> localOccupation) {
+    private static boolean violatesLongerPaths(Graph<Integer, MyEdge> targetGraph, int allowableIntermediateVertex, int from, int to, int goal, Set<Integer> localOccupation) {
         if (goal != from && (targetGraph.getEdge(goal, allowableIntermediateVertex) != null)) {
             return true;
         }

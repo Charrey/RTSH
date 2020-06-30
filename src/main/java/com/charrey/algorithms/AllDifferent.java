@@ -108,7 +108,7 @@ public class AllDifferent {
             iterator.bottomUpInit();
             while (iterator.hasNext()) {
                 if (System.currentTimeMillis() - lastTimePrinted > 1000) {
-                    System.out.println(name + " filtering AllDifferent at iteration " + iteration + ": " + 100 * counter / (double) toProcess + "%");
+                    //System.out.println(name + " filtering AllDifferent at iteration " + iteration + ": " + 100 * counter / (double) toProcess + "%");
                     lastTimePrinted = System.currentTimeMillis();
                 }
                 int value = iterator.next();

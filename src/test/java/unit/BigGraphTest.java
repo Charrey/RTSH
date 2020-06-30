@@ -1,10 +1,9 @@
 package unit;
 
-import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
-import com.charrey.algorithms.GreatestConstrainedFirst;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
+import com.charrey.result.HomeomorphismResult;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
@@ -66,7 +65,6 @@ class BigGraphTest {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
         removeTails();
-        targetGraph = new GreatestConstrainedFirst().apply(targetGraph);
         targetGraph.randomizeWeights();
 
         matchFrom().forEach(v -> targetGraph.addAttribute(v, "label", "matchfrom"));
@@ -75,7 +73,7 @@ class BigGraphTest {
         MyGraph sourceGraph = new MyGraph(true);
         int startVertex = sourceGraph.addVertex();
         int endVertex = startVertex;
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             int newVertex = sourceGraph.addVertex();
             sourceGraph.addEdge(endVertex, newVertex);
             endVertex = newVertex;

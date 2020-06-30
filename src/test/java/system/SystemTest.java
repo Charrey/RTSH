@@ -1,13 +1,13 @@
 package system;
 
-import com.charrey.HomeomorphismResult;
 import com.charrey.IsoFinder;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
+import com.charrey.result.HomeomorphismResult;
+import com.charrey.result.TimeoutResult;
 import com.charrey.settings.Settings;
 import com.charrey.util.LogHandler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jgrapht.alg.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -30,13 +30,10 @@ public abstract class SystemTest {
         Logger.getLogger("IsoFinder").addHandler(new LogHandler());
     }
 
-    @Nullable
+    @NotNull
     HomeomorphismResult testSucceed(@NotNull TestCase testCase, boolean writeChallenge, long timeout, @NotNull Settings settings) throws IOException {
         HomeomorphismResult morph = new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
-        if (morph == null) {
-            return null;
-        }
-        if (morph.failed) {
+        if (!(morph instanceof TimeoutResult) && !morph.succeed) {
             openInBrowser(testCase.getSourceGraph().toString(), testCase.getTargetGraph().toString());
             if (writeChallenge) {
                 writeChallenge(new Pair<>(testCase.getSourceGraph(), testCase.getTargetGraph()));

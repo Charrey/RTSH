@@ -23,10 +23,10 @@ public class GreatestConstrainedFirst {
      * @return an appropriate vertex ordering.
      */
     @NotNull
-    public MyGraph apply(@NotNull MyGraph graph) {
+    public Mapping apply(@NotNull MyGraph graph) {
         List<Integer> ordering = new ArrayList<>(graph.vertexSet().size());
         if (graph.vertexSet().isEmpty()) {
-            return graph;
+            return new Mapping(graph, new int[0], new int[0]);
         }
         int maxDegree = -1;
         int maxDegreeVertex = -1;
@@ -48,7 +48,12 @@ public class GreatestConstrainedFirst {
             assert !ordering.contains(toAdd);
             ordering.add(toAdd);
         }
-        return MyGraph.applyOrdering(graph, ordering.stream().mapToInt(x -> x).toArray());
+        int[] reverseOrdering = new int[ordering.size()];
+        for (int i = 0; i < ordering.size(); i++) {
+            reverseOrdering[ordering.get(i)] = i;
+        }
+        int[] orderingAsArray = ordering.stream().mapToInt(x -> x).toArray();
+        return new Mapping(MyGraph.applyOrdering(graph, orderingAsArray, reverseOrdering), reverseOrdering, orderingAsArray);
     }
 
     @NotNull
@@ -116,5 +121,17 @@ public class GreatestConstrainedFirst {
             }
         }
         return firstSelection;
+    }
+
+    public static class Mapping {
+        public final int[] new_to_old;
+        public final int[] old_to_new;
+        public final MyGraph graph;
+
+        Mapping(MyGraph graph, int[] new_to_old, int[] old_to_new) {
+            this.graph = graph;
+            this.new_to_old = new_to_old;
+            this.old_to_new = old_to_new;
+        }
     }
 }

@@ -21,7 +21,7 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
     /**
      * The source graph to embed in the target graph
      */
-    private MyGraph sourceGraph;
+    private final MyGraph sourceGraph;
 
     private final RandomGenerator random = new Well512a(1888939);
 
@@ -42,10 +42,6 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
 
     public MyGraph getSourceGraph() {
         return sourceGraph;
-    }
-
-    public void setSourceGraph(MyGraph sourceGraph) {
-        this.sourceGraph = sourceGraph;
     }
 
     public MyGraph getTargetGraph() {

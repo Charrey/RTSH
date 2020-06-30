@@ -1,11 +1,11 @@
 package com.charrey;
 
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import org.jetbrains.annotations.NotNull;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +39,7 @@ class Verifier {
             return false;
         }
         if (sourceGraph.isDirected()) {
-            for (DefaultEdge edge : sourceGraph.edgeSet()) {
+            for (MyEdge edge : sourceGraph.edgeSet()) {
                 int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
                 int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
                 long matches = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).count();
@@ -48,7 +48,7 @@ class Verifier {
                 }
             }
         } else {
-            for (DefaultEdge edge : sourceGraph.edgeSet()) {
+            for (MyEdge edge : sourceGraph.edgeSet()) {
                 int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
                 int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
                 long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();

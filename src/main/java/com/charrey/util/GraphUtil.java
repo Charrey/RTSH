@@ -1,12 +1,12 @@
 package com.charrey.util;
 
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +19,7 @@ public class GraphUtil {
 
 
     private static final Map<MyGraph, List<Integer>> cachedRandomVertexOrder = new ConcurrentHashMap<>();
-    private static final Map<MyGraph, ConnectivityInspector<Integer, DefaultEdge>> cachedComponents = new HashMap<>();
+    private static final Map<MyGraph, ConnectivityInspector<Integer, MyEdge>> cachedComponents = new HashMap<>();
 
     /**
      * Returns the neighbour set of a set of vertices, i.e. each vertex that has some connection to some vertex
@@ -55,14 +55,14 @@ public class GraphUtil {
             oldGraph.getAttributes(oldVertex).forEach((key, value1) -> value1.forEach(value -> newGraph.addAttribute(oldVertexToNew[oldVertex], key, value)));
         }
 
-        List<DefaultEdge> oldEdges = new LinkedList<>(oldGraph.edgeSet());
+        List<MyEdge> oldEdges = new LinkedList<>(oldGraph.edgeSet());
         oldEdges.sort((o1, o2) -> {
             int compareFirst = Integer.compare(oldGraph.getEdgeSource(o1), oldGraph.getEdgeSource(o2));
             int compareSecond = Integer.compare(oldGraph.getEdgeTarget(o1), oldGraph.getEdgeTarget(o2));
             return compareFirst == 0 ? compareSecond : compareFirst;
         });
         Collections.shuffle(oldEdges, new RandomAdaptor(random));
-        for (DefaultEdge oldEdge : oldEdges) {
+        for (MyEdge oldEdge : oldEdges) {
             newGraph.addEdge(oldVertexToNew[oldGraph.getEdgeSource(oldEdge)], oldVertexToNew[oldGraph.getEdgeTarget(oldEdge)]);
         }
         return newGraph;
@@ -105,12 +105,14 @@ public class GraphUtil {
 
     public static MyGraph repairVertices(MyGraph targetGraph) {
         int[] permutation = new int[targetGraph.vertexSet().size()];
+        int[] reversePermutation = new int[targetGraph.vertexSet().stream().mapToInt(x -> x).max().getAsInt() + 1];
         int counter = 0;
         List<Integer> vertexList = new ArrayList<>(targetGraph.vertexSet());
         for (Integer integer : vertexList) {
             permutation[counter] = integer;
+            reversePermutation[integer] = counter;
             counter++;
         }
-        return MyGraph.applyOrdering(targetGraph, permutation);
+        return MyGraph.applyOrdering(targetGraph, permutation, reversePermutation);
     }
 }

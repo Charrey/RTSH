@@ -1,9 +1,9 @@
 package com.charrey.graph.generation.random;
 
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
-import org.jgrapht.graph.DefaultEdge;
 
 /**
  * A class that generates random test cases of directed graphs.
@@ -24,7 +24,7 @@ public class TrulyRandomDirectedTestCaseGenerator extends TrulyRandomTestCaseGen
 
     @NotNull
     protected MyGraph randomGraph(int nodes, int edges) {
-        GnmRandomGraphGenerator<Integer, DefaultEdge> gen = new GnmRandomGraphGenerator<>(nodes, edges, random.nextLong());
+        GnmRandomGraphGenerator<Integer, MyEdge> gen = new GnmRandomGraphGenerator<>(nodes, edges, random.nextLong());
         MyGraph pattern = new MyGraph(true);
         gen.generateGraph(pattern);
         return pattern;

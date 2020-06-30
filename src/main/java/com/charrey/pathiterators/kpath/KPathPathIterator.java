@@ -1,5 +1,6 @@
 package com.charrey.pathiterators.kpath;
 
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
@@ -10,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.shortestpath.YenShortestPathIterator;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.MaskSubgraph;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class KPathPathIterator extends PathIterator {
     private final Supplier<Integer> verticesPlaced;
 
     @NotNull
-    private final YenShortestPathIterator<Integer, DefaultEdge> yen;
+    private final YenShortestPathIterator<Integer, MyEdge> yen;
 
     private final OccupationTransaction transaction;
     private int counter = 0;

@@ -1,5 +1,6 @@
 package com.charrey.algorithms;
 
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -10,7 +11,6 @@ import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.interfaces.ManyToManyShortestPathsAlgorithm;
 import org.jgrapht.alg.shortestpath.CHManyToManyShortestPaths;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -111,7 +111,7 @@ public class UtilityData {
 
 
     private int[][][] targetNeighbours;
-    private ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths<Integer, DefaultEdge> shortestPaths;
+    private ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths<Integer, MyEdge> shortestPaths;
 
     private final RandomGenerator random = new Well512a(49999);
     /**
@@ -161,7 +161,7 @@ public class UtilityData {
                             List<Integer> toSort = (List<Integer>) tempTargetNeigbours[goal][from];
                             Set<Integer> toRemove = new HashSet<>();
                             for (int to : toSort) {
-                                GraphPath<Integer, DefaultEdge> path = shortestPaths.getPath(to, targetVertices.get(goal));
+                                GraphPath<Integer, MyEdge> path = shortestPaths.getPath(to, targetVertices.get(goal));
                                 if (path == null) {
                                     toRemove.add(to);
                                 } else {

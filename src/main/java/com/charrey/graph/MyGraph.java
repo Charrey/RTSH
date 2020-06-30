@@ -3,7 +3,6 @@ package com.charrey.graph;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.AbstractBaseGraph;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultGraphType;
 import org.jgrapht.nio.AttributeType;
 import org.jgrapht.nio.DefaultAttribute;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
  * A graph class that uses integers for vertices and supports multiple labels for each vertex. Self-loops and multiple
  * edges between the same pairs are disallowed.
  */
-public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
+public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     private final boolean directed;
     private double maxEdgeWeight = 1d;
     private final List<Map<String, Set<String>>> attributes;
@@ -32,7 +31,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
      */
     public MyGraph(boolean directed) {
         super(
-                SupplierUtil.createIntegerSupplier(), DefaultEdge::new,
+                SupplierUtil.createIntegerSupplier(), new MyEdge.MyEdgeSupplier(),
                 directed ?
                         new DefaultGraphType.Builder()
                                 .directed().allowMultipleEdges(false).allowSelfLoops(false).weighted(true)
@@ -53,20 +52,16 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
      * @param new_to_old the new ordering, such that the position of integers is the new vertex value, and the value of                   the integers is the old vertex value.
      * @return a graph such that the ordering is applied.
      */
-    public static MyGraph applyOrdering(MyGraph source, int[] new_to_old) {
-        Map<Integer, Integer> old_to_new = new HashMap<>();
-        for (int i = 0; i < new_to_old.length; i++) {
-            old_to_new.put(new_to_old[i], i);
-        }
+    public static MyGraph applyOrdering(MyGraph source, int[] new_to_old, int[] old_to_new) {
         MyGraph res = new MyGraph(source.directed);
         for (int new_vertex = 0; new_vertex < source.vertexSet().size(); new_vertex++) {
             int new_vertex_final = new_vertex;
             res.addVertex(new_vertex);
             int old_vertex = new_to_old[new_vertex];
             source.attributes.get(old_vertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(new_vertex_final, key, value)));
-            Set<Integer> predecessors = Graphs.predecessorListOf(source, old_vertex).stream().map(old_to_new::get).filter(x -> x < new_vertex_final).collect(Collectors.toUnmodifiableSet());
+            Set<Integer> predecessors = Graphs.predecessorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < new_vertex_final).collect(Collectors.toUnmodifiableSet());
             predecessors.forEach(x -> res.addEdge(x, new_vertex_final));
-            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, old_vertex).stream().map(old_to_new::get).filter(x -> x < new_vertex_final).collect(Collectors.toUnmodifiableSet()));
+            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < new_vertex_final).collect(Collectors.toUnmodifiableSet()));
             if (!source.directed) {
                 successors.removeAll(predecessors);
             }
@@ -87,10 +82,12 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
     }
 
     @Override
-    public boolean addEdge(Integer sourceVertex, Integer targetVertex, DefaultEdge defaultEdge) {
+    public boolean addEdge(Integer sourceVertex, Integer targetVertex, MyEdge defaultEdge) {
         if (locked) {
             throw new IllegalStateException("Graph is locked!");
         }
+        defaultEdge.setSource(sourceVertex);
+        defaultEdge.setTarget(targetVertex);
         return super.addEdge(sourceVertex, targetVertex, defaultEdge);
     }
 
@@ -104,22 +101,22 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
         }
         double maxWeightDiff = 1d / ((edgeSetSize - 1) / 2d);
         Random random = new Random(710);
-        for (DefaultEdge edge : edgeSet()) {
+        for (MyEdge edge : edgeSet()) {
             double weight = 1 + (random.nextDouble() * maxWeightDiff) - (0.5 * maxWeightDiff);
             setEdgeWeight(edge, weight);
         }
     }
 
     @Override
-    public DefaultEdge addEdge(Integer sourceVertex, Integer targetVertex) {
+    public MyEdge addEdge(Integer sourceVertex, Integer targetVertex) {
         if (locked) {
             throw new IllegalStateException("Graph is locked!");
         }
         assert !containsEdge(sourceVertex, targetVertex);
         assert sourceVertex != null;
         assert targetVertex != null;
-        DefaultEdge res = super.addEdge(sourceVertex, targetVertex);
-        assert res != null;
+        MyEdge res = new MyEdge(sourceVertex, targetVertex);
+        super.addEdge(sourceVertex, targetVertex, res);
         this.setEdgeWeight(res, maxEdgeWeight);
         maxEdgeWeight = Math.nextAfter(maxEdgeWeight, Double.POSITIVE_INFINITY);
         return res;
@@ -144,8 +141,10 @@ public class MyGraph extends AbstractBaseGraph<Integer, DefaultEdge> {
 
     @Override
     public String toString() {
-        DOTExporter<Integer, DefaultEdge> exporter = new DOTExporter<>(x -> Integer.toString(x));
-        exporter.setVertexAttributeProvider(integer -> attributes.get(integer).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> new DefaultAttribute<>(x.getValue().toString(), AttributeType.STRING))));
+        DOTExporter<Integer, MyEdge> exporter = new DOTExporter<>(x -> Integer.toString(x));
+        exporter.setVertexAttributeProvider(integer ->
+                attributes.get(integer).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                        x -> new DefaultAttribute<>((x.getKey().equals("label") ? integer + " " : "") + x.getValue().toString(), AttributeType.STRING))));
         StringWriter writer = new StringWriter();
         exporter.exportGraph(this, writer);
         return writer.toString();
