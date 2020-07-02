@@ -79,7 +79,7 @@ public class DFSPathIterator extends PathIterator {
     @Nullable
     @Override
     public Path next() {
-        transaction.uncommit();
+        transaction.uncommit(placementSize.get());
         assert !exploration.isEmpty();
         if (exploration.last() == head) {
             chosenOption[exploration.length() - 2] += 1;
@@ -143,7 +143,7 @@ public class DFSPathIterator extends PathIterator {
             }
         }
         try {
-            transaction.commit();
+            transaction.commit(placementSize.get());
         } catch (DomainCheckerException e) {
             return next();
         }

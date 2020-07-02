@@ -59,7 +59,7 @@ public class ManagedControlPointIterator extends PathIterator {
     @Nullable
     @Override
     public Path next() {
-        transaction.uncommit();
+        transaction.uncommit(verticesPlaced.get());
         while (true) {
             Path path;
             do {
@@ -67,7 +67,7 @@ public class ManagedControlPointIterator extends PathIterator {
             } while (path != null && controlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
                 try {
-                    transaction.commit();
+                    transaction.commit(verticesPlaced.get());
                 } catch (DomainCheckerException e) {
                     continue;
                 }

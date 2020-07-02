@@ -84,6 +84,7 @@ public class GlobalOccupation extends AbstractOccupation {
         domainChecker.afterOccupyEdgeWithoutCheck(vertexPlacementSize, vertex);
     }
 
+
     void occupyRoutingAndCheck(int vertexPlacementSize, int vertex) throws DomainCheckerException {
         assert !routingBits.contains(vertex);
         routingBits.add(vertex);

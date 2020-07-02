@@ -61,7 +61,7 @@ public class KPathPathIterator extends PathIterator {
     @Nullable
     @Override
     public Path next() {
-        transaction.uncommit();
+        transaction.uncommit(verticesPlaced.get());
         if (previousPath != null) {
             previousPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
         }
@@ -82,7 +82,7 @@ public class KPathPathIterator extends PathIterator {
             }
             if (okay) {
                 try {
-                    transaction.commit();
+                    transaction.commit(verticesPlaced.get());
                 } catch (DomainCheckerException e) {
                     return next();
                 }

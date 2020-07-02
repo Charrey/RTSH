@@ -25,7 +25,7 @@ public class OccupationTransaction extends AbstractOccupation {
 
     private final MyLinkedList<TransactionElement> waiting = new MyLinkedList<>();
     private final UtilityData data;
-    private boolean locked = false;
+    private boolean inCommittedState = false;
 
     /**
      * Instantiates a new OccupationTransaction and initializes it.
@@ -118,45 +118,56 @@ public class OccupationTransaction extends AbstractOccupation {
      * to mark vertex 16 as occupied and commit() was called, the occupation would be visible everywhere in this
      * program. By calling uncommit(), the occupation becomes hidden again.
      */
-    public void uncommit() {
-        if (!locked) {
+    public void uncommit(int verticesPlaced) {
+        if (!inCommittedState) {
             return;
+        }
+        Set<Integer> totalCover = new HashSet<>();
+        for (TransactionElement transactionElement : waiting) {
+            totalCover.addAll(data.unconfigurableCover(transactionElement.added));
+        }
+        for (TransactionElement transactionElement : waiting) {
+            totalCover.remove(transactionElement.added);
         }
         for (int i = waiting.size() - 1; i >= 0; i--) {
             TransactionElement transactionElement = waiting.get(i);
             parent.releaseRouting(transactionElement.verticesPlaced, transactionElement.added);
         }
-        locked = false;
+        for (int coverElement : totalCover) {
+            parent.releaseRouting(verticesPlaced, coverElement);
+        }
+        inCommittedState = false;
     }
 
     /**
      * Make the changes in this transaction visible to the rest of this program.
      */
-    public void commit() throws DomainCheckerException {
-        if (locked) {
+    public void commit(int vertexPlacementSize) throws DomainCheckerException {
+        if (inCommittedState) {
             throw new IllegalStateException("You must uncommit before committing.");
         }
-        Set<Integer> committed = new HashSet<>();
+        Set<TransactionElement> committed = new HashSet<>();
+        Set<Integer> totalCover = new HashSet<>();
+        for (TransactionElement transactionElement : waiting) {
+            totalCover.addAll(data.unconfigurableCover(transactionElement.added));
+        }
+        for (TransactionElement transactionElement : waiting) {
+            totalCover.remove(transactionElement.added);
+        }
         for (TransactionElement transactionElement : waiting) {
             parent.occupyRoutingWithoutCheck(transactionElement.verticesPlaced, transactionElement.added);
-            committed.add(transactionElement.added);
-            Set<Integer> cover = data.unconfigurableCover(transactionElement.added);
-            for (int coverElement : cover) {
-                if (transactionElement.added != coverElement) {
-                    try {
-                        if (parent.isOccupiedRouting(coverElement)) {
-                            throw new DomainCheckerException("Already occupied");
-                        }
-                        parent.occupyRoutingAndCheck(transactionElement.verticesPlaced, coverElement);
-                        committed.add(coverElement);
-                    } catch (DomainCheckerException e) {
-                        committed.forEach(x -> parent.releaseRouting(transactionElement.verticesPlaced, x));
-                        throw e;
-                    }
-                }
+            committed.add(transactionElement);
+        }
+        for (int coverElement : totalCover) {
+            try {
+                parent.occupyRoutingAndCheck(vertexPlacementSize, coverElement);
+                committed.add(new TransactionElement(vertexPlacementSize, coverElement));
+            } catch (DomainCheckerException e) {
+                committed.forEach(x -> parent.releaseRouting(x.verticesPlaced, x.added));
+                throw e;
             }
         }
-        locked = true;
+        inCommittedState = true;
     }
 
     private static class TransactionElement {

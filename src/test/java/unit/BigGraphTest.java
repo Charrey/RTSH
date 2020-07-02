@@ -6,13 +6,10 @@ import com.charrey.graph.generation.TestCase;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
-import com.charrey.settings.iteratorspecific.GreedyDFSStrategy;
 import com.charrey.settings.iteratorspecific.IteratorSettings;
 import com.charrey.settings.iteratorspecific.KPathStrategy;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -76,7 +73,6 @@ class BigGraphTest {
     }
 
     @Test
-    @Disabled
     void importSingleTile() throws IOException, InterruptedException {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
@@ -97,18 +93,22 @@ class BigGraphTest {
         sourceGraph.addEdge(endVertex, startVertex);
 
         TestCase testCase = new TestCase(sourceGraph, targetGraph);
+
+        failed = false;
         Thread threadKPath = getThread(testCase, new KPathStrategy());
-        Thread threadDFSArbitrary = getThread(testCase, new GreedyDFSStrategy());
-        Thread threadDFSGreedy = getThread(testCase, new GreedyDFSStrategy());
-        Thread threadControlPoint = getThread(testCase, new ControlPointIteratorStrategy(0));
+        //Thread threadDFSArbitrary = getThread(testCase, new GreedyDFSStrategy());
+        //Thread threadDFSGreedy = getThread(testCase, new GreedyDFSStrategy());
+        //Thread threadControlPoint = getThread(testCase, new ControlPointIteratorStrategy(0));
         threadKPath.start();
-        threadDFSArbitrary.start();
-        threadDFSGreedy.start();
-        threadControlPoint.start();
+        //threadDFSArbitrary.start();
+        //threadDFSGreedy.start();
+        //threadControlPoint.start();
         threadKPath.join();
-        threadDFSArbitrary.join();
-        threadDFSGreedy.join();
-        threadControlPoint.join();
+        //threadDFSArbitrary.join();
+        //threadDFSGreedy.join();
+        //threadControlPoint.join();
+        System.out.println("foo");
+
         assert !failed;
     }
 

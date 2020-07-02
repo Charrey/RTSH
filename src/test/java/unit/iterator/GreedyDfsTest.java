@@ -51,7 +51,7 @@ class GreedyDfsTest {
                 if (counter < 0) {
                     continue;
                 }
-                System.out.print(counter % 2 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
+                System.out.print(true ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
