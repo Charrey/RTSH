@@ -45,7 +45,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(10 * 1000, 500, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(10 * 1000, 5, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
@@ -73,10 +73,12 @@ class RandomSystemTests extends SystemTest {
 
             for (int i = 0; i < iterations; i++) {
                 TestCase testCase = graphGen.getNext();
+                System.out.println(testCase.getSourceGraph());
+                System.out.println(testCase.getTargetGraph());
                 patternNodes = testCase.getSourceGraph().vertexSet().size();
                 patternEdges = testCase.getSourceGraph().edgeSet().size();
 
-                HomeomorphismResult homeomorphism = null;
+                HomeomorphismResult homeomorphism;
                 try {
                     homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge, time - (System.currentTimeMillis() - start), settings) : new IsoFinder().getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start), "RANDOMSYSTEST  ");
                     assert homeomorphism instanceof TimeoutResult || homeomorphism.succeed || !writeChallenge;

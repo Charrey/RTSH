@@ -13,7 +13,6 @@ import com.charrey.result.*;
 import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.settings.Settings;
 import org.jetbrains.annotations.NotNull;
-import org.jgrapht.alg.util.Pair;
 
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -32,8 +31,8 @@ public class IsoFinder {
     private EdgeMatching edgeMatching;
     private VertexMatching vertexMatching;
 
-    private static void logDomainReduction(@NotNull TestCase testcase, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
-        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(testcase.getSourceGraph().vertexSet().size())).pow(testcase.getTargetGraph().vertexSet().size());
+    private static void logDomainReduction(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
+        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(sourceGraph.vertexSet().size())).pow(targetGraph.vertexSet().size());
         BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent, name)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
         NumberFormat formatter = new DecimalFormat("0.###E0", DecimalFormatSymbols.getInstance(Locale.ROOT));
         LOG.info(() -> "Reduced vertex matching domain from " + formatter.format(naiveVertexDomainSize) + " to " + formatter.format(vertexDomainSize));
@@ -56,65 +55,39 @@ public class IsoFinder {
         return true;
     }
 
-    private void setup(@NotNull TestCase testcase, @NotNull Settings settings, String name) throws DomainCheckerException {
-        UtilityData data = new UtilityData(testcase.getSourceGraph(), testcase.getTargetGraph());
-        logDomainReduction(testcase, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
+    private static Map<MyEdge, Path> repairPaths(MyGraph oldSourceGraph, MyGraph newSourceGraph, EdgeMatching edgeMatching, int[] new_to_old, VertexMatching vertexMatching) {
+        Map<MyEdge, Path> res = new HashMap<>();
+        if (newSourceGraph.isDirected()) {
+            for (MyEdge edge : newSourceGraph.edgeSet()) {
+                int edgeSourceTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeSource(edge));
+                int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
+                Optional<Path> match = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).findAny();
+                assert match.isPresent();
+                res.put(new MyEdge(new_to_old[edge.source], new_to_old[edge.target]), match.get());
+            }
+        } else {
+            for (MyEdge edge : newSourceGraph.edgeSet()) {
+                int edgeSourceTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeSource(edge));
+                int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
+                Optional<Path> match = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).findAny();
+                assert match.isPresent();
+                res.put(new MyEdge(new_to_old[edge.source], new_to_old[edge.target]), match.get());
+            }
+        }
+
+        return res;
+    }
+
+    private void setup(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull Settings settings, String name) throws DomainCheckerException {
+        UtilityData data = new UtilityData(sourceGraph, targetGraph);
+        logDomainReduction(sourceGraph, targetGraph, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
 
         if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name)).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
         GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
-        vertexMatching = new VertexMatching(data, testcase.getSourceGraph(), occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
-        edgeMatching = new EdgeMatching(vertexMatching, data, testcase.getSourceGraph(), testcase.getTargetGraph(), occupation, settings.pathIteration, settings.refuseLongerPaths);
-    }
-
-    private static Map<MyEdge, Path> repairPaths(MyGraph oldSourceGraph, EdgeMatching edgeMatching, int[] vertexMapping) {
-        Map<MyEdge, Path> res = new HashMap<>();
-        List<LinkedList<Pair<Path, String>>> paths = edgeMatching.getPathsUnsafe();
-        for (MyEdge edge : oldSourceGraph.edgeSet()) {
-            Integer source = oldSourceGraph.getEdgeSource(edge);
-            Integer target = oldSourceGraph.getEdgeTarget(edge);
-
-            boolean found = false;
-            for (Pair<Path, String> pathsRightDirection : paths.get(source)) {
-                int from = pathsRightDirection.getFirst().first();
-                int to = pathsRightDirection.getFirst().last();
-                if (oldSourceGraph.isDirected()) {
-                    if (from == vertexMapping[source] && to == vertexMapping[target]) {
-                        found = true;
-                        res.put(edge, pathsRightDirection.getFirst());
-                        break;
-                    }
-                } else {
-                    if (Set.of(from, to).equals(Set.of(vertexMapping[source], vertexMapping[target]))) {
-                        found = true;
-                        res.put(edge, pathsRightDirection.getFirst());
-                        break;
-                    }
-                }
-            }
-            if (!found) {
-                for (Pair<Path, String> pathsReverseDirection : paths.get(target)) {
-                    int from = pathsReverseDirection.getFirst().first();
-                    int to = pathsReverseDirection.getFirst().last();
-                    if (oldSourceGraph.isDirected()) {
-                        if (from == vertexMapping[source] && to == vertexMapping[target]) {
-                            found = true;
-                            res.put(edge, pathsReverseDirection.getFirst());
-                            break;
-                        }
-                    } else {
-                        if (Set.of(from, to).equals(Set.of(vertexMapping[source], vertexMapping[target]))) {
-                            found = true;
-                            res.put(edge, pathsReverseDirection.getFirst());
-                            break;
-                        }
-                    }
-                }
-            }
-            assert found;
-        }
-        return res;
+        vertexMatching = new VertexMatching(data, sourceGraph, occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
+        edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
 
     private static int[] repairMatching(int[] placement, int[] new_to_old) {
@@ -135,16 +108,18 @@ public class IsoFinder {
      */
     @NotNull
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name) {
-        MyGraph sourceGraph;
+        GreatestConstrainedFirst.Mapping mapping;
+        MyGraph newSourceGraph;
         try {
-            sourceGraph = new GreatestConstrainedFirst().apply(testcase.getSourceGraph()).graph;
-            setup(testcase, settings, name);
+            mapping = new GreatestConstrainedFirst().apply(testcase.getSourceGraph());
+            newSourceGraph = mapping.graph;
+            setup(newSourceGraph, testcase.getTargetGraph(), settings, name);
         } catch (DomainCheckerException e) {
             return new CompatibilityFailResult();
         }
         long iterations = 0;
         long initialTime = System.currentTimeMillis();
-        while (!allDone(testcase.getSourceGraph(), vertexMatching, edgeMatching)) {
+        while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
             iterations++;
             if (System.currentTimeMillis() - lastPrint > 1000) {
                 //System.out.println(name + " is at " + iterations + " iterations...");
@@ -177,7 +152,12 @@ public class IsoFinder {
             return new FailResult(iterations);
         } else {
             int[] vertexMapping = vertexMatching.getPlacement().stream().mapToInt(x -> x).toArray();
-            Map<MyEdge, Path> paths = repairPaths(testcase.getSourceGraph(), edgeMatching, vertexMapping);
+            //int[] fixed = repairMatching(vertexMapping, mapping.new_to_old);
+            assert allDone(newSourceGraph, vertexMatching, edgeMatching);
+            assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
+
+
+            Map<MyEdge, Path> paths = repairPaths(testcase.getSourceGraph(), newSourceGraph, edgeMatching, mapping.new_to_old, vertexMatching);
             return new SuccessResult(vertexMapping, paths, iterations);
         }
     }

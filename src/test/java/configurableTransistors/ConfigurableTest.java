@@ -18,12 +18,35 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ConfigurableTest {
+class ConfigurableTest {
 
     private static final String CONFIGURABLE = "configurable";
 
+    private static MyGraph getSourceGraph() {
+        MyGraph sourceGraph = new MyGraph(true);
+        int topLeft = sourceGraph.addVertex();
+        int topMiddle = sourceGraph.addVertex();
+        int topRight = sourceGraph.addVertex();
+        int bottomLeft = sourceGraph.addVertex();
+        int bottomMiddle = sourceGraph.addVertex();
+        int bottomRight = sourceGraph.addVertex();
+        sourceGraph.addAttribute(topLeft, "label", "topleft");
+        sourceGraph.addAttribute(topMiddle, "label", "arc");
+        sourceGraph.addAttribute(topMiddle, CONFIGURABLE, "1");
+        sourceGraph.addAttribute(topRight, "label", "topright");
+        sourceGraph.addAttribute(bottomLeft, "label", "bottomleft");
+        sourceGraph.addAttribute(bottomMiddle, "label", "arc");
+        sourceGraph.addAttribute(bottomMiddle, CONFIGURABLE, "1");
+        sourceGraph.addAttribute(bottomRight, "label", "bottomright");
+        sourceGraph.addEdge(topLeft, topMiddle);
+        sourceGraph.addEdge(topMiddle, topRight);
+        sourceGraph.addEdge(bottomLeft, bottomMiddle);
+        sourceGraph.addEdge(bottomMiddle, bottomRight);
+        return sourceGraph;
+    }
+
     @Test
-    public void testConnectedDisallowed() {
+    void testConnectedDisallowed() {
         MyGraph sourceGraph = getSourceGraph();
         MyGraph targetGraph = new MyGraph(true);
         int topLeft = targetGraph.addVertex();
@@ -77,7 +100,7 @@ public class ConfigurableTest {
     }
 
     @Test
-    public void testConnectedAllowed() {
+    void testConnectedAllowed() {
         MyGraph sourceGraph = getSourceGraph();
         MyGraph targetGraph = new MyGraph(true);
         int topLeft = targetGraph.addVertex();
@@ -128,7 +151,7 @@ public class ConfigurableTest {
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(new TestCase(sourceGraph, targetGraph), new Settings(true, true, true, PruningConstants.NONE, new KPathStrategy()), 10 * 60 * 1000, "ConfigurableTest ");
         assertTrue(result.succeed);
         System.out.println(result);
-        assertArrayEquals(new int[]{0, 1, 4, 6, 7, 10}, ((SuccessResult) result).getVertexPlacement());
+        assertArrayEquals(new int[]{1, 0, 4, 6, 7, 10}, ((SuccessResult) result).getVertexPlacement());
 
         Map<MyEdge, Path> expected = new HashMap<>();
         expected.put(new MyEdge(0, 1), new Path(targetGraph, List.of(0, 1)));
@@ -138,9 +161,8 @@ public class ConfigurableTest {
         assertEquals(expected, ((SuccessResult) result).getEdgePlacement());
     }
 
-
     @Test
-    public void testDisconnected() {
+    void testDisconnected() {
         MyGraph sourceGraph = getSourceGraph();
         MyGraph targetGraph = new MyGraph(true);
         int topLeft = targetGraph.addVertex();
@@ -180,7 +202,7 @@ public class ConfigurableTest {
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(new TestCase(sourceGraph, targetGraph), new Settings(true, true, true, PruningConstants.NONE, new KPathStrategy()), 10 * 60 * 1000, "ConfigurableTest ");
         assertTrue(result.succeed);
         System.out.println(result);
-        assertArrayEquals(new int[]{0, 1, 4, 5, 6, 9}, ((SuccessResult) result).getVertexPlacement());
+        assertArrayEquals(new int[]{1, 0, 4, 5, 6, 9}, ((SuccessResult) result).getVertexPlacement());
 
         Map<MyEdge, Path> expected = new HashMap<>();
         expected.put(new MyEdge(0, 1), new Path(targetGraph, List.of(0, 1)));
@@ -188,29 +210,5 @@ public class ConfigurableTest {
         expected.put(new MyEdge(1, 2), new Path(targetGraph, List.of(1, 2, 3, 4)));
         expected.put(new MyEdge(4, 5), new Path(targetGraph, List.of(6, 7, 8, 9)));
         assertEquals(expected, ((SuccessResult) result).getEdgePlacement());
-    }
-
-
-    private MyGraph getSourceGraph() {
-        MyGraph sourceGraph = new MyGraph(true);
-        int topLeft = sourceGraph.addVertex();
-        int topMiddle = sourceGraph.addVertex();
-        int topRight = sourceGraph.addVertex();
-        int bottomLeft = sourceGraph.addVertex();
-        int bottomMiddle = sourceGraph.addVertex();
-        int bottomRight = sourceGraph.addVertex();
-        sourceGraph.addAttribute(topLeft, "label", "topleft");
-        sourceGraph.addAttribute(topMiddle, "label", "arc");
-        sourceGraph.addAttribute(topMiddle, CONFIGURABLE, "1");
-        sourceGraph.addAttribute(topRight, "label", "topright");
-        sourceGraph.addAttribute(bottomLeft, "label", "bottomleft");
-        sourceGraph.addAttribute(bottomMiddle, "label", "arc");
-        sourceGraph.addAttribute(bottomMiddle, CONFIGURABLE, "1");
-        sourceGraph.addAttribute(bottomRight, "label", "bottomright");
-        sourceGraph.addEdge(topLeft, topMiddle);
-        sourceGraph.addEdge(topMiddle, topRight);
-        sourceGraph.addEdge(bottomLeft, bottomMiddle);
-        sourceGraph.addEdge(bottomMiddle, bottomRight);
-        return sourceGraph;
     }
 }

@@ -49,7 +49,7 @@ public class EdgeMatching {
      *
      * @param vertexMatching    the vertex matching class used in this homeomorphism finding session
      * @param data              the utility data class of this test case (for cached computations)
-     * @param source            the source graph
+     * @param source            the source graph (new one)
      * @param target            the target graph
      * @param occupation        the global occupation which vertices have been used and which are available
      * @param pathIteration     the strategy to be used to iterate different paths between pairs of vertices

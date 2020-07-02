@@ -12,6 +12,7 @@ import com.charrey.settings.iteratorspecific.IteratorSettings;
 import com.charrey.settings.iteratorspecific.KPathStrategy;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -59,8 +60,23 @@ class BigGraphTest {
 
     private static volatile boolean failed = false;
 
-    @SuppressWarnings("ProhibitedExceptionThrown")
+    private static Thread getThread(TestCase testCase, IteratorSettings strategy) {
+        return new Thread(() -> {
+            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, strategy);
+            try {
+                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, strategy.toString());
+                System.out.println(result);
+                System.out.println(strategy.toString() + " IS FINISHED ------------------------------------");
+                System.out.flush();
+            } catch (Throwable e) {
+                failed = true;
+                throw e;
+            }
+        });
+    }
+
     @Test
+    @Disabled
     void importSingleTile() throws IOException, InterruptedException {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
@@ -94,21 +110,6 @@ class BigGraphTest {
         threadDFSGreedy.join();
         threadControlPoint.join();
         assert !failed;
-    }
-
-    private Thread getThread(TestCase testCase, IteratorSettings strategy) {
-        return new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, strategy);
-            try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, strategy.toString());
-                System.out.println(result);
-                System.out.println(strategy.toString() + " IS FINISHED ------------------------------------");
-                System.out.flush();
-            } catch (Throwable e) {
-                failed = true;
-                throw e;
-            }
-        });
     }
 
     private void removeTails() {

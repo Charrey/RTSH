@@ -1,5 +1,7 @@
 package com.charrey.graph;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Objects;
@@ -45,7 +47,7 @@ public class MyEdge implements Comparable<MyEdge>, Serializable {
         return Objects.hash(source, target);
     }
 
-    public int compareTo(MyEdge other) {
+    public int compareTo(@NotNull MyEdge other) {
         return Comparator.comparingInt(x -> ((MyEdge) x).source).thenComparingInt(x -> ((MyEdge) x).target).compare(this, other);
     }
 

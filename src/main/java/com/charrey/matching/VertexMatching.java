@@ -31,7 +31,7 @@ public class VertexMatching {
      * Instantiates a new Vertexmatching.
      *
      * @param data                          the utility data class of this test case (for cached computations)
-     * @param sourceGraph                   the source graph
+     * @param sourceGraph                   the source graph (doesnt matter whether old or new)
      * @param occupation                    the global occupation which vertices have been used and which are available
      * @param initialNeighbourhoodFiltering whether to apply domain filtering based on neighbourhoods
      * @param initialGlobalAllDifferent     whether to apply domain filtering based on AllDifferent

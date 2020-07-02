@@ -60,10 +60,11 @@ public class UtilityData {
 
     /**
      * Returns the compatibility of each source graph vertex to target graph vertices.
+     * <p>
      *
      * @param neighbourHoodFiltering    whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
      * @param initialGlobalAllDifferent whether to apply AllDifferent to each possible matching to filter out candidates.
-     * @param name
+     * @param name                      name to print when displaying compability filtering progress
      * @return A 2d array compatibility such that for each source vertex with vertex ordering x, compatibility[x] is an array of suitable target graph candidates.
      */
     public Integer[][] getCompatibility(boolean neighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
@@ -85,6 +86,7 @@ public class UtilityData {
 
     /**
      * Returns the compatibility of each target graph vertex to source graph vertices.
+     *
      *
      * @param initialNeighbourhoodFiltering whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
      * @param initialGlobalAllDifferent     whether to apply AllDifferent to each possible matching to filter out candidates.
@@ -111,12 +113,13 @@ public class UtilityData {
 
 
     private int[][][] targetNeighbours;
-    private ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths<Integer, MyEdge> shortestPaths;
 
     private final RandomGenerator random = new Well512a(49999);
+
     /**
      * Returns an array that provides for each target vertex an ordering in which to try other target vertices in DFS.
      * Since this choice may depend on the target of the DFS, this array incorporates each possible goal vertex.
+     *
      *
      * @param strategy the DFS strategy used
      * @return a 3-d array where the first argument is the goal vertex, the second argument is some target graph vertex and the result are neighbours of that vertex in the order that they need to be tried.
@@ -147,7 +150,7 @@ public class UtilityData {
                     break;
                 case DFS_GREEDY:
                     targetNeighbours = getTargetNeighbours(DFS_ARBITRARY);
-                    shortestPaths = new CHManyToManyShortestPaths<>(targetGraph).getManyToManyPaths(targetGraph.vertexSet(), targetGraph.vertexSet());
+                    ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths<Integer, MyEdge> shortestPaths = new CHManyToManyShortestPaths<>(targetGraph).getManyToManyPaths(targetGraph.vertexSet(), targetGraph.vertexSet());
 
                     List[][] tempTargetNeigbours = new List[targetNeighbours.length][targetNeighbours.length];
                     for (int i = 0; i < tempTargetNeigbours.length; i++) {

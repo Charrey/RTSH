@@ -6,7 +6,6 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class MyLinkedList<E>
-
         extends AbstractSequentialList<E>
         implements List<E>, Deque<E>, Cloneable, java.io.Serializable {
     private static final long serialVersionUID = 876323262645176354L;
@@ -16,13 +15,7 @@ public class MyLinkedList<E>
      */
     transient Node<E> first;
 
-    /*
-    void dataStructureInvariants() {
-        assert (size == 0)
-            ? (first == null && last == null)
-            : (first.prev == null && last.next == null);
-    }
-    */
+
     /**
      * Pointer to last node.
      */
@@ -515,17 +508,17 @@ public class MyLinkedList<E>
     Node<E> node(int index) {
         // assert isElementIndex(index);
 
+        Node<E> x;
         if (index < (size >> 1)) {
-            Node<E> x = first;
+            x = first;
             for (int i = 0; i < index; i++)
                 x = x.next;
-            return x;
         } else {
-            Node<E> x = last;
+            x = last;
             for (int i = size - 1; i > index; i--)
                 x = x.prev;
-            return x;
         }
+        return x;
     }
 
     /**

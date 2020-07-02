@@ -137,7 +137,6 @@ public class OccupationTransaction extends AbstractOccupation {
     private static class TransactionElement {
         private final int verticesPlaced;
         private final int added;
-        private final long time;
 
         /**
          * Instantiates a new Transaction element.
@@ -148,7 +147,6 @@ public class OccupationTransaction extends AbstractOccupation {
         TransactionElement(int verticesPlaced, int added) {
             this.verticesPlaced = verticesPlaced;
             this.added = added;
-            this.time = System.currentTimeMillis();
         }
 
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")

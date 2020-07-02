@@ -23,7 +23,7 @@ public class GreatestConstrainedFirst {
      * @return an appropriate vertex ordering.
      */
     @NotNull
-    public Mapping apply(@NotNull MyGraph graph) {
+    public static Mapping apply(@NotNull MyGraph graph) {
         List<Integer> ordering = new ArrayList<>(graph.vertexSet().size());
         if (graph.vertexSet().isEmpty()) {
             return new Mapping(graph, new int[0], new int[0]);
@@ -57,15 +57,15 @@ public class GreatestConstrainedFirst {
     }
 
     @NotNull
-    private Set<Integer> getThirdCriterium(@NotNull MyGraph graph, @NotNull List<Integer> ordering, @NotNull Set<Integer> secondSelection) {
+    private static Set<Integer> getThirdCriterium(@NotNull MyGraph graph, @NotNull List<Integer> ordering, @NotNull Set<Integer> secondSelection) {
         Set<Integer> thirdSelection = new HashSet<>();
         long thirdValue = -1;
         for (Integer vertex : secondSelection) {
             long score = GraphUtil.neighboursOf(graph,
                     Graphs.neighborSetOf(graph, vertex)
-                        .stream()
-                        .filter(x -> !ordering.contains(x))
-                        .collect(Collectors.toSet()))
+                            .stream()
+                            .filter(x -> !ordering.contains(x))
+                            .collect(Collectors.toSet()))
                     .stream()
                     .filter(x -> !ordering.contains(x))
                     .count();
@@ -81,15 +81,15 @@ public class GreatestConstrainedFirst {
     }
 
     @NotNull
-    private Set<Integer> getSecondCriterium(@NotNull MyGraph graph, @NotNull List<Integer> ordering, @NotNull Set<Integer> firstSelections) {
+    private static Set<Integer> getSecondCriterium(@NotNull MyGraph graph, @NotNull List<Integer> ordering, @NotNull Set<Integer> firstSelections) {
         Set<Integer> secondSelection = new HashSet<>();
         long secondValue = -1;
         for (Integer vertex : firstSelections) {
             long score = GraphUtil.neighboursOf(graph,
                     Graphs.neighborSetOf(graph, vertex)
-                                   .stream()
-                                   .filter(x -> !ordering.contains(x))
-                                   .collect(Collectors.toSet()))
+                            .stream()
+                            .filter(x -> !ordering.contains(x))
+                            .collect(Collectors.toSet()))
                     .stream()
                     .filter(ordering::contains)
                     .count();
@@ -105,7 +105,7 @@ public class GreatestConstrainedFirst {
     }
 
     @NotNull
-    private Set<Integer> getFirstCriterium(@NotNull MyGraph graph, @NotNull List<Integer> ordering) {
+    private static Set<Integer> getFirstCriterium(@NotNull MyGraph graph, @NotNull List<Integer> ordering) {
         Set<Integer> firstSelection = new HashSet<>();
         long firstValue = -1;
         for (Integer vertex : graph.vertexSet().stream().filter(x -> !ordering.contains(x)).collect(Collectors.toSet())) {

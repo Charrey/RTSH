@@ -56,9 +56,6 @@ public class ManagedControlPointIterator extends PathIterator {
     }
 
     @Nullable
-    private Path returned = null;
-
-    @Nullable
     @Override
     public Path next() {
         transaction.uncommit();
@@ -68,12 +65,11 @@ public class ManagedControlPointIterator extends PathIterator {
                 path = child.next();
             } while (path != null && controlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
-                returned = path;
                 transaction.commit();
                 if (settings.log) {
-                    System.out.println("ManagedControlPointIterator returned path " + returned);
+                    System.out.println("ManagedControlPointIterator returned path " + path);
                 }
-                return returned;
+                return path;
             } else {
                 if (controlPoints + 1 > maxControlPoints || controlPoints + 1 > graph.vertexSet().size() - 2) {
                     return null;

@@ -53,11 +53,13 @@ public class LinkedIndexSet<T> implements Set<T> {
         return data[object.hashCode()] != null;
     }
 
+    @NotNull
     @Override
     public Iterator<T> iterator() {
         return new LinkedIndexSetIterator();
     }
 
+    @NotNull
     @Override
     public Object[] toArray() {
         Object[] res = new Object[size];
@@ -184,8 +186,7 @@ public class LinkedIndexSet<T> implements Set<T> {
     @Override
     public boolean retainAll(@NotNull Collection<?> c) {
         boolean changed = false;
-        for (Iterator<T> iterator = iterator(); iterator.hasNext(); ) {
-            T item = iterator.next();
+        for (T item : this) {
             if (!c.contains(item)) {
                 remove(item);
                 changed = true;

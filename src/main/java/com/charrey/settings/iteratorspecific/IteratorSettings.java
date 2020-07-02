@@ -2,6 +2,7 @@ package com.charrey.settings.iteratorspecific;
 
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
 public abstract class IteratorSettings implements Comparable<IteratorSettings> {
 
 

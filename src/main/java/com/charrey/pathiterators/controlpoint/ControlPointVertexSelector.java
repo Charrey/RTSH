@@ -46,7 +46,7 @@ public class ControlPointVertexSelector implements Iterator<Integer> {
                                int tail) {
         this.occupation = occupation;
         this.localOccupation = initialLocalOccupation;
-        Random random = new Random(1 + 3 * graph.hashCode() + 5 * occupation.hashCode() + 7 * initialLocalOccupation.hashCode() + 11 * from + 13 * to);
+        Random random = new Random(1 + 3L * graph.hashCode() + 5L * occupation.hashCode() + 7L * initialLocalOccupation.hashCode() + 11L * from + 13L * to);
         vertices = GraphUtil.randomVertexOrder(graph, random);
         Path path = ControlPointIterator.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail);
         if (path == null) {
