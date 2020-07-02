@@ -5,6 +5,7 @@ import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
+import com.charrey.runtimecheck.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +66,11 @@ public class ManagedControlPointIterator extends PathIterator {
                 path = child.next();
             } while (path != null && controlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
-                transaction.commit();
+                try {
+                    transaction.commit();
+                } catch (DomainCheckerException e) {
+                    continue;
+                }
                 if (settings.log) {
                     System.out.println("ManagedControlPointIterator returned path " + path);
                 }

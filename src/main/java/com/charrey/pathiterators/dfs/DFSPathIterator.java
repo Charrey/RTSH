@@ -52,6 +52,7 @@ public class DFSPathIterator extends PathIterator {
         super(tail, head, refuseLongerPaths);
         this.head = head;
         exploration = new Path(graph, tail);
+        //noinspection AssignmentOrReturnOfFieldWithMutableType
         this.outgoingNeighbours = neighbours;
         chosenOption = new int[neighbours.length];
         Arrays.fill(chosenOption, 0);
@@ -141,7 +142,11 @@ public class DFSPathIterator extends PathIterator {
                 }
             }
         }
-        transaction.commit();
+        try {
+            transaction.commit();
+        } catch (DomainCheckerException e) {
+            return next();
+        }
         assert !exploration.isEmpty();
         counter++;
         return exploration;
@@ -152,6 +157,7 @@ public class DFSPathIterator extends PathIterator {
      *
      * @return whether the operation succeeded
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean removeHead() {
         int indexOfHeadVertex = exploration.length() - 1;
         int removed = exploration.removeLast();

@@ -116,15 +116,31 @@ public class UtilityData {
 
     private final RandomGenerator random = new Well512a(49999);
 
+    private Map<Integer, Set<Integer>> unconfigurableCover;
+
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UtilityData that = (UtilityData) o;
+        return targetGraph.equals(that.targetGraph) &&
+                patternGraph.equals(that.patternGraph);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(targetGraph, patternGraph);
+    }
+
     /**
      * Returns an array that provides for each target vertex an ordering in which to try other target vertices in DFS.
      * Since this choice may depend on the target of the DFS, this array incorporates each possible goal vertex.
      *
-     *
      * @param strategy the DFS strategy used
      * @return a 3-d array where the first argument is the goal vertex, the second argument is some target graph vertex and the result are neighbours of that vertex in the order that they need to be tried.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({"rawtypes", "unchecked", "AssignmentOrReturnOfFieldWithMutableType"})
     public @NotNull
     int[][][] getTargetNeighbours(int strategy) {
         if (targetNeighbours == null) {
@@ -184,18 +200,39 @@ public class UtilityData {
         return targetNeighbours;
     }
 
+    public Set<Integer> unconfigurableCover(int of) {
+        if (unconfigurableCover == null) {
+            unconfigurableCover = new HashMap<>();
+            for (int vertex : targetGraph.vertexSet()) {
+                Set<Integer> result = new HashSet<>();
+                Deque<Integer> frontier = new LinkedList<>();
+                frontier.add(vertex);
+                boolean changed = false;
+                while (!frontier.isEmpty()) {
+                    int observingVertex = frontier.pop();
+                    Set<Integer> neighbours = Graphs.neighborSetOf(targetGraph, observingVertex);
+                    for (int neighbour : neighbours) {
+                        if (targetGraph.getAttributes(neighbour).containsKey("configurable") && targetGraph.getAttributes(neighbour).get("configurable").equals(Set.of("0"))) {
+                            if (!result.contains(neighbour)) {
+                                frontier.add(neighbour);
+                                Graphs.neighborSetOf(targetGraph, neighbour).stream()
+                                        .filter(x -> targetGraph.getAttributes(x).get("label").contains("wire"))
+                                        .forEach(integer -> {
+                                            if (!result.contains(integer)) {
+                                                frontier.add(integer);
+                                            }
+                                        });
+                            }
+                        }
+                    }
+                    result.add(observingVertex);
+                }
+                if (result.size() > 1) {
+                    unconfigurableCover.put(vertex, result);
+                }
 
-    @Override
-    public boolean equals(@Nullable Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UtilityData that = (UtilityData) o;
-        return targetGraph.equals(that.targetGraph) &&
-                patternGraph.equals(that.patternGraph);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(targetGraph, patternGraph);
+            }
+        }
+        return unconfigurableCover.getOrDefault(of, Set.of(of));
     }
 }

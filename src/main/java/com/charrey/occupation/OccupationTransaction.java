@@ -1,11 +1,13 @@
 package com.charrey.occupation;
 
+import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
 import com.charrey.runtimecheck.DomainChecker;
 import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.util.MyLinkedList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -22,6 +24,7 @@ public class OccupationTransaction extends AbstractOccupation {
     private final GlobalOccupation parent;
 
     private final MyLinkedList<TransactionElement> waiting = new MyLinkedList<>();
+    private final UtilityData data;
     private boolean locked = false;
 
     /**
@@ -30,13 +33,15 @@ public class OccupationTransaction extends AbstractOccupation {
      * @param routingOccupied initial vertices occupied for routing
      * @param vertexOccupied  initial vertices occupied for vertex-on-vertex
      * @param domainChecker   domain checker for pruning the search space
+     * @param data            utility data for cached computations
      * @param parent          GlobalOccupation to which changes may be committed
      */
-    OccupationTransaction(Set<Integer> routingOccupied, Set<Integer> vertexOccupied, DomainChecker domainChecker, GlobalOccupation parent) {
+    OccupationTransaction(Set<Integer> routingOccupied, Set<Integer> vertexOccupied, DomainChecker domainChecker, UtilityData data, GlobalOccupation parent) {
         this.routingOccupied = routingOccupied;
         this.vertexOccupied = vertexOccupied;
         this.domainChecker = domainChecker;
         this.parent = parent;
+        this.data = data;
     }
 
     /**
@@ -114,6 +119,9 @@ public class OccupationTransaction extends AbstractOccupation {
      * program. By calling uncommit(), the occupation becomes hidden again.
      */
     public void uncommit() {
+        if (!locked) {
+            return;
+        }
         for (int i = waiting.size() - 1; i >= 0; i--) {
             TransactionElement transactionElement = waiting.get(i);
             parent.releaseRouting(transactionElement.verticesPlaced, transactionElement.added);
@@ -124,12 +132,29 @@ public class OccupationTransaction extends AbstractOccupation {
     /**
      * Make the changes in this transaction visible to the rest of this program.
      */
-    public void commit() {
+    public void commit() throws DomainCheckerException {
         if (locked) {
             throw new IllegalStateException("You must uncommit before committing.");
         }
+        Set<Integer> committed = new HashSet<>();
         for (TransactionElement transactionElement : waiting) {
             parent.occupyRoutingWithoutCheck(transactionElement.verticesPlaced, transactionElement.added);
+            committed.add(transactionElement.added);
+            Set<Integer> cover = data.unconfigurableCover(transactionElement.added);
+            for (int coverElement : cover) {
+                if (transactionElement.added != coverElement) {
+                    try {
+                        if (parent.isOccupiedRouting(coverElement)) {
+                            throw new DomainCheckerException("Already occupied");
+                        }
+                        parent.occupyRoutingAndCheck(transactionElement.verticesPlaced, coverElement);
+                        committed.add(coverElement);
+                    } catch (DomainCheckerException e) {
+                        committed.forEach(x -> parent.releaseRouting(transactionElement.verticesPlaced, x));
+                        throw e;
+                    }
+                }
+            }
         }
         locked = true;
     }

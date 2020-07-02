@@ -23,6 +23,7 @@ public class GlobalOccupation extends AbstractOccupation {
     private final Set<Integer> vertexBits;
     @NotNull
     private final DomainChecker domainChecker;
+    private final UtilityData data;
 
     /**
      * Instantiates a new occupation tracker for a homeomorphism search.
@@ -58,6 +59,7 @@ public class GlobalOccupation extends AbstractOccupation {
         }
         this.routingBits = new HashSet<>();
         this.vertexBits = new HashSet<>();
+        this.data = data;
     }
 
     /**
@@ -66,7 +68,7 @@ public class GlobalOccupation extends AbstractOccupation {
      * @return the transaction
      */
     public OccupationTransaction getTransaction() {
-        return new OccupationTransaction(new HashSet<>(routingBits), new HashSet<>(vertexBits), domainChecker.copy(), this);
+        return new OccupationTransaction(new HashSet<>(routingBits), new HashSet<>(vertexBits), domainChecker.copy(), data, this);
     }
 
 
@@ -81,6 +83,13 @@ public class GlobalOccupation extends AbstractOccupation {
         routingBits.add(vertex);
         domainChecker.afterOccupyEdgeWithoutCheck(vertexPlacementSize, vertex);
     }
+
+    void occupyRoutingAndCheck(int vertexPlacementSize, int vertex) throws DomainCheckerException {
+        assert !routingBits.contains(vertex);
+        routingBits.add(vertex);
+        domainChecker.afterOccupyEdge(vertexPlacementSize, vertex);
+    }
+
 
     /**
      * Occupies vertex for vertex-on-vertex matching.
@@ -192,4 +201,6 @@ public class GlobalOccupation extends AbstractOccupation {
     public Set<Integer> getRoutingOccupied() {
         return Collections.unmodifiableSet(this.routingBits);
     }
+
+
 }

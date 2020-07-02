@@ -81,7 +81,11 @@ public class KPathPathIterator extends PathIterator {
                 }
             }
             if (okay) {
-                transaction.commit();
+                try {
+                    transaction.commit();
+                } catch (DomainCheckerException e) {
+                    return next();
+                }
                 previousPath = new Path(pathFound);
                 counter++;
                 return previousPath;
