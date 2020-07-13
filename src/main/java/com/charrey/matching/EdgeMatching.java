@@ -5,7 +5,7 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.settings.iteratorspecific.IteratorSettings;
+import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

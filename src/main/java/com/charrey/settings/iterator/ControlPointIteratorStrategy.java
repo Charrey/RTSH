@@ -1,4 +1,4 @@
-package com.charrey.settings.iteratorspecific;
+package com.charrey.settings.iterator;
 
 import com.charrey.settings.PathIterationConstants;
 

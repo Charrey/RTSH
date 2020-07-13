@@ -8,10 +8,14 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
+import com.charrey.settings.iterator.ControlPointIteratorStrategy;
+import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
+import gnu.trove.procedure.TIntProcedure;
+import gnu.trove.set.TIntSet;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.Graphs;
@@ -31,20 +35,30 @@ class ControlPointTransition {
     private final static int trials = 10;
 
     private final Settings settings = new Settings(
-            true,
-            true,
+            new LabelDegreeFiltering(),
             true,
             PruningConstants.NONE,
-            new ControlPointIteratorStrategy(3));
+            new ControlPointIteratorStrategy(3), PruningApplicationConstants.SERIAL);
 
 
     @Test
     @Order(1)
     void TestNoMore() throws DomainCheckerException {
         test(myCase -> {
-            Optional<Integer> counterExample = myCase.globalOccupation.getRoutingOccupied().stream().filter(x -> myCase.path.intermediate().stream().mapToInt(y -> y).noneMatch(y -> y == x)).findAny();
-            if (counterExample.isPresent()) {
-                System.err.println("In occupation but not in path: " + counterExample);
+            final Optional<Integer>[] counterExample = new Optional[]{Optional.empty()};
+            TIntSet routingOccupied = myCase.globalOccupation.getRoutingOccupied();
+            routingOccupied.forEach(new TIntProcedure() {
+                @Override
+                public boolean execute(int x) {
+                    if (myCase.path.intermediate().stream().mapToInt(y -> y).noneMatch(y -> y == x)) {
+                        counterExample[0] = Optional.of(x);
+                        return false;
+                    }
+                    return true;
+                }
+            });
+            if (counterExample[0].isPresent()) {
+                System.err.println("In occupation but not in path: " + counterExample[0]);
                 return false;
             }
             return true;

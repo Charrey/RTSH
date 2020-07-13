@@ -7,9 +7,11 @@ import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerat
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iteratorspecific.*;
+import com.charrey.settings.iterator.*;
+import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -26,11 +28,10 @@ class CompleteTest extends PathIteratorTest {
     private static final int differentGraphSizes = 250;
     private static final int trials = 100;
     private static final Settings settings = new Settings(
-            true,
-            true,
+            new LabelDegreeFiltering(),
             true,
             PruningConstants.NONE,
-            new KPathStrategy());
+            new KPathStrategy(), PruningApplicationConstants.SERIAL);
 
     @NotNull
     private static String myMaptoString(@NotNull Map<IteratorSettings, Set<Path>> pathCount) {

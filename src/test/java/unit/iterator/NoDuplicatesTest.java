@@ -10,9 +10,11 @@ import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iteratorspecific.*;
+import com.charrey.settings.iterator.*;
+import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -28,11 +30,10 @@ class NoDuplicatesTest {
     private final RandomGenerator random = new Well512a(19247);
 
     private final Settings settings = new Settings(
-            true,
-            true,
+            new LabelDegreeFiltering(),
             true,
             PruningConstants.ALL_DIFFERENT,
-            new ControlPointIteratorStrategy(5)
+            new ControlPointIteratorStrategy(5), PruningApplicationConstants.SERIAL
     );
 
     @Test

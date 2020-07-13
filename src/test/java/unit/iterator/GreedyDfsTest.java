@@ -9,10 +9,12 @@ import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iteratorspecific.GreedyDFSStrategy;
-import com.charrey.settings.iteratorspecific.KPathStrategy;
+import com.charrey.settings.iterator.GreedyDFSStrategy;
+import com.charrey.settings.iterator.KPathStrategy;
+import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -30,8 +32,8 @@ class GreedyDfsTest {
 
     @Test
     void testIterator() throws DomainCheckerException {
-        Settings settingsGreedy = new Settings(true, true, true, PruningConstants.NONE, new GreedyDFSStrategy());
-        Settings settingsKpath = new Settings(true, true, true, PruningConstants.NONE, new KPathStrategy());
+        Settings settingsGreedy = new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new GreedyDFSStrategy(), PruningApplicationConstants.SERIAL);
+        Settings settingsKpath = new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new KPathStrategy(), PruningApplicationConstants.SERIAL);
 
         final long seed = 1923;
         long counter = -1;

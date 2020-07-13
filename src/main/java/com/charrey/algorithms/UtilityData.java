@@ -2,7 +2,14 @@ package com.charrey.algorithms;
 
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
+import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.linked.TIntLinkedList;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.procedure.TIntObjectProcedure;
+import gnu.trove.set.TIntSet;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
@@ -56,56 +63,55 @@ public class UtilityData {
     }
 
 
-    private Integer[][] compatibility;
+    private int[][] compatibility;
+    private int[][] reverseCompatibility;
 
     /**
      * Returns the compatibility of each source graph vertex to target graph vertices.
      * <p>
      *
-     * @param neighbourHoodFiltering    whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
-     * @param initialGlobalAllDifferent whether to apply AllDifferent to each possible matching to filter out candidates.
-     * @param name                      name to print when displaying compability filtering progress
+     * @param filteringSettings whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
+     * @param name              name to print when displaying compability filtering progress
      * @return A 2d array compatibility such that for each source vertex with vertex ordering x, compatibility[x] is an array of suitable target graph candidates.
      */
-    public Integer[][] getCompatibility(boolean neighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
+    public int[][] getCompatibility(FilteringSettings filteringSettings, String name) {
         if (compatibility == null) {
-            compatibility = new Integer[patternGraph.vertexSet().size()][];
-            Map<Integer, Set<Integer>> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, neighbourHoodFiltering, initialGlobalAllDifferent, name);
-            for (Map.Entry<Integer, Set<Integer>> entry : inbetween.entrySet()) {
-                compatibility[entry.getKey()] = entry.getValue()
-                        .stream()
-                        .sorted()
-                        .collect(Collectors.toList())
-                        .toArray(Integer[]::new);
-            }
+            compatibility = new int[patternGraph.vertexSet().size()][];
+            TIntObjectMap<TIntSet> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, filteringSettings instanceof LabelDegreeFiltering, name);
+            inbetween.forEachEntry(new TIntObjectProcedure<TIntSet>() {
+                @Override
+                public boolean execute(int key, TIntSet value) {
+                    int[] array = value.toArray();
+                    Arrays.sort(array);
+                    compatibility[key] = array;
+                    return true;
+                }
+            });
         }
         return compatibility.clone();
     }
-
-    private Integer[][] reverseCompatibility;
 
     /**
      * Returns the compatibility of each target graph vertex to source graph vertices.
      *
      *
      * @param initialNeighbourhoodFiltering whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
-     * @param initialGlobalAllDifferent     whether to apply AllDifferent to each possible matching to filter out candidates.
      * @return A 2d array compatibility such that for each target vertex with vertex ordering x, compatibility[x] is an array of suitable source graph candidates.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public Integer[][] getReverseCompatibility(boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent, String name) {
+    public int[][] getReverseCompatibility(FilteringSettings initialNeighbourhoodFiltering, String name) {
         if (reverseCompatibility == null) {
-            List[] tempReverseCompatibility = new List[targetGraph.vertexSet().size()];
-            IntStream.range(0, tempReverseCompatibility.length).forEach(x -> tempReverseCompatibility[x] = new LinkedList());
-            Integer[][] compatibility = getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent, name);
+            TIntList[] tempReverseCompatibility = new TIntList[targetGraph.vertexSet().size()];
+            IntStream.range(0, tempReverseCompatibility.length).forEach(x -> tempReverseCompatibility[x] = new TIntLinkedList());
+            int[][] compatibility = getCompatibility(initialNeighbourhoodFiltering, name);
             for (int sourceVertex = 0; sourceVertex < compatibility.length; sourceVertex++) {
                 for (int targetVertexIndex = 0; targetVertexIndex < compatibility[sourceVertex].length; targetVertexIndex++) {
                     tempReverseCompatibility[compatibility[sourceVertex][targetVertexIndex]].add(sourceVertex);
                 }
             }
-            reverseCompatibility = new Integer[targetGraph.vertexSet().size()][];
-            for (int i = 0; i< reverseCompatibility.length; i++) {
-                reverseCompatibility[i] = (Integer[]) tempReverseCompatibility[i].toArray(Integer[]::new);
+            reverseCompatibility = new int[targetGraph.vertexSet().size()][];
+            for (int i = 0; i < reverseCompatibility.length; i++) {
+                reverseCompatibility[i] = tempReverseCompatibility[i].toArray();
             }
         }
         return reverseCompatibility.clone();

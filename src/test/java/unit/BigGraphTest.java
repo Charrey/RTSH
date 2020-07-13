@@ -4,10 +4,12 @@ import com.charrey.IsoFinder;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.result.HomeomorphismResult;
-import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iteratorspecific.IteratorSettings;
-import com.charrey.settings.iteratorspecific.KPathStrategy;
+import com.charrey.settings.iterator.IteratorSettings;
+import com.charrey.settings.iterator.KPathStrategy;
+import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -59,7 +61,7 @@ class BigGraphTest {
 
     private static Thread getThread(TestCase testCase, IteratorSettings strategy) {
         return new Thread(() -> {
-            Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, strategy);
+            Settings settings = new Settings(new LabelDegreeFiltering(), true, PruningConstants.ALL_DIFFERENT, strategy, PruningApplicationConstants.CACHED);
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, strategy.toString());
                 System.out.println(result);
@@ -85,7 +87,7 @@ class BigGraphTest {
         MyGraph sourceGraph = new MyGraph(true);
         int startVertex = sourceGraph.addVertex();
         int endVertex = startVertex;
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 2; i++) {
             int newVertex = sourceGraph.addVertex();
             sourceGraph.addEdge(endVertex, newVertex);
             endVertex = newVertex;

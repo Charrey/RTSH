@@ -1,10 +1,22 @@
-package com.charrey.runtimecheck;
+package com.charrey.pruning;
+
+import com.charrey.runtimecheck.DomainCheckerException;
 
 /**
  * Domain checker class that performs no pruning.
  */
 @SuppressWarnings("RedundantThrows")
-public class DummyDomainChecker extends DomainChecker {
+public class NoPruner extends Pruner {
+    @Override
+    public int serialized() {
+        return -1;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return getClass().equals(o.getClass());
+    }
+
     @Override
     public void afterReleaseVertex(int verticesPlaced, int released) {
 
@@ -36,7 +48,7 @@ public class DummyDomainChecker extends DomainChecker {
     }
 
     @Override
-    public DomainChecker copy() {
+    public Pruner copy() {
         return this;
     }
 

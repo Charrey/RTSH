@@ -5,7 +5,7 @@
 //import com.charrey.graph.generation.TestCase;
 //import com.charrey.pathiterators.controlpoint.ControlPointIteratorRelevantSettings;
 //import com.charrey.settings.PathIterationConstants;
-//import com.charrey.settings.PruningConstants;
+//import com.charrey.settings.pruning.PruningConstants;
 //import com.charrey.settings.Settings;
 //import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
 //import org.jetbrains.annotations.NotNull;

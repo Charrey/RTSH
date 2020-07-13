@@ -8,8 +8,8 @@ import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
-import com.charrey.settings.iteratorspecific.IteratorSettings;
+import com.charrey.settings.iterator.ControlPointIteratorStrategy;
+import com.charrey.settings.iterator.IteratorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

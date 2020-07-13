@@ -1,10 +1,20 @@
-package com.charrey.runtimecheck;
+package com.charrey.pruning;
 
-/**
- * A domainChecker that monitors the validity of a GlobalOccupation. Whenever a specific occupation would result in
- * an unfruitful search path, the search is prematurely stopped by a DomainCheckerException.
- */
-public abstract class DomainChecker {
+import com.charrey.runtimecheck.DomainCheckerException;
+import org.jetbrains.annotations.NotNull;
+
+public abstract class Pruner implements Comparable<Pruner> {
+
+
+    public abstract int serialized();
+
+    @Override
+    public int compareTo(@NotNull Pruner o) {
+        return Integer.compare(serialized(), o.serialized());
+    }
+
+    @Override
+    public abstract boolean equals(Object o);
 
     /**
      * This method is called after a target graph vertex used in vertex-on-vertex matching is released.
@@ -63,5 +73,5 @@ public abstract class DomainChecker {
      *
      * @return A deep copy of this domainchecker
      */
-    public abstract DomainChecker copy();
+    public abstract Pruner copy();
 }

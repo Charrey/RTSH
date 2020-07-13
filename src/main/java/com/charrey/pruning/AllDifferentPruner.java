@@ -1,81 +1,95 @@
-package com.charrey.runtimecheck;
+package com.charrey.pruning;
 
 import com.charrey.algorithms.AllDifferent;
 import com.charrey.algorithms.UtilityData;
+import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.stream.Collectors;
 
 /**
  * Domainchecker that prematurely stops the search when an AllDifferent constraint fails, proving the current search
  * path is unfruitful.
  */
-public class AllDifferentChecker extends DomainChecker {
+public class AllDifferentPruner extends Pruner {
 
     @NotNull
     private final AllDifferent allDifferent;
     @NotNull
-    private final Set<Integer>[] domain;
-    private final Integer[][] reverseDomain;
+    private final TIntSet[] domain;
+    private final int[][] reverseDomain;
     @NotNull
-    private final Deque<Set<Integer>>[] vertexState;
+    private final Deque<TIntSet>[] vertexState;
 
     @SuppressWarnings("unchecked")
-    private AllDifferentChecker(AllDifferentChecker copyOf) {
+    private AllDifferentPruner(AllDifferentPruner copyOf) {
         super();
-        reverseDomain = new Integer[copyOf.reverseDomain.length][];
+        reverseDomain = new int[copyOf.reverseDomain.length][];
         for (int i = 0; i < copyOf.reverseDomain.length; i++) {
             reverseDomain[i] = copyOf.reverseDomain[i].clone();
         }
         this.allDifferent = copyOf.allDifferent;
-        domain = (Set<Integer>[]) Array.newInstance(Set.class, copyOf.domain.length);
+        domain = (TIntSet[]) Array.newInstance(TIntSet.class, copyOf.domain.length);
         for (int i = 0; i < copyOf.domain.length; i++) {
-            domain[i] = new HashSet<>(copyOf.domain[i]);
+            domain[i] = new TIntHashSet(copyOf.domain[i]);
         }
-        vertexState = (Deque<Set<Integer>>[]) Array.newInstance(Deque.class, copyOf.vertexState.length);
+        vertexState = (Deque<TIntSet>[]) Array.newInstance(Deque.class, copyOf.vertexState.length);
         for (int i = 0; i < copyOf.vertexState.length; i++) {
-            vertexState[i] = copyOf.vertexState[i].stream().map(HashSet::new).distinct().collect(Collectors.toCollection(LinkedList::new));
+            vertexState[i] = copyOf.vertexState[i].stream().map(TIntHashSet::new).distinct().collect(Collectors.toCollection(LinkedList::new));
         }
     }
 
-    private void pushVertex(int data) {
-        vertexState[data].push(new HashSet<>(domain[data]));
+    /**
+     * Instantiates a new AllDifferentPruner
+     *
+     * @param data utility data (for cached computation)
+     */
+    @SuppressWarnings({"unchecked"})
+    public AllDifferentPruner(@NotNull UtilityData data, FilteringSettings filteringSettings, String name) {
+        this.allDifferent = new AllDifferent();
+        reverseDomain = data.getReverseCompatibility(filteringSettings, name);
+        this.domain = Arrays.stream(data.getCompatibility(filteringSettings, name)).map(TIntHashSet::new).toArray(TIntSet[]::new);
+        vertexState = (Deque<TIntSet>[]) Array.newInstance(Deque.class, domain.length);
+        for (int i = 0; i < domain.length; i++) {
+            vertexState[i] = new LinkedList<>();
+        }
     }
 
     private void popVertex(int data) {
         domain[data] = vertexState[data].pop();
     }
 
+    private void pushVertex(int data) {
+        vertexState[data].push(new TIntHashSet(domain[data]));
+    }
+
     @Override
-    public DomainChecker copy() {
-        return new AllDifferentChecker(this);
+    public Pruner copy() {
+        return new AllDifferentPruner(this);
     }
 
-
-    /**
-     * Instantiates a new AllDifferentChecker
-     *
-     * @param data                          utility data (for cached computation)
-     * @param initialNeighbourhoodFiltering whether domain filtering based on neighbourhoods should be performed.
-     * @param initialGlobalAllDifferent     whether alldifferent needs to be applied initially to reduce domain sizes.
-     */
-    @SuppressWarnings({"unchecked"})
-    public AllDifferentChecker(@NotNull UtilityData data, boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent, String name) {
-        this.allDifferent = new AllDifferent();
-        reverseDomain = data.getReverseCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent, name);
-        this.domain = Arrays.stream(data.getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent, name)).map(x -> new HashSet<>(Arrays.asList(x))).toArray(value -> (Set<Integer>[]) new Set[value]);
-        vertexState = (Deque<Set<Integer>>[]) Array.newInstance(Deque.class, domain.length);
-        for (int i = 0; i < domain.length; i++) {
-            vertexState[i] = new LinkedList<>();
-        }
+    @Override
+    public int serialized() {
+        return 2;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return getClass().equals(o.getClass());
+    }
 
     @Override
     public void afterReleaseVertex(int verticesPlaced, int v) {
-        Integer[] candidates = reverseDomain[v];
+        int[] candidates = reverseDomain[v];
         for (int i = candidates.length - 1; i >= 0 && candidates[i] > verticesPlaced; i--) {
             assert !domain[candidates[i]].contains(v);
             domain[candidates[i]].add(v);
@@ -85,7 +99,7 @@ public class AllDifferentChecker extends DomainChecker {
 
     @Override
     public void afterReleaseEdge(int verticesPlaced, int v) {
-        Integer[] candidates = reverseDomain[v];
+        int[] candidates = reverseDomain[v];
         for (int i = candidates.length - 1; i >= 0 && candidates[i] >= verticesPlaced; i--) {
             domain[candidates[i]].add(v);
         }
@@ -93,7 +107,7 @@ public class AllDifferentChecker extends DomainChecker {
 
     @Override
     public void beforeOccupyVertex(int verticesPlaced, int v) throws DomainCheckerException {
-        Integer[] candidates = reverseDomain[v];
+        int[] candidates = reverseDomain[v];
         int sourceVertexData = verticesPlaced - 1;
         pushVertex(sourceVertexData);
         domain[sourceVertexData].clear();
@@ -111,14 +125,14 @@ public class AllDifferentChecker extends DomainChecker {
 
     @Override
     public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int v) {
-        Integer[] candidates = reverseDomain[v];
+        int[] candidates = reverseDomain[v];
         int sourceVertexData = verticesPlaced - 1;
         removeFromDomains(v, candidates, sourceVertexData);
     }
 
     @Override
     public void afterOccupyEdge(int verticesPlaced, int v) throws DomainCheckerException {
-        Integer[] candidates = reverseDomain[v];
+        int[] candidates = reverseDomain[v];
         int sourceVertexData = verticesPlaced - 1;
         removeFromDomains(v, candidates, sourceVertexData);
         if (isUnfruitful(verticesPlaced)) {
@@ -130,7 +144,7 @@ public class AllDifferentChecker extends DomainChecker {
     }
 
 
-    private void removeFromDomains(int placedTarget, Integer[] sourcegraphCandidates, int sourceVertexData) {
+    private void removeFromDomains(int placedTarget, int[] sourcegraphCandidates, int sourceVertexData) {
         for (int i = sourcegraphCandidates.length - 1; i >= 0 && sourcegraphCandidates[i] > sourceVertexData; i--) {
             assert domain[sourcegraphCandidates[i]].contains(placedTarget);
             domain[sourcegraphCandidates[i]].remove(placedTarget);
@@ -140,7 +154,7 @@ public class AllDifferentChecker extends DomainChecker {
 
     @Override
     public boolean isUnfruitful(int verticesPlaced) {
-        return Arrays.stream(domain).anyMatch(Set::isEmpty) || !allDifferent.get(Arrays.asList(domain));
+        return Arrays.stream(domain).anyMatch(TIntSet::isEmpty) || !allDifferent.get(Arrays.asList(domain));
     }
 
 
@@ -148,12 +162,12 @@ public class AllDifferentChecker extends DomainChecker {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public String toString() {
-        List[] domainString = new List[domain.length];
+        TIntList[] domainString = new TIntList[domain.length];
         for (int i = 0; i < domainString.length; i++) {
-            domainString[i] = new ArrayList<>(domain[i]);
-            domainString[i].sort(Comparator.comparingInt(o -> (Integer) o));
+            domainString[i] = new TIntArrayList(domain[i]);
+            domainString[i].sort();
         }
-        return "AllDifferentChecker{domain=" + Arrays.toString(domainString) +
+        return "AllDifferentPruner{domain=" + Arrays.toString(domainString) +
                 '}';
     }
 }

@@ -1,15 +1,17 @@
-package com.charrey.settings.iteratorspecific;
+package com.charrey.settings.iterator;
 
 import com.charrey.settings.PathIterationConstants;
 
-public final class KPathStrategy extends IteratorSettings {
-    public KPathStrategy() {
-        super(PathIterationConstants.KPATH);
+public final class DFSStrategy extends IteratorSettings {
+
+    public DFSStrategy() {
+        super(PathIterationConstants.DFS_ARBITRARY);
     }
+
 
     @Override
     public int serialized() {
-        return PathIterationConstants.KPATH;
+        return PathIterationConstants.DFS_ARBITRARY;
     }
 
     @Override
@@ -19,11 +21,11 @@ public final class KPathStrategy extends IteratorSettings {
 
     @Override
     public int hashCode() {
-        return PathIterationConstants.KPATH;
+        return PathIterationConstants.DFS_ARBITRARY;
     }
 
     @Override
     public String toString() {
-        return "K-Path         ";
+        return "DFS            ";
     }
 }

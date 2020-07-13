@@ -4,13 +4,14 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 /**
  * A class that saves which source graph vertex is mapped to which target graph vertex, and provides methods to facilitate
@@ -20,9 +21,12 @@ public class VertexMatching {
 
 
     private final ArrayList<Integer> placement = new ArrayList<>();
-    private final Integer[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
-    @NotNull
-    private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
+    private final int[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
+    //@NotNull
+    //private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
+
+    private final VertexCandidateIterator[] candidates2;
+
     private final GlobalOccupation occupation;
     private Consumer<Integer> onDeletion;
 
@@ -30,17 +34,20 @@ public class VertexMatching {
     /**
      * Instantiates a new Vertexmatching.
      *
-     * @param data                          the utility data class of this test case (for cached computations)
-     * @param sourceGraph                   the source graph (doesnt matter whether old or new)
-     * @param occupation                    the global occupation which vertices have been used and which are available
-     * @param initialNeighbourhoodFiltering whether to apply domain filtering based on neighbourhoods
-     * @param initialGlobalAllDifferent     whether to apply domain filtering based on AllDifferent
+     * @param data        the utility data class of this test case (for cached computations)
+     * @param sourceGraph the source graph (doesnt matter whether old or new)
+     * @param occupation  the global occupation which vertices have been used and which are available
      */
-    public VertexMatching(@NotNull UtilityData data, @NotNull MyGraph sourceGraph, GlobalOccupation occupation, boolean initialNeighbourhoodFiltering, boolean initialGlobalAllDifferent, String name) {
-        this.candidates = data.getCompatibility(initialNeighbourhoodFiltering, initialGlobalAllDifferent, name);
-        candidateToChooseNext = new int[sourceGraph.vertexSet().size()];
-        assert candidateToChooseNext.length == candidates.length;
-        Arrays.fill(candidateToChooseNext, 0);
+    public VertexMatching(@NotNull UtilityData data, @NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, GlobalOccupation occupation, FilteringSettings filteringSettings, String name) {
+        this.candidates = data.getCompatibility(filteringSettings, name);
+        //todo: remove
+        //this.candidateToChooseNext = new int[sourceGraph.vertexSet().size()];
+        this.candidates2 = new VertexCandidateIterator[sourceGraph.vertexSet().size()];
+        //todo: remove
+        //assert candidateToChooseNext.length == candidates.length;
+        //todo: remove
+        //Arrays.fill(candidateToChooseNext, 0);
+        IntStream.range(0, candidates2.length).forEach(i -> candidates2[i] = new VertexCandidateIterator(sourceGraph, targetGraph, i, filteringSettings, occupation));
         this.occupation = occupation;
     }
 
@@ -54,7 +61,8 @@ public class VertexMatching {
         if (placement.size() >= candidates.length) {
             return false;
         } else {
-            return !(candidateToChooseNext[placement.size()] >= candidates[placement.size()].length);
+            return candidates2[placement.size()].hasNext();
+            //return !(candidateToChooseNext[placement.size()] >= candidates[placement.size()].length);
         }
     }
 
@@ -65,13 +73,16 @@ public class VertexMatching {
      */
     public void placeNext() {
         assert canPlaceNext();
-        while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
+        while (!candidates2[placement.size()].hasNext()) {
+            //while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
             removeLast();
         }
-        int toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
+        int toAdd = candidates2[placement.size()].next();
+        //int toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
         boolean occupied = occupation.isOccupied(toAdd);
         if (occupied) {
-            candidateToChooseNext[placement.size()] += 1;
+            //todo: remove
+            //candidateToChooseNext[placement.size()] += 1;
             if (canPlaceNext()) {
                 placeNext();
             }
@@ -80,7 +91,8 @@ public class VertexMatching {
                 occupation.occupyVertex(placement.size() + 1, toAdd);
                 placement.add(toAdd);
             } catch (DomainCheckerException e) {
-                candidateToChooseNext[placement.size()] += 1;
+                //todo: remove
+                //candidateToChooseNext[placement.size()] += 1;
                 if (canPlaceNext()) {
                     placeNext();
                 }
@@ -120,13 +132,18 @@ public class VertexMatching {
      * Removes the last vertex-on-vertex match.
      */
     public void removeLast() {
-        if (placement.size() < candidateToChooseNext.length) {
-            candidateToChooseNext[placement.size()] = 0;
+        if (placement.size() < candidates2.length) { //if every vertex was matched
+            //if (placement.size() < candidateToChooseNext.length) { //if every vertex was matched
+            //this.candidateToChooseNext[placement.size()] = 0;
+            this.candidates2[placement.size()].reset();
         }
-        int removed = placement.remove(placement.size() - 1);
-        occupation.releaseVertex(placement.size(), removed);
+
+        final int removed = placement.remove(placement.size() - 1);
+        this.occupation.releaseVertex(placement.size(), removed);
         this.onDeletion.accept(removed);
-        candidateToChooseNext[placement.size()] += 1;
+
+        //todo: remove
+        //this.candidateToChooseNext[placement.size()] += 1;
     }
 
     /**
@@ -143,8 +160,10 @@ public class VertexMatching {
      * happened before).
      */
     public void giveAllowance() {
-        if (placement.size() < candidateToChooseNext.length) {
-            this.candidateToChooseNext[placement.size()] = 0;
+        if (placement.size() < candidates2.length) {
+            //if (placement.size() < candidateToChooseNext.length) {
+            this.candidates2[placement.size()].reset();
+            //this.candidateToChooseNext[placement.size()] = 0;
         }
     }
 }

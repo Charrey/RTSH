@@ -12,6 +12,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.result.*;
 import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.settings.Settings;
+import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
@@ -31,9 +32,9 @@ public class IsoFinder {
     private EdgeMatching edgeMatching;
     private VertexMatching vertexMatching;
 
-    private static void logDomainReduction(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
+    private static void logDomainReduction(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull UtilityData data, FilteringSettings filteringSettings, String name) {
         BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(sourceGraph.vertexSet().size())).pow(targetGraph.vertexSet().size());
-        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent, name)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
+        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(filteringSettings, name)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
         NumberFormat formatter = new DecimalFormat("0.###E0", DecimalFormatSymbols.getInstance(Locale.ROOT));
         LOG.info(() -> "Reduced vertex matching domain from " + formatter.format(naiveVertexDomainSize) + " to " + formatter.format(vertexDomainSize));
     }
@@ -80,13 +81,13 @@ public class IsoFinder {
 
     private void setup(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull Settings settings, String name) throws DomainCheckerException {
         UtilityData data = new UtilityData(sourceGraph, targetGraph);
-        logDomainReduction(sourceGraph, targetGraph, data, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
+        logDomainReduction(sourceGraph, targetGraph, data, settings.filtering, name);
 
-        if (Arrays.stream(data.getCompatibility(settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name)).anyMatch(x -> x.length == 0)) {
+        if (Arrays.stream(data.getCompatibility(settings.filtering, name)).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
-        GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
-        vertexMatching = new VertexMatching(data, sourceGraph, occupation, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
+        GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.filtering, settings.whenToApply, name);
+        vertexMatching = new VertexMatching(data, sourceGraph, targetGraph, occupation, settings.filtering, name);
         edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
     }
 
@@ -111,7 +112,7 @@ public class IsoFinder {
         GreatestConstrainedFirst.Mapping mapping;
         MyGraph newSourceGraph;
         try {
-            mapping = new GreatestConstrainedFirst().apply(testcase.getSourceGraph());
+            mapping = GreatestConstrainedFirst.apply(testcase.getSourceGraph());
             newSourceGraph = mapping.graph;
             setup(newSourceGraph, testcase.getTargetGraph(), settings, name);
         } catch (DomainCheckerException e) {
@@ -122,7 +123,7 @@ public class IsoFinder {
         while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
             iterations++;
             if (System.currentTimeMillis() - lastPrint > 1000) {
-                //System.out.println(name + " is at " + iterations + " iterations...");
+                LOG.info(name + " is at " + iterations + " iterations...");
                 lastPrint = System.currentTimeMillis();
             }
             if (System.currentTimeMillis() > initialTime + timeout) {

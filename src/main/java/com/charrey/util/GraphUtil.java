@@ -2,6 +2,11 @@ package com.charrey.util;
 
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
+import gnu.trove.TCollections;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.jetbrains.annotations.NotNull;
@@ -10,7 +15,6 @@ import org.jgrapht.alg.connectivity.ConnectivityInspector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Utility methods for operations on graphs
@@ -18,7 +22,7 @@ import java.util.stream.Collectors;
 public class GraphUtil {
 
 
-    private static final Map<MyGraph, List<Integer>> cachedRandomVertexOrder = new ConcurrentHashMap<>();
+    private static final Map<MyGraph, TIntList> cachedRandomVertexOrder = new ConcurrentHashMap<>();
     private static final Map<MyGraph, ConnectivityInspector<Integer, MyEdge>> cachedComponents = new HashMap<>();
 
     /**
@@ -30,8 +34,8 @@ public class GraphUtil {
      * @return all vertices that have some neighbour in vertices.
      */
     @NotNull
-    public static Set<Integer> neighboursOf(@NotNull MyGraph graph, @NotNull Collection<Integer> vertices) {
-        Set<Integer> res = new HashSet<>();
+    public static TIntSet neighboursOf(@NotNull MyGraph graph, @NotNull Collection<Integer> vertices) {
+        TIntSet res = new TIntHashSet();
         vertices.stream().map(x -> Graphs.neighborSetOf(graph, x)).forEach(res::addAll);
         return res;
     }
@@ -75,9 +79,16 @@ public class GraphUtil {
      * @param source the vertex to search from
      * @return the set of all reachable vertices
      */
-    public synchronized static Set<Integer> reachableNeighbours(@NotNull MyGraph graph, int source) { //todo: only arcs, wires and SLICE
+    public synchronized static TIntSet reachableNeighbours(@NotNull MyGraph graph, int source) { //todo: only arcs, wires and SLICE
         cachedComponents.putIfAbsent(graph, new ConnectivityInspector<>(graph));
-        return cachedComponents.get(graph).connectedSetOf(source).stream().filter(x -> x != source).collect(Collectors.toUnmodifiableSet());
+        TIntSet toReturn = new TIntHashSet();
+        Set<Integer> connected = cachedComponents.get(graph).connectedSetOf(source);
+        for (Integer connectedInt : connected) {
+            if (connectedInt != source) {
+                toReturn.add(connectedInt);
+            }
+        }
+        return TCollections.unmodifiableSet(toReturn);
     }
 
     /**
@@ -88,13 +99,14 @@ public class GraphUtil {
      * @return vertices of the graph in deterministically random order.
      */
     @NotNull
-    public static List<Integer> randomVertexOrder(@NotNull MyGraph graph, @NotNull Random random) {
+    public static TIntList randomVertexOrder(@NotNull MyGraph graph, @NotNull Random random) {
         if (!cachedRandomVertexOrder.containsKey(graph)) {
             synchronized (graph) {
                 if (!cachedRandomVertexOrder.containsKey(graph)) {
-                    List<Integer> toAdd = new ArrayList<>(graph.vertexSet());
-                    Collections.shuffle(toAdd, random);
-                    toAdd = Collections.unmodifiableList(toAdd);
+                    TIntList toAdd = new TIntArrayList();
+                    graph.vertexSet().forEach(toAdd::add);
+                    toAdd.shuffle(random);
+                    toAdd = TCollections.unmodifiableList(toAdd);
                     cachedRandomVertexOrder.put(graph, toAdd);
                     return toAdd;
                 }
@@ -114,5 +126,10 @@ public class GraphUtil {
             counter++;
         }
         return MyGraph.applyOrdering(targetGraph, permutation, reversePermutation);
+    }
+
+    public static TIntSet radiusNeighbourHood(MyGraph sourceGraphVertex, int targetGraphVertex, int radius) {
+
+        throw new UnsupportedOperationException();
     }
 }

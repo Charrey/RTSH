@@ -1,52 +1,62 @@
-package com.charrey.runtimecheck;
+package com.charrey.pruning;
 
 import com.charrey.algorithms.UtilityData;
+import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Domain checker class that prunes the search space if all target graph vertices in some source graph vertex' domain
  * have been used up by other matchings.
  */
-public class EmptyDomainChecker extends DomainChecker {
+public class ZeroDomainPruner extends Pruner {
 
-    private final Integer[][] reverseDomain;
+    private final int[][] reverseDomain;
     @NotNull
-    private final Set<Integer>[] domain;
-
-    @Override
-    public DomainChecker copy() {
-        return new EmptyDomainChecker(this);
-    }
+    private final TIntSet[] domain;
 
     @SuppressWarnings("unchecked")
-    private EmptyDomainChecker(EmptyDomainChecker copyFrom) {
-        reverseDomain = new Integer[copyFrom.reverseDomain.length][];
+    private ZeroDomainPruner(ZeroDomainPruner copyFrom) {
+        reverseDomain = new int[copyFrom.reverseDomain.length][];
         for (int i = 0; i < copyFrom.reverseDomain.length; i++) {
             reverseDomain[i] = copyFrom.reverseDomain[i].clone();
         }
-        domain = (Set<Integer>[]) Array.newInstance(Set.class, copyFrom.domain.length);
+        domain = (TIntSet[]) Array.newInstance(Set.class, copyFrom.domain.length);
         for (int i = 0; i < copyFrom.domain.length; i++) {
-            domain[i] = new HashSet<>(copyFrom.domain[i]);
+            domain[i] = new TIntHashSet(copyFrom.domain[i]);
         }
     }
 
-
     /**
-     * Instantiates a new EmptyDomainChecker
+     * Instantiates a new ZeroDomainPruner
      *
-     * @param data                          utility data (for cached computation)
-     * @param initialNeighbourHoodFiltering whether domain filtering based on neighbourhoods should be performed.
-     * @param initialGlobalAllDifferent     whether alldifferent needs to be applied initially to reduce domain sizes.
+     * @param data utility data (for cached computation)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public EmptyDomainChecker(@NotNull UtilityData data, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
-        this.reverseDomain = data.getReverseCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent, name);
-        this.domain = (Set[]) Arrays.stream(data.getCompatibility(initialNeighbourHoodFiltering, initialGlobalAllDifferent, name)).map(x -> new HashSet(Arrays.asList(x))).toArray(Set[]::new);
+    public ZeroDomainPruner(@NotNull UtilityData data, FilteringSettings filteringSettings, String name, boolean cached) {
+        this.reverseDomain = data.getReverseCompatibility(filteringSettings, name);
+        this.domain = Arrays.stream(data.getCompatibility(filteringSettings, name)).map(TIntHashSet::new).toArray(TIntSet[]::new);
+    }
+
+    @Override
+    public Pruner copy() {
+        return new ZeroDomainPruner(this);
+    }
+
+    @Override
+    public int serialized() {
+        return 1;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return getClass().equals(o.getClass());
     }
 
     @Override
@@ -72,7 +82,7 @@ public class EmptyDomainChecker extends DomainChecker {
 
 
     private void afterRelease(int v) {
-        Integer[] candidates = reverseDomain[v];
+        int[] candidates = reverseDomain[v];
         for (int i = candidates.length - 1; i >= 0; i--) {
             assert !domain[candidates[i]].contains(v);
             domain[candidates[i]].add(v);
@@ -81,18 +91,18 @@ public class EmptyDomainChecker extends DomainChecker {
 
     @Override
     public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int v) {
-        Integer[] candidates = reverseDomain[v];
+        int[] candidates = reverseDomain[v];
         for (int i = candidates.length - 1; i >= 0; i--) {
             domain[candidates[i]].remove(v);
         }
     }
 
     private void afterOccupy(int verticesPlaced, int v) throws DomainCheckerException {
-        Integer[] candidates = reverseDomain[v];
+        int[] candidates = reverseDomain[v];
         for (int i = candidates.length - 1; i >= 0; i--) {
             domain[candidates[i]].remove(v);
         }
-        if (Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().anyMatch(Set::isEmpty)) {
+        if (Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().anyMatch(TIntSet::isEmpty)) {
             for (int i = candidates.length - 1; i >= 0; i--) {
                 domain[candidates[i]].add(v);
             }
@@ -102,13 +112,13 @@ public class EmptyDomainChecker extends DomainChecker {
 
     @Override
     public boolean isUnfruitful(int verticesPlaced) {
-        return Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().anyMatch(Set::isEmpty);
+        return Arrays.asList(domain).subList(verticesPlaced, domain.length).stream().anyMatch(TIntSet::isEmpty);
     }
 
 
     @NotNull
     @Override
     public String toString() {
-        return "EmptyDomainChecker{" + "domain=" + Arrays.toString(domain) + '}';
+        return "ZeroDomainPruner{" + "domain=" + Arrays.toString(domain) + '}';
     }
 }

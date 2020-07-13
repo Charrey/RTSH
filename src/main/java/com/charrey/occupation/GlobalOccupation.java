@@ -1,13 +1,24 @@
 package com.charrey.occupation;
 
 import com.charrey.algorithms.UtilityData;
-import com.charrey.runtimecheck.*;
-import com.charrey.settings.PruningConstants;
+import com.charrey.pruning.AllDifferentPruner;
+import com.charrey.pruning.NoPruner;
+import com.charrey.pruning.Pruner;
+import com.charrey.pruning.ZeroDomainPruner;
+import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.settings.Settings;
+import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import gnu.trove.TCollections;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -18,11 +29,11 @@ import java.util.stream.IntStream;
 public class GlobalOccupation extends AbstractOccupation {
 
     @NotNull
-    private final Set<Integer> routingBits;
+    private final TIntSet routingBits;
     @NotNull
-    private final Set<Integer> vertexBits;
+    private final TIntSet vertexBits;
     @NotNull
-    private final DomainChecker domainChecker;
+    private final Pruner domainChecker;
     private final UtilityData data;
 
     /**
@@ -32,33 +43,34 @@ public class GlobalOccupation extends AbstractOccupation {
      * @param settings settings for this homeomorphism search
      */
     public GlobalOccupation(@NotNull UtilityData data, @NotNull Settings settings, String name) {
-        this(data, settings.pruningMethod, settings.initialNeighbourhoodFiltering, settings.initialGlobalAllDifferent, name);
+        this(data, settings.pruningMethod, settings.filtering, settings.whenToApply, name);
     }
 
     /**
      * Instantiates a new Global occupation.
      *
-     * @param data                          the data
-     * @param runTimeCheck                  the run time check
-     * @param initialNeighbourHoodFiltering the initial neighbour hood filtering
-     * @param initialGlobalAllDifferent     the initial global all different
+     * @param data         the data
+     * @param runTimeCheck the run time check
      */
-    public GlobalOccupation(@NotNull UtilityData data, int runTimeCheck, boolean initialNeighbourHoodFiltering, boolean initialGlobalAllDifferent, String name) {
+    public GlobalOccupation(@NotNull UtilityData data, int runTimeCheck, FilteringSettings filteringSettings, PruningApplicationConstants whenToApply, String name) {
         switch (runTimeCheck) {
             case PruningConstants.NONE:
-                domainChecker = new DummyDomainChecker();
+                domainChecker = new NoPruner();
                 break;
             case PruningConstants.EMPTY_DOMAIN:
-                domainChecker = new EmptyDomainChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent, name);
+                domainChecker = new ZeroDomainPruner(data, filteringSettings, name, whenToApply == PruningApplicationConstants.CACHED);
                 break;
             case PruningConstants.ALL_DIFFERENT:
-                domainChecker = new AllDifferentChecker(data, initialNeighbourHoodFiltering, initialGlobalAllDifferent, name);
+                if (whenToApply == PruningApplicationConstants.SERIAL) {
+                    throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
+                }
+                domainChecker = new AllDifferentPruner(data, filteringSettings, name);
                 break;
             default:
                 throw new UnsupportedOperationException();
         }
-        this.routingBits = new HashSet<>();
-        this.vertexBits = new HashSet<>();
+        this.routingBits = new TIntHashSet();
+        this.vertexBits = new TIntHashSet();
         this.data = data;
     }
 
@@ -68,7 +80,7 @@ public class GlobalOccupation extends AbstractOccupation {
      * @return the transaction
      */
     public OccupationTransaction getTransaction() {
-        return new OccupationTransaction(new HashSet<>(routingBits), new HashSet<>(vertexBits), domainChecker.copy(), data, this);
+        return new OccupationTransaction(new TIntHashSet(routingBits), new TIntHashSet(vertexBits), domainChecker.copy(), data, this);
     }
 
 
@@ -170,12 +182,12 @@ public class GlobalOccupation extends AbstractOccupation {
 
     @Override
     public String toString() {
-        Set<Integer> myList = new HashSet<>();
+        TIntSet myList = new TIntHashSet();
         myList.addAll(IntStream.range(0, routingBits.size()).filter(this.routingBits::contains).boxed().collect(Collectors.toSet()));
         myList.addAll(this.vertexBits);
-        assert myList.stream().allMatch(this::isOccupied);
-        List<Integer> res = new LinkedList<>(myList);
-        Collections.sort(res);
+        //assert myList.stream().allMatch(this::isOccupied);
+        TIntList res = new TIntArrayList(myList);
+        res.sort();
         return res.toString();
 
     }
@@ -199,8 +211,8 @@ public class GlobalOccupation extends AbstractOccupation {
      *
      * @return the set of vertices being used as intermediate vertex.
      */
-    public Set<Integer> getRoutingOccupied() {
-        return Collections.unmodifiableSet(this.routingBits);
+    public TIntSet getRoutingOccupied() {
+        return TCollections.unmodifiableSet(this.routingBits);
     }
 
 

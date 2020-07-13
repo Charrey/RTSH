@@ -1,17 +1,16 @@
-package com.charrey.settings.iteratorspecific;
+package com.charrey.settings.iterator;
 
 import com.charrey.settings.PathIterationConstants;
 
-public final class DFSStrategy extends IteratorSettings {
+public final class GreedyDFSStrategy extends IteratorSettings {
 
-    public DFSStrategy() {
-        super(PathIterationConstants.DFS_ARBITRARY);
+    public GreedyDFSStrategy() {
+        super(PathIterationConstants.DFS_GREEDY);
     }
-
 
     @Override
     public int serialized() {
-        return PathIterationConstants.DFS_ARBITRARY;
+        return PathIterationConstants.DFS_GREEDY;
     }
 
     @Override
@@ -21,11 +20,11 @@ public final class DFSStrategy extends IteratorSettings {
 
     @Override
     public int hashCode() {
-        return PathIterationConstants.DFS_ARBITRARY;
+        return PathIterationConstants.DFS_GREEDY;
     }
 
     @Override
     public String toString() {
-        return "DFS            ";
+        return "Greedy DFS     ";
     }
 }

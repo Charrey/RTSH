@@ -6,13 +6,13 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -51,7 +51,7 @@ public class ManagedControlPointIterator extends PathIterator {
         this.globalOccupation = globalOccupation;
         this.transaction = globalOccupation.getTransaction();
         this.settings = new ControlPointIteratorRelevantSettings(true);
-        this.child = new ControlPointIterator(graph, tail, head, transaction, new HashSet<>(), controlPoints, verticesPlaced, settings);
+        this.child = new ControlPointIterator(graph, tail, head, transaction, new TIntHashSet(), controlPoints, verticesPlaced, settings);
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
     }
@@ -83,7 +83,7 @@ public class ManagedControlPointIterator extends PathIterator {
                 if (settings.log) {
                     System.out.println("Raising control point count to " + controlPoints);
                 }
-                Set<Integer> localOccupation = new HashSet<>();
+                TIntSet localOccupation = new TIntHashSet();
                 localOccupation.add(head());
                 child = new ControlPointIterator(graph, tail(), head(), transaction, localOccupation, controlPoints, verticesPlaced, settings);
             }
@@ -98,7 +98,7 @@ public class ManagedControlPointIterator extends PathIterator {
     private boolean rightShiftPossible() {
         int left = tail();
         List<Path> intermediatePaths = intermediatePaths();
-        List<Set<Integer>> localOccupations = localOccupations();
+        List<TIntSet> localOccupations = localOccupations();
         Path leftToMiddle = intermediatePaths.get(0);
         Path middleToRight = intermediatePaths.get(1);
         Path leftToRight = ControlPointIterator.merge(graph, leftToMiddle, middleToRight);
@@ -106,7 +106,7 @@ public class ManagedControlPointIterator extends PathIterator {
         for (int i = 0; i < middleToRight.intermediate().size(); i++){
             int middleAlt = middleToRight.intermediate().get(i);
             Path middleAltToRight = new Path(graph, middleToRight.asList().subList(i + 1, middleToRight.length()));
-            Set<Integer> fictionalLocalOccupation = new HashSet<>(localOccupations.get(1));
+            TIntSet fictionalLocalOccupation = new TIntHashSet(localOccupations.get(1));
             middleAltToRight.forEach(fictionalLocalOccupation::add);
             Path leftToMiddleAlt = ControlPointIterator.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail());
             assert leftToMiddleAlt != null;
@@ -128,7 +128,7 @@ public class ManagedControlPointIterator extends PathIterator {
         int right = controlPoints.size() > 1 ? controlPoints.get(1) : head();
 
         List<Path> intermediatePaths = intermediatePaths();
-        List<Set<Integer>> localOccupations = localOccupations();
+        List<TIntSet> localOccupations = localOccupations();
         Path middleToRight = intermediatePaths.get(1);
         Path leftToRight = ControlPointIterator.merge(graph, intermediatePaths.get(0), intermediatePaths.get(1));
 
@@ -156,14 +156,14 @@ public class ManagedControlPointIterator extends PathIterator {
     }
 
     @NotNull
-    private List<Set<Integer>> localOccupations() {
+    private List<TIntSet> localOccupations() {
         ControlPointIterator current = child;
-        List<Set<Integer>> res = new LinkedList<>();
+        List<TIntSet> res = new LinkedList<>();
         while (current != null) {
             res.add(0, current.getLocalOccupation());
             current = current.getChild();
         }
-        res.add(new HashSet<>());
+        res.add(new TIntHashSet());
         res.remove(0);
         return res;
     }

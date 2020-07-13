@@ -4,13 +4,13 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.AbstractOccupation;
 import com.charrey.util.GraphUtil;
+import gnu.trove.list.TIntList;
+import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 /**
  * Class that iterates over vertex suitable as control point for the ControlPointIterator class
@@ -20,9 +20,9 @@ public class ControlPointVertexSelector implements Iterator<Integer> {
     @NotNull
     private final AbstractOccupation occupation;
     @Nullable
-    private final List<Integer> vertices;
+    private final TIntList vertices;
     @NotNull
-    private final Set<Integer> localOccupation;
+    private final TIntSet localOccupation;
     private int indexTried = -1;
 
 
@@ -39,7 +39,7 @@ public class ControlPointVertexSelector implements Iterator<Integer> {
      */
     ControlPointVertexSelector(@NotNull MyGraph graph,
                                @NotNull AbstractOccupation occupation,
-                               @NotNull Set<Integer> initialLocalOccupation,
+                               @NotNull TIntSet initialLocalOccupation,
                                int from,
                                int to,
                                boolean refuseLongerPaths,

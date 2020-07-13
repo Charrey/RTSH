@@ -7,6 +7,9 @@ import com.charrey.occupation.AbstractOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
+import gnu.trove.TCollections;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graph;
@@ -15,7 +18,10 @@ import org.jgrapht.Graphs;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.graph.MaskSubgraph;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -26,7 +32,7 @@ class ControlPointIterator extends PathIterator {
 
     private final int controlPoints;
     @NotNull
-    private final Set<Integer> localOccupation;
+    private final TIntSet localOccupation;
     private final int head;
     @NotNull
     private final MyGraph targetGraph;
@@ -49,7 +55,7 @@ class ControlPointIterator extends PathIterator {
     @Nullable
     private Path pathFromRightNeighbourToItsRightNeighbour = null;
     @Nullable
-    private Set<Integer> previousLocalOccupation = null;
+    private TIntSet previousLocalOccupation = null;
 
     /**
      * Instantiates a new ControlPointIterator.
@@ -67,7 +73,7 @@ class ControlPointIterator extends PathIterator {
                          int tail,
                          int head,
                          @NotNull OccupationTransaction occupation,
-                         @NotNull Set<Integer> initialLocalOccupation,
+                         @NotNull TIntSet initialLocalOccupation,
                          int controlPoints,
                          Supplier<Integer> verticesPlaced,
                          ControlPointIteratorRelevantSettings settings) {
@@ -77,7 +83,7 @@ class ControlPointIterator extends PathIterator {
         this.localOccupation = initialLocalOccupation;
         this.occupation = occupation;
         this.head = head;
-        this.controlPointCandidates = new ControlPointVertexSelector(targetGraph, occupation, Collections.unmodifiableSet(initialLocalOccupation), tail, head, refuseLongerPaths, tail);
+        this.controlPointCandidates = new ControlPointVertexSelector(targetGraph, occupation, TCollections.unmodifiableSet(initialLocalOccupation), tail, head, refuseLongerPaths, tail);
         this.verticesPlaced = verticesPlaced;
         this.settings = settings;
     }
@@ -95,7 +101,7 @@ class ControlPointIterator extends PathIterator {
      * @return the path
      */
     @Nullable
-    static Path filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull AbstractOccupation globalOccupation, @NotNull Set<Integer> localOccupation, int from, int to, boolean refuseLongerPaths, int tail) {
+    static Path filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull AbstractOccupation globalOccupation, @NotNull TIntSet localOccupation, int from, int to, boolean refuseLongerPaths, int tail) {
         assert targetGraph.containsVertex(from);
         assert targetGraph.containsVertex(to);
         Graph<Integer, MyEdge> fakeGraph = new MaskSubgraph<>(targetGraph, x ->
@@ -127,18 +133,27 @@ class ControlPointIterator extends PathIterator {
         return toReturn;
     }
 
-    private void setRightNeighbourOfRightNeighbour(int vertex, Path localOccupiedForThatPath, Set<Integer> previousLocalOccupation) {
-        this.rightNeighbourOfRightNeighbour = vertex;
-        this.pathFromRightNeighbourToItsRightNeighbour = localOccupiedForThatPath;
-        this.previousLocalOccupation = previousLocalOccupation;
-    }
-
-    private static boolean violatesLongerPaths(Graph<Integer, MyEdge> targetGraph, int allowableIntermediateVertex, int from, int to, int goal, Set<Integer> localOccupation) {
+    private static boolean violatesLongerPaths(Graph<Integer, MyEdge> targetGraph, int allowableIntermediateVertex, int from, int to, int goal, TIntSet localOccupation) {
         if (goal != from && (targetGraph.getEdge(goal, allowableIntermediateVertex) != null)) {
             return true;
         }
         List<Integer> intermediateVertexSuccessors = Graphs.successorListOf(targetGraph, allowableIntermediateVertex);
-        return localOccupation.stream().filter(y -> to != y).anyMatch(intermediateVertexSuccessors::contains);
+
+        final boolean[] toReturnTrue = {false};
+        localOccupation.forEach(y -> {
+            if (y != to && intermediateVertexSuccessors.contains(y)) {
+                toReturnTrue[0] = true;
+                return false;
+            }
+            return true;
+        });
+        return toReturnTrue[0];
+    }
+
+    private void setRightNeighbourOfRightNeighbour(int vertex, Path localOccupiedForThatPath, TIntSet previousLocalOccupation) {
+        this.rightNeighbourOfRightNeighbour = vertex;
+        this.pathFromRightNeighbourToItsRightNeighbour = localOccupiedForThatPath;
+        this.previousLocalOccupation = previousLocalOccupation;
     }
 
     @Nullable
@@ -186,7 +201,7 @@ class ControlPointIterator extends PathIterator {
                 int middleAlt = middleToRight.intermediate().get(i);
                 Path middleAltToRight = new Path(targetGraph, middleToRight.asList().subList(i + 1, middleToRight.length()));
 
-                Set<Integer> fictionalOccupation = new HashSet<>(previousLocalOccupation);
+                TIntSet fictionalOccupation = new TIntHashSet(previousLocalOccupation);
                 middleAltToRight.forEach(fictionalOccupation::add);
                 Collection<Integer> temporarilyRemoveGlobal = middleToRight.asList().subList(0, middleToRight.length() - 1);
                 temporarilyRemoveGlobal.forEach(x -> occupation.releaseRouting(verticesPlaced.get(), x));
@@ -330,9 +345,9 @@ class ControlPointIterator extends PathIterator {
                         continue;
                     }
 
-                    Set<Integer> previousOccupation = new HashSet<>(localOccupation);
+                    TIntSet previousOccupation = new TIntHashSet(localOccupation);
                     chosenPath.forEach(localOccupation::add);
-                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, occupation, new HashSet<>(localOccupation), controlPoints - 1, verticesPlaced, settings);
+                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, occupation, new TIntHashSet(localOccupation), controlPoints - 1, verticesPlaced, settings);
                     child.setRightNeighbourOfRightNeighbour(this.head(), chosenPath, previousOccupation);
                 } else {
                     if (settings.log) {
@@ -340,7 +355,7 @@ class ControlPointIterator extends PathIterator {
                     }
                 }
             } else {
-                Set<Integer> previousLocalOccupation = new HashSet<>(localOccupation);
+                TIntSet previousLocalOccupation = new TIntHashSet(localOccupation);
                 Path childsPath = child.next();
                 assert childsPath == null || childsPath.intermediate().stream().noneMatch(previousLocalOccupation::contains);
                 assert chosenPath != null;
@@ -408,8 +423,8 @@ class ControlPointIterator extends PathIterator {
      * @return the local occupation
      */
     @NotNull
-    Set<Integer> getLocalOccupation() {
-        return Collections.unmodifiableSet(localOccupation);
+    TIntSet getLocalOccupation() {
+        return TCollections.unmodifiableSet(localOccupation);
     }
 
     /**

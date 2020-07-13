@@ -2,9 +2,10 @@ package com.charrey.occupation;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
-import com.charrey.runtimecheck.DomainChecker;
+import com.charrey.pruning.Pruner;
 import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.util.MyLinkedList;
+import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -18,9 +19,9 @@ import java.util.Set;
  */
 public class OccupationTransaction extends AbstractOccupation {
 
-    private final Set<Integer> routingOccupied;
-    private final Set<Integer> vertexOccupied;
-    private final DomainChecker domainChecker;
+    private final TIntSet routingOccupied;
+    private final TIntSet vertexOccupied;
+    private final Pruner domainChecker;
     private final GlobalOccupation parent;
 
     private final MyLinkedList<TransactionElement> waiting = new MyLinkedList<>();
@@ -36,7 +37,7 @@ public class OccupationTransaction extends AbstractOccupation {
      * @param data            utility data for cached computations
      * @param parent          GlobalOccupation to which changes may be committed
      */
-    OccupationTransaction(Set<Integer> routingOccupied, Set<Integer> vertexOccupied, DomainChecker domainChecker, UtilityData data, GlobalOccupation parent) {
+    OccupationTransaction(TIntSet routingOccupied, TIntSet vertexOccupied, Pruner domainChecker, UtilityData data, GlobalOccupation parent) {
         this.routingOccupied = routingOccupied;
         this.vertexOccupied = vertexOccupied;
         this.domainChecker = domainChecker;

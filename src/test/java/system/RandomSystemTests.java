@@ -10,9 +10,11 @@ import com.charrey.graph.generation.succeed.RandomSucceedUndirectedTestCaseGener
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.TimeoutResult;
 import com.charrey.settings.PathIterationConstants;
-import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iteratorspecific.ControlPointIteratorStrategy;
+import com.charrey.settings.iterator.ControlPointIteratorStrategy;
+import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +26,7 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private static final Pattern newline = Pattern.compile("\r\n");
-    private final Settings settings = new Settings(true, true, true, PruningConstants.ALL_DIFFERENT, new ControlPointIteratorStrategy(5));
+    private final Settings settings = new Settings(new LabelDegreeFiltering(), true, PruningConstants.ALL_DIFFERENT, new ControlPointIteratorStrategy(5), PruningApplicationConstants.CACHED);
 
 
     @Test
@@ -73,31 +75,34 @@ class RandomSystemTests extends SystemTest {
 
             for (int i = 0; i < iterations; i++) {
                 TestCase testCase = graphGen.getNext();
-                System.out.println(testCase.getSourceGraph());
-                System.out.println(testCase.getTargetGraph());
+                //System.out.println(testCase.getSourceGraph());
+                //System.out.println(testCase.getTargetGraph());
                 patternNodes = testCase.getSourceGraph().vertexSet().size();
                 patternEdges = testCase.getSourceGraph().edgeSet().size();
 
-                HomeomorphismResult homeomorphism;
-                try {
-                    homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge, time - (System.currentTimeMillis() - start), settings) : new IsoFinder().getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start), "RANDOMSYSTEST  ");
-                    assert homeomorphism instanceof TimeoutResult || homeomorphism.succeed || !writeChallenge;
-                } catch (AssertionError e) {
-                    System.err.println(attempts);
-                    throw e;
-                }
-                if (homeomorphism instanceof TimeoutResult) {
-                    return;
+                HomeomorphismResult homeomorphism = null;
+
+                if (attempts >= 56) {
+                    try {
+                        homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge, time - (System.currentTimeMillis() - start), settings) : new IsoFinder().getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start), "RANDOMSYSTEST  ");
+                        assert homeomorphism instanceof TimeoutResult || homeomorphism.succeed || !writeChallenge;
+                    } catch (AssertionError e) {
+                        System.err.println(attempts);
+                        throw e;
+                    }
+                    if (homeomorphism instanceof TimeoutResult) {
+                        return;
+                    }
+                    total += homeomorphism.iterations;
+                    if (homeomorphism.succeed) {
+                        casesSucceed++;
+                    } else if (homeomorphism.iterations == 0) {
+                        casesCompatibilityFailed++;
+                    } else {
+                        casesFailed++;
+                    }
                 }
                 attempts++;
-                total += homeomorphism.iterations;
-                if (homeomorphism.succeed) {
-                    casesSucceed++;
-                } else if (homeomorphism.iterations == 0) {
-                    casesCompatibilityFailed++;
-                } else {
-                    casesFailed++;
-                }
             }
             totalIterations += (total / iterations);
             System.out.println(patternNodes + "\t" + patternEdges + "\t" + (long) totalIterations + "\t" + casesSucceed + "/" + iterations + "\t" + casesCompatibilityFailed + "/" + iterations + "\t" + casesFailed + "/" + iterations + "\t");

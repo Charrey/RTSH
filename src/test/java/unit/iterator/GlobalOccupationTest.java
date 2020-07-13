@@ -7,17 +7,18 @@ import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerat
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.runtimecheck.DomainCheckerException;
-import com.charrey.settings.PruningConstants;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iteratorspecific.*;
+import com.charrey.settings.iterator.*;
+import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -28,11 +29,10 @@ class GlobalOccupationTest {
     private final static int trials = 20;
 
     private final Settings settings = new Settings(
-            true,
-            true,
+            new LabelDegreeFiltering(),
             true,
             PruningConstants.ALL_DIFFERENT,
-            new ControlPointIteratorStrategy(3)
+            new ControlPointIteratorStrategy(3), PruningApplicationConstants.SERIAL
     );
 
     @Test
@@ -85,8 +85,8 @@ class GlobalOccupationTest {
                 PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);
                 Path path;
                 while ((path = iterator.next()) != null) {
-                    Set<Integer> occupationSays = occupation.getRoutingOccupied();
-                    Set<Integer> pathSays = new HashSet<>(path.intermediate());
+                    TIntSet occupationSays = occupation.getRoutingOccupied();
+                    TIntSet pathSays = new TIntHashSet(path.intermediate());
                     assertEquals(occupationSays, pathSays, "Iteration: " + counter);
                 }
             }
