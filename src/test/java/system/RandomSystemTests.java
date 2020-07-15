@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private static final Pattern newline = Pattern.compile("\r\n");
-    private final Settings settings = new Settings(new LabelDegreeFiltering(), true, PruningConstants.ALL_DIFFERENT, new ControlPointIteratorStrategy(5), PruningApplicationConstants.CACHED);
+    private final Settings settings = new Settings(new LabelDegreeFiltering(), true, PruningConstants.ZERODOMAIN, new ControlPointIteratorStrategy(5), PruningApplicationConstants.CACHED);
 
 
     @Test
@@ -88,6 +88,8 @@ class RandomSystemTests extends SystemTest {
                         assert homeomorphism instanceof TimeoutResult || homeomorphism.succeed || !writeChallenge;
                     } catch (AssertionError e) {
                         System.err.println(attempts);
+                        System.err.println(testCase.getSourceGraph());
+                        System.err.println(testCase.getTargetGraph());
                         throw e;
                     }
                     if (homeomorphism instanceof TimeoutResult) {

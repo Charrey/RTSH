@@ -20,16 +20,15 @@ public class CachedZeroDomainPruner extends DefaultCachedPruner {
 
     @NotNull
     private final List<TIntSet> reverseDomain;
-    @NotNull
-    private final List<TIntSet> domain;
+    //@NotNull
+    //private final List<TIntSet> domain;
 
     private CachedZeroDomainPruner(CachedZeroDomainPruner copyFrom) {
-        super(copyFrom.filter, copyFrom.sourceGraph, copyFrom.targetGraph, copyFrom.occupation);
+        super(copyFrom.filter, copyFrom.sourceGraph, copyFrom.targetGraph, copyFrom.occupation, false);
         reverseDomain = new ArrayList<>(copyFrom.sourceGraph.vertexSet().size());
         for (int i = 0; i < copyFrom.reverseDomain.size(); i++) {
             reverseDomain.add(new TIntHashSet(copyFrom.reverseDomain.get(i)));
         }
-        domain = new ArrayList<>(copyFrom.sourceGraph.vertexSet().size());
         for (int i = 0; i < copyFrom.domain.size(); i++) {
             domain.add(new TIntHashSet(copyFrom.domain.get(i)));
         }
@@ -41,9 +40,8 @@ public class CachedZeroDomainPruner extends DefaultCachedPruner {
      * @param data utility data (for cached computation)
      */
     public CachedZeroDomainPruner(@NotNull UtilityData data, FilteringSettings filteringSettings, String name, GlobalOccupation occupation) {
-        super(filteringSettings, data.getPatternGraph(), data.getTargetGraph(), occupation);
+        super(filteringSettings, data.getPatternGraph(), data.getTargetGraph(), occupation, true);
         this.reverseDomain = Arrays.stream(data.getReverseCompatibility(filteringSettings, name)).map(TIntHashSet::new).collect(Collectors.toUnmodifiableList());
-        this.domain = Arrays.stream(data.getCompatibility(filteringSettings, name)).map(TIntHashSet::new).collect(Collectors.toUnmodifiableList());
     }
 
     @Override

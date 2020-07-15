@@ -25,23 +25,23 @@ public class AllDifferentPruner extends DefaultCachedPruner {
     @NotNull
     private final AllDifferent allDifferent;
 
-    @NotNull
-    private final List<TIntSet> domain2;
+//    @NotNull
+//    private final List<TIntSet> domain;
 
-    private final int[][] reverseDomain;
+    private final List<TIntList> reverseDomain2;
+
     @NotNull
     private final TIntSet[] previousDomain;
 
     private AllDifferentPruner(AllDifferentPruner copyOf) {
-        super(copyOf.filter, copyOf.sourceGraph, copyOf.targetGraph, copyOf.occupation);
-        reverseDomain = new int[copyOf.reverseDomain.length][];
-        for (int i = 0; i < copyOf.reverseDomain.length; i++) {
-            reverseDomain[i] = copyOf.reverseDomain[i].clone();
+        super(copyOf.filter, copyOf.sourceGraph, copyOf.targetGraph, copyOf.occupation, false);
+        reverseDomain2 = new ArrayList<>(copyOf.reverseDomain2.size());
+        for (int i = 0; i < copyOf.reverseDomain2.size(); i++) {
+            reverseDomain2.add(new TIntArrayList(copyOf.reverseDomain2.get(i)));
         }
         this.allDifferent = copyOf.allDifferent;
-        domain2 = new ArrayList<>(copyOf.sourceGraph.vertexSet().size());
-        for (int i = 0; i < copyOf.domain2.size(); i++) {
-            domain2.add(new TIntHashSet(copyOf.domain2.get(i)));
+        for (int i = 0; i < copyOf.domain.size(); i++) {
+            domain.add(new TIntHashSet(copyOf.domain.get(i)));
         }
         previousDomain = (TIntSet[]) Array.newInstance(TIntSet.class, copyOf.previousDomain.length);
         for (int i = 0; i < copyOf.previousDomain.length; i++) {
@@ -55,21 +55,19 @@ public class AllDifferentPruner extends DefaultCachedPruner {
      * @param data utility data (for cached computation)
      */
     public AllDifferentPruner(@NotNull UtilityData data, FilteringSettings filteringSettings, String name, GlobalOccupation occupation) {
-        super(filteringSettings, data.getPatternGraph(), data.getTargetGraph(), occupation);
+        super(filteringSettings, data.getPatternGraph(), data.getTargetGraph(), occupation, true);
         this.allDifferent = new AllDifferent();
-        reverseDomain = data.getReverseCompatibility(filteringSettings, name);
-        this.domain2 = Arrays.stream(data.getCompatibility(filteringSettings, name)).map(TIntHashSet::new).collect(Collectors.toList());
-        previousDomain = (TIntSet[]) Array.newInstance(TIntSet.class, domain2.size());
+        previousDomain = (TIntSet[]) Array.newInstance(TIntSet.class, domain.size());
+        reverseDomain2 = Arrays.stream(data.getReverseCompatibility(filteringSettings, name)).map(TIntArrayList::new).collect(Collectors.toList());
     }
 
     private void popVertex(int data) {
-        //assert vertexState[data].size() == 1;
         TIntSet popped = previousDomain[data];
-        domain2.set(data, popped);
+        domain.set(data, popped);
     }
 
     private void pushVertex(int data) {
-        previousDomain[data] = new TIntHashSet(domain2.get(data));
+        previousDomain[data] = new TIntHashSet(domain.get(data));
     }
 
     @Override
@@ -79,34 +77,34 @@ public class AllDifferentPruner extends DefaultCachedPruner {
 
     @Override
     public void afterReleaseVertex(int verticesPlaced, int v) {
-        int[] candidates = reverseDomain[v];
-        for (int i = candidates.length - 1; i >= 0 && candidates[i] > verticesPlaced; i--) {
-            assert !domain2.get(candidates[i]).contains(v);
-            domain2.get(candidates[i]).add(v);
+        TIntList candidates2 = reverseDomain2.get(v);
+        for (int i = candidates2.size() - 1; i >= 0 && candidates2.get(i) > verticesPlaced; i--) {
+            assert !domain.get(candidates2.get(i)).contains(v);
+            domain.get(candidates2.get(i)).add(v);
         }
         TIntSet popped = previousDomain[verticesPlaced];
-        domain2.get(verticesPlaced).addAll(popped);
+        domain.get(verticesPlaced).addAll(popped);
     }
 
     @Override
     public void afterReleaseEdge(int verticesPlaced, int v) {
-        int[] candidates = reverseDomain[v];
-        for (int i = candidates.length - 1; i >= 0 && candidates[i] >= verticesPlaced; i--) {
-            domain2.get(candidates[i]).add(v);
+        TIntList candidates2 = reverseDomain2.get(v);
+        for (int i = candidates2.size() - 1; i >= 0 && candidates2.get(i) >= verticesPlaced; i--) {
+            domain.get(candidates2.get(i)).add(v);
         }
     }
 
     @Override
     public void beforeOccupyVertex(int verticesPlaced, int v) throws DomainCheckerException {
-        int[] candidates = reverseDomain[v];
+        TIntList candidates2 = reverseDomain2.get(v);
         int sourceVertexData = verticesPlaced - 1;
         pushVertex(sourceVertexData);
-        domain2.get(sourceVertexData).clear();
-        domain2.get(sourceVertexData).add(v);
-        removeFromDomains(v, candidates, sourceVertexData);
+        domain.get(sourceVertexData).clear();
+        domain.get(sourceVertexData).add(v);
+        removeFromDomains(v, candidates2, sourceVertexData);
         if (isUnfruitfulCached(verticesPlaced)) {
-            for (int i = candidates.length - 1; i >= 0 && candidates[i] > sourceVertexData; i--) {
-                domain2.get(candidates[i]).add(v);
+            for (int i = candidates2.size() - 1; i >= 0 && candidates2.get(i) > sourceVertexData; i--) {
+                domain.get(candidates2.get(i)).add(v);
             }
             popVertex(sourceVertexData);
             throw new DomainCheckerException("AllDifferent constraint failed after occupying vertex " + v);
@@ -116,45 +114,47 @@ public class AllDifferentPruner extends DefaultCachedPruner {
 
     @Override
     public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int v) {
-        int[] candidates = reverseDomain[v];
+        TIntList candidates2 = reverseDomain2.get(v);
         int sourceVertexData = verticesPlaced - 1;
-        removeFromDomains(v, candidates, sourceVertexData);
+        removeFromDomains(v, candidates2, sourceVertexData);
     }
 
     @Override
     public void afterOccupyEdge(int verticesPlaced, int v) throws DomainCheckerException {
-        int[] candidates = reverseDomain[v];
+        TIntList candidates2 = reverseDomain2.get(v);
         int sourceVertexData = verticesPlaced - 1;
-        removeFromDomains(v, candidates, sourceVertexData);
+        removeFromDomains(v, candidates2, sourceVertexData);
+
+
         if (isUnfruitfulCached(verticesPlaced)) {
-            for (int i = candidates.length - 1; i >= 0 && candidates[i] > sourceVertexData; i--) {
-                domain2.get(candidates[i]).add(v);
+            for (int i = candidates2.size() - 1; i >= 0 && candidates2.get(i) > sourceVertexData; i--) {
+                domain.get(candidates2.get(i)).add(v);
             }
             throw new DomainCheckerException("AllDifferent constraint failed after occupying routing vertex " + v);
         }
     }
 
 
-    private void removeFromDomains(int placedTarget, int[] sourcegraphCandidates, int sourceVertexData) {
-        for (int i = sourcegraphCandidates.length - 1; i >= 0 && sourcegraphCandidates[i] > sourceVertexData; i--) {
-            assert domain2.get(sourcegraphCandidates[i]).contains(placedTarget);
-            domain2.get(sourcegraphCandidates[i]).remove(placedTarget);
+    private void removeFromDomains(int placedTarget, TIntList sourcegraphCandidates, int sourceVertexData) {
+        for (int i = sourcegraphCandidates.size() - 1; i >= 0 && sourcegraphCandidates.get(i) > sourceVertexData; i--) {
+            assert domain.get(sourcegraphCandidates.get(i)).contains(placedTarget);
+            domain.get(sourcegraphCandidates.get(i)).remove(placedTarget);
         }
     }
 
 
     @Override
     public boolean isUnfruitfulCached(int verticesPlaced) {
-        return domain2.stream().anyMatch(TIntSet::isEmpty) || !allDifferent.get(domain2);
+        return domain.stream().anyMatch(TIntSet::isEmpty) || !allDifferent.get(domain);
     }
 
 
     @NotNull
     @Override
     public String toString() {
-        TIntList[] domainString = new TIntList[domain2.size()];
+        TIntList[] domainString = new TIntList[domain.size()];
         for (int i = 0; i < domainString.length; i++) {
-            domainString[i] = new TIntArrayList(domain2.get(i));
+            domainString[i] = new TIntArrayList(domain.get(i));
             domainString[i].sort();
         }
         return "AllDifferentPruner{domain=" + Arrays.toString(domainString) +
