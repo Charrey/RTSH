@@ -2,10 +2,10 @@ package com.charrey.pathiterators.dfs;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -32,7 +32,6 @@ public class DFSPathIterator extends PathIterator {
     private final Deque<Set<Integer>> added = new LinkedList<>();
 
     private final GlobalOccupation occupation;
-    private final OccupationTransaction transaction;
     private final Supplier<Integer> placementSize;
     private final MyGraph graph;
     private int counter = 0;
@@ -48,8 +47,8 @@ public class DFSPathIterator extends PathIterator {
      * @param placementSize     supplier of the number of source graph vertices placed at this point in the search
      * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
      */
-    public DFSPathIterator(@NotNull MyGraph graph, @NotNull int[][] neighbours, int tail, int head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths) {
-        super(tail, head, refuseLongerPaths);
+    public DFSPathIterator(@NotNull MyGraph graph, @NotNull int[][] neighbours, int tail, int head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths, PartialMatchingProvider provider) {
+        super(tail, head, refuseLongerPaths, occupation.getTransaction(), provider);
         this.head = head;
         exploration = new Path(graph, tail);
         //noinspection AssignmentOrReturnOfFieldWithMutableType
@@ -57,7 +56,6 @@ public class DFSPathIterator extends PathIterator {
         chosenOption = new int[neighbours.length];
         Arrays.fill(chosenOption, 0);
         this.occupation = occupation;
-        this.transaction = occupation.getTransaction();
         this.placementSize = placementSize;
         this.graph = graph;
     }
@@ -120,7 +118,7 @@ public class DFSPathIterator extends PathIterator {
                     found = true;
                     if (neighbour != head) {
                         try {
-                            transaction.occupyRoutingAndCheck(this.placementSize.get(), neighbour);
+                            transaction.occupyRoutingAndCheck(this.placementSize.get(), neighbour, getPartialMatching());
                             break;
                         } catch (DomainCheckerException e) {
                             if (!added.isEmpty()) {
@@ -143,7 +141,7 @@ public class DFSPathIterator extends PathIterator {
             }
         }
         try {
-            transaction.commit(placementSize.get());
+            transaction.commit(placementSize.get(), getPartialMatching());
         } catch (DomainCheckerException e) {
             return next();
         }

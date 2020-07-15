@@ -12,7 +12,7 @@ public class PruningConstants {
     /**
      * Prune when some source graph vertex cannot be placed anymore (slower and stricter)
      */
-    public static final int EMPTY_DOMAIN = 1;
+    public static final int ZERODOMAIN = 1;
     /**
      * Prune when an AllDifferent constraint fails (slowest and strictest)
      */

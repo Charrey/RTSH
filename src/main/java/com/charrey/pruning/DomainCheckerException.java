@@ -1,4 +1,4 @@
-package com.charrey.runtimecheck;
+package com.charrey.pruning;
 
 /**
  * Exception thrown when pruning should be applied instead of matching

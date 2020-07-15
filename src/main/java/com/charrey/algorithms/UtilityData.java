@@ -8,7 +8,6 @@ import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.linked.TIntLinkedList;
 import gnu.trove.map.TIntObjectMap;
-import gnu.trove.procedure.TIntObjectProcedure;
 import gnu.trove.set.TIntSet;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -32,6 +31,14 @@ import static com.charrey.settings.PathIterationConstants.DFS_GREEDY;
 public class UtilityData {
     private final MyGraph targetGraph;
     private final MyGraph patternGraph;
+
+    public MyGraph getTargetGraph() {
+        return targetGraph;
+    }
+
+    public MyGraph getPatternGraph() {
+        return patternGraph;
+    }
 
     /**
      * Instantiates a new Utility data class. This needs to be done (instead of static calls) to allow for caching.
@@ -78,14 +85,11 @@ public class UtilityData {
         if (compatibility == null) {
             compatibility = new int[patternGraph.vertexSet().size()][];
             TIntObjectMap<TIntSet> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, filteringSettings instanceof LabelDegreeFiltering, name);
-            inbetween.forEachEntry(new TIntObjectProcedure<TIntSet>() {
-                @Override
-                public boolean execute(int key, TIntSet value) {
-                    int[] array = value.toArray();
-                    Arrays.sort(array);
-                    compatibility[key] = array;
-                    return true;
-                }
+            inbetween.forEachEntry((key, value) -> {
+                int[] array = value.toArray();
+                Arrays.sort(array);
+                compatibility[key] = array;
+                return true;
             });
         }
         return compatibility.clone();
@@ -98,7 +102,6 @@ public class UtilityData {
      * @param initialNeighbourhoodFiltering whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
      * @return A 2d array compatibility such that for each target vertex with vertex ordering x, compatibility[x] is an array of suitable source graph candidates.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public int[][] getReverseCompatibility(FilteringSettings initialNeighbourhoodFiltering, String name) {
         if (reverseCompatibility == null) {
             TIntList[] tempReverseCompatibility = new TIntList[targetGraph.vertexSet().size()];

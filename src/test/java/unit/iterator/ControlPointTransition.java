@@ -4,17 +4,20 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.ControlPointIteratorStrategy;
 import com.charrey.settings.pruning.PruningApplicationConstants;
 import com.charrey.settings.pruning.PruningConstants;
 import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
-import gnu.trove.procedure.TIntProcedure;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.TIntSet;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
@@ -47,15 +50,12 @@ class ControlPointTransition {
         test(myCase -> {
             final Optional<Integer>[] counterExample = new Optional[]{Optional.empty()};
             TIntSet routingOccupied = myCase.globalOccupation.getRoutingOccupied();
-            routingOccupied.forEach(new TIntProcedure() {
-                @Override
-                public boolean execute(int x) {
-                    if (myCase.path.intermediate().stream().mapToInt(y -> y).noneMatch(y -> y == x)) {
-                        counterExample[0] = Optional.of(x);
-                        return false;
-                    }
-                    return true;
+            routingOccupied.forEach(x -> {
+                if (myCase.path.intermediate().stream().mapToInt(y -> y).noneMatch(y -> y == x)) {
+                    counterExample[0] = Optional.of(x);
+                    return false;
                 }
+                return true;
             });
             if (counterExample[0].isPresent()) {
                 System.err.println("In occupation but not in path: " + counterExample[0]);
@@ -123,9 +123,19 @@ class ControlPointTransition {
                     continue;
                 }
                 GlobalOccupation occupation = new GlobalOccupation(data, settings, "TransitionTest");
-                occupation.occupyVertex(0, tail);
-                occupation.occupyVertex(1, head);
-                ManagedControlPointIterator iterator = (ManagedControlPointIterator) PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);
+                occupation.occupyVertex(0, tail, new PartialMatching());
+                TIntList vertexMatching = new TIntArrayList();
+                vertexMatching.add(tail);
+                occupation.occupyVertex(1, head, new PartialMatching(vertexMatching));
+                ManagedControlPointIterator iterator = (ManagedControlPointIterator) PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, new PartialMatchingProvider() {
+                    @Override
+                    public PartialMatching getPartialMatching() {
+                        TIntList vertexMatching = new TIntArrayList();
+                        vertexMatching.add(tail);
+                        vertexMatching.add(head);
+                        return new PartialMatching(vertexMatching);
+                    }
+                });
                 Path path;
                 while ((path = iterator.next()) != null) {
                     assertTrue(toTest.test(new Case(iterator.controlPoints(), occupation, path, iterator.finalPath(), iterator.firstPath())));

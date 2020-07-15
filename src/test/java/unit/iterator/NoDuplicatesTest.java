@@ -4,18 +4,22 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.*;
 import com.charrey.settings.pruning.PruningApplicationConstants;
 import com.charrey.settings.pruning.PruningConstants;
 import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
@@ -84,9 +88,19 @@ class NoDuplicatesTest {
                     continue;
                 }
                 GlobalOccupation occupation = new GlobalOccupation(data, settings, "NoDuplicatesTest");
-                occupation.occupyVertex(0, tail);
-                occupation.occupyVertex(1, head);
-                PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);
+                occupation.occupyVertex(0, tail, new PartialMatching());
+                TIntList vertexMatching = new TIntArrayList();
+                vertexMatching.add(tail);
+                occupation.occupyVertex(1, head, new PartialMatching(vertexMatching));
+                PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, new PartialMatchingProvider() {
+                    @Override
+                    public PartialMatching getPartialMatching() {
+                        TIntList vertexMatching = new TIntArrayList();
+                        vertexMatching.add(tail);
+                        vertexMatching.add(head);
+                        return new PartialMatching(vertexMatching);
+                    }
+                });
                 Map<Path, Witness> seen = new HashMap<>();
                 Path path;
                 //5 4 1 3 2 is reached with controlpoints {4, 3} and with {4, 1, 3}.

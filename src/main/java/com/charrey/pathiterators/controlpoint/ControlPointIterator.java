@@ -3,10 +3,11 @@ package com.charrey.pathiterators.controlpoint;
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.AbstractOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.DomainCheckerException;
 import gnu.trove.TCollections;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
@@ -36,8 +37,7 @@ class ControlPointIterator extends PathIterator {
     private final int head;
     @NotNull
     private final MyGraph targetGraph;
-    @NotNull
-    private final OccupationTransaction occupation;
+
     private final Supplier<Integer> verticesPlaced;
     private final ControlPointIteratorRelevantSettings settings;
 
@@ -76,12 +76,12 @@ class ControlPointIterator extends PathIterator {
                          @NotNull TIntSet initialLocalOccupation,
                          int controlPoints,
                          Supplier<Integer> verticesPlaced,
-                         ControlPointIteratorRelevantSettings settings) {
-        super(tail, head, settings.refuseLongerPaths);
+                         ControlPointIteratorRelevantSettings settings,
+                         PartialMatchingProvider provider) {
+        super(tail, head, settings.refuseLongerPaths, occupation, provider);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;
         this.localOccupation = initialLocalOccupation;
-        this.occupation = occupation;
         this.head = head;
         this.controlPointCandidates = new ControlPointVertexSelector(targetGraph, occupation, TCollections.unmodifiableSet(initialLocalOccupation), tail, head, refuseLongerPaths, tail);
         this.verticesPlaced = verticesPlaced;
@@ -158,7 +158,7 @@ class ControlPointIterator extends PathIterator {
 
     @Nullable
     private Path filteredShortestPath(int from, int to) {
-        return filteredShortestPath(targetGraph, occupation, localOccupation, from, to, refuseLongerPaths, tail());
+        return filteredShortestPath(targetGraph, transaction, localOccupation, from, to, refuseLongerPaths, tail());
     }
 
     /**
@@ -204,12 +204,12 @@ class ControlPointIterator extends PathIterator {
                 TIntSet fictionalOccupation = new TIntHashSet(previousLocalOccupation);
                 middleAltToRight.forEach(fictionalOccupation::add);
                 Collection<Integer> temporarilyRemoveGlobal = middleToRight.asList().subList(0, middleToRight.length() - 1);
-                temporarilyRemoveGlobal.forEach(x -> occupation.releaseRouting(verticesPlaced.get(), x));
-                Path leftToMiddleAlt = filteredShortestPath(targetGraph, occupation, fictionalOccupation, left, middleAlt, refuseLongerPaths, tail());
+                temporarilyRemoveGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+                Path leftToMiddleAlt = filteredShortestPath(targetGraph, transaction, fictionalOccupation, left, middleAlt, refuseLongerPaths, tail());
                 if (leftToMiddleAlt == null) {
                     temporarilyRemoveGlobal.forEach(x -> {
                         try {
-                            occupation.occupyRoutingAndCheck(verticesPlaced.get(), x);
+                            transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, getPartialMatching());
                         } catch (DomainCheckerException e) {
                             assert false;
                         }
@@ -220,7 +220,7 @@ class ControlPointIterator extends PathIterator {
                 Path leftToMiddle = filteredShortestPath(left, middle);
                 temporarilyRemoveGlobal.forEach(x -> {
                     try {
-                        occupation.occupyRoutingAndCheck(verticesPlaced.get(), x);
+                        transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, getPartialMatching());
                     } catch (DomainCheckerException e) {
                         assert false;
                     }
@@ -247,12 +247,12 @@ class ControlPointIterator extends PathIterator {
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::remove);
 
             Collection<Integer> temporaryRemoveFromGlobal = pathFromRightNeighbourToItsRightNeighbour.asList().subList(0, pathFromRightNeighbourToItsRightNeighbour.length() - 1);
-            temporaryRemoveFromGlobal.forEach(x -> occupation.releaseRouting(verticesPlaced.get(), x));
-            Path skippedPath = filteredShortestPath(targetGraph, occupation, localOccupation, left, right, refuseLongerPaths, tail());
+            temporaryRemoveFromGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+            Path skippedPath = filteredShortestPath(targetGraph, transaction, localOccupation, left, right, refuseLongerPaths, tail());
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::add);
             temporaryRemoveFromGlobal.forEach(x -> {
                 try {
-                    occupation.occupyRoutingAndCheck(verticesPlaced.get(), x);
+                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, getPartialMatching());
                 } catch (DomainCheckerException e) {
                     e.printStackTrace();
                     assert false;
@@ -285,7 +285,7 @@ class ControlPointIterator extends PathIterator {
                 }
                 if (chosenPath != null) {
                     try {
-                        occupation.occupyRoutingAndCheck(verticesPlaced.get(), chosenPath);
+                        transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenPath, getPartialMatching());
                     } catch (DomainCheckerException e) {
                         chosenPath = null;
                     }
@@ -302,7 +302,7 @@ class ControlPointIterator extends PathIterator {
                 return chosenPath;
             } else if (child == null) {
                 if (chosenControlPoint != -1) {
-                    this.occupation.releaseRouting(verticesPlaced.get(), chosenControlPoint);
+                    this.transaction.releaseRouting(verticesPlaced.get(), chosenControlPoint);
                 }
                 boolean makesNeighbourUseless;
                 boolean rightShiftPossible;
@@ -325,7 +325,7 @@ class ControlPointIterator extends PathIterator {
                     return null;
                 }
                 try {
-                    this.occupation.occupyRoutingAndCheck(verticesPlaced.get(), chosenControlPoint);
+                    this.transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenControlPoint, getPartialMatching());
                 } catch (DomainCheckerException e) {
                     if (settings.log) {
                         System.out.println(prefix.toString() + "Domain check failed---------------------------------------------------------------------------");
@@ -340,14 +340,14 @@ class ControlPointIterator extends PathIterator {
                         continue;
                     }
                     try {
-                        occupation.occupyRoutingAndCheck(verticesPlaced.get(), chosenPath);
+                        transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenPath, getPartialMatching());
                     } catch (DomainCheckerException e) {
                         continue;
                     }
 
                     TIntSet previousOccupation = new TIntHashSet(localOccupation);
                     chosenPath.forEach(localOccupation::add);
-                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, occupation, new TIntHashSet(localOccupation), controlPoints - 1, verticesPlaced, settings);
+                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, transaction, new TIntHashSet(localOccupation), controlPoints - 1, verticesPlaced, settings, partialMatchingProvider);
                     child.setRightNeighbourOfRightNeighbour(this.head(), chosenPath, previousOccupation);
                 } else {
                     if (settings.log) {
@@ -373,12 +373,12 @@ class ControlPointIterator extends PathIterator {
                 } else {
                     child = null;
                     chosenPath.forEach(localOccupation::remove);
-                    chosenPath.intermediate().forEach(x -> occupation.releaseRouting(verticesPlaced.get(), x));
+                    chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
                 }
             }
         }
         if (controlPoints == 0 && chosenPath != null) {
-            chosenPath.intermediate().forEach(x -> occupation.releaseRouting(verticesPlaced.get(), x));
+            chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
             chosenPath = null;
         }
         return null;

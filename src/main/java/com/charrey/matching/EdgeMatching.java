@@ -5,14 +5,18 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.settings.iterator.IteratorSettings;
+import com.charrey.pruning.PartialMatching;
+import com.charrey.settings.Settings;
 import com.charrey.util.datastructures.MultipleKeyMap;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -20,15 +24,14 @@ import java.util.stream.IntStream;
  * A class that saves which source graph edge is mapped to which target graph path, and provides methods to facilitate
  * such matchings.
  */
-public class EdgeMatching {
+public class EdgeMatching extends PartialMatchingProvider implements Supplier<TIntObjectMap<Set<Path>>> {
 
     private final VertexMatching vertexMatching;
     private final MyGraph source;
     @NotNull
     private final MyGraph targetGraph;
     private final boolean directed;
-    private final boolean refuseLongerPaths;
-    private final IteratorSettings pathIteration;
+    private final Settings settings;
 
     private MultipleKeyMap<PathIterator> pathfinders;
     private final GlobalOccupation occupation;
@@ -40,22 +43,16 @@ public class EdgeMatching {
 
     private final UtilityData data;
 
-    public List<LinkedList<Pair<Path, String>>> getPathsUnsafe() {
-        return paths;
-    }
-
     /**
      * Instantiates a new edgematching.
      *
-     * @param vertexMatching    the vertex matching class used in this homeomorphism finding session
-     * @param data              the utility data class of this test case (for cached computations)
-     * @param source            the source graph (new one)
-     * @param target            the target graph
-     * @param occupation        the global occupation which vertices have been used and which are available
-     * @param pathIteration     the strategy to be used to iterate different paths between pairs of vertices
-     * @param refuseLongerPaths whether to avoid mapping to paths that use up unnecessarily many resources
+     * @param vertexMatching the vertex matching class used in this homeomorphism finding session
+     * @param data           the utility data class of this test case (for cached computations)
+     * @param source         the source graph (new one)
+     * @param target         the target graph
+     * @param occupation     the global occupation which vertices have been used and which are available
      */
-    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, GlobalOccupation occupation, IteratorSettings pathIteration, boolean refuseLongerPaths) {
+    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, GlobalOccupation occupation, Settings settings) {
         this.vertexMatching = vertexMatching;
         this.source = source;
         this.data = data;
@@ -67,8 +64,11 @@ public class EdgeMatching {
         EdgeMatching em = this;
         this.vertexMatching.setOnDeletion(em::synchronize);
         this.occupation = occupation;
-        this.pathIteration = pathIteration;
-        this.refuseLongerPaths = refuseLongerPaths;
+        this.settings = settings;
+    }
+
+    private List<LinkedList<Pair<Path, String>>> getPathsUnsafe() {
+        return paths;
     }
 
     private void initPathFinders() {
@@ -157,7 +157,14 @@ public class EdgeMatching {
             pathfinders.remove(tail, head);
             assert false;
         }
-        PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> vertexMatching.getPlacement().size(), pathIteration, refuseLongerPaths);
+        PathIterator iterator = PathIterator.get(targetGraph,
+                data,
+                tail,
+                head,
+                occupation,
+                () -> vertexMatching.getPlacement().size(),
+                settings,
+                this);
         pathfinders.put(tail, head, iterator);
         Path toReturn = iterator.next();
         if (toReturn != null) {
@@ -246,4 +253,23 @@ public class EdgeMatching {
     }
 
 
+    @Override
+    public PartialMatching getPartialMatching() {
+        return vertexMatching.getPartialMatching();
+    }
+
+    /**
+     * Gets a result.
+     *
+     * @return a result
+     */
+    @Override
+    public TIntObjectMap<Set<Path>> get() {
+        TIntObjectMap<Set<Path>> toReturn = new TIntObjectHashMap<>();
+        List<LinkedList<Pair<Path, String>>> paths = this.getPathsUnsafe();
+        for (int i = 0; i < paths.size(); i++) {
+            toReturn.put(i, new HashSet<>(paths.get(i).stream().map(x -> new Path(x.getFirst())).collect(Collectors.toSet())));
+        }
+        return toReturn;
+    }
 }

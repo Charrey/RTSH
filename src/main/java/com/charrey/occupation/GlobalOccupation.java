@@ -1,11 +1,7 @@
 package com.charrey.occupation;
 
 import com.charrey.algorithms.UtilityData;
-import com.charrey.pruning.AllDifferentPruner;
-import com.charrey.pruning.NoPruner;
-import com.charrey.pruning.Pruner;
-import com.charrey.pruning.ZeroDomainPruner;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.*;
 import com.charrey.settings.Settings;
 import com.charrey.settings.pruning.PruningApplicationConstants;
 import com.charrey.settings.pruning.PruningConstants;
@@ -32,8 +28,8 @@ public class GlobalOccupation extends AbstractOccupation {
     private final TIntSet routingBits;
     @NotNull
     private final TIntSet vertexBits;
-    @NotNull
-    private final Pruner domainChecker;
+
+    private Pruner domainChecker;
     private final UtilityData data;
 
     /**
@@ -53,25 +49,38 @@ public class GlobalOccupation extends AbstractOccupation {
      * @param runTimeCheck the run time check
      */
     public GlobalOccupation(@NotNull UtilityData data, int runTimeCheck, FilteringSettings filteringSettings, PruningApplicationConstants whenToApply, String name) {
+        this.data = data;
+        initDomainChecker(runTimeCheck, filteringSettings, whenToApply, name);
+        this.routingBits = new TIntHashSet();
+        this.vertexBits = new TIntHashSet();
+    }
+
+    private void initDomainChecker(int runTimeCheck, FilteringSettings filteringSettings, PruningApplicationConstants whenToApply, String name) {
+        if (whenToApply == PruningApplicationConstants.PARALLEL) {
+            initDomainChecker(runTimeCheck, filteringSettings, PruningApplicationConstants.SERIAL, name);
+            domainChecker = new ParallelPruner(domainChecker, filteringSettings, data.getPatternGraph(), data.getTargetGraph());
+            return;
+        }
         switch (runTimeCheck) {
             case PruningConstants.NONE:
                 domainChecker = new NoPruner();
                 break;
-            case PruningConstants.EMPTY_DOMAIN:
-                domainChecker = new ZeroDomainPruner(data, filteringSettings, name, whenToApply == PruningApplicationConstants.CACHED);
+            case PruningConstants.ZERODOMAIN:
+                if (whenToApply == PruningApplicationConstants.CACHED) {
+                    domainChecker = new CachedZeroDomainPruner(data, filteringSettings, name, this);
+                } else if (whenToApply == PruningApplicationConstants.SERIAL) {
+                    domainChecker = new SerialZeroDomainPruner(filteringSettings, data.getPatternGraph(), data.getTargetGraph(), this);
+                }
                 break;
             case PruningConstants.ALL_DIFFERENT:
                 if (whenToApply == PruningApplicationConstants.SERIAL) {
                     throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
                 }
-                domainChecker = new AllDifferentPruner(data, filteringSettings, name);
+                domainChecker = new AllDifferentPruner(data, filteringSettings, name, this);
                 break;
             default:
                 throw new UnsupportedOperationException();
         }
-        this.routingBits = new TIntHashSet();
-        this.vertexBits = new TIntHashSet();
-        this.data = data;
     }
 
     /**
@@ -96,11 +105,10 @@ public class GlobalOccupation extends AbstractOccupation {
         domainChecker.afterOccupyEdgeWithoutCheck(vertexPlacementSize, vertex);
     }
 
-
-    void occupyRoutingAndCheck(int vertexPlacementSize, int vertex) throws DomainCheckerException {
+    void occupyRoutingAndCheck(int vertexPlacementSize, int vertex, PartialMatching partialMatching) throws DomainCheckerException {
         assert !routingBits.contains(vertex);
         routingBits.add(vertex);
-        domainChecker.afterOccupyEdge(vertexPlacementSize, vertex);
+        domainChecker.afterOccupyEdge(vertexPlacementSize, vertex, partialMatching);
     }
 
 
@@ -111,16 +119,13 @@ public class GlobalOccupation extends AbstractOccupation {
      * @param target the target graph vertex
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search. If this is thrown, this class remains unchanged.
      */
-    public void occupyVertex(Integer source, Integer target) throws DomainCheckerException {
+    public void occupyVertex(Integer source, Integer target, PartialMatching partialMatching) throws DomainCheckerException {
         assert !routingBits.contains(target);
         assert !vertexBits.contains(target);
+        TIntList hypothetical = new TIntArrayList(partialMatching.getVertexMapping());
+        hypothetical.add(target);
+        domainChecker.beforeOccupyVertex(source, target, new PartialMatching(hypothetical, partialMatching.getEdgeMapping(), partialMatching.getPartialPath()));
         vertexBits.add(target);
-        try {
-            domainChecker.beforeOccupyVertex(source, target);
-        } catch (DomainCheckerException e) {
-            vertexBits.remove(target);
-            throw e;
-        }
     }
 
 

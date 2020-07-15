@@ -3,13 +3,17 @@ package com.charrey.pathiterators;
 import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
+import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
+import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.ControlPointIteratorStrategy;
 import com.charrey.settings.iterator.IteratorSettings;
+import com.charrey.settings.pruning.PruningApplicationConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +33,9 @@ public abstract class PathIterator {
      * The Refuse longer paths.
      */
     protected final boolean refuseLongerPaths;
+    protected PartialMatchingProvider partialMatchingProvider;
+    protected OccupationTransaction transaction;
+
 
     /**
      * Instantiates a new Path iterator.
@@ -37,10 +44,12 @@ public abstract class PathIterator {
      * @param head              the head
      * @param refuseLongerPaths the refuse longer paths
      */
-    protected PathIterator(int tail, int head, boolean refuseLongerPaths) {
+    protected PathIterator(int tail, int head, boolean refuseLongerPaths, OccupationTransaction transaction, PartialMatchingProvider partialMatchingProvider) {
         this.tail = tail;
         this.head = head;
         this.refuseLongerPaths = refuseLongerPaths;
+        this.partialMatchingProvider = partialMatchingProvider;
+        this.transaction = transaction;
     }
 
     /**
@@ -56,8 +65,15 @@ public abstract class PathIterator {
      * @return the path iterator
      */
     @NotNull
-    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, @NotNull Settings settings) {
-        return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration, settings.refuseLongerPaths);
+    public static PathIterator get(@NotNull MyGraph targetGraph,
+                                   @NotNull UtilityData data,
+                                   int tail,
+                                   int head,
+                                   @NotNull GlobalOccupation occupation,
+                                   Supplier<Integer> placementSize,
+                                   @NotNull Settings settings,
+                                   PartialMatchingProvider provider) {
+        return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration, settings.refuseLongerPaths, provider, settings.whenToApply);
     }
 
     /**
@@ -74,23 +90,36 @@ public abstract class PathIterator {
      * @return the path iterator
      */
     @NotNull
-    public static PathIterator get(@NotNull MyGraph targetGraph, @NotNull UtilityData data, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> placementSize, IteratorSettings pathIteration, boolean refuseLongerPaths) {
+    public static PathIterator get(@NotNull MyGraph targetGraph,
+                                   @NotNull UtilityData data,
+                                   int tail,
+                                   int head,
+                                   @NotNull GlobalOccupation occupation,
+                                   Supplier<Integer> placementSize,
+                                   IteratorSettings pathIteration,
+                                   boolean refuseLongerPaths,
+                                   PartialMatchingProvider provider,
+                                   PruningApplicationConstants whenToApply) {
         if (targetGraph.getEdge(tail, head) != null) {
-            return new SingletonPathIterator(targetGraph, tail, head);
+            return new SingletonPathIterator(targetGraph, tail, head, provider);
         }
-
         switch (pathIteration.iterationStrategy) {
             case DFS_ARBITRARY:
             case DFS_GREEDY:
                 int[][] targetNeighbours = data.getTargetNeighbours(pathIteration.iterationStrategy)[head];
-                return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths);
+                return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths, provider);
             case CONTROL_POINT:
-                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, ((ControlPointIteratorStrategy) pathIteration).getMaxControlpoints(), placementSize, refuseLongerPaths);
+                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, ((ControlPointIteratorStrategy) pathIteration).getMaxControlpoints(), placementSize, refuseLongerPaths, provider);
             case KPATH:
-                return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, refuseLongerPaths);
+                return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, refuseLongerPaths, provider, whenToApply == PruningApplicationConstants.CACHED);
             default:
                 throw new UnsupportedOperationException();
         }
+    }
+
+    protected PartialMatching getPartialMatching() {
+        PartialMatching fromParent = partialMatchingProvider.getPartialMatching();
+        return new PartialMatching(fromParent.getVertexMapping(), fromParent.getEdgeMapping(), transaction.getLocallyOccupied());
     }
 
     /**

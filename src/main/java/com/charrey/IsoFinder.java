@@ -9,8 +9,8 @@ import com.charrey.graph.generation.TestCase;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
+import com.charrey.pruning.DomainCheckerException;
 import com.charrey.result.*;
-import com.charrey.runtimecheck.DomainCheckerException;
 import com.charrey.settings.Settings;
 import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import org.jetbrains.annotations.NotNull;
@@ -88,7 +88,8 @@ public class IsoFinder {
         }
         GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.filtering, settings.whenToApply, name);
         vertexMatching = new VertexMatching(data, sourceGraph, targetGraph, occupation, settings.filtering, name);
-        edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings.pathIteration, settings.refuseLongerPaths);
+        edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings);
+        vertexMatching.setEdgeMatchingProvider(edgeMatching);
     }
 
     private static int[] repairMatching(int[] placement, int[] new_to_old) {
@@ -152,7 +153,7 @@ public class IsoFinder {
         if (vertexMatching.getPlacement().size() < testcase.getSourceGraph().vertexSet().size()) {
             return new FailResult(iterations);
         } else {
-            int[] vertexMapping = vertexMatching.getPlacement().stream().mapToInt(x -> x).toArray();
+            int[] vertexMapping = vertexMatching.getPlacement().toArray();
             //int[] fixed = repairMatching(vertexMapping, mapping.new_to_old);
             assert allDone(newSourceGraph, vertexMatching, edgeMatching);
             assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);

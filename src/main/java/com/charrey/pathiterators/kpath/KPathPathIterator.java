@@ -3,10 +3,10 @@ package com.charrey.pathiterators.kpath;
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.DomainCheckerException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -33,7 +33,6 @@ public class KPathPathIterator extends PathIterator {
     @NotNull
     private final YenShortestPathIterator<Integer, MyEdge> yen;
 
-    private final OccupationTransaction transaction;
     private int counter = 0;
 
     /**
@@ -46,11 +45,17 @@ public class KPathPathIterator extends PathIterator {
      * @param verticesPlaced    supplier of the number of source graph vertices placed at this point in the search
      * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
      */
-    public KPathPathIterator(@NotNull MyGraph targetGraph, int tail, int head, @NotNull GlobalOccupation occupation, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
-        super(tail, head, refuseLongerPaths);
+    public KPathPathIterator(@NotNull MyGraph targetGraph,
+                             int tail,
+                             int head,
+                             @NotNull GlobalOccupation occupation,
+                             Supplier<Integer> verticesPlaced,
+                             boolean refuseLongerPaths,
+                             PartialMatchingProvider partialMatchingProvider,
+                             boolean cached) {
+        super(tail, head, refuseLongerPaths, occupation.getTransaction(), partialMatchingProvider);
         this.targetGraph = targetGraph;
         this.occupation = occupation;
-        this.transaction = occupation.getTransaction();
         init = occupation.toString();
         this.verticesPlaced = verticesPlaced;
         yen = new YenShortestPathIterator<>(new MaskSubgraph<>(targetGraph, x -> !x.equals(tail) && !x.equals(head) && occupation.isOccupied(x), y -> false), tail, head);
@@ -74,7 +79,7 @@ public class KPathPathIterator extends PathIterator {
             boolean okay = true;
             for (int v : pathFound.intermediate()) {
                 try {
-                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), v);
+                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), v, getPartialMatching());
                 } catch (DomainCheckerException e) {
                     okay = false;
                     break;
@@ -82,7 +87,7 @@ public class KPathPathIterator extends PathIterator {
             }
             if (okay) {
                 try {
-                    transaction.commit(verticesPlaced.get());
+                    transaction.commit(verticesPlaced.get(), getPartialMatching());
                 } catch (DomainCheckerException e) {
                     return next();
                 }

@@ -2,33 +2,41 @@ package com.charrey.matching;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
+import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import gnu.trove.TCollections;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 /**
  * A class that saves which source graph vertex is mapped to which target graph vertex, and provides methods to facilitate
  * such matchings.
  */
-public class VertexMatching {
+public class VertexMatching extends PartialMatchingProvider implements Supplier<TIntList> {
 
-
-    private final ArrayList<Integer> placement = new ArrayList<>();
+    private final TIntList placement = new TIntArrayList();
     private final int[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
-    //@NotNull
-    //private final int[] candidateToChooseNext;    //for each candidate vertex i, lists what target vertex to choose next.
 
     private final VertexCandidateIterator[] candidates2;
 
     private final GlobalOccupation occupation;
     private Consumer<Integer> onDeletion;
+    private Supplier<TIntObjectMap<Set<Path>>> edgeMatchingProvider;
+
+    public void setEdgeMatchingProvider(Supplier<TIntObjectMap<Set<Path>>> provider) {
+        this.edgeMatchingProvider = provider;
+    }
 
 
     /**
@@ -40,13 +48,7 @@ public class VertexMatching {
      */
     public VertexMatching(@NotNull UtilityData data, @NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, GlobalOccupation occupation, FilteringSettings filteringSettings, String name) {
         this.candidates = data.getCompatibility(filteringSettings, name);
-        //todo: remove
-        //this.candidateToChooseNext = new int[sourceGraph.vertexSet().size()];
         this.candidates2 = new VertexCandidateIterator[sourceGraph.vertexSet().size()];
-        //todo: remove
-        //assert candidateToChooseNext.length == candidates.length;
-        //todo: remove
-        //Arrays.fill(candidateToChooseNext, 0);
         IntStream.range(0, candidates2.length).forEach(i -> candidates2[i] = new VertexCandidateIterator(sourceGraph, targetGraph, i, filteringSettings, occupation));
         this.occupation = occupation;
     }
@@ -62,7 +64,6 @@ public class VertexMatching {
             return false;
         } else {
             return candidates2[placement.size()].hasNext();
-            //return !(candidateToChooseNext[placement.size()] >= candidates[placement.size()].length);
         }
     }
 
@@ -74,25 +75,19 @@ public class VertexMatching {
     public void placeNext() {
         assert canPlaceNext();
         while (!candidates2[placement.size()].hasNext()) {
-            //while (candidateToChooseNext[placement.size()] >= candidates[placement.size()].length) {
             removeLast();
         }
         int toAdd = candidates2[placement.size()].next();
-        //int toAdd = candidates[placement.size()][candidateToChooseNext[placement.size()]];
         boolean occupied = occupation.isOccupied(toAdd);
         if (occupied) {
-            //todo: remove
-            //candidateToChooseNext[placement.size()] += 1;
             if (canPlaceNext()) {
                 placeNext();
             }
         } else {
             try {
-                occupation.occupyVertex(placement.size() + 1, toAdd);
+                occupation.occupyVertex(placement.size() + 1, toAdd, getPartialMatching());
                 placement.add(toAdd);
             } catch (DomainCheckerException e) {
-                //todo: remove
-                //candidateToChooseNext[placement.size()] += 1;
                 if (canPlaceNext()) {
                     placeNext();
                 }
@@ -107,8 +102,8 @@ public class VertexMatching {
      * @return the vertex placement
      */
     @NotNull
-    public List<Integer> getPlacement() {
-        return Collections.unmodifiableList(placement);
+    public TIntList getPlacement() {
+        return TCollections.unmodifiableList(placement);
     }
 
 
@@ -133,17 +128,12 @@ public class VertexMatching {
      */
     public void removeLast() {
         if (placement.size() < candidates2.length) { //if every vertex was matched
-            //if (placement.size() < candidateToChooseNext.length) { //if every vertex was matched
-            //this.candidateToChooseNext[placement.size()] = 0;
             this.candidates2[placement.size()].reset();
         }
-
-        final int removed = placement.remove(placement.size() - 1);
-        this.occupation.releaseVertex(placement.size(), removed);
-        this.onDeletion.accept(removed);
-
-        //todo: remove
-        //this.candidateToChooseNext[placement.size()] += 1;
+        final int toRemove = placement.get(placement.size() - 1);
+        placement.removeAt(placement.size() - 1);
+        this.occupation.releaseVertex(placement.size(), toRemove);
+        this.onDeletion.accept(toRemove);
     }
 
     /**
@@ -161,9 +151,22 @@ public class VertexMatching {
      */
     public void giveAllowance() {
         if (placement.size() < candidates2.length) {
-            //if (placement.size() < candidateToChooseNext.length) {
             this.candidates2[placement.size()].reset();
-            //this.candidateToChooseNext[placement.size()] = 0;
         }
+    }
+
+    @Override
+    public PartialMatching getPartialMatching() {
+        return new PartialMatching(placement, edgeMatchingProvider.get(), new TIntHashSet());
+    }
+
+    /**
+     * Gets a result.
+     *
+     * @return a result
+     */
+    @Override
+    public TIntList get() {
+        return new TIntArrayList(placement);
     }
 }

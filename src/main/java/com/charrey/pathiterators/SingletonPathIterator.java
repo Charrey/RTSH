@@ -2,6 +2,7 @@ package com.charrey.pathiterators;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
+import com.charrey.matching.PartialMatchingProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,8 +24,8 @@ public class SingletonPathIterator extends PathIterator {
      * @param head  the target vertex of the path
      * @throws IllegalStateException thrown if the tail vertex has no outgoing edge to the head.
      */
-    SingletonPathIterator(@NotNull MyGraph graph, int tail, int head) {
-        super(tail, head, true);
+    SingletonPathIterator(@NotNull MyGraph graph, int tail, int head, PartialMatchingProvider provider) {
+        super(tail, head, true, null, provider);
         toReturn = new Path(graph, tail);
         toReturn.append(head);
     }

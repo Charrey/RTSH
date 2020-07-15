@@ -5,9 +5,9 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +30,7 @@ class Verifier {
             return false;
         }
         //all nodes are distinct
-        if (vertexMatching.getPlacement().size() != new HashSet<>(vertexMatching.getPlacement()).size()) {
+        if (vertexMatching.getPlacement().size() != new TIntHashSet(vertexMatching.getPlacement()).size()) {
             return false;
         }
 
@@ -69,7 +69,15 @@ class Verifier {
         //the intermediate list of nodes are disjoint from the nodes
         for (Path path : edgeMatching.allPaths()) {
             List<Integer> intermediate = path.intermediate();
-            if (vertexMatching.getPlacement().stream().anyMatch(intermediate::contains)) {
+            final boolean[] toReturnFalse = {false};
+            vertexMatching.getPlacement().forEach(i -> {
+                if (intermediate.contains(i)) {
+                    toReturnFalse[0] = true;
+                    return false;
+                }
+                return true;
+            });
+            if (toReturnFalse[0]) {
                 return false;
             }
         }

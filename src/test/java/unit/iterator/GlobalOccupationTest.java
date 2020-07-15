@@ -4,15 +4,20 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.*;
 import com.charrey.settings.pruning.PruningApplicationConstants;
 import com.charrey.settings.pruning.PruningConstants;
 import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -80,9 +85,19 @@ class GlobalOccupationTest {
                     continue;
                 }
                 GlobalOccupation occupation = new GlobalOccupation(data, settings, "OccupationTest");
-                occupation.occupyVertex(0, tail);
-                occupation.occupyVertex(1, head);
-                PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings);
+                occupation.occupyVertex(0, tail, new PartialMatching(new TIntArrayList(), new TIntObjectHashMap<>(), new TIntHashSet()));
+                TIntList vertexMatching = new TIntArrayList();
+                vertexMatching.add(tail);
+                occupation.occupyVertex(1, head, new PartialMatching(vertexMatching, new TIntObjectHashMap<>(), new TIntHashSet()));
+                PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, new PartialMatchingProvider() {
+                    @Override
+                    public PartialMatching getPartialMatching() {
+                        TIntList vertexMatching = new TIntArrayList();
+                        vertexMatching.add(tail);
+                        vertexMatching.add(head);
+                        return new PartialMatching(vertexMatching);
+                    }
+                });
                 Path path;
                 while ((path = iterator.next()) != null) {
                     TIntSet occupationSays = occupation.getRoutingOccupied();

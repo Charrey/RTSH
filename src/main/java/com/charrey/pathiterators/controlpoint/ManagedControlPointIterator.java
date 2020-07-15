@@ -2,10 +2,10 @@ package com.charrey.pathiterators.controlpoint;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.DomainCheckerException;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,6 @@ public class ManagedControlPointIterator extends PathIterator {
     private final MyGraph graph;
     @NotNull
     private final GlobalOccupation globalOccupation;
-    private final OccupationTransaction transaction;
     private final int maxControlPoints;
     private final Supplier<Integer> verticesPlaced;
     private final ControlPointIteratorRelevantSettings settings;
@@ -45,13 +44,19 @@ public class ManagedControlPointIterator extends PathIterator {
      * @param verticesPlaced    supplier of the number of source graph vertices placed at this point in the search
      * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
      */
-    public ManagedControlPointIterator(@NotNull MyGraph graph, int tail, int head, @NotNull GlobalOccupation globalOccupation, int maxControlPoints, Supplier<Integer> verticesPlaced, boolean refuseLongerPaths) {
-        super(tail, head, refuseLongerPaths);
+    public ManagedControlPointIterator(@NotNull MyGraph graph,
+                                       int tail,
+                                       int head,
+                                       @NotNull GlobalOccupation globalOccupation,
+                                       int maxControlPoints,
+                                       Supplier<Integer> verticesPlaced,
+                                       boolean refuseLongerPaths,
+                                       PartialMatchingProvider provider) {
+        super(tail, head, refuseLongerPaths, globalOccupation.getTransaction(), provider);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
-        this.transaction = globalOccupation.getTransaction();
         this.settings = new ControlPointIteratorRelevantSettings(true);
-        this.child = new ControlPointIterator(graph, tail, head, transaction, new TIntHashSet(), controlPoints, verticesPlaced, settings);
+        this.child = new ControlPointIterator(graph, tail, head, transaction, new TIntHashSet(), controlPoints, verticesPlaced, settings, provider);
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
     }
@@ -67,7 +72,7 @@ public class ManagedControlPointIterator extends PathIterator {
             } while (path != null && controlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
                 try {
-                    transaction.commit(verticesPlaced.get());
+                    transaction.commit(verticesPlaced.get(), getPartialMatching());
                 } catch (DomainCheckerException e) {
                     continue;
                 }
@@ -85,7 +90,7 @@ public class ManagedControlPointIterator extends PathIterator {
                 }
                 TIntSet localOccupation = new TIntHashSet();
                 localOccupation.add(head());
-                child = new ControlPointIterator(graph, tail(), head(), transaction, localOccupation, controlPoints, verticesPlaced, settings);
+                child = new ControlPointIterator(graph, tail(), head(), transaction, localOccupation, controlPoints, verticesPlaced, settings, partialMatchingProvider);
             }
         }
     }

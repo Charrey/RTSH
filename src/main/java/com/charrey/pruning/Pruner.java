@@ -1,20 +1,22 @@
 package com.charrey.pruning;
 
-import com.charrey.runtimecheck.DomainCheckerException;
-import org.jetbrains.annotations.NotNull;
+import com.charrey.graph.MyGraph;
+import com.charrey.occupation.GlobalOccupation;
+import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 
-public abstract class Pruner implements Comparable<Pruner> {
+public abstract class Pruner {
 
+    protected final FilteringSettings filter;
+    protected final MyGraph targetGraph;
+    protected final MyGraph sourceGraph;
+    protected final GlobalOccupation occupation;
 
-    public abstract int serialized();
-
-    @Override
-    public int compareTo(@NotNull Pruner o) {
-        return Integer.compare(serialized(), o.serialized());
+    public Pruner(FilteringSettings filter, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
+        this.filter = filter;
+        this.sourceGraph = sourceGraph;
+        this.targetGraph = targetGraph;
+        this.occupation = occupation;
     }
-
-    @Override
-    public abstract boolean equals(Object o);
 
     /**
      * This method is called after a target graph vertex used in vertex-on-vertex matching is released.
@@ -39,7 +41,7 @@ public abstract class Pruner implements Comparable<Pruner> {
      * @param occupied       the target graph vertex to be matched
      * @throws DomainCheckerException thrown when this occupation would provably result in an unfruitful search path
      */
-    public abstract void beforeOccupyVertex(int verticesPlaced, int occupied) throws DomainCheckerException;
+    public abstract void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException;
 
     /**
      * This method is called just before a new target graph vertex is used as intermediate vertex in a path.
@@ -48,7 +50,7 @@ public abstract class Pruner implements Comparable<Pruner> {
      * @param occupied       the target graph vertex to be used
      * @throws DomainCheckerException thrown when this occupation would provably result in an unfruitful search path
      */
-    public abstract void afterOccupyEdge(int verticesPlaced, int occupied) throws DomainCheckerException;
+    public abstract void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException;
 
     /**
      * This method is called just before a new target graph vertex is used as intermediate vertex in a path. This
@@ -66,7 +68,7 @@ public abstract class Pruner implements Comparable<Pruner> {
      * @param verticesPlaced the number of placed source graph vertices
      * @return true if the domainchecker can prove that the current matching is unfruitful, or false if it cannot.
      */
-    public abstract boolean isUnfruitful(int verticesPlaced);
+    public abstract boolean isUnfruitfulCached(int verticesPlaced);
 
     /**
      * Provides a deep copy of this checker.
@@ -74,4 +76,6 @@ public abstract class Pruner implements Comparable<Pruner> {
      * @return A deep copy of this domainchecker
      */
     public abstract Pruner copy();
+
+    public abstract void checkPartial(PartialMatching partialMatching) throws DomainCheckerException;
 }

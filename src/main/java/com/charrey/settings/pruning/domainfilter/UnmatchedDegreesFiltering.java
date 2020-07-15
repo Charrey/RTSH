@@ -2,20 +2,11 @@ package com.charrey.settings.pruning.domainfilter;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
+import gnu.trove.set.TIntSet;
 
 public class UnmatchedDegreesFiltering extends FilteringSettings {
 
     private final FilteringSettings innerFilter = new LabelDegreeFiltering();
-
-    @Override
-    public int serialized() {
-        return 1;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return getClass().equals(o.getClass());
-    }
 
     @Override
     public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
@@ -26,7 +17,13 @@ public class UnmatchedDegreesFiltering extends FilteringSettings {
     }
 
     @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    public TIntSet sourceVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
+        throw new UnsupportedOperationException(); //TODO
     }
+
+    @Override
+    public TIntSet targetVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
+        throw new UnsupportedOperationException(); //TODO
+    }
+
 }

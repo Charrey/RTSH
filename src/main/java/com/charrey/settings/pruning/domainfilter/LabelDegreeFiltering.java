@@ -2,18 +2,11 @@ package com.charrey.settings.pruning.domainfilter;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 public class LabelDegreeFiltering extends FilteringSettings {
 
-    @Override
-    public int serialized() {
-        return 0;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return getClass().equals(o.getClass());
-    }
 
     @Override
     public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
@@ -23,7 +16,13 @@ public class LabelDegreeFiltering extends FilteringSettings {
     }
 
     @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    public TIntSet sourceVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
+        return new TIntHashSet();
     }
+
+    @Override
+    public TIntSet targetVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
+        return new TIntHashSet();
+    }
+
 }

@@ -4,11 +4,13 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
-import com.charrey.runtimecheck.DomainCheckerException;
+import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.GreedyDFSStrategy;
 import com.charrey.settings.iterator.KPathStrategy;
@@ -16,6 +18,8 @@ import com.charrey.settings.pruning.PruningApplicationConstants;
 import com.charrey.settings.pruning.PruningConstants;
 import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.Graphs;
@@ -53,18 +57,36 @@ class GreedyDfsTest {
                 if (counter < 0) {
                     continue;
                 }
-                System.out.print(true ? counter + "/" + differentGraphSizes * trials + "\n" : "");
+                System.out.print(counter + "/" + differentGraphSizes * trials + "\n");
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
+                TIntList vertexMatching = new TIntArrayList();
+                vertexMatching.add(tail);
                 GlobalOccupation occupationGreedy = new GlobalOccupation(data, settingsGreedy, "Greedy");
-                occupationGreedy.occupyVertex(0, tail);
-                occupationGreedy.occupyVertex(1, head);
+                occupationGreedy.occupyVertex(0, tail, new PartialMatching());
+                occupationGreedy.occupyVertex(1, head, new PartialMatching(vertexMatching));
                 GlobalOccupation occupationKPath = new GlobalOccupation(data, settingsKpath, "KPath");
-                occupationKPath.occupyVertex(0, tail);
-                occupationKPath.occupyVertex(1, head);
-                DFSPathIterator greedyDFSIterator = (DFSPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy);
-                KPathPathIterator kPathIterator = (KPathPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationKPath, () -> 2, settingsKpath);
+                occupationKPath.occupyVertex(0, tail, new PartialMatching());
+                occupationKPath.occupyVertex(1, head, new PartialMatching(vertexMatching));
+                DFSPathIterator greedyDFSIterator = (DFSPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy, new PartialMatchingProvider() {
+                    @Override
+                    public PartialMatching getPartialMatching() {
+                        TIntList vertexMatching = new TIntArrayList();
+                        vertexMatching.add(tail);
+                        vertexMatching.add(head);
+                        return new PartialMatching(vertexMatching);
+                    }
+                });
+                KPathPathIterator kPathIterator = (KPathPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationKPath, () -> 2, settingsKpath, new PartialMatchingProvider() {
+                    @Override
+                    public PartialMatching getPartialMatching() {
+                        TIntList vertexMatching = new TIntArrayList();
+                        vertexMatching.add(tail);
+                        vertexMatching.add(head);
+                        return new PartialMatching(vertexMatching);
+                    }
+                });
 
                 Path path1 = kPathIterator.next();
                 Path path2 = greedyDFSIterator.next();
