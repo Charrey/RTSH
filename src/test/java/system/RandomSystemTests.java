@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private static final Pattern newline = Pattern.compile("\r\n");
-    private final Settings settings = new Settings(new LabelDegreeFiltering(), true, PruningConstants.ZERODOMAIN, new ControlPointIteratorStrategy(5), PruningApplicationConstants.CACHED);
+    private final Settings settings = new Settings(new LabelDegreeFiltering(), true, PruningConstants.ALL_DIFFERENT, new ControlPointIteratorStrategy(5), PruningApplicationConstants.CACHED);
 
 
     @Test
@@ -72,21 +72,18 @@ class RandomSystemTests extends SystemTest {
             int casesFailed = 0;
             int casesCompatibilityFailed = 0;
 
-
             for (int i = 0; i < iterations; i++) {
                 TestCase testCase = graphGen.getNext();
-                //System.out.println(testCase.getSourceGraph());
-                //System.out.println(testCase.getTargetGraph());
                 patternNodes = testCase.getSourceGraph().vertexSet().size();
                 patternEdges = testCase.getSourceGraph().edgeSet().size();
 
-                HomeomorphismResult homeomorphism = null;
+                HomeomorphismResult homeomorphism;
 
-                if (attempts >= 56) {
+                if (attempts >= 0) {
                     try {
                         homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge, time - (System.currentTimeMillis() - start), settings) : new IsoFinder().getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start), "RANDOMSYSTEST  ");
                         assert homeomorphism instanceof TimeoutResult || homeomorphism.succeed || !writeChallenge;
-                    } catch (AssertionError e) {
+                    } catch (AssertionError | IllegalStateException e) {
                         System.err.println(attempts);
                         System.err.println(testCase.getSourceGraph());
                         System.err.println(testCase.getTargetGraph());

@@ -1,7 +1,9 @@
 package com.charrey;
 
-import com.charrey.algorithms.GreatestConstrainedFirst;
 import com.charrey.algorithms.UtilityData;
+import com.charrey.algorithms.vertexordering.GreatestConstrainedFirst;
+import com.charrey.algorithms.vertexordering.Mapping;
+import com.charrey.algorithms.vertexordering.MaxDegreeFirst;
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
@@ -56,7 +58,7 @@ public class IsoFinder {
         return true;
     }
 
-    private static Map<MyEdge, Path> repairPaths(MyGraph oldSourceGraph, MyGraph newSourceGraph, EdgeMatching edgeMatching, int[] new_to_old, VertexMatching vertexMatching) {
+    private static Map<MyEdge, Path> repairPaths(MyGraph newSourceGraph, MyGraph oldTargetGraph, EdgeMatching edgeMatching, int[] sourcegraph_new_to_old, VertexMatching vertexMatching, int[] targetgraph_new_to_old) {
         Map<MyEdge, Path> res = new HashMap<>();
         if (newSourceGraph.isDirected()) {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
@@ -64,7 +66,11 @@ public class IsoFinder {
                 int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
                 Optional<Path> match = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).findAny();
                 assert match.isPresent();
-                res.put(new MyEdge(new_to_old[edge.source], new_to_old[edge.target]), match.get());
+                Path gotten = new Path(oldTargetGraph, targetgraph_new_to_old[match.get().first()]);
+                for (int i = 1; i < match.get().asList().size(); i++) {
+                    gotten.append(targetgraph_new_to_old[match.get().get(i)]);
+                }
+                res.put(new MyEdge(sourcegraph_new_to_old[edge.source], sourcegraph_new_to_old[edge.target]), gotten);
             }
         } else {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
@@ -72,7 +78,11 @@ public class IsoFinder {
                 int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
                 Optional<Path> match = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).findAny();
                 assert match.isPresent();
-                res.put(new MyEdge(new_to_old[edge.source], new_to_old[edge.target]), match.get());
+                Path gotten = new Path(oldTargetGraph, targetgraph_new_to_old[match.get().first()]);
+                for (int i = 1; i < match.get().asList().size(); i++) {
+                    gotten.append(targetgraph_new_to_old[match.get().get(i)]);
+                }
+                res.put(new MyEdge(sourcegraph_new_to_old[edge.source], sourcegraph_new_to_old[edge.target]), gotten);
             }
         }
 
@@ -92,14 +102,6 @@ public class IsoFinder {
         vertexMatching.setEdgeMatchingProvider(edgeMatching);
     }
 
-    private static int[] repairMatching(int[] placement, int[] new_to_old) {
-        int[] res = new int[placement.length];
-        for (int i = 0; i < placement.length; i++) {
-            res[i] = placement[new_to_old[i]];
-        }
-        return res;
-    }
-
     /**
      * Searches for a node disjoint subgraph homeomorphism.
      *
@@ -110,12 +112,18 @@ public class IsoFinder {
      */
     @NotNull
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name) {
-        GreatestConstrainedFirst.Mapping mapping;
+        Mapping sourceGraphMapping;
+        Mapping targetGraphMapping;
         MyGraph newSourceGraph;
+        MyGraph newTargetGraph;
         try {
-            mapping = GreatestConstrainedFirst.apply(testcase.getSourceGraph());
-            newSourceGraph = mapping.graph;
-            setup(newSourceGraph, testcase.getTargetGraph(), settings, name);
+            sourceGraphMapping = new GreatestConstrainedFirst().apply(testcase.getSourceGraph());
+            newSourceGraph = sourceGraphMapping.graph;
+            targetGraphMapping = new MaxDegreeFirst().apply(testcase.getTargetGraph());
+            newTargetGraph = targetGraphMapping.graph;
+            setup(newSourceGraph, newTargetGraph, settings, name);
+            System.out.println("NEW SOURCE GRAPH:\n" + newSourceGraph);
+            System.out.println("NEW TARGET GRAPH:\n" + newTargetGraph);
         } catch (DomainCheckerException e) {
             return new CompatibilityFailResult();
         }
@@ -153,13 +161,17 @@ public class IsoFinder {
         if (vertexMatching.getPlacement().size() < testcase.getSourceGraph().vertexSet().size()) {
             return new FailResult(iterations);
         } else {
-            int[] vertexMapping = vertexMatching.getPlacement().toArray();
-            //int[] fixed = repairMatching(vertexMapping, mapping.new_to_old);
+            int[] placement = vertexMatching.getPlacement().toArray();
+            System.out.println("Placement: " + Arrays.toString(placement));
+            int[] vertexMapping = new int[placement.length];
+            for (int i = 0; i < placement.length; i++) {
+                vertexMapping[sourceGraphMapping.new_to_old[i]] = targetGraphMapping.new_to_old[placement[i]];
+            }
             assert allDone(newSourceGraph, vertexMatching, edgeMatching);
             assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
 
 
-            Map<MyEdge, Path> paths = repairPaths(testcase.getSourceGraph(), newSourceGraph, edgeMatching, mapping.new_to_old, vertexMatching);
+            Map<MyEdge, Path> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.new_to_old, vertexMatching, targetGraphMapping.new_to_old);
             return new SuccessResult(vertexMapping, paths, iterations);
         }
     }

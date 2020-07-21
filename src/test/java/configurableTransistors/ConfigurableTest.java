@@ -201,7 +201,7 @@ class ConfigurableTest {
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(new TestCase(sourceGraph, targetGraph), new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new KPathStrategy(), PruningApplicationConstants.SERIAL), 10 * 60 * 1000, "ConfigurableTest ");
         assertTrue(result.succeed);
         System.out.println(result);
-        assertArrayEquals(new int[]{1, 0, 4, 6, 7, 10}, ((SuccessResult) result).getVertexPlacement());
+        assertArrayEquals(new int[]{0, 1, 4, 6, 7, 10}, ((SuccessResult) result).getVertexPlacement());
 
         Map<MyEdge, Path> expected = new HashMap<>();
         expected.put(new MyEdge(0, 1), new Path(targetGraph, List.of(0, 1)));
@@ -252,7 +252,7 @@ class ConfigurableTest {
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(new TestCase(sourceGraph, targetGraph), new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new KPathStrategy(), PruningApplicationConstants.SERIAL), 10 * 60 * 1000, "ConfigurableTest ");
         assertTrue(result.succeed);
         System.out.println(result);
-        assertArrayEquals(new int[]{1, 0, 4, 5, 6, 9}, ((SuccessResult) result).getVertexPlacement());
+        assertArrayEquals(new int[]{0, 1, 4, 5, 6, 9}, ((SuccessResult) result).getVertexPlacement());
 
         Map<MyEdge, Path> expected = new HashMap<>();
         expected.put(new MyEdge(0, 1), new Path(targetGraph, List.of(0, 1)));

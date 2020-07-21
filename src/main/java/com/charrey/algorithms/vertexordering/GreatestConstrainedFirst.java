@@ -1,4 +1,4 @@
-package com.charrey.algorithms;
+package com.charrey.algorithms.vertexordering;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.util.GraphUtil;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * Returns a vertex order using the GreatestConstraintFirst algorithm. This vertex order attempts to have each
  * * consecutive vertex be connected with as many already already matched vertices possible.
  */
-public class GreatestConstrainedFirst {
+public class GreatestConstrainedFirst extends GraphVertexMapper {
 
 
     /**
@@ -27,10 +27,11 @@ public class GreatestConstrainedFirst {
      * @return an appropriate vertex ordering.
      */
     @NotNull
-    public static Mapping apply(@NotNull MyGraph graph) {
-        TIntList ordering = new TIntArrayList(graph.vertexSet().size());
+    @Override
+    public Mapping apply(@NotNull MyGraph graph) {
+        TIntList new_to_old = new TIntArrayList(graph.vertexSet().size());
         if (graph.vertexSet().isEmpty()) {
-            return new Mapping(graph, new int[0], new int[0]);
+            return new Mapping(graph, new int[0]);
         }
         int maxDegree = -1;
         int maxDegreeVertex = -1;
@@ -41,23 +42,23 @@ public class GreatestConstrainedFirst {
                 maxDegreeVertex = vertex;
             }
         }
-        ordering.add(maxDegreeVertex);
-        while (ordering.size() < graph.vertexSet().size()) {
-            TIntSet firstSelection = getFirstCriterium(graph, ordering);
-            TIntSet secondSelection = getSecondCriterium(graph, ordering, firstSelection);
-            TIntList thirdSelection = new TIntLinkedList(getThirdCriterium(graph, ordering, secondSelection));
+        new_to_old.add(maxDegreeVertex);
+        while (new_to_old.size() < graph.vertexSet().size()) {
+            TIntSet firstSelection = getFirstCriterium(graph, new_to_old);
+            TIntSet secondSelection = getSecondCriterium(graph, new_to_old, firstSelection);
+            TIntList thirdSelection = new TIntLinkedList(getThirdCriterium(graph, new_to_old, secondSelection));
             thirdSelection.sort();
             assert secondSelection.containsAll(thirdSelection);
             int toAdd = thirdSelection.get(0);
-            assert !ordering.contains(toAdd);
-            ordering.add(toAdd);
+            assert !new_to_old.contains(toAdd);
+            new_to_old.add(toAdd);
         }
-        int[] reverseOrdering = new int[ordering.size()];
-        for (int i = 0; i < ordering.size(); i++) {
-            reverseOrdering[ordering.get(i)] = i;
+        int[] old_to_new = new int[new_to_old.size()];
+        for (int i = 0; i < new_to_old.size(); i++) {
+            old_to_new[new_to_old.get(i)] = i;
         }
-        int[] orderingAsArray = ordering.toArray();
-        return new Mapping(MyGraph.applyOrdering(graph, orderingAsArray, reverseOrdering), reverseOrdering, orderingAsArray);
+        int[] new_to_old_array = new_to_old.toArray();
+        return new Mapping(MyGraph.applyOrdering(graph, new_to_old_array, old_to_new), new_to_old_array);
     }
 
     @NotNull
@@ -137,17 +138,5 @@ public class GreatestConstrainedFirst {
             }
         }
         return firstSelection;
-    }
-
-    public static class Mapping {
-        public final int[] new_to_old;
-        public final int[] old_to_new;
-        public final MyGraph graph;
-
-        Mapping(MyGraph graph, int[] new_to_old, int[] old_to_new) {
-            this.graph = graph;
-            this.new_to_old = new_to_old;
-            this.old_to_new = old_to_new;
-        }
     }
 }
