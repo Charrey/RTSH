@@ -2,17 +2,17 @@ package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import com.charrey.settings.Settings;
 
 public abstract class Pruner {
 
-    protected final FilteringSettings filter;
+    protected final Settings settings;
     protected final MyGraph targetGraph;
     protected final MyGraph sourceGraph;
     protected final GlobalOccupation occupation;
 
-    public Pruner(FilteringSettings filter, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
-        this.filter = filter;
+    public Pruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
+        this.settings = settings;
         this.sourceGraph = sourceGraph;
         this.targetGraph = targetGraph;
         this.occupation = occupation;
@@ -76,6 +76,8 @@ public abstract class Pruner {
      * @return A deep copy of this domainchecker
      */
     public abstract Pruner copy();
+
+    public abstract void close();
 
     public abstract void checkPartial(PartialMatching partialMatching) throws DomainCheckerException;
 }

@@ -4,14 +4,16 @@ import com.charrey.IsoFinder;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.result.HomeomorphismResult;
+import com.charrey.result.SuccessResult;
 import com.charrey.settings.Settings;
+import com.charrey.settings.SettingsBuilder;
+import com.charrey.settings.iterator.ControlPointIteratorStrategy;
+import com.charrey.settings.iterator.GreedyDFSStrategy;
 import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.settings.iterator.KPathStrategy;
-import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.PruningConstants;
-import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -61,12 +63,19 @@ class BigGraphTest {
 
     private static Thread getThread(TestCase testCase, IteratorSettings strategy) {
         return new Thread(() -> {
-            Settings settings = new Settings(new LabelDegreeFiltering(), true, PruningConstants.ALL_DIFFERENT, strategy, PruningApplicationConstants.CACHED);
+            Settings settings = new SettingsBuilder()
+                    .withZeroDomainPruning()
+                    .withPathIteration(strategy)
+                    .withParallelPruning()
+                    .withVertexLimit(20).get();
             try {
                 HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, strategy.toString());
                 System.out.println(result);
                 System.out.println(strategy.toString() + " IS FINISHED ------------------------------------");
                 System.out.flush();
+                if (result instanceof SuccessResult) {
+                    System.exit(0);
+                }
             } catch (Throwable e) {
                 failed = true;
                 throw e;
@@ -74,7 +83,39 @@ class BigGraphTest {
         });
     }
 
+    private static MyGraph getSourceGraph() {
+        MyGraph sourceGraph = new MyGraph(true);
+        int northIn = sourceGraph.addVertex("label", "wire");
+        int northOut = sourceGraph.addVertex("label", "wire");
+        int southIn = sourceGraph.addVertex("label", "wire");
+        int southOut = sourceGraph.addVertex("label", "wire");
+        int westIn = sourceGraph.addVertex("label", "wire");
+        int westOut = sourceGraph.addVertex("label", "wire");
+        int eastIn = sourceGraph.addVertex("label", "wire");
+        int eastOut = sourceGraph.addVertex("label", "wire");
+
+        int lut = sourceGraph.addVertex("label", "SLICE");
+        int clockEnableWire = sourceGraph.addVertex("label", "wire");
+        int clockEnableArcNorth = sourceGraph.addVertex("label", "arc");
+        int clockEnableArcSouth = sourceGraph.addVertex("label", "arc");
+        int clockEnableArcEast = sourceGraph.addVertex("label", "arc");
+        int clockEnableArcWest = sourceGraph.addVertex("label", "arc");
+        sourceGraph.addEdge(northIn, clockEnableArcNorth);
+        sourceGraph.addEdge(southIn, clockEnableArcSouth);
+        sourceGraph.addEdge(westIn, clockEnableArcWest);
+        sourceGraph.addEdge(eastIn, clockEnableArcEast);
+        sourceGraph.addEdge(clockEnableArcNorth, clockEnableWire);
+        sourceGraph.addEdge(clockEnableArcSouth, clockEnableWire);
+        //sourceGraph.addEdge(clockEnableArcWest, clockEnable);
+        //sourceGraph.addEdge(clockEnableArcEast, clockEnable);
+        //sourceGraph.addEdge(clockEnable, lut);
+
+        return sourceGraph;
+
+    }
+
     @Test
+    @Disabled
     void importSingleTile() throws IOException, InterruptedException {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
@@ -84,33 +125,22 @@ class BigGraphTest {
         matchFrom().forEach(v -> targetGraph.addAttribute(v, "label", "matchfrom"));
         matchTo().forEach(v -> targetGraph.addAttribute(v, "label", "matchto"));
 
-        MyGraph sourceGraph = new MyGraph(true);
-        int startVertex = sourceGraph.addVertex();
-        int endVertex = startVertex;
-        for (int i = 0; i < 2; i++) {
-            int newVertex = sourceGraph.addVertex();
-            sourceGraph.addEdge(endVertex, newVertex);
-            endVertex = newVertex;
-        }
-        sourceGraph.addEdge(endVertex, startVertex);
-
+        MyGraph sourceGraph = getSourceGraph();
         TestCase testCase = new TestCase(sourceGraph, targetGraph);
 
         failed = false;
         Thread threadKPath = getThread(testCase, new KPathStrategy());
-        //Thread threadDFSArbitrary = getThread(testCase, new GreedyDFSStrategy());
-        //Thread threadDFSGreedy = getThread(testCase, new GreedyDFSStrategy());
-        //Thread threadControlPoint = getThread(testCase, new ControlPointIteratorStrategy(0));
-        threadKPath.start();
+        Thread threadDFSArbitrary = getThread(testCase, new GreedyDFSStrategy());
+        Thread threadDFSGreedy = getThread(testCase, new GreedyDFSStrategy());
+        Thread threadControlPoint = getThread(testCase, new ControlPointIteratorStrategy(0));
+        //threadKPath.start();
         //threadDFSArbitrary.start();
         //threadDFSGreedy.start();
-        //threadControlPoint.start();
-        threadKPath.join();
+        threadControlPoint.start();
+        //threadKPath.join();
         //threadDFSArbitrary.join();
         //threadDFSGreedy.join();
-        //threadControlPoint.join();
-        System.out.println("foo");
-
+        threadControlPoint.join();
         assert !failed;
     }
 

@@ -11,10 +11,7 @@ import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.TimeoutResult;
 import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iterator.ControlPointIteratorStrategy;
-import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.PruningConstants;
-import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
+import com.charrey.settings.SettingsBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +23,10 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private static final Pattern newline = Pattern.compile("\r\n");
-    private final Settings settings = new Settings(new LabelDegreeFiltering(), true, PruningConstants.ALL_DIFFERENT, new ControlPointIteratorStrategy(5), PruningApplicationConstants.CACHED);
+    private final Settings settings = new SettingsBuilder()
+            .withAllDifferentPruning()
+            .withControlPointRouting(5)
+            .withCachedPruning().get();
 
 
     @Test

@@ -2,7 +2,7 @@ package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import com.charrey.settings.Settings;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.TIntSet;
@@ -22,7 +22,7 @@ public abstract class DefaultCachedPruner extends Pruner {
 
 
     DefaultCachedPruner(DefaultCachedPruner copyOf) {
-        super(copyOf.filter, copyOf.sourceGraph, copyOf.targetGraph, copyOf.occupation);
+        super(copyOf.settings, copyOf.sourceGraph, copyOf.targetGraph, copyOf.occupation);
         this.domain = new ArrayList<>(sourceGraph.vertexSet().size());
         this.reverseDomain = new ArrayList<>(targetGraph.vertexSet().size());
         this.previousDomain = (TIntSet[]) Array.newInstance(TIntSet.class, sourceGraph.vertexSet().size());
@@ -37,8 +37,8 @@ public abstract class DefaultCachedPruner extends Pruner {
         }
     }
 
-    DefaultCachedPruner(FilteringSettings filter, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation, boolean calcDomains) {
-        super(filter, sourceGraph, targetGraph, occupation);
+    DefaultCachedPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation, boolean calcDomains) {
+        super(settings, sourceGraph, targetGraph, occupation);
         this.domain = new ArrayList<>(sourceGraph.vertexSet().size());
         this.reverseDomain = new ArrayList<>(targetGraph.vertexSet().size());
         this.previousDomain = (TIntSet[]) Array.newInstance(TIntSet.class, sourceGraph.vertexSet().size());
@@ -50,7 +50,7 @@ public abstract class DefaultCachedPruner extends Pruner {
                 reverseDomain.add(new TIntArrayList());
             }
             sourceGraph.vertexSet().stream().sorted().forEach(sourceV -> targetGraph.vertexSet().forEach(targetV -> {
-                if (filter.filter(sourceGraph, targetGraph, sourceV, targetV, occupation)) {
+                if (settings.filtering.filter(sourceGraph, targetGraph, sourceV, targetV, occupation)) {
                     domain.get(sourceV).add(targetV);
                     reverseDomain.get(targetV).add(sourceV);
                 }
@@ -112,13 +112,12 @@ public abstract class DefaultCachedPruner extends Pruner {
 
     public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int v) {
         TIntList candidates2 = reverseDomain.get(v);
-        int sourceVertexData = verticesPlaced - 1;
-        removeFromDomains(v, candidates2, sourceVertexData);
+        removeFromDomains(v, candidates2, verticesPlaced - 1);
     }
 
     private void removeFromDomains(int placedTarget, TIntList sourcegraphCandidates, int sourceVertexData) {
         for (int i = sourcegraphCandidates.size() - 1; i >= 0 && sourcegraphCandidates.get(i) > sourceVertexData; i--) {
-            assert domain.get(sourcegraphCandidates.get(i)).contains(placedTarget);
+            //assert domain.get(sourcegraphCandidates.get(i)).contains(placedTarget);
             domain.get(sourcegraphCandidates.get(i)).remove(placedTarget);
         }
     }

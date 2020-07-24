@@ -1,7 +1,5 @@
 package com.charrey.pruning;
 
-import com.charrey.settings.pruning.domainfilter.NoFiltering;
-
 /**
  * Domain checker class that performs no pruning.
  */
@@ -9,7 +7,7 @@ import com.charrey.settings.pruning.domainfilter.NoFiltering;
 public class NoPruner extends Pruner {
 
     public NoPruner() {
-        super(new NoFiltering(), null, null, null);
+        super(null, null, null, null);
     }
 
     @Override
@@ -45,6 +43,11 @@ public class NoPruner extends Pruner {
     @Override
     public Pruner copy() {
         return this;
+    }
+
+    @Override
+    public void close() {
+
     }
 
     @Override

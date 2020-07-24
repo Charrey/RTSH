@@ -1,12 +1,13 @@
 package com.charrey.matching;
 
-import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
+import com.charrey.matching.candidate.VertexCandidateIterator;
+import com.charrey.matching.candidate.VertexCandidateIteratorFactory;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import com.charrey.settings.Settings;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -26,7 +27,6 @@ import java.util.stream.IntStream;
 public class VertexMatching extends PartialMatchingProvider implements Supplier<TIntList> {
 
     private final TIntList placement = new TIntArrayList();
-    private final int[][] candidates;          //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
 
     private final VertexCandidateIterator[] candidates2;
 
@@ -42,14 +42,13 @@ public class VertexMatching extends PartialMatchingProvider implements Supplier<
     /**
      * Instantiates a new Vertexmatching.
      *
-     * @param data        the utility data class of this test case (for cached computations)
      * @param sourceGraph the source graph (doesnt matter whether old or new)
      * @param occupation  the global occupation which vertices have been used and which are available
      */
-    public VertexMatching(@NotNull UtilityData data, @NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, GlobalOccupation occupation, FilteringSettings filteringSettings, String name) {
-        this.candidates = data.getCompatibility(filteringSettings, name);
+    public VertexMatching(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, GlobalOccupation occupation, Settings settings, String name) {
+        //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
         this.candidates2 = new VertexCandidateIterator[sourceGraph.vertexSet().size()];
-        IntStream.range(0, candidates2.length).forEach(i -> candidates2[i] = new VertexCandidateIterator(sourceGraph, targetGraph, i, filteringSettings, occupation));
+        IntStream.range(0, candidates2.length).forEach(i -> candidates2[i] = VertexCandidateIteratorFactory.get(sourceGraph, targetGraph, settings, occupation, i, this));
         this.occupation = occupation;
     }
 
@@ -60,7 +59,7 @@ public class VertexMatching extends PartialMatchingProvider implements Supplier<
      * @return whether a next vertex-on-vertex candidate pair exists.
      */
     public boolean canPlaceNext() {
-        if (placement.size() >= candidates.length) {
+        if (placement.size() >= candidates2.length) {
             return false;
         } else {
             return candidates2[placement.size()].hasNext();
@@ -151,7 +150,7 @@ public class VertexMatching extends PartialMatchingProvider implements Supplier<
      */
     public void giveAllowance() {
         if (placement.size() < candidates2.length) {
-            this.candidates2[placement.size()].reset();
+            this.candidates2[placement.size()].doReset();
         }
     }
 

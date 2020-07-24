@@ -3,7 +3,7 @@ package com.charrey.pruning;
 import com.charrey.algorithms.AllDifferent;
 import com.charrey.algorithms.UtilityData;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import com.charrey.settings.Settings;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.TIntSet;
@@ -31,14 +31,19 @@ public class AllDifferentPruner extends DefaultCachedPruner {
      *
      * @param data utility data (for cached computation)
      */
-    public AllDifferentPruner(@NotNull UtilityData data, FilteringSettings filteringSettings, String name, GlobalOccupation occupation) {
-        super(filteringSettings, data.getPatternGraph(), data.getTargetGraph(), occupation, true);
+    public AllDifferentPruner(@NotNull UtilityData data, Settings settings, String name, GlobalOccupation occupation) {
+        super(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, true);
         this.allDifferent = new AllDifferent();
     }
 
     @Override
     public Pruner copy() {
         return new AllDifferentPruner(this);
+    }
+
+    @Override
+    public void close() {
+
     }
 
 

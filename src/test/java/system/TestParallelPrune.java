@@ -15,16 +15,16 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class TestSerialPrune extends SystemTest {
+class TestParallelPrune extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
             .withZeroDomainPruning()
             .withControlPointRouting(5)
-            .withSerialPruning().get();
+            .withParallelPruning().get();
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(10 * 1000, 5, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(100 * 1000, 5, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     private void findCases(long time, int iterations, @NotNull TestCaseGenerator graphGen, boolean writeChallenge) throws IOException {

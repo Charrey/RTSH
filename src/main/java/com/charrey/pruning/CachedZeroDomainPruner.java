@@ -2,7 +2,7 @@ package com.charrey.pruning;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import com.charrey.settings.Settings;
 import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,13 +21,18 @@ public class CachedZeroDomainPruner extends DefaultCachedPruner {
      *
      * @param data utility data (for cached computation)
      */
-    public CachedZeroDomainPruner(@NotNull UtilityData data, FilteringSettings filteringSettings, String name, GlobalOccupation occupation) {
-        super(filteringSettings, data.getPatternGraph(), data.getTargetGraph(), occupation, true);
+    public CachedZeroDomainPruner(@NotNull UtilityData data, Settings settings, String name, GlobalOccupation occupation) {
+        super(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, true);
     }
 
     @Override
     public Pruner copy() {
         return new CachedZeroDomainPruner(this);
+    }
+
+    @Override
+    public void close() {
+
     }
 
 

@@ -1,54 +1,70 @@
 package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import com.charrey.settings.Settings;
 
 public class ParallelPruner extends DefaultSerialPruner {
 
 
     private final PruningThread pruningThread;
     private final Thread theThread;
+    private final Pruner inner;
     volatile boolean isInPruningState = false;
     private PartialMatching partialMatching;
 
-    public ParallelPruner(Pruner inner, FilteringSettings filter, MyGraph sourceGraph, MyGraph targetGraph) {
-        super(filter, sourceGraph, targetGraph, inner.occupation);
+    public ParallelPruner(Pruner inner, Settings settings, MyGraph sourceGraph, MyGraph targetGraph) {
+        super(settings, sourceGraph, targetGraph, inner.occupation);
+        this.inner = inner;
         pruningThread = new PruningThread(this, inner);
         theThread = new Thread(pruningThread);
         theThread.start();
     }
 
-    private void donePruning() {
-        synchronized (this) {
-            isInPruningState = false;
-            notifyAll();
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+    private ParallelPruner(ParallelPruner parallelPruner) {
+        super(parallelPruner.settings, parallelPruner.sourceGraph, parallelPruner.targetGraph, parallelPruner.occupation);
+        synchronized (parallelPruner) {
+            this.inner = parallelPruner.inner.copy();
+            this.pruningThread = parallelPruner.pruningThread;
+            this.theThread = parallelPruner.theThread;
+            this.isInPruningState = parallelPruner.isInPruningState;
+            this.partialMatching = parallelPruner.partialMatching;
         }
     }
 
     @Override
     public Pruner copy() {
-        throw new UnsupportedOperationException(); //todo;
+        return new ParallelPruner(this);
+    }
+
+    @Override
+    public void close() {
+        pruningThread.setDone();
+        try {
+            theThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void checkPartial(PartialMatching partialMatching) throws DomainCheckerException {
         this.partialMatching = partialMatching;
         if (this.isInPruningState) {
-            boolean pruned = false;
-
-            //we have to serially prune here! If pruned, throw
-            //todo
-
-            if (pruned) {
-                throw new DomainCheckerException("");
-            } else {
-                donePruning();
+            inner.checkPartial(partialMatching);
+            synchronized (this) {
+                isInPruningState = false;
+                notifyAll();
             }
-            throw new UnsupportedOperationException();
         }
     }
 
-    PartialMatching getCurrentMatching() {
+    PartialMatching getCurrentMatching() throws InterruptedException {
+        PartialMatching toReturn = this.partialMatching;
+        while (toReturn == null) {
+            Thread.sleep(10);
+            toReturn = this.partialMatching;
+        }
         return partialMatching;
     }
 }

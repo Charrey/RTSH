@@ -16,7 +16,7 @@ public class Settings {
     /**
      * Whether to refuse paths that take up unnecessarily many resources.
      */
-    public final boolean refuseLongerPaths;
+    public boolean refuseLongerPaths;
     /**
      * Which pruning method to use (select from PruningConstants.java)
      */
@@ -32,6 +32,7 @@ public class Settings {
     public FilteringSettings filtering;
 
     public PruningApplicationConstants whenToApply;
+    public int vertexLimit;
 
     /**
      * Instantiates a new Settings.
@@ -40,16 +41,18 @@ public class Settings {
      * @param pruningMethod     Which pruning method to use (select from PruningConstants.java)
      * @param pathIteration     Which method to iterate paths is used (select from PathIterationConstants.java)
      */
-    public Settings(FilteringSettings filtering,
-                    boolean refuseLongerPaths,
-                    int pruningMethod,
-                    IteratorSettings pathIteration,
-                    PruningApplicationConstants whenToApply) {
+    Settings(FilteringSettings filtering,
+             boolean refuseLongerPaths,
+             int pruningMethod,
+             IteratorSettings pathIteration,
+             PruningApplicationConstants whenToApply,
+             int vertexLimit) {
         this.filtering = filtering;
         this.refuseLongerPaths = refuseLongerPaths;
         this.pruningMethod = pruningMethod;
         this.pathIteration = pathIteration;
         this.whenToApply = whenToApply;
+        this.vertexLimit = vertexLimit;
     }
 
     @Override

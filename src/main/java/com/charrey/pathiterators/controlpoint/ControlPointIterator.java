@@ -5,6 +5,7 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.AbstractOccupation;
+import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
@@ -40,6 +41,7 @@ class ControlPointIterator extends PathIterator {
 
     private final Supplier<Integer> verticesPlaced;
     private final ControlPointIteratorRelevantSettings settings;
+    private final GlobalOccupation globalOccupation;
 
     private boolean done = false;
     @NotNull
@@ -72,15 +74,17 @@ class ControlPointIterator extends PathIterator {
     ControlPointIterator(@NotNull MyGraph targetGraph,
                          int tail,
                          int head,
+                         @NotNull GlobalOccupation globalOccupation,
                          @NotNull OccupationTransaction occupation,
                          @NotNull TIntSet initialLocalOccupation,
                          int controlPoints,
                          Supplier<Integer> verticesPlaced,
                          ControlPointIteratorRelevantSettings settings,
                          PartialMatchingProvider provider) {
-        super(tail, head, settings.refuseLongerPaths, occupation, provider);
+        super(tail, head, settings.refuseLongerPaths, globalOccupation, occupation, provider);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;
+        this.globalOccupation = globalOccupation;
         this.localOccupation = initialLocalOccupation;
         this.head = head;
         this.controlPointCandidates = new ControlPointVertexSelector(targetGraph, occupation, TCollections.unmodifiableSet(initialLocalOccupation), tail, head, refuseLongerPaths, tail);
@@ -268,7 +272,7 @@ class ControlPointIterator extends PathIterator {
 
     @Nullable
     @Override
-    public Path next() {
+    public Path getNext() {
         StringBuilder prefix = new StringBuilder();
         prefix.append("   ".repeat(Math.max(0, 10 - controlPoints)));
         while (!done) {
@@ -347,7 +351,7 @@ class ControlPointIterator extends PathIterator {
 
                     TIntSet previousOccupation = new TIntHashSet(localOccupation);
                     chosenPath.forEach(localOccupation::add);
-                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, transaction, new TIntHashSet(localOccupation), controlPoints - 1, verticesPlaced, settings, partialMatchingProvider);
+                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, globalOccupation, transaction, new TIntHashSet(localOccupation), controlPoints - 1, verticesPlaced, settings, partialMatchingProvider);
                     child.setRightNeighbourOfRightNeighbour(this.head(), chosenPath, previousOccupation);
                 } else {
                     if (settings.log) {

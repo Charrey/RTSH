@@ -2,12 +2,12 @@ package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import com.charrey.settings.Settings;
 
 public abstract class DefaultSerialPruner extends Pruner {
 
-    DefaultSerialPruner(FilteringSettings filter, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
-        super(filter, sourceGraph, targetGraph, occupation);
+    DefaultSerialPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
+        super(settings, sourceGraph, targetGraph, occupation);
     }
 
     @Override

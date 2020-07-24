@@ -11,10 +11,7 @@ import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iterator.ControlPointIteratorStrategy;
-import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.PruningConstants;
-import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
+import com.charrey.settings.SettingsBuilder;
 import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -37,11 +34,8 @@ class ControlPointTransition {
     private final static int differentGraphSizes = 250;
     private final static int trials = 10;
 
-    private final Settings settings = new Settings(
-            new LabelDegreeFiltering(),
-            true,
-            PruningConstants.NONE,
-            new ControlPointIteratorStrategy(3), PruningApplicationConstants.SERIAL);
+    private final Settings settings = new SettingsBuilder()
+            .withControlPointRouting(3).get();
 
 
     @Test

@@ -27,12 +27,17 @@ import static com.charrey.settings.PathIterationConstants.*;
 public abstract class PathIterator {
 
 
+    private final int maxPaths = Integer.MAX_VALUE;
+    private final GlobalOccupation globalOccupation;
+
+
     private final int head;
     private final int tail;
     /**
      * The Refuse longer paths.
      */
     protected final boolean refuseLongerPaths;
+    private int counter = 0;
     protected PartialMatchingProvider partialMatchingProvider;
     protected OccupationTransaction transaction;
 
@@ -44,11 +49,12 @@ public abstract class PathIterator {
      * @param head              the head
      * @param refuseLongerPaths the refuse longer paths
      */
-    protected PathIterator(int tail, int head, boolean refuseLongerPaths, OccupationTransaction transaction, PartialMatchingProvider partialMatchingProvider) {
+    protected PathIterator(int tail, int head, boolean refuseLongerPaths, GlobalOccupation globalOccupation, OccupationTransaction transaction, PartialMatchingProvider partialMatchingProvider) {
         this.tail = tail;
         this.head = head;
         this.refuseLongerPaths = refuseLongerPaths;
         this.partialMatchingProvider = partialMatchingProvider;
+        this.globalOccupation = globalOccupation;
         this.transaction = transaction;
     }
 
@@ -122,13 +128,26 @@ public abstract class PathIterator {
         return new PartialMatching(fromParent.getVertexMapping(), fromParent.getEdgeMapping(), transaction.getLocallyOccupied());
     }
 
-    /**
-     * Next path.
-     *
-     * @return the path
-     */
+
     @Nullable
-    public abstract Path next();
+    public abstract Path getNext();
+
+    @Nullable
+    public Path next() {
+        if (counter == maxPaths) {
+            return null;
+        }
+        Path toReturn;
+        if (globalOccupation != null) {
+            globalOccupation.claimActiveOccupation(transaction);
+            toReturn = getNext();
+            globalOccupation.unclaimActiveOccupation(transaction);
+        } else {
+            toReturn = getNext();
+        }
+        counter++;
+        return toReturn;
+    }
 
     /**
      * Tail int.

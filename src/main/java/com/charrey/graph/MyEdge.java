@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Comparator;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 public class MyEdge implements Comparable<MyEdge>, Serializable {
@@ -44,7 +43,8 @@ public class MyEdge implements Comparable<MyEdge>, Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(source, target);
+        int sum = source + target;
+        return target + (sum * (sum + 1)) / 2;
     }
 
     public int compareTo(@NotNull MyEdge other) {

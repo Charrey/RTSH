@@ -12,11 +12,7 @@ import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iterator.GreedyDFSStrategy;
-import com.charrey.settings.iterator.KPathStrategy;
-import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.PruningConstants;
-import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
+import com.charrey.settings.SettingsBuilder;
 import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -36,8 +32,8 @@ class GreedyDfsTest {
 
     @Test
     void testIterator() throws DomainCheckerException {
-        Settings settingsGreedy = new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new GreedyDFSStrategy(), PruningApplicationConstants.SERIAL);
-        Settings settingsKpath = new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new KPathStrategy(), PruningApplicationConstants.SERIAL);
+        Settings settingsGreedy = new SettingsBuilder().withGreedyDFSRouting().get();
+        Settings settingsKpath = new SettingsBuilder().withKPathRouting().get();
 
         final long seed = 1923;
         long counter = -1;

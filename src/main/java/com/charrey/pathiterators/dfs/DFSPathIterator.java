@@ -48,7 +48,7 @@ public class DFSPathIterator extends PathIterator {
      * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
      */
     public DFSPathIterator(@NotNull MyGraph graph, @NotNull int[][] neighbours, int tail, int head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths, PartialMatchingProvider provider) {
-        super(tail, head, refuseLongerPaths, occupation.getTransaction(), provider);
+        super(tail, head, refuseLongerPaths, occupation, occupation.getTransaction(), provider);
         this.head = head;
         exploration = new Path(graph, tail);
         //noinspection AssignmentOrReturnOfFieldWithMutableType
@@ -76,7 +76,7 @@ public class DFSPathIterator extends PathIterator {
 
     @Nullable
     @Override
-    public Path next() {
+    public Path getNext() {
         transaction.uncommit(placementSize.get());
         assert !exploration.isEmpty();
         if (exploration.last() == head) {

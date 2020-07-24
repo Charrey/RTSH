@@ -81,6 +81,15 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         return toReturn;
     }
 
+    public int addVertex(String... attributes) {
+        assert attributes.length % 2 == 0 : "The number of string parameters must be even: a set of key-value pairs!";
+        Integer added = addVertex();
+        for (int i = 0; i < attributes.length; i += 2) {
+            addAttribute(added, attributes[i], attributes[i + 1]);
+        }
+        return added;
+    }
+
     @Override
     public boolean addEdge(Integer sourceVertex, Integer targetVertex, MyEdge defaultEdge) {
         if (locked) {

@@ -14,6 +14,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.result.*;
 import com.charrey.settings.Settings;
+import com.charrey.settings.pruning.PruningApplicationConstants;
 import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +34,7 @@ public class IsoFinder {
     private static final Logger LOG = Logger.getLogger("IsoFinder");
     private EdgeMatching edgeMatching;
     private VertexMatching vertexMatching;
+    private GlobalOccupation occupation;
 
     private static void logDomainReduction(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull UtilityData data, FilteringSettings filteringSettings, String name) {
         BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(sourceGraph.vertexSet().size())).pow(targetGraph.vertexSet().size());
@@ -91,13 +93,14 @@ public class IsoFinder {
 
     private void setup(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull Settings settings, String name) throws DomainCheckerException {
         UtilityData data = new UtilityData(sourceGraph, targetGraph);
-        logDomainReduction(sourceGraph, targetGraph, data, settings.filtering, name);
-
-        if (Arrays.stream(data.getCompatibility(settings.filtering, name)).anyMatch(x -> x.length == 0)) {
-            throw new DomainCheckerException("Intial domain check failed");
+        if (settings.whenToApply == PruningApplicationConstants.CACHED) {
+            logDomainReduction(sourceGraph, targetGraph, data, settings.filtering, name);
+            if (Arrays.stream(data.getCompatibility(settings.filtering, name)).anyMatch(x -> x.length == 0)) {
+                throw new DomainCheckerException("Intial domain check failed");
+            }
         }
-        GlobalOccupation occupation = new GlobalOccupation(data, settings.pruningMethod, settings.filtering, settings.whenToApply, name);
-        vertexMatching = new VertexMatching(data, sourceGraph, targetGraph, occupation, settings.filtering, name);
+        occupation = new GlobalOccupation(data, settings, name);
+        vertexMatching = new VertexMatching(sourceGraph, targetGraph, occupation, settings, name);
         edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings);
         vertexMatching.setEdgeMatchingProvider(edgeMatching);
     }
@@ -112,67 +115,72 @@ public class IsoFinder {
      */
     @NotNull
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name) {
-        Mapping sourceGraphMapping;
-        Mapping targetGraphMapping;
-        MyGraph newSourceGraph;
-        MyGraph newTargetGraph;
         try {
-            sourceGraphMapping = new GreatestConstrainedFirst().apply(testcase.getSourceGraph());
-            newSourceGraph = sourceGraphMapping.graph;
-            targetGraphMapping = new MaxDegreeFirst().apply(testcase.getTargetGraph());
-            newTargetGraph = targetGraphMapping.graph;
-            setup(newSourceGraph, newTargetGraph, settings, name);
-            System.out.println("NEW SOURCE GRAPH:\n" + newSourceGraph);
-            System.out.println("NEW TARGET GRAPH:\n" + newTargetGraph);
-        } catch (DomainCheckerException e) {
-            return new CompatibilityFailResult();
-        }
-        long iterations = 0;
-        long initialTime = System.currentTimeMillis();
-        while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
-            iterations++;
-            if (System.currentTimeMillis() - lastPrint > 1000) {
-                LOG.info(name + " is at " + iterations + " iterations...");
-                lastPrint = System.currentTimeMillis();
+            Mapping sourceGraphMapping;
+            Mapping targetGraphMapping;
+            MyGraph newSourceGraph;
+            MyGraph newTargetGraph;
+            try {
+                sourceGraphMapping = new GreatestConstrainedFirst().apply(testcase.getSourceGraph());
+                newSourceGraph = sourceGraphMapping.graph;
+                targetGraphMapping = new MaxDegreeFirst().apply(testcase.getTargetGraph());
+                newTargetGraph = targetGraphMapping.graph;
+                setup(newSourceGraph, newTargetGraph, settings, name);
+            } catch (DomainCheckerException e) {
+                return new CompatibilityFailResult();
             }
-            if (System.currentTimeMillis() > initialTime + timeout) {
-                return new TimeoutResult(iterations);
-            }
-            LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());
-            if (edgeMatching.hasUnmatched()) {
-                Path nextpath = edgeMatching.placeNextUnmatched();
-                if (nextpath == null) {
-                    if (edgeMatching.retry()) {
-                        vertexMatching.giveAllowance();
-                    } else {
-                        vertexMatching.removeLast();
-                    }
+            long iterations = 0;
+            long initialTime = System.currentTimeMillis();
+            while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
+                System.out.println(vertexMatching);
+                System.out.println(edgeMatching);
+                iterations++;
+                if (System.currentTimeMillis() - lastPrint > 1000) {
+                    LOG.info(name + " is at " + iterations + " iterations...");
+                    lastPrint = System.currentTimeMillis();
                 }
-            } else if (vertexMatching.canPlaceNext()) {
-                vertexMatching.placeNext();
-            } else if (edgeMatching.retry()) {
-                vertexMatching.giveAllowance();
-            } else if (vertexMatching.canRetry()) {
-                vertexMatching.removeLast();
-            } else {
+                if (System.currentTimeMillis() > initialTime + timeout) {
+                    return new TimeoutResult(iterations);
+                }
+                LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());
+                if (edgeMatching.hasUnmatched()) {
+                    Path nextpath = edgeMatching.placeNextUnmatched();
+                    if (nextpath == null) {
+                        if (edgeMatching.retry()) {
+                            vertexMatching.giveAllowance();
+                        } else {
+                            vertexMatching.removeLast();
+                        }
+                    }
+                } else if (vertexMatching.canPlaceNext()) {
+                    vertexMatching.placeNext();
+                } else if (edgeMatching.retry()) {
+                    vertexMatching.giveAllowance();
+                } else if (vertexMatching.canRetry()) {
+                    vertexMatching.removeLast();
+                } else {
+                    return new FailResult(iterations);
+                }
+            }
+            if (vertexMatching.getPlacement().size() < testcase.getSourceGraph().vertexSet().size()) {
                 return new FailResult(iterations);
-            }
-        }
-        if (vertexMatching.getPlacement().size() < testcase.getSourceGraph().vertexSet().size()) {
-            return new FailResult(iterations);
-        } else {
-            int[] placement = vertexMatching.getPlacement().toArray();
-            System.out.println("Placement: " + Arrays.toString(placement));
-            int[] vertexMapping = new int[placement.length];
-            for (int i = 0; i < placement.length; i++) {
-                vertexMapping[sourceGraphMapping.new_to_old[i]] = targetGraphMapping.new_to_old[placement[i]];
-            }
-            assert allDone(newSourceGraph, vertexMatching, edgeMatching);
-            assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
+            } else {
+                int[] placement = vertexMatching.getPlacement().toArray();
+                int[] vertexMapping = new int[placement.length];
+                for (int i = 0; i < placement.length; i++) {
+                    vertexMapping[sourceGraphMapping.new_to_old[i]] = targetGraphMapping.new_to_old[placement[i]];
+                }
+                assert allDone(newSourceGraph, vertexMatching, edgeMatching);
+                assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
 
 
-            Map<MyEdge, Path> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.new_to_old, vertexMatching, targetGraphMapping.new_to_old);
-            return new SuccessResult(vertexMapping, paths, iterations);
+                Map<MyEdge, Path> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.new_to_old, vertexMatching, targetGraphMapping.new_to_old);
+                return new SuccessResult(vertexMapping, paths, iterations);
+            }
+        } finally {
+            if (occupation != null) {
+                occupation.close();
+            }
         }
     }
 

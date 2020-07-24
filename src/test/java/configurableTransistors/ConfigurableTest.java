@@ -7,11 +7,7 @@ import com.charrey.graph.Path;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.SuccessResult;
-import com.charrey.settings.Settings;
-import com.charrey.settings.iterator.KPathStrategy;
-import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.PruningConstants;
-import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
+import com.charrey.settings.SettingsBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -90,7 +86,11 @@ class ConfigurableTest {
         targetGraph.addEdge(bottomMiddleRight, bottomRight);
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(new TestCase(sourceGraph, targetGraph), new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new KPathStrategy(), PruningApplicationConstants.SERIAL), 10 * 60 * 1000, "ConfigurableTest ");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(
+                new TestCase(sourceGraph, targetGraph),
+                new SettingsBuilder().withKPathRouting().get(),
+                10 * 60 * 1000,
+                "ConfigurableTest ");
         assertFalse(result.succeed);
         System.out.println(result);
     }
@@ -147,7 +147,11 @@ class ConfigurableTest {
         targetGraph.addEdge(bottomMiddleRight, bottomRight);
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(new TestCase(sourceGraph, targetGraph), new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new KPathStrategy(), PruningApplicationConstants.SERIAL), 10 * 60 * 1000, "ConfigurableTest ");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(
+                new TestCase(sourceGraph, targetGraph),
+                new SettingsBuilder()
+                        .withKPathRouting().get(),
+                10 * 60 * 1000, "ConfigurableTest ");
         assertTrue(result.succeed);
         Map<MyEdge, Path> expected = new HashMap<>();
         expected.put(new MyEdge(0, 1), new Path(targetGraph, List.of(0, 1)));
@@ -198,7 +202,10 @@ class ConfigurableTest {
         targetGraph.addEdge(bottomMiddleRight, bottomRight);
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(new TestCase(sourceGraph, targetGraph), new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new KPathStrategy(), PruningApplicationConstants.SERIAL), 10 * 60 * 1000, "ConfigurableTest ");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(
+                new TestCase(sourceGraph, targetGraph),
+                new SettingsBuilder()
+                        .withKPathRouting().get(), 10 * 60 * 1000, "ConfigurableTest ");
         assertTrue(result.succeed);
         System.out.println(result);
         assertArrayEquals(new int[]{0, 1, 4, 6, 7, 10}, ((SuccessResult) result).getVertexPlacement());
@@ -249,7 +256,12 @@ class ConfigurableTest {
         targetGraph.addEdge(bottomMiddleRight, bottomRight);
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(new TestCase(sourceGraph, targetGraph), new Settings(new LabelDegreeFiltering(), true, PruningConstants.NONE, new KPathStrategy(), PruningApplicationConstants.SERIAL), 10 * 60 * 1000, "ConfigurableTest ");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(
+                new TestCase(sourceGraph, targetGraph),
+                new SettingsBuilder()
+                        .withKPathRouting().get(),
+                10 * 60 * 1000,
+                "ConfigurableTest ");
         assertTrue(result.succeed);
         System.out.println(result);
         assertArrayEquals(new int[]{0, 1, 4, 5, 6, 9}, ((SuccessResult) result).getVertexPlacement());

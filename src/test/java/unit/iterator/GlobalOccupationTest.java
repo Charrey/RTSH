@@ -10,10 +10,9 @@ import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
+import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
-import com.charrey.settings.pruning.PruningApplicationConstants;
 import com.charrey.settings.pruning.PruningConstants;
-import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -33,12 +32,10 @@ class GlobalOccupationTest {
     private final static int differentGraphSizes = 250;
     private final static int trials = 20;
 
-    private final Settings settings = new Settings(
-            new LabelDegreeFiltering(),
-            true,
-            PruningConstants.ALL_DIFFERENT,
-            new ControlPointIteratorStrategy(3), PruningApplicationConstants.SERIAL
-    );
+    private final Settings settings = new SettingsBuilder()
+            .withAllDifferentPruning()
+            .withControlPointRouting(3)
+            .withCachedPruning().get();
 
     @Test
     void testArbitraryDFS() throws DomainCheckerException {

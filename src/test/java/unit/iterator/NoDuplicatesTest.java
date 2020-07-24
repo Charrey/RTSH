@@ -13,10 +13,9 @@ import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
+import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
-import com.charrey.settings.pruning.PruningApplicationConstants;
 import com.charrey.settings.pruning.PruningConstants;
-import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -33,12 +32,10 @@ class NoDuplicatesTest {
 
     private final RandomGenerator random = new Well512a(19247);
 
-    private final Settings settings = new Settings(
-            new LabelDegreeFiltering(),
-            true,
-            PruningConstants.ALL_DIFFERENT,
-            new ControlPointIteratorStrategy(5), PruningApplicationConstants.SERIAL
-    );
+    private final Settings settings = new SettingsBuilder()
+            .withAllDifferentPruning()
+            .withControlPointRouting(5)
+            .withCachedPruning().get();
 
     @Test
     void testArbitraryDFS() throws DomainCheckerException {

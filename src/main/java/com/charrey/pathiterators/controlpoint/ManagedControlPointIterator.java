@@ -52,18 +52,18 @@ public class ManagedControlPointIterator extends PathIterator {
                                        Supplier<Integer> verticesPlaced,
                                        boolean refuseLongerPaths,
                                        PartialMatchingProvider provider) {
-        super(tail, head, refuseLongerPaths, globalOccupation.getTransaction(), provider);
+        super(tail, head, refuseLongerPaths, globalOccupation, globalOccupation.getTransaction(), provider);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.settings = new ControlPointIteratorRelevantSettings(true);
-        this.child = new ControlPointIterator(graph, tail, head, transaction, new TIntHashSet(), controlPoints, verticesPlaced, settings, provider);
+        this.child = new ControlPointIterator(graph, tail, head, globalOccupation, transaction, new TIntHashSet(), controlPoints, verticesPlaced, settings, provider);
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
     }
 
     @Nullable
     @Override
-    public Path next() {
+    public Path getNext() {
         transaction.uncommit(verticesPlaced.get());
         while (true) {
             Path path;
@@ -90,7 +90,7 @@ public class ManagedControlPointIterator extends PathIterator {
                 }
                 TIntSet localOccupation = new TIntHashSet();
                 localOccupation.add(head());
-                child = new ControlPointIterator(graph, tail(), head(), transaction, localOccupation, controlPoints, verticesPlaced, settings, partialMatchingProvider);
+                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, transaction, localOccupation, controlPoints, verticesPlaced, settings, partialMatchingProvider);
             }
         }
     }

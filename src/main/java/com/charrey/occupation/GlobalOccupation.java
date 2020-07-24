@@ -3,9 +3,9 @@ package com.charrey.occupation;
 import com.charrey.algorithms.UtilityData;
 import com.charrey.pruning.*;
 import com.charrey.settings.Settings;
+import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.pruning.PruningApplicationConstants;
 import com.charrey.settings.pruning.PruningConstants;
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -32,51 +32,58 @@ public class GlobalOccupation extends AbstractOccupation {
     private Pruner domainChecker;
     private final UtilityData data;
 
-    /**
-     * Instantiates a new occupation tracker for a homeomorphism search.
-     *
-     * @param data     utility data class for cached computations
-     * @param settings settings for this homeomorphism search
-     */
-    public GlobalOccupation(@NotNull UtilityData data, @NotNull Settings settings, String name) {
-        this(data, settings.pruningMethod, settings.filtering, settings.whenToApply, name);
-    }
+    private AbstractOccupation activeOccupation = this;
 
     /**
      * Instantiates a new Global occupation.
      *
-     * @param data         the data
-     * @param runTimeCheck the run time check
+     * @param data the data
      */
-    public GlobalOccupation(@NotNull UtilityData data, int runTimeCheck, FilteringSettings filteringSettings, PruningApplicationConstants whenToApply, String name) {
+    public GlobalOccupation(@NotNull UtilityData data, Settings settings, String name) {
         this.data = data;
-        initDomainChecker(runTimeCheck, filteringSettings, whenToApply, name);
+        initDomainChecker(settings, name);
         this.routingBits = new TIntHashSet();
         this.vertexBits = new TIntHashSet();
     }
 
-    private void initDomainChecker(int runTimeCheck, FilteringSettings filteringSettings, PruningApplicationConstants whenToApply, String name) {
-        if (whenToApply == PruningApplicationConstants.PARALLEL) {
-            initDomainChecker(runTimeCheck, filteringSettings, PruningApplicationConstants.SERIAL, name);
-            domainChecker = new ParallelPruner(domainChecker, filteringSettings, data.getPatternGraph(), data.getTargetGraph());
+    public AbstractOccupation getActiveOccupation() {
+        return activeOccupation;
+    }
+
+    public void claimActiveOccupation(AbstractOccupation active) {
+        this.activeOccupation = active;
+    }
+
+    public void unclaimActiveOccupation(AbstractOccupation inactive) {
+        this.activeOccupation = this;
+    }
+
+    public void close() {
+        this.domainChecker.close();
+    }
+
+    private void initDomainChecker(Settings settings, String name) {
+        if (settings.whenToApply == PruningApplicationConstants.PARALLEL) {
+            initDomainChecker(new SettingsBuilder(settings).withSerialPruning().get(), name);
+            domainChecker = new ParallelPruner(domainChecker, settings, data.getPatternGraph(), data.getTargetGraph());
             return;
         }
-        switch (runTimeCheck) {
+        switch (settings.pruningMethod) {
             case PruningConstants.NONE:
                 domainChecker = new NoPruner();
                 break;
             case PruningConstants.ZERODOMAIN:
-                if (whenToApply == PruningApplicationConstants.CACHED) {
-                    domainChecker = new CachedZeroDomainPruner(data, filteringSettings, name, this);
-                } else if (whenToApply == PruningApplicationConstants.SERIAL) {
-                    domainChecker = new SerialZeroDomainPruner(filteringSettings, data.getPatternGraph(), data.getTargetGraph(), this);
+                if (settings.whenToApply == PruningApplicationConstants.CACHED) {
+                    domainChecker = new CachedZeroDomainPruner(data, settings, name, this);
+                } else if (settings.whenToApply == PruningApplicationConstants.SERIAL) {
+                    domainChecker = new SerialZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), this);
                 }
                 break;
             case PruningConstants.ALL_DIFFERENT:
-                if (whenToApply == PruningApplicationConstants.SERIAL) {
+                if (settings.whenToApply == PruningApplicationConstants.SERIAL) {
                     throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
                 }
-                domainChecker = new AllDifferentPruner(data, filteringSettings, name, this);
+                domainChecker = new AllDifferentPruner(data, settings, name, this);
                 break;
             default:
                 throw new UnsupportedOperationException();

@@ -53,7 +53,7 @@ public class KPathPathIterator extends PathIterator {
                              boolean refuseLongerPaths,
                              PartialMatchingProvider partialMatchingProvider,
                              boolean cached) {
-        super(tail, head, refuseLongerPaths, occupation.getTransaction(), partialMatchingProvider);
+        super(tail, head, refuseLongerPaths, occupation, occupation.getTransaction(), partialMatchingProvider);
         this.targetGraph = targetGraph;
         this.occupation = occupation;
         init = occupation.toString();
@@ -65,7 +65,7 @@ public class KPathPathIterator extends PathIterator {
 
     @Nullable
     @Override
-    public Path next() {
+    public Path getNext() {
         transaction.uncommit(verticesPlaced.get());
         if (previousPath != null) {
             previousPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));

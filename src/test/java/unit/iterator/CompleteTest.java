@@ -10,10 +10,8 @@ import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
+import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
-import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.PruningConstants;
-import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -31,11 +29,8 @@ class CompleteTest extends PathIteratorTest {
     private final RandomGenerator random = new Well512a(102038);
     private static final int differentGraphSizes = 250;
     private static final int trials = 100;
-    private static final Settings settings = new Settings(
-            new LabelDegreeFiltering(),
-            true,
-            PruningConstants.NONE,
-            new KPathStrategy(), PruningApplicationConstants.SERIAL);
+    private static final Settings settings = new SettingsBuilder()
+            .withKPathRouting().get();
 
     @NotNull
     private static String myMaptoString(@NotNull Map<IteratorSettings, Set<Path>> pathCount) {
