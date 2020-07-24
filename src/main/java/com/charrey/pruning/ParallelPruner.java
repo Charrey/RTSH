@@ -43,7 +43,7 @@ public class ParallelPruner extends DefaultSerialPruner {
         try {
             theThread.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 

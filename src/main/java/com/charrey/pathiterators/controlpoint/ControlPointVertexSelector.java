@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Random;
 
 /**
@@ -90,8 +91,8 @@ public class ControlPointVertexSelector implements Iterator<Integer> {
 
     @Override
     public Integer next() {
-        if (!readyToDeliver) {
-            nextToReturn = iterate();
+        if (!hasNext()) {
+            throw new NoSuchElementException();
         }
         readyToDeliver = false;
         return nextToReturn;
