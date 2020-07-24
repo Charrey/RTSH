@@ -196,6 +196,12 @@ public class OccupationTransaction implements AbstractOccupation {
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         @Override
         public boolean equals(Object o) {
+            if (o == null) {
+                return false;
+            }
+            if (!o.getClass().equals(getClass())) {
+                return false;
+            }
             TransactionElement that = (TransactionElement) o;
             return verticesPlaced == that.verticesPlaced &&
                     added == that.added;
