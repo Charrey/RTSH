@@ -9,6 +9,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
+import com.charrey.settings.Settings;
 import gnu.trove.TCollections;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
@@ -25,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 /**
  * A pathiterator that iterates paths between two vertices with a fixed number of intermediate vertices it has to visit.
@@ -40,7 +42,7 @@ class ControlPointIterator extends PathIterator {
     private final MyGraph targetGraph;
 
     private final Supplier<Integer> verticesPlaced;
-    private final ControlPointIteratorRelevantSettings settings;
+    private static final Logger LOG = Logger.getLogger("ControlPointIterator");
     private final GlobalOccupation globalOccupation;
 
     private boolean done = false;
@@ -58,6 +60,7 @@ class ControlPointIterator extends PathIterator {
     private Path pathFromRightNeighbourToItsRightNeighbour = null;
     @Nullable
     private TIntSet previousLocalOccupation = null;
+    private final Settings settings;
 
     /**
      * Instantiates a new ControlPointIterator.
@@ -79,9 +82,9 @@ class ControlPointIterator extends PathIterator {
                          @NotNull TIntSet initialLocalOccupation,
                          int controlPoints,
                          Supplier<Integer> verticesPlaced,
-                         ControlPointIteratorRelevantSettings settings,
+                         Settings settings,
                          PartialMatchingProvider provider) {
-        super(tail, head, settings.refuseLongerPaths, globalOccupation, occupation, provider);
+        super(tail, head, settings.getRefuseLongerPaths(), globalOccupation, occupation, provider);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;
         this.globalOccupation = globalOccupation;
@@ -277,9 +280,7 @@ class ControlPointIterator extends PathIterator {
         prefix.append("   ".repeat(Math.max(0, 10 - controlPoints)));
         while (!done) {
             if (controlPoints == 0) {
-                if (settings.log) {
-                    System.out.print(prefix.toString() + "querying shortest path...");
-                }
+                LOG.finest(() -> prefix.toString() + "querying shortest path...");
                 done = true;
                 Path shortestPath = filteredShortestPath(tail(), head);
                 assert shortestPath == null || new Path(shortestPath).intermediate().stream().noneMatch(localOccupation::contains);
@@ -295,13 +296,9 @@ class ControlPointIterator extends PathIterator {
                     }
                 }
                 if (chosenPath == null) {
-                    if (settings.log) {
-                        System.out.println("...failed");
-                    }
+                    LOG.finest("...failed");
                 } else {
-                    if (settings.log) {
-                        System.out.println("...succeeded: " + chosenPath);
-                    }
+                    LOG.finest(() -> "...succeeded: " + chosenPath);
                 }
                 return chosenPath;
             } else if (child == null) {
@@ -312,16 +309,14 @@ class ControlPointIterator extends PathIterator {
                 boolean rightShiftPossible;
                 do {
                     chosenControlPoint = controlPointCandidates.next();
-                    if (settings.log) {
-                        System.out.println(prefix.toString() + "Chosen control point: " + chosenControlPoint);
+                    LOG.finest(() -> prefix.toString() + "Chosen control point: " + chosenControlPoint);
+                    makesNeighbourUseless = makesNeighbourUseless(chosenControlPoint);
+                    rightShiftPossible = rightShiftPossible(chosenControlPoint);
+                    if (makesNeighbourUseless) {
+                        LOG.finest(() -> prefix.toString() + "It makes right neighbour " + head() + " useless: it is already on the shortest path between " + chosenControlPoint + " and " + rightNeighbourOfRightNeighbour);
                     }
-                    makesNeighbourUseless   = makesNeighbourUseless(chosenControlPoint);
-                    rightShiftPossible      = rightShiftPossible(chosenControlPoint);
-                    if (makesNeighbourUseless && settings.log) {
-                        System.out.println(prefix.toString() + "It makes right neighbour " + head() + " useless: it is already on the shortest path between " + chosenControlPoint + " and " + rightNeighbourOfRightNeighbour);
-                    }
-                    if (!makesNeighbourUseless && rightShiftPossible && settings.log) {
-                        System.out.println(prefix.toString() + "Right shift possible.");
+                    if (!makesNeighbourUseless && rightShiftPossible) {
+                        LOG.finest(() -> prefix.toString() + "Right shift possible.");
                     }
                 } while (chosenControlPoint != -1 && (makesNeighbourUseless || rightShiftPossible));
                 if (chosenControlPoint == -1) {
@@ -331,9 +326,7 @@ class ControlPointIterator extends PathIterator {
                 try {
                     this.transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenControlPoint, getPartialMatching());
                 } catch (DomainCheckerException e) {
-                    if (settings.log) {
-                        System.out.println(prefix.toString() + "Domain check failed---------------------------------------------------------------------------");
-                    }
+                    LOG.finest(() -> prefix.toString() + "Domain check failed---------------------------------------------------------------------------");
                     chosenControlPoint = -1;
                     continue;
                 }
@@ -354,9 +347,7 @@ class ControlPointIterator extends PathIterator {
                     child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, globalOccupation, transaction, new TIntHashSet(localOccupation), controlPoints - 1, verticesPlaced, settings, partialMatchingProvider);
                     child.setRightNeighbourOfRightNeighbour(this.head(), chosenPath, previousOccupation);
                 } else {
-                    if (settings.log) {
-                        System.out.println(prefix.toString() + "Could not find route from control point.");
-                    }
+                    LOG.finest(() -> prefix.toString() + "Could not find route from control point.");
                 }
             } else {
                 TIntSet previousLocalOccupation = new TIntHashSet(localOccupation);
@@ -368,9 +359,7 @@ class ControlPointIterator extends PathIterator {
                     assert chosenPath.last() == head;
                     assert childsPath.last() == chosenPath.first();
                     Path toReturn = merge(targetGraph, childsPath, chosenPath);
-                    if (settings.log) {
-                        System.out.println(prefix.toString() + "Merged paths into " + toReturn);
-                    }
+                    LOG.finest(() -> prefix.toString() + "Merged paths into " + toReturn);
                     assert toReturn.first() == tail();
                     assert toReturn.last() == head;
                     return toReturn;

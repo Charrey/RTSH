@@ -19,7 +19,7 @@ import java.util.Set;
  * This is linked to a GlobalOccupation object that stores other occupations. All changes can be pushed to the
  * GlobalOccupation object or made undone in single method calls.
  */
-public class OccupationTransaction extends AbstractOccupation {
+public class OccupationTransaction implements AbstractOccupation {
 
     private final TIntSet routingOccupied;
     private final TIntSet vertexOccupied;

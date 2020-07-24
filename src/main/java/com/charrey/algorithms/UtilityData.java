@@ -5,8 +5,6 @@ import com.charrey.graph.MyGraph;
 import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.linked.TIntLinkedList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.set.TIntSet;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -20,7 +18,6 @@ import org.jgrapht.alg.shortestpath.CHManyToManyShortestPaths;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.charrey.settings.PathIterationConstants.DFS_ARBITRARY;
 import static com.charrey.settings.PathIterationConstants.DFS_GREEDY;
@@ -71,7 +68,6 @@ public class UtilityData {
 
 
     private int[][] compatibility;
-    private int[][] reverseCompatibility;
 
     /**
      * Returns the compatibility of each source graph vertex to target graph vertices.
@@ -93,31 +89,6 @@ public class UtilityData {
             });
         }
         return compatibility.clone();
-    }
-
-    /**
-     * Returns the compatibility of each target graph vertex to source graph vertices.
-     *
-     *
-     * @param initialNeighbourhoodFiltering whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
-     * @return A 2d array compatibility such that for each target vertex with vertex ordering x, compatibility[x] is an array of suitable source graph candidates.
-     */
-    public int[][] getReverseCompatibility(FilteringSettings initialNeighbourhoodFiltering, String name) {
-        if (reverseCompatibility == null) {
-            TIntList[] tempReverseCompatibility = new TIntList[targetGraph.vertexSet().size()];
-            IntStream.range(0, tempReverseCompatibility.length).forEach(x -> tempReverseCompatibility[x] = new TIntLinkedList());
-            int[][] compatibility = getCompatibility(initialNeighbourhoodFiltering, name);
-            for (int sourceVertex = 0; sourceVertex < compatibility.length; sourceVertex++) {
-                for (int targetVertexIndex = 0; targetVertexIndex < compatibility[sourceVertex].length; targetVertexIndex++) {
-                    tempReverseCompatibility[compatibility[sourceVertex][targetVertexIndex]].add(sourceVertex);
-                }
-            }
-            reverseCompatibility = new int[targetGraph.vertexSet().size()][];
-            for (int i = 0; i < reverseCompatibility.length; i++) {
-                reverseCompatibility[i] = tempReverseCompatibility[i].toArray();
-            }
-        }
-        return reverseCompatibility.clone();
     }
 
 

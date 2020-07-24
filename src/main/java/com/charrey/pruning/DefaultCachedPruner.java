@@ -50,7 +50,7 @@ public abstract class DefaultCachedPruner extends Pruner {
                 reverseDomain.add(new TIntArrayList());
             }
             sourceGraph.vertexSet().stream().sorted().forEach(sourceV -> targetGraph.vertexSet().forEach(targetV -> {
-                if (settings.filtering.filter(sourceGraph, targetGraph, sourceV, targetV, occupation)) {
+                if (settings.getFiltering().filter(sourceGraph, targetGraph, sourceV, targetV, occupation)) {
                     domain.get(sourceV).add(targetV);
                     reverseDomain.get(targetV).add(sourceV);
                 }

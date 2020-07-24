@@ -13,6 +13,9 @@ import java.util.stream.Collectors;
  */
 public class Util {
 
+    private Util() {
+    }
+
     /**
      * Selects a random element from a collection that fulfills a specific predicate.
      *

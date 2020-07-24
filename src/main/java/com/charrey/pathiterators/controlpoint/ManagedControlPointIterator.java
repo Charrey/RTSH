@@ -6,6 +6,7 @@ import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
+import com.charrey.settings.Settings;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 /**
  * A path iterator that iterates over paths by adding intermediate vertices that must be visited before the end vertex.
@@ -29,9 +31,10 @@ public class ManagedControlPointIterator extends PathIterator {
     private final GlobalOccupation globalOccupation;
     private final int maxControlPoints;
     private final Supplier<Integer> verticesPlaced;
-    private final ControlPointIteratorRelevantSettings settings;
+    private static final Logger LOG = Logger.getLogger("ManagedControlPointIterator");
     private ControlPointIterator child;
     private int controlPoints = 0;
+    private final Settings settings;
 
     /**
      * Instantiates a new ManagedControlPointIterator.
@@ -42,7 +45,6 @@ public class ManagedControlPointIterator extends PathIterator {
      * @param globalOccupation  the GlobalOccupation where intermediate nodes are registered
      * @param maxControlPoints  the maximum number of control points used (lower this for 'simpler' paths)
      * @param verticesPlaced    supplier of the number of source graph vertices placed at this point in the search
-     * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
      */
     public ManagedControlPointIterator(@NotNull MyGraph graph,
                                        int tail,
@@ -50,12 +52,12 @@ public class ManagedControlPointIterator extends PathIterator {
                                        @NotNull GlobalOccupation globalOccupation,
                                        int maxControlPoints,
                                        Supplier<Integer> verticesPlaced,
-                                       boolean refuseLongerPaths,
+                                       Settings settings,
                                        PartialMatchingProvider provider) {
-        super(tail, head, refuseLongerPaths, globalOccupation, globalOccupation.getTransaction(), provider);
+        super(tail, head, settings.getRefuseLongerPaths(), globalOccupation, globalOccupation.getTransaction(), provider);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
-        this.settings = new ControlPointIteratorRelevantSettings(true);
+        this.settings = settings;
         this.child = new ControlPointIterator(graph, tail, head, globalOccupation, transaction, new TIntHashSet(), controlPoints, verticesPlaced, settings, provider);
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
@@ -76,18 +78,15 @@ public class ManagedControlPointIterator extends PathIterator {
                 } catch (DomainCheckerException e) {
                     continue;
                 }
-                if (settings.log) {
-                    System.out.println("ManagedControlPointIterator returned path " + path);
-                }
+                Path finalPath = path;
+                LOG.finest(() -> "ManagedControlPointIterator returned path " + finalPath);
                 return path;
             } else {
                 if (controlPoints + 1 > maxControlPoints || controlPoints + 1 > graph.vertexSet().size() - 2) {
                     return null;
                 }
                 controlPoints += 1;
-                if (settings.log) {
-                    System.out.println("Raising control point count to " + controlPoints);
-                }
+                LOG.finest(() -> "Raising control point count to " + controlPoints);
                 TIntSet localOccupation = new TIntHashSet();
                 localOccupation.add(head());
                 child = new ControlPointIterator(graph, tail(), head(), globalOccupation, transaction, localOccupation, controlPoints, verticesPlaced, settings, partialMatchingProvider);
@@ -117,9 +116,7 @@ public class ManagedControlPointIterator extends PathIterator {
             assert leftToMiddleAlt != null;
             Path alternative = ControlPointIterator.merge(graph, leftToMiddleAlt, middleAltToRight);
             if (alternative.equals(leftToRight)) {
-                if (settings.log) {
-                    System.out.println("Right-shift possible to vertex " + middleAlt);
-                }
+                LOG.finest(() -> "Right-shift possible to vertex " + middleAlt);
                 return true;
             }
         }
@@ -143,8 +140,8 @@ public class ManagedControlPointIterator extends PathIterator {
         assert skippedPath != null;
         assert skippedPath.first() == left;
         assert skippedPath.last() == right;
-        if (skippedPath.equals(leftToRight) && settings.log) {
-            System.out.println("Makes last control point useless...");
+        if (skippedPath.equals(leftToRight)) {
+            LOG.finest("Makes last control point useless...");
         }
         return skippedPath.equals(leftToRight);
     }

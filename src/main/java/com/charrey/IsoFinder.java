@@ -93,14 +93,14 @@ public class IsoFinder {
 
     private void setup(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull Settings settings, String name) throws DomainCheckerException {
         UtilityData data = new UtilityData(sourceGraph, targetGraph);
-        if (settings.whenToApply == PruningApplicationConstants.CACHED) {
-            logDomainReduction(sourceGraph, targetGraph, data, settings.filtering, name);
-            if (Arrays.stream(data.getCompatibility(settings.filtering, name)).anyMatch(x -> x.length == 0)) {
+        if (settings.getWhenToApply() == PruningApplicationConstants.CACHED) {
+            logDomainReduction(sourceGraph, targetGraph, data, settings.getFiltering(), name);
+            if (Arrays.stream(data.getCompatibility(settings.getFiltering(), name)).anyMatch(x -> x.length == 0)) {
                 throw new DomainCheckerException("Intial domain check failed");
             }
         }
         occupation = new GlobalOccupation(data, settings, name);
-        vertexMatching = new VertexMatching(sourceGraph, targetGraph, occupation, settings, name);
+        vertexMatching = new VertexMatching(sourceGraph, targetGraph, occupation, settings);
         edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings);
         vertexMatching.setEdgeMatchingProvider(edgeMatching);
     }

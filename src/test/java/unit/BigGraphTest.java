@@ -26,6 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 class BigGraphTest {
 
 
@@ -115,7 +117,7 @@ class BigGraphTest {
     }
 
     @Test
-    @Disabled
+    @Disabled("takes too long")
     void importSingleTile() throws IOException, InterruptedException {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
@@ -141,7 +143,7 @@ class BigGraphTest {
         //threadDFSArbitrary.join();
         //threadDFSGreedy.join();
         threadControlPoint.join();
-        assert !failed;
+        assertFalse(failed);
     }
 
     private void removeTails() {

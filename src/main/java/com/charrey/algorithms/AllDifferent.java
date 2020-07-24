@@ -5,7 +5,6 @@ import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TIntObjectProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.THashSet;
 import org.chocosolver.solver.DefaultSettings;
@@ -65,7 +64,6 @@ public class AllDifferent {
         }
 
         long lastTimePrinted = System.currentTimeMillis();
-        long counter = 0;
 
 
         for (int i = 0; i < variables.length; i++) {
@@ -73,7 +71,6 @@ public class AllDifferent {
             iterator.bottomUpInit();
             while (iterator.hasNext()) {
                 if (System.currentTimeMillis() - lastTimePrinted > 1000) {
-                    //System.out.println(name + " filtering AllDifferent at iteration " + iteration + ": " + 100 * counter / (double) toProcess + "%");
                     lastTimePrinted = System.currentTimeMillis();
                 }
                 int value = iterator.next();
@@ -84,7 +81,6 @@ public class AllDifferent {
                 }
                 model.unpost(bind);
                 model.getSolver().reset();
-                counter++;
             }
         }
         return res;
@@ -130,12 +126,9 @@ public class AllDifferent {
                 return false;
             }
 
-            allDifferentMap.forEachEntry(new TIntObjectProcedure<TIntSet>() {
-                @Override
-                public boolean execute(int key, TIntSet values) {
-                    domains.put(key, values.toArray());
-                    return true;
-                }
+            allDifferentMap.forEachEntry((key, values) -> {
+                domains.put(key, values.toArray());
+                return true;
             });
 
             Model model = new Model(settings);

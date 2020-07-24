@@ -31,7 +31,7 @@ public class AllDifferentPruner extends DefaultCachedPruner {
      *
      * @param data utility data (for cached computation)
      */
-    public AllDifferentPruner(@NotNull UtilityData data, Settings settings, String name, GlobalOccupation occupation) {
+    public AllDifferentPruner(@NotNull UtilityData data, Settings settings, GlobalOccupation occupation) {
         super(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, true);
         this.allDifferent = new AllDifferent();
     }
@@ -43,7 +43,7 @@ public class AllDifferentPruner extends DefaultCachedPruner {
 
     @Override
     public void close() {
-
+        //nothing needs to be closed
     }
 
 

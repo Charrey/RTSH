@@ -24,12 +24,14 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 class CompleteTest extends PathIteratorTest {
 
     private final RandomGenerator random = new Well512a(102038);
     private static final int differentGraphSizes = 250;
     private static final int trials = 100;
-    private static final Settings settings = new SettingsBuilder()
+    private static Settings settings = new SettingsBuilder()
             .withKPathRouting().get();
 
     @NotNull
@@ -68,13 +70,13 @@ class CompleteTest extends PathIteratorTest {
                     continue;
                 }
                 counter++;
-                if (counter < 20199) {
+                if (counter < 0) {
                     continue;
                 }
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 Map<IteratorSettings, Set<Path>> pathCount = new HashMap<>(); //s
                 for (IteratorSettings strategy : List.of(new DFSStrategy(), new GreedyDFSStrategy(), new ControlPointIteratorStrategy(100), new KPathStrategy())) {
-                    settings.pathIteration = strategy;
+                    settings = new SettingsBuilder(settings).withPathIteration(strategy).get();
                     pathCount.put(strategy, new HashSet<>());
                     GlobalOccupation occupation = new GlobalOccupation(data, settings, "IteratorTest");
                     TIntList vertexOccupation;
@@ -103,6 +105,7 @@ class CompleteTest extends PathIteratorTest {
                         }
                     } catch (Exception e) {
                         System.err.println(counter);
+                        fail();
                         throw e;
                     }
                 }

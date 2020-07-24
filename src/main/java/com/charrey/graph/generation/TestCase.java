@@ -23,7 +23,7 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
      */
     private final MyGraph sourceGraph;
 
-    private final RandomGenerator random = new Well512a(1888939);
+    private final transient RandomGenerator random = new Well512a(1888939);
 
     /**
      * Creates a new Test case.

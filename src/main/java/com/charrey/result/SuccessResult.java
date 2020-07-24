@@ -18,7 +18,6 @@ public class SuccessResult extends HomeomorphismResult {
      * - Replace an edge matching by a new one
      * - Remove an edge matching
      */
-    public final long iterations;
     private final int[] matching;
     private final Map<MyEdge, Path> edgeMatching;
 
@@ -26,7 +25,6 @@ public class SuccessResult extends HomeomorphismResult {
         super(true, iterations);
         this.matching = matching;
         this.edgeMatching = edgeMatching;
-        this.iterations = iterations;
     }
 
     @Override

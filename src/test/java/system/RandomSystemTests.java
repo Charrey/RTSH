@@ -31,7 +31,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesUndirectedRandom() throws IOException {
-        if (settings.pathIteration.iterationStrategy == PathIterationConstants.KPATH) {
+        if (settings.getPathIteration().iterationStrategy == PathIterationConstants.KPATH) {
             return;
         }
         findCases(10 * 1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
@@ -39,7 +39,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesUndirectedSucceed() throws IOException {
-        if (settings.pathIteration.iterationStrategy == PathIterationConstants.KPATH) {
+        if (settings.getPathIteration().iterationStrategy == PathIterationConstants.KPATH) {
             return;
         }
         findCases(10 * 1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);

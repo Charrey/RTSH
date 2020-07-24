@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
  * Class that tracks for an entire homeomorphism source which target graph vertices are used up for which goal.
  * This class also throws exceptions when usage of a vertex would result in a dead end in the search.
  */
-public class GlobalOccupation extends AbstractOccupation {
+public class GlobalOccupation implements AbstractOccupation {
 
     @NotNull
     private final TIntSet routingBits;
@@ -63,27 +63,27 @@ public class GlobalOccupation extends AbstractOccupation {
     }
 
     private void initDomainChecker(Settings settings, String name) {
-        if (settings.whenToApply == PruningApplicationConstants.PARALLEL) {
+        if (settings.getWhenToApply() == PruningApplicationConstants.PARALLEL) {
             initDomainChecker(new SettingsBuilder(settings).withSerialPruning().get(), name);
             domainChecker = new ParallelPruner(domainChecker, settings, data.getPatternGraph(), data.getTargetGraph());
             return;
         }
-        switch (settings.pruningMethod) {
+        switch (settings.getPruningMethod()) {
             case PruningConstants.NONE:
                 domainChecker = new NoPruner();
                 break;
             case PruningConstants.ZERODOMAIN:
-                if (settings.whenToApply == PruningApplicationConstants.CACHED) {
-                    domainChecker = new CachedZeroDomainPruner(data, settings, name, this);
-                } else if (settings.whenToApply == PruningApplicationConstants.SERIAL) {
+                if (settings.getWhenToApply() == PruningApplicationConstants.CACHED) {
+                    domainChecker = new CachedZeroDomainPruner(data, settings, this);
+                } else if (settings.getWhenToApply() == PruningApplicationConstants.SERIAL) {
                     domainChecker = new SerialZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), this);
                 }
                 break;
             case PruningConstants.ALL_DIFFERENT:
-                if (settings.whenToApply == PruningApplicationConstants.SERIAL) {
+                if (settings.getWhenToApply() == PruningApplicationConstants.SERIAL) {
                     throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
                 }
-                domainChecker = new AllDifferentPruner(data, settings, name, this);
+                domainChecker = new AllDifferentPruner(data, settings, this);
                 break;
             default:
                 throw new UnsupportedOperationException();

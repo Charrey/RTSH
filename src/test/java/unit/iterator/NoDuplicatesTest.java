@@ -15,7 +15,6 @@ import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
-import com.charrey.settings.pruning.PruningConstants;
 import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -32,7 +31,7 @@ class NoDuplicatesTest {
 
     private final RandomGenerator random = new Well512a(19247);
 
-    private final Settings settings = new SettingsBuilder()
+    private Settings settings = new SettingsBuilder()
             .withAllDifferentPruning()
             .withControlPointRouting(5)
             .withCachedPruning().get();
@@ -61,8 +60,7 @@ class NoDuplicatesTest {
     private static final int trials = 10;
 
     void testIterator(IteratorSettings strategy) throws DomainCheckerException {
-        settings.pathIteration = strategy;
-        settings.pruningMethod = PruningConstants.NONE;
+        settings = new SettingsBuilder(settings).withPathIteration(strategy).withoutPruning().get();
         final long seed = 1923;
         long counter = -1;
         RandomSucceedDirectedTestCaseGenerator gen = new RandomSucceedDirectedTestCaseGenerator(2, 1, 0, 0, seed);

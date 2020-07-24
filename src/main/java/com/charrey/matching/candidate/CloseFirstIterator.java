@@ -22,7 +22,7 @@ public class CloseFirstIterator extends VertexCandidateIterator {
     private int lastReturned = ABSENT;
     private double lastDistance = 0d;
 
-    CloseFirstIterator(MyGraph sourceGraph, MyGraph targetGraph, Settings settings, GlobalOccupation occupation, int sourceGraphVertex, VertexMatching vertexMatching, int limit) {
+    CloseFirstIterator(MyGraph sourceGraph, MyGraph targetGraph, Settings settings, GlobalOccupation occupation, int sourceGraphVertex, VertexMatching vertexMatching) {
         super(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex);
         this.vertexMatching = vertexMatching;
         reset();
@@ -36,7 +36,6 @@ public class CloseFirstIterator extends VertexCandidateIterator {
 
     @Override
     protected void prepareNextToReturn() {
-        //System.out.println("Finding next candidate for souce vertex " + sourceGraphVertex);
 
         TIntSet matchedTargetVertices = new TIntHashSet(Graphs.neighborSetOf(sourceGraph, sourceGraphVertex).stream().filter(x -> x < vertexMatching.getPlacement().size()).mapToInt(x -> vertexMatching.getPlacement().get(x)).toArray());
 
@@ -60,7 +59,7 @@ public class CloseFirstIterator extends VertexCandidateIterator {
                     return false;
                 }
                 candidateDistance[0] += path.getWeight();
-                return !(candidateDistance[0] > finalBestNewDistance);
+                return candidateDistance[0] <= finalBestNewDistance;
             });
             if (!mayContinue[0]) {
                 continue;
@@ -81,7 +80,6 @@ public class CloseFirstIterator extends VertexCandidateIterator {
             lastReturned = bestNewCandidate;
             nextToReturn = bestNewCandidate;
         }
-        //System.out.println("Returned vertex " + nextToReturn);
     }
 
 

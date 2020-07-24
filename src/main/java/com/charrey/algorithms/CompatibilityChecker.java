@@ -2,8 +2,6 @@ package com.charrey.algorithms;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.util.GraphUtil;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
@@ -13,7 +11,6 @@ import org.jgrapht.alg.util.Pair;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,44 +20,6 @@ import java.util.stream.Collectors;
 public class CompatibilityChecker {
 
     private final AllDifferent alldiff = new AllDifferent();
-
-    private static boolean filterGAC(@NotNull Map<Integer, TIntSet> compatibility, int iteration, String name) {
-        BiMap<Integer, Integer> map1 = HashBiMap.create();
-        for (int i : compatibility.keySet()) {
-            map1.put(i, i);
-        }
-        BiMap<Integer, Integer> map2 = HashBiMap.create();
-        for (TIntSet iset : compatibility.values()) {
-            iset.forEach(i -> {
-                map2.put(i, i);
-                return true;
-            });
-
-        }
-
-        TIntObjectMap<TIntSet> intCompatibility = new TIntObjectHashMap<>();
-        for (Map.Entry<Integer, TIntSet> entry : compatibility.entrySet()) {
-            TIntSet toPut = new TIntHashSet();
-            entry.getValue().forEach(i -> {
-                toPut.add(i);
-                return true;
-            });
-            intCompatibility.put(entry.getKey(), toPut);
-        }
-
-        Set<int[]> toRemoveInt = AllDifferent.checkAll(intCompatibility, iteration, name);
-        Set<int[]> toRemove = toRemoveInt.stream()
-                .map(x -> new int[]{map1.inverse().get(x[0]), map2.inverse().get(x[1])})
-                .collect(Collectors.toSet());
-        if (toRemove.isEmpty()) {
-            return false;
-        } else {
-            for (int[] pairToRemove : toRemove) {
-                compatibility.get(pairToRemove[0]).remove(pairToRemove[1]);
-            }
-            return true;
-        }
-    }
 
     /**
      * Returns a map from source graph vertices to the target graph vertices they are compatible with.
@@ -76,27 +35,21 @@ public class CompatibilityChecker {
 
         TIntObjectMap<TIntSet> res = new TIntObjectHashMap<>();
         for (Integer v : source.vertexSet()) {
-            assert source.containsVertex(v);
             res.put(v, new TIntHashSet(target.vertexSet().stream().filter(x -> isCompatible(v, x, source, target)).collect(Collectors.toSet())));
         }
         boolean hasChanged = true;
-        int iteration = 1;
         while (hasChanged) {
             hasChanged = false;
             if (neighbourhoodFiltering) {
-                hasChanged = filterNeighbourHoods(res, source, target, iteration, name);
-                //System.out.println(name + "completed neighbourhood filtering");
+                hasChanged = filterNeighbourHoods(res, source, target);
             }
-            iteration++;
         }
         return res;
     }
 
     private boolean filterNeighbourHoods(@NotNull TIntObjectMap<TIntSet> compatibilityMap,
                                          @NotNull MyGraph sourceGraph,
-                                         @NotNull MyGraph targetGraph,
-                                         int iteration,
-                                         String name) {
+                                         @NotNull MyGraph targetGraph) {
         final boolean[] changed = {false};
         Set<Pair<Integer, Integer>> toRemove = new HashSet<>();
 
@@ -110,7 +63,6 @@ public class CompatibilityChecker {
         compatibilityMap.forEachEntry((key, values1) -> {
             values1.forEach(potentialTarget -> {
                 if (System.currentTimeMillis() - lastTimePrinted[0] > 1000) {
-                    //System.out.println(name + " filtering neighbourhoods at iteration " + iteration + ": " + 100 * counter / (double) toProcess + "%");
                     lastTimePrinted[0] = System.currentTimeMillis();
                 }
                 TIntSet sourceNeighbourHood = GraphUtil.reachableNeighbours(sourceGraph, key);

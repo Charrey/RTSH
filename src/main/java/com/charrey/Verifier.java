@@ -16,6 +16,9 @@ import java.util.Set;
  */
 class Verifier {
 
+    private Verifier() {
+    }
+
     /**
      * Returns whether a homeomorphism adheres to the mathematical definition and constraints.
      *

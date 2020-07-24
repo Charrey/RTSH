@@ -27,12 +27,12 @@ public abstract class VertexCandidateIterator implements Iterator<Integer> {
         this.settings = settings;
         this.occupation = occupation;
         this.sourceGraphVertex = sourceGraphVertex;
-        this.limit = settings.vertexLimit;
+        this.limit = settings.getVertexLimit();
     }
 
     Iterator<Integer> getInnerIterator() {
         return targetGraph.vertexSet().stream().filter(x ->
-                settings.filtering.filter(sourceGraph, targetGraph, sourceGraphVertex, x, occupation) && !occupation.isOccupied(x)).iterator();
+                settings.getFiltering().filter(sourceGraph, targetGraph, sourceGraphVertex, x, occupation) && !occupation.isOccupied(x)).iterator();
     }
 
     public abstract void doReset();

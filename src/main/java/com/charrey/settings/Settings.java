@@ -16,23 +16,23 @@ public class Settings {
     /**
      * Whether to refuse paths that take up unnecessarily many resources.
      */
-    public boolean refuseLongerPaths;
+    private boolean refuseLongerPaths;
     /**
      * Which pruning method to use (select from PruningConstants.java)
      */
-    public int pruningMethod;
+    private int pruningMethod;
     /**
      * Which method to iterate paths is used (select from PathIterationConstants.java)
      */
-    public IteratorSettings pathIteration;
+    private IteratorSettings pathIteration;
 
     /**
      * Which method used to filter domains is used.
      */
-    public FilteringSettings filtering;
+    private FilteringSettings filtering;
 
-    public PruningApplicationConstants whenToApply;
-    public int vertexLimit;
+    private PruningApplicationConstants whenToApply;
+    private int vertexLimit;
 
     /**
      * Instantiates a new Settings.
@@ -71,4 +71,51 @@ public class Settings {
         return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration);
     }
 
+    public PruningApplicationConstants getWhenToApply() {
+        return whenToApply;
+    }
+
+    void setWhenToApply(PruningApplicationConstants whenToApply) {
+        this.whenToApply = whenToApply;
+    }
+
+    public int getPruningMethod() {
+        return pruningMethod;
+    }
+
+    void setPruningMethod(int pruningMethod) {
+        this.pruningMethod = pruningMethod;
+    }
+
+    public FilteringSettings getFiltering() {
+        return filtering;
+    }
+
+    void setFiltering(FilteringSettings filtering) {
+        this.filtering = filtering;
+    }
+
+    public int getVertexLimit() {
+        return vertexLimit;
+    }
+
+    void setVertexLimit(int vertexLimit) {
+        this.vertexLimit = vertexLimit;
+    }
+
+    public IteratorSettings getPathIteration() {
+        return pathIteration;
+    }
+
+    void setPathIteration(IteratorSettings pathIteration) {
+        this.pathIteration = pathIteration;
+    }
+
+    public boolean getRefuseLongerPaths() {
+        return refuseLongerPaths;
+    }
+
+    void setRefuseLongerPaths(boolean refuseLongerPaths) {
+        this.refuseLongerPaths = refuseLongerPaths;
+    }
 }

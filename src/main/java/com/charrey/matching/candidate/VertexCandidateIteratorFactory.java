@@ -7,9 +7,12 @@ import com.charrey.settings.Settings;
 
 public class VertexCandidateIteratorFactory {
 
+    private VertexCandidateIteratorFactory() {
+    }
+
 
     public static VertexCandidateIterator get(MyGraph sourceGraph, MyGraph targetGraph, Settings settings, GlobalOccupation occupation, int sourceGraphVertex, VertexMatching vertexMatching) {
-        //return new IndexIterator(sourceGraph, targetGraph, sourceGraphVertex, settings, occupation);
-        return new CloseFirstIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching, 1);
+        //todo replace this: return new IndexIterator(sourceGraph, targetGraph, sourceGraphVertex, settings, occupation);
+        return new CloseFirstIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching);
     }
 }

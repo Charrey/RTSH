@@ -45,7 +45,7 @@ public class VertexMatching extends PartialMatchingProvider implements Supplier<
      * @param sourceGraph the source graph (doesnt matter whether old or new)
      * @param occupation  the global occupation which vertices have been used and which are available
      */
-    public VertexMatching(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, GlobalOccupation occupation, Settings settings, String name) {
+    public VertexMatching(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, GlobalOccupation occupation, Settings settings) {
         //for each candidate vertex i, candidates[i] lists all its compatible target vertices.
         this.candidates2 = new VertexCandidateIterator[sourceGraph.vertexSet().size()];
         IntStream.range(0, candidates2.length).forEach(i -> candidates2[i] = VertexCandidateIteratorFactory.get(sourceGraph, targetGraph, settings, occupation, i, this));

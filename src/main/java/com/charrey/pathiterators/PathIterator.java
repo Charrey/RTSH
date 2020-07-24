@@ -12,7 +12,6 @@ import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.ControlPointIteratorStrategy;
-import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.settings.pruning.PruningApplicationConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,29 +57,6 @@ public abstract class PathIterator {
         this.transaction = transaction;
     }
 
-    /**
-     * Get path iterator.
-     *
-     * @param targetGraph   the target graph
-     * @param data          the data
-     * @param tail          the tail
-     * @param head          the head
-     * @param occupation    the occupation
-     * @param placementSize the placement size
-     * @param settings      the settings
-     * @return the path iterator
-     */
-    @NotNull
-    public static PathIterator get(@NotNull MyGraph targetGraph,
-                                   @NotNull UtilityData data,
-                                   int tail,
-                                   int head,
-                                   @NotNull GlobalOccupation occupation,
-                                   Supplier<Integer> placementSize,
-                                   @NotNull Settings settings,
-                                   PartialMatchingProvider provider) {
-        return get(targetGraph, data, tail, head, occupation, placementSize, settings.pathIteration, settings.refuseLongerPaths, provider, settings.whenToApply);
-    }
 
     /**
      * Get path iterator.
@@ -92,7 +68,6 @@ public abstract class PathIterator {
      * @param occupation        the occupation
      * @param placementSize     the placement size
      * @param pathIteration     the path iteration
-     * @param refuseLongerPaths the refuse longer paths
      * @return the path iterator
      */
     @NotNull
@@ -102,22 +77,20 @@ public abstract class PathIterator {
                                    int head,
                                    @NotNull GlobalOccupation occupation,
                                    Supplier<Integer> placementSize,
-                                   IteratorSettings pathIteration,
-                                   boolean refuseLongerPaths,
-                                   PartialMatchingProvider provider,
-                                   PruningApplicationConstants whenToApply) {
+                                   Settings settings,
+                                   PartialMatchingProvider provider) {
         if (targetGraph.getEdge(tail, head) != null) {
             return new SingletonPathIterator(targetGraph, tail, head, provider);
         }
-        switch (pathIteration.iterationStrategy) {
+        switch (settings.getPathIteration().iterationStrategy) {
             case DFS_ARBITRARY:
             case DFS_GREEDY:
-                int[][] targetNeighbours = data.getTargetNeighbours(pathIteration.iterationStrategy)[head];
-                return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, refuseLongerPaths, provider);
+                int[][] targetNeighbours = data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head];
+                return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, settings.getRefuseLongerPaths(), provider);
             case CONTROL_POINT:
-                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, ((ControlPointIteratorStrategy) pathIteration).getMaxControlpoints(), placementSize, refuseLongerPaths, provider);
+                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints(), placementSize, settings, provider);
             case KPATH:
-                return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, refuseLongerPaths, provider, whenToApply == PruningApplicationConstants.CACHED);
+                return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, settings.getRefuseLongerPaths(), provider, settings.getWhenToApply() == PruningApplicationConstants.CACHED);
             default:
                 throw new UnsupportedOperationException();
         }

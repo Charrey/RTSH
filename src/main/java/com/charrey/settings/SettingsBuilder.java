@@ -29,22 +29,22 @@ public class SettingsBuilder {
     }
 
     public SettingsBuilder(Settings settings) {
-        this.settings = new Settings(settings.filtering, settings.refuseLongerPaths, settings.pruningMethod, settings.pathIteration, settings.whenToApply, settings.vertexLimit);
+        this.settings = new Settings(settings.getFiltering(), settings.getRefuseLongerPaths(), settings.getPruningMethod(), settings.getPathIteration(), settings.getWhenToApply(), settings.getVertexLimit());
     }
 
     private void setFiltering(FilteringSettings filtering) {
         if (lockFiltering) {
-            throw new IllegalStateException("Filtering method has already been set to " + settings.filtering);
+            throw new IllegalStateException("Filtering method has already been set to " + settings.getFiltering());
         }
-        settings.filtering = filtering;
+        settings.setFiltering(filtering);
         lockFiltering = true;
     }
 
     private void setAllowLongerPaths(boolean allow) {
         if (lockLongerPaths) {
-            throw new IllegalStateException("Whether to allow longer paths has already been set to " + !settings.refuseLongerPaths);
+            throw new IllegalStateException("Whether to allow longer paths has already been set to " + !settings.getRefuseLongerPaths());
         }
-        settings.refuseLongerPaths = !allow;
+        settings.setRefuseLongerPaths(!allow);
         lockLongerPaths = true;
     }
 
@@ -52,7 +52,7 @@ public class SettingsBuilder {
         if (lockPruning) {
             throw new IllegalStateException("Pruning method has already been set.");
         }
-        settings.pruningMethod = pruningMethod;
+        settings.setPruningMethod(pruningMethod);
         lockPruning = true;
         return this;
     }
@@ -61,7 +61,7 @@ public class SettingsBuilder {
         if (lockPathIteration) {
             throw new IllegalStateException("Path iteration method has already been set to " + pathIteration);
         }
-        settings.pathIteration = pathIteration;
+        settings.setPathIteration(pathIteration);
         lockPathIteration = true;
         return this;
     }
@@ -70,15 +70,15 @@ public class SettingsBuilder {
         if (lockWhenToApply) {
             throw new IllegalStateException("Pruning application method has already been set");
         }
-        settings.whenToApply = whenToApply;
+        settings.setWhenToApply(whenToApply);
         lockWhenToApply = true;
     }
 
     public SettingsBuilder withVertexLimit(int limit) {
         if (lockVertexLimit) {
-            throw new IllegalStateException("Vertex limit has already been set to " + settings.vertexLimit);
+            throw new IllegalStateException("Vertex limit has already been set to " + settings.getVertexLimit());
         }
-        settings.vertexLimit = limit;
+        settings.setVertexLimit(limit);
         lockVertexLimit = true;
         return this;
     }
@@ -182,7 +182,7 @@ public class SettingsBuilder {
     }
 
     private void check() {
-        if (settings.whenToApply != PruningApplicationConstants.CACHED && settings.pruningMethod == PruningConstants.ALL_DIFFERENT) {
+        if (settings.getWhenToApply() != PruningApplicationConstants.CACHED && settings.getPruningMethod() == PruningConstants.ALL_DIFFERENT) {
             throw new IllegalArgumentException("Alldifferent is not compatible with serial or parallel pruning.");
         }
     }

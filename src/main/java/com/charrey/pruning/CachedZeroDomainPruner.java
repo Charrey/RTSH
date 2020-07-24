@@ -21,7 +21,7 @@ public class CachedZeroDomainPruner extends DefaultCachedPruner {
      *
      * @param data utility data (for cached computation)
      */
-    public CachedZeroDomainPruner(@NotNull UtilityData data, Settings settings, String name, GlobalOccupation occupation) {
+    public CachedZeroDomainPruner(@NotNull UtilityData data, Settings settings, GlobalOccupation occupation) {
         super(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, true);
     }
 
@@ -32,7 +32,7 @@ public class CachedZeroDomainPruner extends DefaultCachedPruner {
 
     @Override
     public void close() {
-
+        //nothing needs to be closed
     }
 
 
