@@ -17,13 +17,14 @@ public class UnmatchedDegreesFiltering extends FilteringSettings {
     }
 
     @Override
-    public TIntSet sourceVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
+    public TIntSet sourceVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int targetGraphVertex, GlobalOccupation occupation) {
         throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
-    public TIntSet targetVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
+    public TIntSet targetVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, GlobalOccupation occupation) {
         throw new UnsupportedOperationException(); //TODO
     }
+
 
 }

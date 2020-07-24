@@ -1,5 +1,8 @@
 package com.charrey.util;
 
+import gnu.trove.TCollections;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,6 +15,8 @@ import java.util.stream.Collectors;
  * Utility methods
  */
 public class Util {
+
+    public static final TIntSet emptyTIntSet = TCollections.unmodifiableSet(new TIntHashSet());
 
     private Util() {
     }

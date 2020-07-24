@@ -15,7 +15,6 @@ import java.util.List;
 public abstract class DefaultCachedPruner extends Pruner {
 
     protected final List<TIntSet> domain;
-
     private final List<TIntList> reverseDomain;
 
     private final TIntSet[] previousDomain;
@@ -64,15 +63,15 @@ public abstract class DefaultCachedPruner extends Pruner {
     }
 
     @Override
-    public void afterOccupyEdge(int verticesPlaced, int v, PartialMatching partialMatching) throws DomainCheckerException {
-        TIntList candidates2 = reverseDomain.get(v);
+    public void afterOccupyEdge(int verticesPlaced, int newlyOccupied, PartialMatching partialMatching) throws DomainCheckerException {
+        TIntList candidates = reverseDomain.get(newlyOccupied);
         int sourceVertexData = verticesPlaced - 1;
-        removeFromDomains(v, candidates2, sourceVertexData);
+        removeFromDomains(newlyOccupied, candidates, sourceVertexData);
         if (isUnfruitfulCached(verticesPlaced)) {
-            for (int i = candidates2.size() - 1; i >= 0 && candidates2.get(i) > sourceVertexData; i--) {
-                domain.get(candidates2.get(i)).add(v);
+            for (int i = candidates.size() - 1; i >= 0 && candidates.get(i) > sourceVertexData; i--) {
+                domain.get(candidates.get(i)).add(newlyOccupied);
             }
-            throw new DomainCheckerException("Pruner kicked in after occupying routing vertex " + v);
+            throw new DomainCheckerException("Pruner kicked in after occupying routing vertex " + newlyOccupied);
         }
     }
 
@@ -117,7 +116,6 @@ public abstract class DefaultCachedPruner extends Pruner {
 
     private void removeFromDomains(int placedTarget, TIntList sourcegraphCandidates, int sourceVertexData) {
         for (int i = sourcegraphCandidates.size() - 1; i >= 0 && sourcegraphCandidates.get(i) > sourceVertexData; i--) {
-            //assert domain.get(sourcegraphCandidates.get(i)).contains(placedTarget);
             domain.get(sourcegraphCandidates.get(i)).remove(placedTarget);
         }
     }

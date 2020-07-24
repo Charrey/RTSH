@@ -9,14 +9,12 @@ import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.Random;
 
 /**
  * Class that iterates over vertex suitable as control point for the ControlPointIterator class
  */
-public class ControlPointVertexSelector implements Iterator<Integer> {
+public class ControlPointVertexSelector {
 
     @NotNull
     private final AbstractOccupation occupation;
@@ -60,7 +58,7 @@ public class ControlPointVertexSelector implements Iterator<Integer> {
     private boolean readyToDeliver = false;
 
 
-    @Override
+
     public boolean hasNext() {
         if (!readyToDeliver) {
             nextToReturn = iterate();
@@ -89,10 +87,10 @@ public class ControlPointVertexSelector implements Iterator<Integer> {
         return !occupation.isOccupied(vertex) && !localOccupation.contains(vertex);
     }
 
-    @Override
+
     public Integer next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
+        if (!readyToDeliver) {
+            nextToReturn = iterate();
         }
         readyToDeliver = false;
         return nextToReturn;

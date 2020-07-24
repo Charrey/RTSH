@@ -132,8 +132,6 @@ public class IsoFinder {
             long iterations = 0;
             long initialTime = System.currentTimeMillis();
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
-                System.out.println(vertexMatching);
-                System.out.println(edgeMatching);
                 iterations++;
                 if (System.currentTimeMillis() - lastPrint > 1000) {
                     LOG.info(name + " is at " + iterations + " iterations...");

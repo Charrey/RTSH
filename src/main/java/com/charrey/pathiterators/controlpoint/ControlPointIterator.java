@@ -22,7 +22,6 @@ import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.graph.MaskSubgraph;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -47,7 +46,7 @@ class ControlPointIterator extends PathIterator {
 
     private boolean done = false;
     @NotNull
-    private final Iterator<Integer> controlPointCandidates;
+    private final ControlPointVertexSelector controlPointCandidates;
 
     @Nullable
     private ControlPointIterator child = null;
