@@ -14,6 +14,7 @@ import org.jgrapht.alg.shortestpath.IntVertexDijkstraShortestPath;
 import org.jgrapht.graph.AsUndirectedGraph;
 
 import java.util.Iterator;
+import java.util.Optional;
 
 public class CloseFirstIterator extends VertexCandidateIterator {
 
@@ -34,11 +35,27 @@ public class CloseFirstIterator extends VertexCandidateIterator {
         lastDistance = 0d;
     }
 
+    private static Optional<Double> getCandidateDistance(int candidate, double bestDistanceSoFar, TIntSet matchedTargetVertices, ShortestPathAlgorithm<Integer, MyEdge> shortestPathAlgorithm) {
+        final double[] candidateDistance = {0};
+        final boolean[] mayContinue = {true};
+        matchedTargetVertices.forEach(value -> {
+            GraphPath<Integer, MyEdge> path = shortestPathAlgorithm.getPath(value, candidate);
+            if (path == null) {
+                mayContinue[0] = false;
+                return false;
+            }
+            candidateDistance[0] += path.getWeight();
+            return candidateDistance[0] <= bestDistanceSoFar;
+        });
+        if (!mayContinue[0]) {
+            return Optional.empty();
+        }
+        return Optional.of(candidateDistance[0]);
+    }
+
     @Override
     protected void prepareNextToReturn() {
-
         TIntSet matchedTargetVertices = new TIntHashSet(Graphs.neighborSetOf(sourceGraph, sourceGraphVertex).stream().filter(x -> x < vertexMatching.getPlacement().size()).mapToInt(x -> vertexMatching.getPlacement().get(x)).toArray());
-
 
         int bestNewCandidate = Integer.MAX_VALUE;
         double bestNewDistance = Double.POSITIVE_INFINITY;
@@ -49,26 +66,15 @@ public class CloseFirstIterator extends VertexCandidateIterator {
         while (it.hasNext()) {
             int candidate = it.next();
 
-            final double[] candidateDistance = {0};
-            double finalBestNewDistance = bestNewDistance;
-            final boolean[] mayContinue = {true};
-            matchedTargetVertices.forEach(value -> {
-                GraphPath<Integer, MyEdge> path = shortestPathAlgorithm.getPath(value, candidate);
-                if (path == null) {
-                    mayContinue[0] = false;
-                    return false;
+            Optional<Double> candidateDistance2 = getCandidateDistance(candidate, bestNewDistance, matchedTargetVertices, shortestPathAlgorithm);
+            if (candidateDistance2.isPresent()) { //otherwise it is not a valid candidate
+                double actualDistance = candidateDistance2.get();
+                if ((actualDistance > lastDistance && actualDistance < bestNewDistance) ||
+                        (actualDistance == lastDistance && candidate > lastReturned && (lastDistance < bestNewDistance || candidate < bestNewCandidate)) ||
+                        (actualDistance == bestNewDistance && candidate < bestNewCandidate)) {
+                    bestNewCandidate = candidate;
+                    bestNewDistance = actualDistance;
                 }
-                candidateDistance[0] += path.getWeight();
-                return candidateDistance[0] <= finalBestNewDistance;
-            });
-            if (!mayContinue[0]) {
-                continue;
-            }
-            if ((candidateDistance[0] > lastDistance && candidateDistance[0] < bestNewDistance) ||
-                    (candidateDistance[0] == lastDistance && candidate > lastReturned && (lastDistance < bestNewDistance || candidate < bestNewCandidate)) ||
-                    (candidateDistance[0] == bestNewDistance && candidate < bestNewCandidate)) {
-                bestNewCandidate = candidate;
-                bestNewDistance = candidateDistance[0];
             }
         }
         assert bestNewCandidate == ABSENT || bestNewCandidate != lastReturned;

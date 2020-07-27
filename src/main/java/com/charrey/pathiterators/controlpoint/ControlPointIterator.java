@@ -83,7 +83,7 @@ class ControlPointIterator extends PathIterator {
                          Supplier<Integer> verticesPlaced,
                          Settings settings,
                          PartialMatchingProvider provider) {
-        super(tail, head, settings.getRefuseLongerPaths(), globalOccupation, occupation, provider);
+        super(tail, head, settings, globalOccupation, occupation, provider);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;
         this.globalOccupation = globalOccupation;

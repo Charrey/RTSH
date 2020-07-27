@@ -28,47 +28,16 @@ class Verifier {
      * @return whether the homeomorphism is correct
      */
     static boolean isCorrect(@NotNull MyGraph sourceGraph, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
-        //all nodes are placed
-        if (vertexMatching.getPlacement().size() < sourceGraph.vertexSet().size()) {
-            return false;
-        }
-        //all nodes are distinct
-        if (vertexMatching.getPlacement().size() != new TIntHashSet(vertexMatching.getPlacement()).size()) {
-            return false;
-        }
+        return everyVertexPlaced(sourceGraph, vertexMatching) &&
+                uniqueTargetVertices(vertexMatching) &&
+                pathCountCorrect(sourceGraph, edgeMatching) &&
+                directedEdgesHavePaths(sourceGraph, vertexMatching, edgeMatching) &&
+                undirectedEdgesHavePaths(sourceGraph, vertexMatching, edgeMatching) &&
+                pathsAreNodeDisjoint(edgeMatching) &&
+                noVertexMatchUsedInPath(vertexMatching, edgeMatching);
+    }
 
-        //all edges are placed
-        if (edgeMatching.allPaths().size() != sourceGraph.edgeSet().size()) {
-            return false;
-        }
-        if (sourceGraph.isDirected()) {
-            for (MyEdge edge : sourceGraph.edgeSet()) {
-                int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
-                int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
-                long matches = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).count();
-                if (matches != 1) {
-                    return false;
-                }
-            }
-        } else {
-            for (MyEdge edge : sourceGraph.edgeSet()) {
-                int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
-                int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
-                long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
-                if (matches != 1) {
-                    return false;
-                }
-            }
-        }
-
-        //the intermediate list of nodes are distinct
-        for (Path path : edgeMatching.allPaths()) {
-            List<Integer> intermediate = path.intermediate();
-            if (!edgeMatching.allPaths().stream().allMatch(x -> x == path || x.intermediate().stream().noneMatch(intermediate::contains))) {
-                return false;
-            }
-        }
-
+    private static boolean noVertexMatchUsedInPath(@NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
         //the intermediate list of nodes are disjoint from the nodes
         for (Path path : edgeMatching.allPaths()) {
             List<Integer> intermediate = path.intermediate();
@@ -85,5 +54,57 @@ class Verifier {
             }
         }
         return true;
+    }
+
+    private static boolean pathsAreNodeDisjoint(@NotNull EdgeMatching edgeMatching) {
+        for (Path path : edgeMatching.allPaths()) {
+            List<Integer> intermediate = path.intermediate();
+            if (!edgeMatching.allPaths().stream().allMatch(x -> x == path || x.intermediate().stream().noneMatch(intermediate::contains))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean undirectedEdgesHavePaths(@NotNull MyGraph sourceGraph, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
+        if (sourceGraph.isDirected()) {
+            return true;
+        }
+        for (MyEdge edge : sourceGraph.edgeSet()) {
+            int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
+            int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
+            long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
+            if (matches != 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean directedEdgesHavePaths(@NotNull MyGraph sourceGraph, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
+        if (!sourceGraph.isDirected()) {
+            return true;
+        }
+        for (MyEdge edge : sourceGraph.edgeSet()) {
+            int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
+            int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
+            long matches = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).count();
+            if (matches != 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean pathCountCorrect(@NotNull MyGraph sourceGraph, @NotNull EdgeMatching edgeMatching) {
+        return edgeMatching.allPaths().size() == sourceGraph.edgeSet().size();
+    }
+
+    private static boolean uniqueTargetVertices(@NotNull VertexMatching vertexMatching) {
+        return vertexMatching.getPlacement().size() == new TIntHashSet(vertexMatching.getPlacement()).size();
+    }
+
+    private static boolean everyVertexPlaced(@NotNull MyGraph sourceGraph, @NotNull VertexMatching vertexMatching) {
+        return vertexMatching.getPlacement().size() >= sourceGraph.vertexSet().size();
     }
 }

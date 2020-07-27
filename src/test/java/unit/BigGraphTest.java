@@ -132,7 +132,7 @@ class BigGraphTest {
         Thread threadKPath = getThread(testCase, new KPathStrategy());
         Thread threadDFSArbitrary = getThread(testCase, new GreedyDFSStrategy());
         Thread threadDFSGreedy = getThread(testCase, new GreedyDFSStrategy());
-        Thread threadControlPoint = getThread(testCase, new ControlPointIteratorStrategy(0));
+        Thread threadControlPoint = getThread(testCase, new ControlPointIteratorStrategy(1));
         //threadKPath.start();
         //threadDFSArbitrary.start();
         //threadDFSGreedy.start();

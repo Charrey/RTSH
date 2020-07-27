@@ -6,6 +6,7 @@ import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
+import com.charrey.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -39,16 +40,15 @@ public class DFSPathIterator extends PathIterator {
     /**
      * Instantiates a new DFS path iterator.
      *
-     * @param graph             the target graph
-     * @param neighbours        integer array such that for any target graph vertex x, neighbours[x] is an array of                          outgoing neighbours in the order that they need to be attempted.
-     * @param tail              the start vertex of the path
-     * @param head              the end vertex of the path
-     * @param occupation        the GlobalOccupation where intermediate nodes are registered
-     * @param placementSize     supplier of the number of source graph vertices placed at this point in the search
-     * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
+     * @param graph         the target graph
+     * @param tail          the start vertex of the path
+     * @param head          the end vertex of the path
+     * @param occupation    the GlobalOccupation where intermediate nodes are registered
+     * @param placementSize supplier of the number of source graph vertices placed at this point in the search
+     * @param neighbours    integer array such that for any target graph vertex x, neighbours[x] is an array of                          outgoing neighbours in the order that they need to be attempted.
      */
-    public DFSPathIterator(@NotNull MyGraph graph, @NotNull int[][] neighbours, int tail, int head, GlobalOccupation occupation, Supplier<Integer> placementSize, boolean refuseLongerPaths, PartialMatchingProvider provider) {
-        super(tail, head, refuseLongerPaths, occupation, occupation.getTransaction(), provider);
+    public DFSPathIterator(@NotNull MyGraph graph, Settings settings, int tail, int head, GlobalOccupation occupation, Supplier<Integer> placementSize, PartialMatchingProvider provider, @NotNull int[][] neighbours) {
+        super(tail, head, settings, occupation, occupation.getTransaction(), provider);
         this.head = head;
         exploration = new Path(graph, tail);
         //noinspection AssignmentOrReturnOfFieldWithMutableType
@@ -133,11 +133,8 @@ public class DFSPathIterator extends PathIterator {
                     }
                 }
             }
-            if (!found) {
-                //if not found, bump previous index value.
-                if (!removeHead()) {
-                    return null;
-                }
+            if (!found && !removeHead()) {
+                return null;
             }
         }
         try {

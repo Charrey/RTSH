@@ -39,22 +39,19 @@ public class ManagedControlPointIterator extends PathIterator {
     /**
      * Instantiates a new ManagedControlPointIterator.
      *
-     * @param graph             the target graph
-     * @param tail              the source of the path
-     * @param head              the target of the path
-     * @param globalOccupation  the GlobalOccupation where intermediate nodes are registered
-     * @param maxControlPoints  the maximum number of control points used (lower this for 'simpler' paths)
-     * @param verticesPlaced    supplier of the number of source graph vertices placed at this point in the search
+     * @param graph            the target graph
+     * @param tail             the source of the path
+     * @param head             the target of the path
+     * @param globalOccupation the GlobalOccupation where intermediate nodes are registered
+     * @param verticesPlaced   supplier of the number of source graph vertices placed at this point in the search
+     * @param maxControlPoints the maximum number of control points used (lower this for 'simpler' paths)
      */
     public ManagedControlPointIterator(@NotNull MyGraph graph,
-                                       int tail,
+                                       Settings settings, int tail,
                                        int head,
                                        @NotNull GlobalOccupation globalOccupation,
-                                       int maxControlPoints,
-                                       Supplier<Integer> verticesPlaced,
-                                       Settings settings,
-                                       PartialMatchingProvider provider) {
-        super(tail, head, settings.getRefuseLongerPaths(), globalOccupation, globalOccupation.getTransaction(), provider);
+                                       Supplier<Integer> verticesPlaced, PartialMatchingProvider provider, int maxControlPoints) {
+        super(tail, head, settings, globalOccupation, globalOccupation.getTransaction(), provider);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.settings = settings;

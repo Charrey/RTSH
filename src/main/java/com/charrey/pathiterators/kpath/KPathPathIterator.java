@@ -7,6 +7,7 @@ import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
+import com.charrey.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -43,16 +44,14 @@ public class KPathPathIterator extends PathIterator {
      * @param head              the target of the path
      * @param occupation        the GlobalOccupation where intermediate nodes are registered
      * @param verticesPlaced    supplier of the number of source graph vertices placed at this point in the search
-     * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources.
      */
     public KPathPathIterator(@NotNull MyGraph targetGraph,
-                             int tail,
+                             Settings settings, int tail,
                              int head,
                              @NotNull GlobalOccupation occupation,
                              Supplier<Integer> verticesPlaced,
-                             boolean refuseLongerPaths,
                              PartialMatchingProvider partialMatchingProvider) {
-        super(tail, head, refuseLongerPaths, occupation, occupation.getTransaction(), partialMatchingProvider);
+        super(tail, head, settings, occupation, occupation.getTransaction(), partialMatchingProvider);
         this.targetGraph = targetGraph;
         this.occupation = occupation;
         init = occupation.toString();

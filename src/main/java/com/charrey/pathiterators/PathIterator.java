@@ -42,14 +42,13 @@ public abstract class PathIterator {
     /**
      * Instantiates a new Path iterator.
      *
-     * @param tail              the tail
-     * @param head              the head
-     * @param refuseLongerPaths the refuse longer paths
+     * @param tail the tail
+     * @param head the head
      */
-    protected PathIterator(int tail, int head, boolean refuseLongerPaths, GlobalOccupation globalOccupation, OccupationTransaction transaction, PartialMatchingProvider partialMatchingProvider) {
+    protected PathIterator(int tail, int head, Settings settings, GlobalOccupation globalOccupation, OccupationTransaction transaction, PartialMatchingProvider partialMatchingProvider) {
         this.tail = tail;
         this.head = head;
-        this.refuseLongerPaths = refuseLongerPaths;
+        this.refuseLongerPaths = settings.getRefuseLongerPaths();
         this.partialMatchingProvider = partialMatchingProvider;
         this.globalOccupation = globalOccupation;
         this.transaction = transaction;
@@ -77,17 +76,17 @@ public abstract class PathIterator {
                                    Settings settings,
                                    PartialMatchingProvider provider) {
         if (targetGraph.getEdge(tail, head) != null) {
-            return new SingletonPathIterator(targetGraph, tail, head, provider);
+            return new SingletonPathIterator(targetGraph, settings, tail, head, provider);
         }
         switch (settings.getPathIteration().iterationStrategy) {
             case DFS_ARBITRARY:
             case DFS_GREEDY:
                 int[][] targetNeighbours = data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head];
-                return new DFSPathIterator(targetGraph, targetNeighbours, tail, head, occupation, placementSize, settings.getRefuseLongerPaths(), provider);
+                return new DFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, targetNeighbours);
             case CONTROL_POINT:
-                return new ManagedControlPointIterator(targetGraph, tail, head, occupation, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints(), placementSize, settings, provider);
+                return new ManagedControlPointIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints());
             case KPATH:
-                return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, settings.getRefuseLongerPaths(), provider);
+                return new KPathPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider);
             default:
                 throw new UnsupportedOperationException();
         }
