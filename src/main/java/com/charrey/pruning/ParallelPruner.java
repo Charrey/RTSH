@@ -15,7 +15,7 @@ public class ParallelPruner extends DefaultSerialPruner {
     public ParallelPruner(Pruner inner, Settings settings, MyGraph sourceGraph, MyGraph targetGraph) {
         super(settings, sourceGraph, targetGraph, inner.occupation);
         this.inner = inner;
-        pruningThread = new PruningThread(this, inner);
+        pruningThread = new PruningThread(this);
         theThread = new Thread(pruningThread);
         theThread.start();
     }

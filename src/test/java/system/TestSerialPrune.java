@@ -33,7 +33,7 @@ class TestSerialPrune extends SystemTest {
         double totalIterations = 0L;
         long attempts = 0;
         while (true) {
-            graphGen.init(iterations, false);
+            graphGen.init(iterations);
             double total = 0.;
             int patternNodes = 0;
             int patternEdges = 0;

@@ -5,7 +5,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.util.Util;
 import gnu.trove.set.TIntSet;
 
-public class NoFiltering extends FilteringSettings {
+public class NoFiltering implements FilteringSettings {
 
     @Override
     public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {

@@ -19,7 +19,7 @@ public class SerialZeroDomainPruner extends DefaultSerialPruner {
 
     @Override
     public void close() {
-
+        //nothing to close
     }
 
     @Override

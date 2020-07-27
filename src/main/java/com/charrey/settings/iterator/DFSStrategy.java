@@ -11,7 +11,7 @@ public final class DFSStrategy extends IteratorSettings {
 
     @Override
     public int serialized() {
-        return PathIterationConstants.DFS_ARBITRARY;
+        return PathIterationConstants.DFS_ARBITRARY.ordinal();
     }
 
     @Override
@@ -21,7 +21,7 @@ public final class DFSStrategy extends IteratorSettings {
 
     @Override
     public int hashCode() {
-        return PathIterationConstants.DFS_ARBITRARY;
+        return PathIterationConstants.DFS_ARBITRARY.ordinal();
     }
 
     @Override

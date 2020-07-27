@@ -13,7 +13,6 @@ import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.settings.iterator.KPathStrategy;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -108,7 +107,7 @@ class BigGraphTest {
         sourceGraph.addEdge(eastIn, clockEnableArcEast);
         sourceGraph.addEdge(clockEnableArcNorth, clockEnableWire);
         sourceGraph.addEdge(clockEnableArcSouth, clockEnableWire);
-        //sourceGraph.addEdge(clockEnableArcWest, clockEnable);
+        sourceGraph.addEdge(clockEnableArcWest, clockEnableWire);
         //sourceGraph.addEdge(clockEnableArcEast, clockEnable);
         //sourceGraph.addEdge(clockEnable, lut);
 
@@ -117,7 +116,6 @@ class BigGraphTest {
     }
 
     @Test
-    @Disabled("takes too long")
     void importSingleTile() throws IOException, InterruptedException {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));

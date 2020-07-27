@@ -8,8 +8,8 @@ import java.util.function.Supplier;
 
 public class MyEdge implements Comparable<MyEdge>, Serializable {
 
-    public Integer source;
-    public Integer target;
+    private Integer source;
+    private Integer target;
 
     public MyEdge() {
     }
@@ -49,6 +49,14 @@ public class MyEdge implements Comparable<MyEdge>, Serializable {
 
     public int compareTo(@NotNull MyEdge other) {
         return Comparator.comparingInt(x -> ((MyEdge) x).source).thenComparingInt(x -> ((MyEdge) x).target).compare(this, other);
+    }
+
+    public int getSource() {
+        return source;
+    }
+
+    public int getTarget() {
+        return target;
     }
 
     public static class MyEdgeSupplier implements Supplier<MyEdge>, Serializable {

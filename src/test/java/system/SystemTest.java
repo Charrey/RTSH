@@ -6,17 +6,14 @@ import com.charrey.graph.generation.TestCase;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.TimeoutResult;
 import com.charrey.settings.Settings;
-import com.charrey.util.LogHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
-import org.junit.jupiter.api.BeforeAll;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 
 import static com.charrey.util.DOTViewer.openInBrowser;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -24,11 +21,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 public abstract class SystemTest {
 
     private final Object challengeLock = new Object();
-
-    @BeforeAll
-    public static void init() {
-        Logger.getLogger("IsoFinder").addHandler(new LogHandler());
-    }
 
     @NotNull
     HomeomorphismResult testSucceed(@NotNull TestCase testCase, boolean writeChallenge, long timeout, @NotNull Settings settings) throws IOException {

@@ -24,7 +24,7 @@ import java.util.stream.IntStream;
  * A class that saves which source graph edge is mapped to which target graph path, and provides methods to facilitate
  * such matchings.
  */
-public class EdgeMatching extends PartialMatchingProvider implements Supplier<TIntObjectMap<Set<Path>>> {
+public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, PartialMatchingProvider {
 
     private final VertexMatching vertexMatching;
     private final MyGraph source;
@@ -67,10 +67,6 @@ public class EdgeMatching extends PartialMatchingProvider implements Supplier<TI
         this.settings = settings;
     }
 
-    private List<LinkedList<Pair<Path, String>>> getPathsUnsafe() {
-        return paths;
-    }
-
     private void initPathFinders() {
         pathfinders = new MultipleKeyMap<>();
         while (paths.size() < source.vertexSet().size()) {
@@ -106,7 +102,6 @@ public class EdgeMatching extends PartialMatchingProvider implements Supplier<TI
         if (pathList.isEmpty()) {
             return false;
         }
-        int placementSize = vertexMatching.getPlacement().size();
         for (int i = pathList.size() - 1; i >= 0; i--) {
             Path toRetry = pathList.get(i).getFirst();
             int tail = toRetry.first();
@@ -148,8 +143,15 @@ public class EdgeMatching extends PartialMatchingProvider implements Supplier<TI
             to = from;
             from = temp;
         }
-        int tail = directed ? from : (Math.min(from, to));
-        int head = directed ? to : (tail == from ? to : from);
+        int tail;
+        int head;
+        if (directed) {
+            tail = from;
+            head = to;
+        } else {
+            tail = Math.min(from, to);
+            head = Math.max(from, to);
+        }
         assert directed || tail < head;
         //get pathIterator
 
@@ -266,7 +268,6 @@ public class EdgeMatching extends PartialMatchingProvider implements Supplier<TI
     @Override
     public TIntObjectMap<Set<Path>> get() {
         TIntObjectMap<Set<Path>> toReturn = new TIntObjectHashMap<>();
-        List<LinkedList<Pair<Path, String>>> paths = this.getPathsUnsafe();
         for (int i = 0; i < paths.size(); i++) {
             toReturn.put(i, new HashSet<>(paths.get(i).stream().map(x -> new Path(x.getFirst())).collect(Collectors.toSet())));
         }

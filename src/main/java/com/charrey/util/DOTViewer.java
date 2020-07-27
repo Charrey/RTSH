@@ -6,12 +6,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.logging.Logger;
 
 /**
  * Class used to view DOT strings in a web browser
  */
 public class DOTViewer {
 
+    private static final Logger LOG = Logger.getLogger("DOTViewer");
+
+    private DOTViewer() {
+    }
 
     /**
      * Opens a visualization of two dot strings in a web browser.
@@ -21,8 +26,8 @@ public class DOTViewer {
      * @throws IOException thrown when the file system could not be used for some reason.
      */
     public static void openInBrowser(String dotPattern, String dotTarget) throws IOException {
-        System.out.println(dotPattern);
-        System.out.println(dotTarget);
+        LOG.info(dotPattern);
+        LOG.info(dotTarget);
         String html = new String(Files.readAllBytes(Paths.get("html/template/ExampleViewer.html").toRealPath()));
         html = html.replace("<patternGraphHere/>", "//pattern\n" + dotPattern);
         html = html.replace("<targetGraphHere/>", "//target\n" + dotTarget);

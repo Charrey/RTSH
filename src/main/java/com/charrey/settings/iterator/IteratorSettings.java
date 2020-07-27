@@ -1,14 +1,15 @@
 package com.charrey.settings.iterator;
 
+import com.charrey.settings.PathIterationConstants;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
 public abstract class IteratorSettings implements Comparable<IteratorSettings> {
 
 
-    public final int iterationStrategy;
+    public final PathIterationConstants iterationStrategy;
 
-    IteratorSettings(int iterationStrategy) {
+    IteratorSettings(PathIterationConstants iterationStrategy) {
         this.iterationStrategy = iterationStrategy;
     }
 

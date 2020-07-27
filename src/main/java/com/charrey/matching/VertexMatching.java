@@ -24,7 +24,7 @@ import java.util.stream.IntStream;
  * A class that saves which source graph vertex is mapped to which target graph vertex, and provides methods to facilitate
  * such matchings.
  */
-public class VertexMatching extends PartialMatchingProvider implements Supplier<TIntList> {
+public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvider {
 
     private final TIntList placement = new TIntArrayList();
 

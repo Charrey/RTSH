@@ -15,7 +15,7 @@ public final class ControlPointIteratorStrategy extends IteratorSettings {
 
     @Override
     public int serialized() {
-        return maxControlPoints * 100 + PathIterationConstants.CONTROL_POINT;
+        return maxControlPoints * 100 + PathIterationConstants.CONTROL_POINT.ordinal();
     }
 
     @Override

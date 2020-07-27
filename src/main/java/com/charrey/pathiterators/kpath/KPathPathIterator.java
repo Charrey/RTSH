@@ -51,8 +51,7 @@ public class KPathPathIterator extends PathIterator {
                              @NotNull GlobalOccupation occupation,
                              Supplier<Integer> verticesPlaced,
                              boolean refuseLongerPaths,
-                             PartialMatchingProvider partialMatchingProvider,
-                             boolean cached) {
+                             PartialMatchingProvider partialMatchingProvider) {
         super(tail, head, refuseLongerPaths, occupation, occupation.getTransaction(), partialMatchingProvider);
         this.targetGraph = targetGraph;
         this.occupation = occupation;

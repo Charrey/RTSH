@@ -2,7 +2,7 @@ package com.charrey.matching;
 
 import com.charrey.pruning.PartialMatching;
 
-public abstract class PartialMatchingProvider {
+public interface PartialMatchingProvider {
 
-    public abstract PartialMatching getPartialMatching();
+    PartialMatching getPartialMatching();
 }

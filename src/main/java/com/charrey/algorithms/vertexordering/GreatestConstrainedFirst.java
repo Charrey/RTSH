@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * Returns a vertex order using the GreatestConstraintFirst algorithm. This vertex order attempts to have each
  * * consecutive vertex be connected with as many already already matched vertices possible.
  */
-public class GreatestConstrainedFirst extends GraphVertexMapper {
+public class GreatestConstrainedFirst implements GraphVertexMapper {
 
 
     /**
@@ -29,7 +29,7 @@ public class GreatestConstrainedFirst extends GraphVertexMapper {
     @NotNull
     @Override
     public Mapping apply(@NotNull MyGraph graph) {
-        TIntList new_to_old = new TIntArrayList(graph.vertexSet().size());
+        TIntList newToOld = new TIntArrayList(graph.vertexSet().size());
         if (graph.vertexSet().isEmpty()) {
             return new Mapping(graph, new int[0]);
         }
@@ -42,23 +42,23 @@ public class GreatestConstrainedFirst extends GraphVertexMapper {
                 maxDegreeVertex = vertex;
             }
         }
-        new_to_old.add(maxDegreeVertex);
-        while (new_to_old.size() < graph.vertexSet().size()) {
-            TIntSet firstSelection = getFirstCriterium(graph, new_to_old);
-            TIntSet secondSelection = getSecondCriterium(graph, new_to_old, firstSelection);
-            TIntList thirdSelection = new TIntLinkedList(getThirdCriterium(graph, new_to_old, secondSelection));
+        newToOld.add(maxDegreeVertex);
+        while (newToOld.size() < graph.vertexSet().size()) {
+            TIntSet firstSelection = getFirstCriterium(graph, newToOld);
+            TIntSet secondSelection = getSecondCriterium(graph, newToOld, firstSelection);
+            TIntList thirdSelection = new TIntLinkedList(getThirdCriterium(graph, newToOld, secondSelection));
             thirdSelection.sort();
             assert secondSelection.containsAll(thirdSelection);
             int toAdd = thirdSelection.get(0);
-            assert !new_to_old.contains(toAdd);
-            new_to_old.add(toAdd);
+            assert !newToOld.contains(toAdd);
+            newToOld.add(toAdd);
         }
-        int[] old_to_new = new int[new_to_old.size()];
-        for (int i = 0; i < new_to_old.size(); i++) {
-            old_to_new[new_to_old.get(i)] = i;
+        int[] oldToNew = new int[newToOld.size()];
+        for (int i = 0; i < newToOld.size(); i++) {
+            oldToNew[newToOld.get(i)] = i;
         }
-        int[] new_to_old_array = new_to_old.toArray();
-        return new Mapping(MyGraph.applyOrdering(graph, new_to_old_array, old_to_new), new_to_old_array);
+        int[] newToOldArray = newToOld.toArray();
+        return new Mapping(MyGraph.applyOrdering(graph, newToOldArray, oldToNew), newToOldArray);
     }
 
     @NotNull

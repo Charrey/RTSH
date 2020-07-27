@@ -5,7 +5,6 @@ import com.charrey.pruning.*;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.PruningConstants;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -39,9 +38,9 @@ public class GlobalOccupation implements AbstractOccupation {
      *
      * @param data the data
      */
-    public GlobalOccupation(@NotNull UtilityData data, Settings settings, String name) {
+    public GlobalOccupation(@NotNull UtilityData data, Settings settings) {
         this.data = data;
-        initDomainChecker(settings, name);
+        initDomainChecker(settings);
         this.routingBits = new TIntHashSet();
         this.vertexBits = new TIntHashSet();
     }
@@ -54,7 +53,7 @@ public class GlobalOccupation implements AbstractOccupation {
         this.activeOccupation = active;
     }
 
-    public void unclaimActiveOccupation(AbstractOccupation inactive) {
+    public void unclaimActiveOccupation() {
         this.activeOccupation = this;
     }
 
@@ -62,24 +61,24 @@ public class GlobalOccupation implements AbstractOccupation {
         this.domainChecker.close();
     }
 
-    private void initDomainChecker(Settings settings, String name) {
+    private void initDomainChecker(Settings settings) {
         if (settings.getWhenToApply() == PruningApplicationConstants.PARALLEL) {
-            initDomainChecker(new SettingsBuilder(settings).withSerialPruning().get(), name);
+            initDomainChecker(new SettingsBuilder(settings).withSerialPruning().get());
             domainChecker = new ParallelPruner(domainChecker, settings, data.getPatternGraph(), data.getTargetGraph());
             return;
         }
         switch (settings.getPruningMethod()) {
-            case PruningConstants.NONE:
+            case NONE:
                 domainChecker = new NoPruner();
                 break;
-            case PruningConstants.ZERODOMAIN:
+            case ZERODOMAIN:
                 if (settings.getWhenToApply() == PruningApplicationConstants.CACHED) {
                     domainChecker = new CachedZeroDomainPruner(data, settings, this);
                 } else if (settings.getWhenToApply() == PruningApplicationConstants.SERIAL) {
                     domainChecker = new SerialZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), this);
                 }
                 break;
-            case PruningConstants.ALL_DIFFERENT:
+            case ALLDIFFERENT:
                 if (settings.getWhenToApply() == PruningApplicationConstants.SERIAL) {
                     throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
                 }
@@ -127,8 +126,9 @@ public class GlobalOccupation implements AbstractOccupation {
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search. If this is thrown, this class remains unchanged.
      */
     public void occupyVertex(Integer source, Integer target, PartialMatching partialMatching) throws DomainCheckerException {
-        assert !routingBits.contains(target);
-        assert !vertexBits.contains(target);
+        if (routingBits.contains(target) || vertexBits.contains(target)) {
+            throw new IllegalStateException();
+        }
         TIntList hypothetical = new TIntArrayList(partialMatching.getVertexMapping());
         hypothetical.add(target);
         domainChecker.beforeOccupyVertex(source, target, new PartialMatching(hypothetical, partialMatching.getEdgeMapping(), partialMatching.getPartialPath()));
@@ -163,7 +163,6 @@ public class GlobalOccupation implements AbstractOccupation {
         if (!isOccupiedVertex(vertex)) {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for vertex-on-vertex purposes): " + vertex);
         }
-        assert vertexBits.contains(vertex);
         vertexBits.remove(vertex);
         domainChecker.afterReleaseVertex(vertexPlacementSize, vertex);
     }
@@ -197,7 +196,6 @@ public class GlobalOccupation implements AbstractOccupation {
         TIntSet myList = new TIntHashSet();
         myList.addAll(IntStream.range(0, routingBits.size()).filter(this.routingBits::contains).boxed().collect(Collectors.toSet()));
         myList.addAll(this.vertexBits);
-        //assert myList.stream().allMatch(this::isOccupied);
         TIntList res = new TIntArrayList(myList);
         res.sort();
         return res.toString();

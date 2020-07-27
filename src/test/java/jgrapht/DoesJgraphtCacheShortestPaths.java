@@ -13,7 +13,7 @@ public class DoesJgraphtCacheShortestPaths {
         for (int v = 5000; v <= 5000; v*=1.5) {
             long e = (long) (v * 1.8);
             RandomSucceedDirectedTestCaseGenerator gen = new RandomSucceedDirectedTestCaseGenerator(v, (int) e, 0, 0, 1920);
-            gen.init(1, false);
+            gen.init(1);
             MyGraph graph = gen.getNext().getSourceGraph();
             long start = System.nanoTime();
             ManyToManyShortestPathsAlgorithm<Integer, MyEdge> spa = new CHManyToManyShortestPaths<>(graph);

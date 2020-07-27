@@ -10,7 +10,7 @@ public final class GreedyDFSStrategy extends IteratorSettings {
 
     @Override
     public int serialized() {
-        return PathIterationConstants.DFS_GREEDY;
+        return PathIterationConstants.DFS_GREEDY.ordinal();
     }
 
     @Override
@@ -20,7 +20,7 @@ public final class GreedyDFSStrategy extends IteratorSettings {
 
     @Override
     public int hashCode() {
-        return PathIterationConstants.DFS_GREEDY;
+        return PathIterationConstants.DFS_GREEDY.ordinal();
     }
 
     @Override

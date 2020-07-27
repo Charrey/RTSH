@@ -16,6 +16,7 @@ public class SettingsBuilder {
     private boolean lockPathIteration = false;
     private boolean lockWhenToApply = false;
     private boolean lockVertexLimit = false;
+    private boolean lockTargetVertexOrder = false;
 
     public SettingsBuilder() {
         settings = new Settings(
@@ -24,31 +25,43 @@ public class SettingsBuilder {
                 PruningConstants.NONE,
                 new KPathStrategy(),
                 PruningApplicationConstants.SERIAL,
-                Integer.MAX_VALUE
+                Integer.MAX_VALUE,
+                TargetVertexOrder.LARGEST_DEGREE_FIRST
         );
     }
 
     public SettingsBuilder(Settings settings) {
-        this.settings = new Settings(settings.getFiltering(), settings.getRefuseLongerPaths(), settings.getPruningMethod(), settings.getPathIteration(), settings.getWhenToApply(), settings.getVertexLimit());
+        this.settings = new Settings(settings.getFiltering(), settings.getRefuseLongerPaths(), settings.getPruningMethod(), settings.getPathIteration(), settings.getWhenToApply(), settings.getVertexLimit(), settings.getTargetVertexOrder());
     }
 
-    private void setFiltering(FilteringSettings filtering) {
+    private SettingsBuilder setFiltering(FilteringSettings filtering) {
         if (lockFiltering) {
             throw new IllegalStateException("Filtering method has already been set to " + settings.getFiltering());
         }
         settings.setFiltering(filtering);
         lockFiltering = true;
+        return this;
     }
 
-    private void setAllowLongerPaths(boolean allow) {
+    private SettingsBuilder setAllowLongerPaths(boolean allow) {
         if (lockLongerPaths) {
             throw new IllegalStateException("Whether to allow longer paths has already been set to " + !settings.getRefuseLongerPaths());
         }
         settings.setRefuseLongerPaths(!allow);
         lockLongerPaths = true;
+        return this;
     }
 
-    private SettingsBuilder withPruningMethod(int pruningMethod) {
+    private SettingsBuilder setTargetVertexOrder(TargetVertexOrder order) {
+        if (lockTargetVertexOrder) {
+            throw new IllegalStateException("Target vertex order has already been set to " + settings.getTargetVertexOrder());
+        }
+        settings.setTargetVertexOrder(order);
+        lockTargetVertexOrder = true;
+        return this;
+    }
+
+    private SettingsBuilder withPruningMethod(PruningConstants pruningMethod) {
         if (lockPruning) {
             throw new IllegalStateException("Pruning method has already been set.");
         }
@@ -66,12 +79,13 @@ public class SettingsBuilder {
         return this;
     }
 
-    private void setWhenToApply(PruningApplicationConstants whenToApply) {
+    private SettingsBuilder setWhenToApply(PruningApplicationConstants whenToApply) {
         if (lockWhenToApply) {
             throw new IllegalStateException("Pruning application method has already been set");
         }
         settings.setWhenToApply(whenToApply);
         lockWhenToApply = true;
+        return this;
     }
 
     public SettingsBuilder withVertexLimit(int limit) {
@@ -83,39 +97,40 @@ public class SettingsBuilder {
         return this;
     }
 
+    public SettingsBuilder withLargestDegreeFirstTargetVertexOrder() {
+        return setTargetVertexOrder(TargetVertexOrder.LARGEST_DEGREE_FIRST);
+    }
+
+    public SettingsBuilder withClosestTargetVertexOrder() {
+        return setTargetVertexOrder(TargetVertexOrder.CLOSEST_TO_MATCHED);
+    }
+
     public SettingsBuilder withLabelDegreeFiltering() {
-        setFiltering(new LabelDegreeFiltering());
-        return this;
+        return setFiltering(new LabelDegreeFiltering());
     }
 
     public SettingsBuilder withoutFiltering() {
-        setFiltering(new NoFiltering());
-        return this;
+        return setFiltering(new NoFiltering());
     }
 
     public SettingsBuilder withUnmatchedDegreesFiltering() {
-        setFiltering(new UnmatchedDegreesFiltering());
-        return this;
+        return setFiltering(new UnmatchedDegreesFiltering());
     }
 
     public SettingsBuilder withMatchedReachabilityFiltering() {
-        setFiltering(new MReachabilityFiltering());
-        return this;
+        return setFiltering(new MReachabilityFiltering());
     }
 
     public SettingsBuilder withNeighbourReachabilityFiltering() {
-        setFiltering(new NReachabilityFiltering());
-        return this;
+        return setFiltering(new NReachabilityFiltering());
     }
 
     public SettingsBuilder avoidingLongerPaths() {
-        setAllowLongerPaths(false);
-        return this;
+        return setAllowLongerPaths(false);
     }
 
     public SettingsBuilder allowingLongerPaths() {
-        setAllowLongerPaths(true);
-        return this;
+        return setAllowLongerPaths(true);
     }
 
     public SettingsBuilder withZeroDomainPruning() {
@@ -123,7 +138,7 @@ public class SettingsBuilder {
     }
 
     public SettingsBuilder withAllDifferentPruning() {
-        return withPruningMethod(PruningConstants.ALL_DIFFERENT);
+        return withPruningMethod(PruningConstants.ALLDIFFERENT);
     }
 
     public SettingsBuilder withoutPruning() {
@@ -155,18 +170,15 @@ public class SettingsBuilder {
     }
 
     public SettingsBuilder withSerialPruning() {
-        setWhenToApply(PruningApplicationConstants.SERIAL);
-        return this;
+        return setWhenToApply(PruningApplicationConstants.SERIAL);
     }
 
     public SettingsBuilder withParallelPruning() {
-        setWhenToApply(PruningApplicationConstants.PARALLEL);
-        return this;
+        return setWhenToApply(PruningApplicationConstants.PARALLEL);
     }
 
     public SettingsBuilder withCachedPruning() {
-        setWhenToApply(PruningApplicationConstants.CACHED);
-        return this;
+        return setWhenToApply(PruningApplicationConstants.CACHED);
     }
 
 
@@ -177,12 +189,13 @@ public class SettingsBuilder {
         lockPathIteration = true;
         lockWhenToApply = true;
         lockVertexLimit = true;
+        lockTargetVertexOrder = true;
         check();
         return settings;
     }
 
     private void check() {
-        if (settings.getWhenToApply() != PruningApplicationConstants.CACHED && settings.getPruningMethod() == PruningConstants.ALL_DIFFERENT) {
+        if (settings.getWhenToApply() != PruningApplicationConstants.CACHED && settings.getPruningMethod() == PruningConstants.ALLDIFFERENT) {
             throw new IllegalArgumentException("Alldifferent is not compatible with serial or parallel pruning.");
         }
     }

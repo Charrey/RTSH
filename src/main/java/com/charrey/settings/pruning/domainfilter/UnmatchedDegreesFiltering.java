@@ -4,7 +4,7 @@ import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
 import gnu.trove.set.TIntSet;
 
-public class UnmatchedDegreesFiltering extends FilteringSettings {
+public class UnmatchedDegreesFiltering implements FilteringSettings {
 
     private final FilteringSettings innerFilter = new LabelDegreeFiltering();
 

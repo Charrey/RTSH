@@ -12,27 +12,27 @@ public class NoPruner extends Pruner {
 
     @Override
     public void afterReleaseVertex(int verticesPlaced, int released) {
-
+        //do nothing
     }
 
     @Override
     public void afterReleaseEdge(int verticesPlaced, int released) {
-
+        //do nothing
     }
 
     @Override
     public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException {
-
+        //do nothing
     }
 
     @Override
     public void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException {
-
+        //do nothing
     }
 
     @Override
     public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int occupied) {
-
+        //do nothing
     }
 
     @Override
@@ -47,12 +47,12 @@ public class NoPruner extends Pruner {
 
     @Override
     public void close() {
-
+        //do nothing
     }
 
     @Override
     public void checkPartial(PartialMatching partialMatching) throws DomainCheckerException {
-
+        //do nothing
     }
 
 }

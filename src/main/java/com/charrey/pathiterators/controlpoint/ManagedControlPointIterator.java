@@ -33,7 +33,7 @@ public class ManagedControlPointIterator extends PathIterator {
     private final Supplier<Integer> verticesPlaced;
     private static final Logger LOG = Logger.getLogger("ManagedControlPointIterator");
     private ControlPointIterator child;
-    private int controlPoints = 0;
+    private int numberOfControlPoints = 0;
     private final Settings settings;
 
     /**
@@ -58,7 +58,7 @@ public class ManagedControlPointIterator extends PathIterator {
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.settings = settings;
-        this.child = new ControlPointIterator(graph, tail, head, globalOccupation, transaction, new TIntHashSet(), controlPoints, verticesPlaced, settings, provider);
+        this.child = new ControlPointIterator(graph, tail, head, globalOccupation, transaction, new TIntHashSet(), numberOfControlPoints, verticesPlaced, settings, provider);
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
     }
@@ -71,7 +71,7 @@ public class ManagedControlPointIterator extends PathIterator {
             Path path;
             do {
                 path = child.next();
-            } while (path != null && controlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
+            } while (path != null && numberOfControlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
                 try {
                     transaction.commit(verticesPlaced.get(), getPartialMatching());
@@ -82,21 +82,21 @@ public class ManagedControlPointIterator extends PathIterator {
                 LOG.finest(() -> "ManagedControlPointIterator returned path " + finalPath);
                 return path;
             } else {
-                if (controlPoints + 1 > maxControlPoints || controlPoints + 1 > graph.vertexSet().size() - 2) {
+                if (numberOfControlPoints + 1 > maxControlPoints || numberOfControlPoints + 1 > graph.vertexSet().size() - 2) {
                     return null;
                 }
-                controlPoints += 1;
-                LOG.finest(() -> "Raising control point count to " + controlPoints);
+                numberOfControlPoints += 1;
+                LOG.finest(() -> "Raising control point count to " + numberOfControlPoints);
                 TIntSet localOccupation = new TIntHashSet();
                 localOccupation.add(head());
-                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, transaction, localOccupation, controlPoints, verticesPlaced, settings, partialMatchingProvider);
+                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, transaction, localOccupation, numberOfControlPoints, verticesPlaced, settings, partialMatchingProvider);
             }
         }
     }
 
     @Override
     public String debugInfo() {
-        return "controlpoints(" + controlPoints + ")";
+        return "controlpoints(" + numberOfControlPoints + ")";
     }
 
     private boolean rightShiftPossible() {

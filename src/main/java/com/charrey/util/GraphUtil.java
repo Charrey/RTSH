@@ -21,6 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GraphUtil {
 
+    private GraphUtil() {
+    }
+
 
     private static final Map<MyGraph, TIntList> cachedRandomVertexOrder = new ConcurrentHashMap<>();
     private static final Map<MyGraph, ConnectivityInspector<Integer, MyEdge>> cachedComponents = new HashMap<>();
@@ -79,7 +82,7 @@ public class GraphUtil {
      * @param source the vertex to search from
      * @return the set of all reachable vertices
      */
-    public synchronized static TIntSet reachableNeighbours(@NotNull MyGraph graph, int source) { //todo: only arcs, wires and SLICE
+    public static synchronized TIntSet reachableNeighbours(@NotNull MyGraph graph, int source) { //todo: only arcs, wires and SLICE
         cachedComponents.putIfAbsent(graph, new ConnectivityInspector<>(graph));
         TIntSet toReturn = new TIntHashSet();
         Set<Integer> connected = cachedComponents.get(graph).connectedSetOf(source);

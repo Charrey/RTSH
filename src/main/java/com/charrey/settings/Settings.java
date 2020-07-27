@@ -2,6 +2,7 @@ package com.charrey.settings;
 
 import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.PruningConstants;
 import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,7 +21,7 @@ public class Settings {
     /**
      * Which pruning method to use (select from PruningConstants.java)
      */
-    private int pruningMethod;
+    private PruningConstants pruningMethod;
     /**
      * Which method to iterate paths is used (select from PathIterationConstants.java)
      */
@@ -33,6 +34,7 @@ public class Settings {
 
     private PruningApplicationConstants whenToApply;
     private int vertexLimit;
+    private TargetVertexOrder targetVertexOrder;
 
     /**
      * Instantiates a new Settings.
@@ -43,16 +45,18 @@ public class Settings {
      */
     Settings(FilteringSettings filtering,
              boolean refuseLongerPaths,
-             int pruningMethod,
+             PruningConstants pruningMethod,
              IteratorSettings pathIteration,
              PruningApplicationConstants whenToApply,
-             int vertexLimit) {
+             int vertexLimit,
+             TargetVertexOrder targetVertexOrder) {
         this.filtering = filtering;
         this.refuseLongerPaths = refuseLongerPaths;
         this.pruningMethod = pruningMethod;
         this.pathIteration = pathIteration;
         this.whenToApply = whenToApply;
         this.vertexLimit = vertexLimit;
+        this.targetVertexOrder = targetVertexOrder;
     }
 
     @Override
@@ -79,11 +83,11 @@ public class Settings {
         this.whenToApply = whenToApply;
     }
 
-    public int getPruningMethod() {
+    public PruningConstants getPruningMethod() {
         return pruningMethod;
     }
 
-    void setPruningMethod(int pruningMethod) {
+    void setPruningMethod(PruningConstants pruningMethod) {
         this.pruningMethod = pruningMethod;
     }
 
@@ -117,5 +121,13 @@ public class Settings {
 
     void setRefuseLongerPaths(boolean refuseLongerPaths) {
         this.refuseLongerPaths = refuseLongerPaths;
+    }
+
+    public TargetVertexOrder getTargetVertexOrder() {
+        return targetVertexOrder;
+    }
+
+    void setTargetVertexOrder(TargetVertexOrder order) {
+        this.targetVertexOrder = order;
     }
 }

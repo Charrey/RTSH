@@ -4,7 +4,6 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
-import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
@@ -103,7 +102,7 @@ class ControlPointTransition {
         RandomSucceedDirectedTestCaseGenerator gen = new RandomSucceedDirectedTestCaseGenerator(2, 1, 0, 0, seed);
         for (int i = 0; i < differentGraphSizes; i++) {
             gen.makeHarder();
-            gen.init(trials, false);
+            gen.init(trials);
             while (gen.hasNext()) {
                 MyGraph targetGraph = gen.getNext().getSourceGraph();
                 MyGraph sourceGraph = new MyGraph(true);
@@ -116,19 +115,16 @@ class ControlPointTransition {
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
-                GlobalOccupation occupation = new GlobalOccupation(data, settings, "TransitionTest");
+                GlobalOccupation occupation = new GlobalOccupation(data, settings);
                 occupation.occupyVertex(0, tail, new PartialMatching());
                 TIntList vertexMatching = new TIntArrayList();
                 vertexMatching.add(tail);
                 occupation.occupyVertex(1, head, new PartialMatching(vertexMatching));
-                ManagedControlPointIterator iterator = (ManagedControlPointIterator) PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, new PartialMatchingProvider() {
-                    @Override
-                    public PartialMatching getPartialMatching() {
-                        TIntList vertexMatching = new TIntArrayList();
-                        vertexMatching.add(tail);
-                        vertexMatching.add(head);
-                        return new PartialMatching(vertexMatching);
-                    }
+                ManagedControlPointIterator iterator = (ManagedControlPointIterator) PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
+                    TIntList vertexMatching1 = new TIntArrayList();
+                    vertexMatching1.add(tail);
+                    vertexMatching1.add(head);
+                    return new PartialMatching(vertexMatching1);
                 });
                 Path path;
                 while ((path = iterator.next()) != null) {

@@ -4,7 +4,6 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
-import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.dfs.DFSPathIterator;
@@ -40,7 +39,7 @@ class GreedyDfsTest {
         RandomSucceedDirectedTestCaseGenerator gen = new RandomSucceedDirectedTestCaseGenerator(200, 1000, 0, 0, seed);
         for (int i = 0; i < differentGraphSizes; i++) {
             gen.makeHarder();
-            gen.init(trials, false);
+            gen.init(trials);
             while (gen.hasNext()) {
                 MyGraph targetGraph = gen.getNext().getSourceGraph();
                 MyGraph sourceGraph = new MyGraph(true);
@@ -59,29 +58,23 @@ class GreedyDfsTest {
                 }
                 TIntList vertexMatching = new TIntArrayList();
                 vertexMatching.add(tail);
-                GlobalOccupation occupationGreedy = new GlobalOccupation(data, settingsGreedy, "Greedy");
+                GlobalOccupation occupationGreedy = new GlobalOccupation(data, settingsGreedy);
                 occupationGreedy.occupyVertex(0, tail, new PartialMatching());
                 occupationGreedy.occupyVertex(1, head, new PartialMatching(vertexMatching));
-                GlobalOccupation occupationKPath = new GlobalOccupation(data, settingsKpath, "KPath");
+                GlobalOccupation occupationKPath = new GlobalOccupation(data, settingsKpath);
                 occupationKPath.occupyVertex(0, tail, new PartialMatching());
                 occupationKPath.occupyVertex(1, head, new PartialMatching(vertexMatching));
-                DFSPathIterator greedyDFSIterator = (DFSPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy, new PartialMatchingProvider() {
-                    @Override
-                    public PartialMatching getPartialMatching() {
-                        TIntList vertexMatching = new TIntArrayList();
-                        vertexMatching.add(tail);
-                        vertexMatching.add(head);
-                        return new PartialMatching(vertexMatching);
-                    }
+                DFSPathIterator greedyDFSIterator = (DFSPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy, () -> {
+                    TIntList vertexMatching12 = new TIntArrayList();
+                    vertexMatching12.add(tail);
+                    vertexMatching12.add(head);
+                    return new PartialMatching(vertexMatching12);
                 });
-                KPathPathIterator kPathIterator = (KPathPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationKPath, () -> 2, settingsKpath, new PartialMatchingProvider() {
-                    @Override
-                    public PartialMatching getPartialMatching() {
-                        TIntList vertexMatching = new TIntArrayList();
-                        vertexMatching.add(tail);
-                        vertexMatching.add(head);
-                        return new PartialMatching(vertexMatching);
-                    }
+                KPathPathIterator kPathIterator = (KPathPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationKPath, () -> 2, settingsKpath, () -> {
+                    TIntList vertexMatching1 = new TIntArrayList();
+                    vertexMatching1.add(tail);
+                    vertexMatching1.add(head);
+                    return new PartialMatching(vertexMatching1);
                 });
 
                 Path path1 = kPathIterator.next();
@@ -90,8 +83,16 @@ class GreedyDfsTest {
                     assertEquals(path1, path2);
                 } catch (AssertionFailedError e) {
                     System.err.println(counter);
-                    System.err.println("Cost of kpath: " + path1.getWeight());
-                    System.err.println("Cost of dfs: " + path2.getWeight());
+                    if (path1 == null) {
+                        System.err.println("KPath could not be found!");
+                    } else {
+                        System.err.println("Cost of kpath: " + path1.getWeight());
+                    }
+                    if (path2 == null) {
+                        System.err.println("DFS could not be found!");
+                    } else {
+                        System.err.println("Cost of dfs: " + path2.getWeight());
+                    }
                     throw e;
                 }
             }

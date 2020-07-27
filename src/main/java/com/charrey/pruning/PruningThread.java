@@ -6,13 +6,11 @@ import java.util.List;
 public class PruningThread implements Runnable {
 
     private final ParallelPruner pruner;
-    private final Pruner inner;
     private final List<ParallelPruner> subscribers;
     private boolean done = false;
 
-    PruningThread(ParallelPruner parallelPruner, Pruner inner) {
+    PruningThread(ParallelPruner parallelPruner) {
         this.pruner = parallelPruner;
-        this.inner = inner;
         this.subscribers = new LinkedList<>();
         subscribers.add(parallelPruner);
     }
@@ -30,11 +28,7 @@ public class PruningThread implements Runnable {
                     Thread.sleep(1);
                 }
                 PartialMatching partialMatching = pruner.getCurrentMatching();
-                try {
-                    pruner.checkPartial(partialMatching);
-                } catch (DomainCheckerException e) {
-                    signalPrune();
-                }
+                check(partialMatching);
                 synchronized (pruner) {
                     if (pruner.isInPruningState) {
                         pruner.wait();
@@ -43,6 +37,14 @@ public class PruningThread implements Runnable {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+    }
+
+    private void check(PartialMatching partialMatching) {
+        try {
+            pruner.checkPartial(partialMatching);
+        } catch (DomainCheckerException e) {
+            signalPrune();
         }
     }
 

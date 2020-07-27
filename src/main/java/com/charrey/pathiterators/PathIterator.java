@@ -12,13 +12,11 @@ import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.ControlPointIteratorStrategy;
-import com.charrey.settings.pruning.PruningApplicationConstants;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
-
-import static com.charrey.settings.PathIterationConstants.*;
 
 /**
  * The type Path iterator.
@@ -67,7 +65,6 @@ public abstract class PathIterator {
      * @param head              the head
      * @param occupation        the occupation
      * @param placementSize     the placement size
-     * @param pathIteration     the path iteration
      * @return the path iterator
      */
     @NotNull
@@ -90,7 +87,7 @@ public abstract class PathIterator {
             case CONTROL_POINT:
                 return new ManagedControlPointIterator(targetGraph, tail, head, occupation, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints(), placementSize, settings, provider);
             case KPATH:
-                return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, settings.getRefuseLongerPaths(), provider, settings.getWhenToApply() == PruningApplicationConstants.CACHED);
+                return new KPathPathIterator(targetGraph, tail, head, occupation, placementSize, settings.getRefuseLongerPaths(), provider);
             default:
                 throw new UnsupportedOperationException();
         }
@@ -98,7 +95,7 @@ public abstract class PathIterator {
 
     protected PartialMatching getPartialMatching() {
         PartialMatching fromParent = partialMatchingProvider.getPartialMatching();
-        return new PartialMatching(fromParent.getVertexMapping(), fromParent.getEdgeMapping(), transaction.getLocallyOccupied());
+        return new PartialMatching(fromParent.getVertexMapping(), fromParent.getEdgeMapping(), new TIntHashSet());
     }
 
 
@@ -114,7 +111,7 @@ public abstract class PathIterator {
         if (globalOccupation != null) {
             globalOccupation.claimActiveOccupation(transaction);
             toReturn = getNext();
-            globalOccupation.unclaimActiveOccupation(transaction);
+            globalOccupation.unclaimActiveOccupation();
         } else {
             toReturn = getNext();
         }

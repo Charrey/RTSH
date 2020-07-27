@@ -4,7 +4,7 @@ import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
 import gnu.trove.set.TIntSet;
 
-public class MReachabilityFiltering extends FilteringSettings {
+public class MReachabilityFiltering implements FilteringSettings {
 
     private final FilteringSettings innerFilter = new UnmatchedDegreesFiltering();
 

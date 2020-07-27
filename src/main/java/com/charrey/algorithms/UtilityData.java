@@ -2,6 +2,7 @@ package com.charrey.algorithms;
 
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
+import com.charrey.settings.PathIterationConstants;
 import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import com.charrey.util.Util;
@@ -20,7 +21,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.charrey.settings.PathIterationConstants.DFS_ARBITRARY;
-import static com.charrey.settings.PathIterationConstants.DFS_GREEDY;
 
 /**
  * Class that provides several properties of graphs that are often used and difficult to calculate.
@@ -122,7 +122,7 @@ public class UtilityData {
      */
     @SuppressWarnings({"rawtypes", "unchecked", "AssignmentOrReturnOfFieldWithMutableType"})
     public @NotNull
-    int[][][] getTargetNeighbours(int strategy) {
+    int[][][] getTargetNeighbours(PathIterationConstants strategy) {
         if (targetNeighbours == null) {
             List<Integer> targetVertices = targetGraph.vertexSet()
                     .stream()
@@ -157,7 +157,7 @@ public class UtilityData {
                     for (int goal = 0; goal < targetNeighbours.length; goal++) {
                         double[] distances = new double[tempTargetNeigbours.length];
                         for (int from = 0; from < tempTargetNeigbours[goal].length; from++) {
-                            List<Integer> toSort = (List<Integer>) tempTargetNeigbours[goal][from];
+                            List<Integer> toSort = tempTargetNeigbours[goal][from];
                             Set<Integer> toRemove = new HashSet<>();
                             for (int to : toSort) {
                                 GraphPath<Integer, MyEdge> path = shortestPaths.getPath(to, targetVertices.get(goal));
@@ -187,22 +187,19 @@ public class UtilityData {
                 Set<Integer> result = new HashSet<>();
                 Deque<Integer> frontier = new LinkedList<>();
                 frontier.add(vertex);
-                boolean changed = false;
                 while (!frontier.isEmpty()) {
                     int observingVertex = frontier.pop();
                     Set<Integer> neighbours = Graphs.neighborSetOf(targetGraph, observingVertex);
                     for (int neighbour : neighbours) {
-                        if (targetGraph.getAttributes(neighbour).containsKey("configurable") && targetGraph.getAttributes(neighbour).get("configurable").equals(Set.of("0"))) {
-                            if (!result.contains(neighbour)) {
-                                frontier.add(neighbour);
-                                Graphs.neighborSetOf(targetGraph, neighbour).stream()
-                                        .filter(x -> targetGraph.getAttributes(x).get("label").contains("wire"))
-                                        .forEach(integer -> {
-                                            if (!result.contains(integer)) {
-                                                frontier.add(integer);
-                                            }
-                                        });
-                            }
+                        if (targetGraph.getAttributes(neighbour).containsKey("configurable") && targetGraph.getAttributes(neighbour).get("configurable").equals(Set.of("0")) && !result.contains(neighbour)) {
+                            frontier.add(neighbour);
+                            Graphs.neighborSetOf(targetGraph, neighbour).stream()
+                                    .filter(x -> targetGraph.getAttributes(x).get("label").contains("wire"))
+                                    .forEach(integer -> {
+                                        if (!result.contains(integer)) {
+                                            frontier.add(integer);
+                                        }
+                                    });
                         }
                     }
                     result.add(observingVertex);

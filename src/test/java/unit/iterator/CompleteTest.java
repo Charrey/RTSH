@@ -4,7 +4,6 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
-import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
@@ -58,7 +57,7 @@ class CompleteTest extends PathIteratorTest {
         RandomSucceedDirectedTestCaseGenerator gen = new RandomSucceedDirectedTestCaseGenerator(2, 1, 0, 0, seed);
         for (int i = 0; i < differentGraphSizes; i++) {
             gen.makeHarder();
-            gen.init(trials, false);
+            gen.init(trials);
             while (gen.hasNext()) {
                 MyGraph targetGraph = gen.getNext().getSourceGraph();
                 MyGraph sourceGraph = new MyGraph(true);
@@ -78,7 +77,7 @@ class CompleteTest extends PathIteratorTest {
                 for (IteratorSettings strategy : List.of(new DFSStrategy(), new GreedyDFSStrategy(), new ControlPointIteratorStrategy(100), new KPathStrategy())) {
                     settings = new SettingsBuilder(settings).withPathIteration(strategy).get();
                     pathCount.put(strategy, new HashSet<>());
-                    GlobalOccupation occupation = new GlobalOccupation(data, settings, "IteratorTest");
+                    GlobalOccupation occupation = new GlobalOccupation(data, settings);
                     TIntList vertexOccupation;
                     try {
                         occupation.occupyVertex(0, tail, new PartialMatching());
@@ -88,14 +87,11 @@ class CompleteTest extends PathIteratorTest {
                     } catch (DomainCheckerException e) {
                         continue;
                     }
-                    PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, new PartialMatchingProvider() {
-                        @Override
-                        public PartialMatching getPartialMatching() {
-                            TIntList vertexMatching = new TIntArrayList();
-                            vertexMatching.add(tail);
-                            vertexMatching.add(head);
-                            return new PartialMatching(vertexMatching);
-                        }
+                    PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
+                        TIntList vertexMatching = new TIntArrayList();
+                        vertexMatching.add(tail);
+                        vertexMatching.add(head);
+                        return new PartialMatching(vertexMatching);
                     });
                     Path path;
                     try {

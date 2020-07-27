@@ -5,7 +5,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.util.Util;
 import gnu.trove.set.TIntSet;
 
-public class LabelDegreeFiltering extends FilteringSettings {
+public class LabelDegreeFiltering implements FilteringSettings {
 
 
     @Override

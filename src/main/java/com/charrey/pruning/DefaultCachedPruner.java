@@ -79,7 +79,9 @@ public abstract class DefaultCachedPruner extends Pruner {
     public void afterReleaseVertex(int verticesPlaced, int v) {
         TIntList sourceGraphCandidates = reverseDomain.get(v);
         for (int i = sourceGraphCandidates.size() - 1; i >= 0 && sourceGraphCandidates.get(i) > verticesPlaced; i--) {
-            assert !domain.get(sourceGraphCandidates.get(i)).contains(v);
+            if (domain.get(sourceGraphCandidates.get(i)).contains(v)) {
+                throw new IllegalStateException();
+            }
             domain.get(sourceGraphCandidates.get(i)).add(v);
         }
         domain.set(verticesPlaced, previousDomain[verticesPlaced]);

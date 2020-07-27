@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 public class Path implements Comparable<Path> {
 
     @NotNull
-    private final List<Integer> path;
+    private final List<Integer> vertexList;
     @NotNull
     private final Set<Integer> containing;
     private final int initialVertex;
@@ -30,7 +30,7 @@ public class Path implements Comparable<Path> {
      */
     public Path(@NotNull MyGraph graph, int initialVertex) {
         this.initialVertex = initialVertex;
-        path = new ArrayList<>();
+        vertexList = new ArrayList<>();
         containing = new HashSet<>();
         this.graph = graph;
         append(initialVertex);
@@ -43,14 +43,40 @@ public class Path implements Comparable<Path> {
      * @param gPath the JGraphT path to convert to our own datatype.
      */
     public Path(@NotNull MyGraph graph, @NotNull GraphPath<Integer, MyEdge> gPath) {
-        this.path = new ArrayList<>();
+        this.vertexList = new ArrayList<>();
         this.containing = new HashSet<>();
         this.initialVertex = gPath.getStartVertex();
-        List<Integer> vertexList = gPath.getVertexList();
+        List<Integer> otherVertexList = gPath.getVertexList();
         this.graph = graph;
-        for (int vertex : vertexList) {
+        for (int vertex : otherVertexList) {
             append(vertex);
         }
+    }
+
+    /**
+     * Creates a path from a list of vertices, reading it left to right.
+     *
+     * @param graph      the graph of which vertices may be added to this Path.
+     * @param vertexList the list of vertices to create a graph path from.
+     */
+    public Path(@NotNull MyGraph graph, @NotNull List<Integer> vertexList) {
+        this.graph = graph;
+        this.vertexList = new ArrayList<>();
+        this.containing = new HashSet<>();
+        this.initialVertex = vertexList.get(0);
+        vertexList.forEach(this::append);
+    }
+
+    /**
+     * Copies a path. This is a shallow copy, i.e. the vertex objects are the same as in the path this was copied from.
+     *
+     * @param copyOf the path to copy from.
+     */
+    public Path(@NotNull Path copyOf) {
+        this.vertexList = new ArrayList<>(copyOf.vertexList);
+        this.containing = new HashSet<>(copyOf.containing);
+        this.initialVertex = copyOf.initialVertex;
+        this.graph = copyOf.graph;
     }
 
     /**
@@ -60,7 +86,7 @@ public class Path implements Comparable<Path> {
      */
     @NotNull
     public List<Integer> asList() {
-        return Collections.unmodifiableList(path);
+        return Collections.unmodifiableList(vertexList);
     }
 
     /**
@@ -69,7 +95,7 @@ public class Path implements Comparable<Path> {
      * @return a stream of vertices in this path.
      */
     public Stream<Integer> stream() {
-        return path.stream();
+        return vertexList.stream();
     }
 
     /**
@@ -78,39 +104,13 @@ public class Path implements Comparable<Path> {
      * @param consumer the consumer
      */
     public void forEach(Consumer<? super Integer> consumer) {
-        path.forEach(consumer);
-    }
-
-    /**
-     * Creates a path from a list of vertices, reading it left to right.
-     *
-     * @param graph the graph of which vertices may be added to this Path.
-     * @param path  the list of vertices to create a graph path from.
-     */
-    public Path(@NotNull MyGraph graph, @NotNull List<Integer> path) {
-        this.graph = graph;
-        this.path = new ArrayList<>();
-        this.containing = new HashSet<>();
-        this.initialVertex = path.get(0);
-        path.forEach(this::append);
-    }
-
-    /**
-     * Copies a path. This is a shallow copy, i.e. the vertex objects are the same as in the path this was copied from.
-     *
-     * @param copyOf the path to copy from.
-     */
-    public Path(@NotNull Path copyOf) {
-        this.path = new ArrayList<>(copyOf.path);
-        this.containing = new HashSet<>(copyOf.containing);
-        this.initialVertex = copyOf.initialVertex;
-        this.graph = copyOf.graph;
+        vertexList.forEach(consumer);
     }
 
     public double getWeight() {
         double total = 0d;
-        for (int i = 0; i < path.size() - 1; i++) {
-            total += graph.getEdgeWeight(graph.getEdge(path.get(i), path.get(i + 1)));
+        for (int i = 0; i < vertexList.size() - 1; i++) {
+            total += graph.getEdgeWeight(graph.getEdge(vertexList.get(i), vertexList.get(i + 1)));
         }
         return total;
     }
@@ -122,11 +122,11 @@ public class Path implements Comparable<Path> {
      */
     public void append(Integer toAdd) {
         if (!containing.contains(toAdd)) {
-            if (!containing.isEmpty() && graph.getEdge(path.get(path.size() - 1), toAdd) == null) {
+            if (!containing.isEmpty() && graph.getEdge(vertexList.get(vertexList.size() - 1), toAdd) == null) {
                 throw new IllegalStateException("Attempt to add a vertex on this path that is not connected to the current head.");
             }
             containing.add(toAdd);
-            path.add(toAdd);
+            vertexList.add(toAdd);
         } else {
             throw new IllegalStateException("Vertex already in this path.");
         }
@@ -138,7 +138,7 @@ public class Path implements Comparable<Path> {
      * @return the last vertex
      */
     public int last() {
-        return path.get(path.size() - 1);
+        return vertexList.get(vertexList.size() - 1);
     }
 
 
@@ -148,7 +148,7 @@ public class Path implements Comparable<Path> {
      * @return the length of this path
      */
     public int length() {
-        return path.size();
+        return vertexList.size();
     }
 
     /**
@@ -157,7 +157,7 @@ public class Path implements Comparable<Path> {
      * @return whether the path is empty
      */
     public boolean isEmpty() {
-        return path.isEmpty();
+        return vertexList.isEmpty();
     }
 
     /**
@@ -166,7 +166,7 @@ public class Path implements Comparable<Path> {
      * @return the vertex that was removed.
      */
     public int removeLast() {
-        int removed = path.remove(path.size() - 1);
+        int removed = vertexList.remove(vertexList.size() - 1);
         containing.remove(removed);
         return removed;
     }
@@ -188,7 +188,7 @@ public class Path implements Comparable<Path> {
      * @return the vertex at that index
      */
     public int get(int i) {
-        return path.get(i);
+        return vertexList.get(i);
     }
 
     /**
@@ -198,7 +198,7 @@ public class Path implements Comparable<Path> {
      */
     @NotNull
     public List<Integer> intermediate() {
-        return path.subList(1, path.size() - 1);
+        return vertexList.subList(1, vertexList.size() - 1);
     }
 
     /**
@@ -207,13 +207,13 @@ public class Path implements Comparable<Path> {
      * @return the first vertex
      */
     public int first() {
-        return path.get(0);
+        return vertexList.get(0);
     }
 
     @NotNull
     @Override
     public String toString() {
-        return "Path{" + path + '}';
+        return "Path{" + vertexList + '}';
     }
 
 
@@ -222,16 +222,16 @@ public class Path implements Comparable<Path> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Path path1 = (Path) o;
-        return path.equals(path1.path);
+        return vertexList.equals(path1.vertexList);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(path);
+        return Objects.hash(vertexList);
     }
 
     @Override
     public int compareTo(@NotNull Path o) {
-        return Ordering.natural().lexicographical().compare(new ArrayList<>(this.path), new ArrayList<>(o.path));
+        return Ordering.natural().lexicographical().compare(new ArrayList<>(this.vertexList), new ArrayList<>(o.vertexList));
     }
 }

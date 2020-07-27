@@ -9,7 +9,7 @@ public final class KPathStrategy extends IteratorSettings {
 
     @Override
     public int serialized() {
-        return PathIterationConstants.KPATH;
+        return PathIterationConstants.KPATH.ordinal();
     }
 
     @Override
@@ -19,7 +19,7 @@ public final class KPathStrategy extends IteratorSettings {
 
     @Override
     public int hashCode() {
-        return PathIterationConstants.KPATH;
+        return PathIterationConstants.KPATH.ordinal();
     }
 
     @Override

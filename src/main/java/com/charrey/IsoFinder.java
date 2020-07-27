@@ -15,13 +15,8 @@ import com.charrey.pruning.DomainCheckerException;
 import com.charrey.result.*;
 import com.charrey.settings.Settings;
 import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import org.jetbrains.annotations.NotNull;
 
-import java.math.BigInteger;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -35,13 +30,6 @@ public class IsoFinder {
     private EdgeMatching edgeMatching;
     private VertexMatching vertexMatching;
     private GlobalOccupation occupation;
-
-    private static void logDomainReduction(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull UtilityData data, FilteringSettings filteringSettings, String name) {
-        BigInteger naiveVertexDomainSize = new BigInteger(String.valueOf(sourceGraph.vertexSet().size())).pow(targetGraph.vertexSet().size());
-        BigInteger vertexDomainSize = Arrays.stream(data.getCompatibility(filteringSettings, name)).reduce(new BigInteger("1"), (i, vs) -> i.multiply(new BigInteger(String.valueOf(vs.length))), BigInteger::multiply);
-        NumberFormat formatter = new DecimalFormat("0.###E0", DecimalFormatSymbols.getInstance(Locale.ROOT));
-        LOG.info(() -> "Reduced vertex matching domain from " + formatter.format(naiveVertexDomainSize) + " to " + formatter.format(vertexDomainSize));
-    }
 
     private long lastPrint = 0;
 
@@ -60,7 +48,7 @@ public class IsoFinder {
         return true;
     }
 
-    private static Map<MyEdge, Path> repairPaths(MyGraph newSourceGraph, MyGraph oldTargetGraph, EdgeMatching edgeMatching, int[] sourcegraph_new_to_old, VertexMatching vertexMatching, int[] targetgraph_new_to_old) {
+    private static Map<MyEdge, Path> repairPaths(MyGraph newSourceGraph, MyGraph oldTargetGraph, EdgeMatching edgeMatching, int[] sourcegraphNewToOld, VertexMatching vertexMatching, int[] targetgraphNewToOld) {
         Map<MyEdge, Path> res = new HashMap<>();
         if (newSourceGraph.isDirected()) {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
@@ -68,11 +56,11 @@ public class IsoFinder {
                 int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
                 Optional<Path> match = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).findAny();
                 assert match.isPresent();
-                Path gotten = new Path(oldTargetGraph, targetgraph_new_to_old[match.get().first()]);
+                Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[match.get().first()]);
                 for (int i = 1; i < match.get().asList().size(); i++) {
-                    gotten.append(targetgraph_new_to_old[match.get().get(i)]);
+                    gotten.append(targetgraphNewToOld[match.get().get(i)]);
                 }
-                res.put(new MyEdge(sourcegraph_new_to_old[edge.source], sourcegraph_new_to_old[edge.target]), gotten);
+                res.put(new MyEdge(sourcegraphNewToOld[edge.getSource()], sourcegraphNewToOld[edge.getTarget()]), gotten);
             }
         } else {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
@@ -80,11 +68,11 @@ public class IsoFinder {
                 int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
                 Optional<Path> match = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).findAny();
                 assert match.isPresent();
-                Path gotten = new Path(oldTargetGraph, targetgraph_new_to_old[match.get().first()]);
+                Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[match.get().first()]);
                 for (int i = 1; i < match.get().asList().size(); i++) {
-                    gotten.append(targetgraph_new_to_old[match.get().get(i)]);
+                    gotten.append(targetgraphNewToOld[match.get().get(i)]);
                 }
-                res.put(new MyEdge(sourcegraph_new_to_old[edge.source], sourcegraph_new_to_old[edge.target]), gotten);
+                res.put(new MyEdge(sourcegraphNewToOld[edge.getSource()], sourcegraphNewToOld[edge.getTarget()]), gotten);
             }
         }
 
@@ -93,13 +81,10 @@ public class IsoFinder {
 
     private void setup(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull Settings settings, String name) throws DomainCheckerException {
         UtilityData data = new UtilityData(sourceGraph, targetGraph);
-        if (settings.getWhenToApply() == PruningApplicationConstants.CACHED) {
-            logDomainReduction(sourceGraph, targetGraph, data, settings.getFiltering(), name);
-            if (Arrays.stream(data.getCompatibility(settings.getFiltering(), name)).anyMatch(x -> x.length == 0)) {
-                throw new DomainCheckerException("Intial domain check failed");
-            }
+        if (settings.getWhenToApply() == PruningApplicationConstants.CACHED && Arrays.stream(data.getCompatibility(settings.getFiltering(), name)).anyMatch(x -> x.length == 0)) {
+            throw new DomainCheckerException("Intial domain check failed");
         }
-        occupation = new GlobalOccupation(data, settings, name);
+        occupation = new GlobalOccupation(data, settings);
         vertexMatching = new VertexMatching(sourceGraph, targetGraph, occupation, settings);
         edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings);
         vertexMatching.setEdgeMatchingProvider(edgeMatching);
@@ -134,7 +119,8 @@ public class IsoFinder {
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
                 iterations++;
                 if (System.currentTimeMillis() - lastPrint > 1000) {
-                    LOG.info(name + " is at " + iterations + " iterations...");
+                    long finalIterations = iterations;
+                    LOG.info(() -> name + " is at " + finalIterations + " iterations...");
                     lastPrint = System.currentTimeMillis();
                 }
                 if (System.currentTimeMillis() > initialTime + timeout) {
@@ -166,13 +152,13 @@ public class IsoFinder {
                 int[] placement = vertexMatching.getPlacement().toArray();
                 int[] vertexMapping = new int[placement.length];
                 for (int i = 0; i < placement.length; i++) {
-                    vertexMapping[sourceGraphMapping.new_to_old[i]] = targetGraphMapping.new_to_old[placement[i]];
+                    vertexMapping[sourceGraphMapping.newToOld[i]] = targetGraphMapping.newToOld[placement[i]];
                 }
                 assert allDone(newSourceGraph, vertexMatching, edgeMatching);
                 assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
 
 
-                Map<MyEdge, Path> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.new_to_old, vertexMatching, targetGraphMapping.new_to_old);
+                Map<MyEdge, Path> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.newToOld, vertexMatching, targetGraphMapping.newToOld);
                 return new SuccessResult(vertexMapping, paths, iterations);
             }
         } finally {

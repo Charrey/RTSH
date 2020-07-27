@@ -7,7 +7,6 @@ import com.charrey.pruning.PartialMatching;
 import com.charrey.pruning.Pruner;
 import com.charrey.util.MyLinkedList;
 import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -55,7 +54,9 @@ public class OccupationTransaction implements AbstractOccupation {
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.                                If this is thrown, this class remains unchanged.
      */
     public void occupyRoutingAndCheck(Integer vertexPlacementSize, Integer vertex, PartialMatching partialMatching) throws DomainCheckerException {
-        assert !routingOccupied.contains(vertex);
+        if (routingOccupied.contains(vertex)) {
+            throw new IllegalStateException();
+        }
         routingOccupied.add(vertex);
         try {
             domainChecker.afterOccupyEdge(vertexPlacementSize, vertex, partialMatching);
@@ -97,7 +98,6 @@ public class OccupationTransaction implements AbstractOccupation {
         if (!isOccupiedRouting(vertex)) {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for routing purposes): " + vertex);
         }
-        assert isOccupiedRouting(vertex);
         routingOccupied.remove(vertex);
         domainChecker.afterReleaseEdge(vertexPlacementSize, vertex);
         waiting.removeFromBack(new TransactionElement(vertexPlacementSize, vertex));
@@ -173,11 +173,6 @@ public class OccupationTransaction implements AbstractOccupation {
         inCommittedState = true;
     }
 
-    public TIntSet getLocallyOccupied() {
-        return new TIntHashSet();
-        //throw new UnsupportedOperationException();
-    }
-
     private static class TransactionElement {
         private final int verticesPlaced;
         private final int added;
@@ -193,7 +188,6 @@ public class OccupationTransaction implements AbstractOccupation {
             this.added = added;
         }
 
-        @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         @Override
         public boolean equals(Object o) {
             if (o == null) {
