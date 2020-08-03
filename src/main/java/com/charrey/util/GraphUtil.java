@@ -2,6 +2,7 @@ package com.charrey.util;
 
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
+import com.charrey.graph.Path;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -51,7 +52,7 @@ public class GraphUtil {
      * @return a copy of the graph with a new random vertex ordering
      */
     @NotNull
-    public static MyGraph copy(@NotNull MyGraph oldGraph, RandomGenerator random) {
+    public static CopyResult copy(@NotNull MyGraph oldGraph, RandomGenerator random) {
         MyGraph newGraph = new MyGraph(oldGraph.isDirected());
         int[] oldVertexToNew = new int[oldGraph.vertexSet().size()];
         List<Integer> oldVertices = new LinkedList<>(oldGraph.vertexSet());
@@ -72,7 +73,12 @@ public class GraphUtil {
         for (MyEdge oldEdge : oldEdges) {
             newGraph.addEdge(oldVertexToNew[oldGraph.getEdgeSource(oldEdge)], oldVertexToNew[oldGraph.getEdgeTarget(oldEdge)]);
         }
-        return newGraph;
+        Map<MyEdge, Path> expectedEdgeMatching = new HashMap<>();
+        for (MyEdge edge : oldGraph.edgeSet()) {
+            expectedEdgeMatching.put(edge, new Path(newGraph, List.of(oldVertexToNew[edge.getSource()], oldVertexToNew[edge.getTarget()])));
+        }
+        assert oldGraph.edgeSet().stream().allMatch(expectedEdgeMatching::containsKey);
+        return new CopyResult(newGraph, oldVertexToNew, expectedEdgeMatching);
     }
 
     /**
@@ -134,5 +140,17 @@ public class GraphUtil {
     public static TIntSet radiusNeighbourHood(MyGraph sourceGraphVertex, int targetGraphVertex, int radius) {
 
         throw new UnsupportedOperationException();
+    }
+
+    public static class CopyResult {
+        public final MyGraph graph;
+        public int[] vertexMatching;
+        public Map<MyEdge, Path> edgeMatching;
+
+        public CopyResult(MyGraph graph, int[] vertexMatching, Map<MyEdge, Path> edgeMatching) {
+            this.graph = graph;
+            this.vertexMatching = vertexMatching;
+            this.edgeMatching = edgeMatching;
+        }
     }
 }

@@ -7,7 +7,8 @@ import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerat
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
-import com.charrey.pathiterators.dfs.DFSPathIterator;
+import com.charrey.pathiterators.dfs.CachedDFSPathIterator;
+import com.charrey.pathiterators.dfs.InPlaceDFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
@@ -74,9 +75,10 @@ class NoDuplicatesTest {
                 int tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
                 int head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
                 counter++;
-                if (counter < 0) {
+                if (counter < 17) {
                     continue;
                 }
+                System.out.println("Case "+ counter);
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
@@ -122,12 +124,17 @@ class NoDuplicatesTest {
         Witness(PathIterator iterator) {
             if (iterator instanceof ManagedControlPointIterator) {
                 string = "Control points: " + ((ManagedControlPointIterator) iterator).controlPoints();
-            } else if (iterator instanceof DFSPathIterator) {
-                string = "DFS path iterator";
+            } else if (iterator instanceof CachedDFSPathIterator || iterator instanceof InPlaceDFSPathIterator) {
+                if (iterator instanceof CachedDFSPathIterator) {
+                    string = "DFS path iterator";
+                } else {
+                    InPlaceDFSPathIterator inPlace = (InPlaceDFSPathIterator) iterator;
+                    string = "DFS path iterator " + inPlace.nextOptionToTry;
+                }
             } else if (iterator instanceof KPathPathIterator) {
                 string = "YEN path iterator";
             } else {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException(iterator.getClass().toString());
             }
         }
     }

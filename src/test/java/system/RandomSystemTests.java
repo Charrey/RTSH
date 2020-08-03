@@ -25,7 +25,7 @@ class RandomSystemTests extends SystemTest {
     private static final Pattern newline = Pattern.compile("\r\n");
     private final Settings settings = new SettingsBuilder()
             .withAllDifferentPruning()
-            .withControlPointRouting(5)
+            .withDFSRouting()
             .withCachedPruning().get();
 
 
@@ -57,7 +57,7 @@ class RandomSystemTests extends SystemTest {
 
 
     @SuppressWarnings("SameParameterValue")
-    private void findCases(long time, int iterations, @NotNull TestCaseGenerator graphGen, boolean writeChallenge) throws IOException {
+    private void findCases(long time, int iterations, @NotNull TestCaseGenerator graphGen, boolean expectSucceed) throws IOException {
         Logger.getLogger("IsoFinder").setLevel(Level.OFF);
         long start = System.currentTimeMillis();
         double totalIterations = 0L;
@@ -78,11 +78,14 @@ class RandomSystemTests extends SystemTest {
                 patternEdges = testCase.getSourceGraph().edgeSet().size();
 
                 HomeomorphismResult homeomorphism;
-
+                //System.out.println("case " + attempts);
                 if (attempts >= 0) {
                     try {
-                        homeomorphism = writeChallenge ? testSucceed(testCase, writeChallenge, time - (System.currentTimeMillis() - start), settings) : new IsoFinder().getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start), "RANDOMSYSTEST  ");
-                        assert homeomorphism instanceof TimeoutResult || homeomorphism.succeed || !writeChallenge;
+                        if (expectSucceed) {
+                            homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);
+                        } else {
+                            homeomorphism = testWithoutExpectation(testCase, time - (System.currentTimeMillis() - start), settings);
+                        }
                     } catch (AssertionError | IllegalStateException e) {
                         System.err.println(attempts);
                         System.err.println(testCase.getSourceGraph());

@@ -18,11 +18,29 @@ import java.util.stream.Collectors;
  * edges between the same pairs are disallowed.
  */
 public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
+    private static final String GRAPH_IS_LOCKED_MESSAGE = "Graph is locked!";
+    private static final String LABEL = "label";
+
+
     private final boolean directed;
     private double maxEdgeWeight = 1d;
     private final List<Map<String, Set<String>>> attributes;
     private boolean locked = false;
-    private int[] old_to_new;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        MyGraph myGraph = (MyGraph) o;
+        return directed == myGraph.directed &&
+                attributes.equals(myGraph.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), directed, attributes);
+    }
 
     /**
      * Instantiates a new empty graph.
@@ -49,23 +67,23 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
      * unmodified.
      *
      * @param source     the graph to which to apply the new vertex ordering.
-     * @param new_to_old the new ordering, such that the position of integers is the new vertex value, and the value of                   the integers is the old vertex value.
+     * @param newToOld the new ordering, such that the position of integers is the new vertex value, and the value of                   the integers is the old vertex value.
      * @return a graph such that the ordering is applied.
      */
-    public static MyGraph applyOrdering(MyGraph source, int[] new_to_old, int[] old_to_new) {
+    public static MyGraph applyOrdering(MyGraph source, int[] newToOld, int[] oldToNew) {
         MyGraph res = new MyGraph(source.directed);
-        for (int new_vertex = 0; new_vertex < source.vertexSet().size(); new_vertex++) {
-            int new_vertex_final = new_vertex;
-            res.addVertex(new_vertex);
-            int old_vertex = new_to_old[new_vertex];
-            source.attributes.get(old_vertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(new_vertex_final, key, value)));
-            Set<Integer> predecessors = Graphs.predecessorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < new_vertex_final).collect(Collectors.toUnmodifiableSet());
-            predecessors.forEach(x -> res.addEdge(x, new_vertex_final));
-            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, old_vertex).stream().map(x -> old_to_new[x]).filter(x -> x < new_vertex_final).collect(Collectors.toUnmodifiableSet()));
+        for (int newVertex = 0; newVertex < source.vertexSet().size(); newVertex++) {
+            int newVertexFinal = newVertex;
+            res.addVertex(newVertex);
+            int oldVertex = newToOld[newVertex];
+            source.attributes.get(oldVertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(newVertexFinal, key, value)));
+            Set<Integer> predecessors = Graphs.predecessorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableSet());
+            predecessors.forEach(x -> res.addEdge(x, newVertexFinal));
+            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableSet()));
             if (!source.directed) {
                 successors.removeAll(predecessors);
             }
-            successors.forEach(x -> res.addEdge(new_vertex_final, x));
+            successors.forEach(x -> res.addEdge(newVertexFinal, x));
         }
         return res;
     }
@@ -73,7 +91,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     @Override
     public Integer addVertex() {
         if (locked) {
-            throw new IllegalStateException("Graph is locked!");
+            throw new IllegalStateException(GRAPH_IS_LOCKED_MESSAGE);
         }
         int toReturn = super.addVertex();
         attributes.add(new HashMap<>());
@@ -82,7 +100,9 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     }
 
     public int addVertex(String... attributes) {
-        assert attributes.length % 2 == 0 : "The number of string parameters must be even: a set of key-value pairs!";
+        if (attributes.length % 2 != 0) {
+            throw new IllegalArgumentException("The number of string parameters must be even: a set of key-value pairs!");
+        }
         Integer added = addVertex();
         for (int i = 0; i < attributes.length; i += 2) {
             addAttribute(added, attributes[i], attributes[i + 1]);
@@ -93,7 +113,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     @Override
     public boolean addEdge(Integer sourceVertex, Integer targetVertex, MyEdge defaultEdge) {
         if (locked) {
-            throw new IllegalStateException("Graph is locked!");
+            throw new IllegalStateException(GRAPH_IS_LOCKED_MESSAGE);
         }
         defaultEdge.setSource(sourceVertex);
         defaultEdge.setTarget(targetVertex);
@@ -102,7 +122,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
 
     public void randomizeWeights() {
         if (locked) {
-            throw new IllegalStateException("Graph is locked!");
+            throw new IllegalStateException(GRAPH_IS_LOCKED_MESSAGE);
         }
         int edgeSetSize = edgeSet().size();
         if (edgeSetSize <= 1) {
@@ -119,11 +139,11 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     @Override
     public MyEdge addEdge(Integer sourceVertex, Integer targetVertex) {
         if (locked) {
-            throw new IllegalStateException("Graph is locked!");
+            throw new IllegalStateException(GRAPH_IS_LOCKED_MESSAGE);
         }
-        assert !containsEdge(sourceVertex, targetVertex);
-        assert sourceVertex != null;
-        assert targetVertex != null;
+        if (containsEdge(sourceVertex, targetVertex)) {
+            throw new IllegalArgumentException("This edge already exists!");
+        }
         MyEdge res = new MyEdge(sourceVertex, targetVertex);
         super.addEdge(sourceVertex, targetVertex, res);
         this.setEdgeWeight(res, maxEdgeWeight);
@@ -142,10 +162,6 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
 
     public void lock() {
         this.locked = true;
-        if (old_to_new == null) {
-            old_to_new = new int[vertexSet().size()];
-            vertexSet().forEach(x -> old_to_new[x] = x);
-        }
     }
 
     @Override
@@ -153,7 +169,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         DOTExporter<Integer, MyEdge> exporter = new DOTExporter<>(x -> Integer.toString(x));
         exporter.setVertexAttributeProvider(integer ->
                 attributes.get(integer).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                        x -> new DefaultAttribute<>((x.getKey().equals("label") ? integer + " " : "") + x.getValue().toString(), AttributeType.STRING))));
+                        x -> new DefaultAttribute<>((x.getKey().equals(LABEL) ? integer + " " : "") + x.getValue().toString(), AttributeType.STRING))));
         StringWriter writer = new StringWriter();
         exporter.exportGraph(this, writer);
         return writer.toString();
@@ -162,12 +178,14 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     @Override
     public boolean addVertex(Integer vertex) {
         if (locked) {
-            throw new IllegalStateException("Graph is locked!");
+            throw new IllegalStateException(GRAPH_IS_LOCKED_MESSAGE);
         }
         boolean toReturn = super.addVertex(vertex);
         if (toReturn) {
             attributes.add(new HashMap<>());
-            assert vertex == attributes.size() - 1;
+            if (vertex != attributes.size() - 1) {
+                throw new IllegalStateException("Vertices must be added in ascending consecutive order!");
+            }
         }
         return toReturn;
     }
@@ -195,9 +213,8 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         if (!containsVertex(vertex)) {
             throw new IllegalArgumentException("The graph must contain the vertex " + vertex);
         }
-        attributes.get(vertex).computeIfAbsent("label", x -> new HashSet<>());
-        assert attributes.get(vertex).containsKey("label");
-        return attributes.get(vertex).get("label");
+        attributes.get(vertex).computeIfAbsent(LABEL, x -> new HashSet<>());
+        return attributes.get(vertex).get(LABEL);
     }
 
     /**

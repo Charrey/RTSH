@@ -31,7 +31,7 @@ public class IsoFinder {
     private VertexMatching vertexMatching;
     private GlobalOccupation occupation;
 
-    private long lastPrint = 0;
+    private long lastPrint = System.currentTimeMillis();
 
     private static boolean allDone(@NotNull MyGraph pattern, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
         boolean completeV = vertexMatching.getPlacement().size() == pattern.vertexSet().size();
@@ -42,7 +42,6 @@ public class IsoFinder {
         if (!completeE) {
             return false;
         }
-        LOG.info(() -> "Done, checking...");
         boolean correct = Verifier.isCorrect(pattern, vertexMatching, edgeMatching);
         assert correct;
         return true;
@@ -81,7 +80,7 @@ public class IsoFinder {
 
     private void setup(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull Settings settings, String name) throws DomainCheckerException {
         UtilityData data = new UtilityData(sourceGraph, targetGraph);
-        if (settings.getWhenToApply() == PruningApplicationConstants.CACHED && Arrays.stream(data.getCompatibility(settings.getFiltering(), name)).anyMatch(x -> x.length == 0)) {
+        if (settings.getWhenToApply() == PruningApplicationConstants.CACHED && Arrays.stream(data.getCompatibility(settings.getFiltering())).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
         occupation = new GlobalOccupation(data, settings);
@@ -117,6 +116,8 @@ public class IsoFinder {
             long iterations = 0;
             long initialTime = System.currentTimeMillis();
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
+                //System.out.println(vertexMatching);
+                //System.out.println(edgeMatching);
                 iterations++;
                 if (System.currentTimeMillis() - lastPrint > 1000) {
                     long finalIterations = iterations;

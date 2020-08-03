@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,7 +45,7 @@ class ControlPointTransition {
             final Optional<Integer>[] counterExample = new Optional[]{Optional.empty()};
             TIntSet routingOccupied = myCase.globalOccupation.getRoutingOccupied();
             routingOccupied.forEach(x -> {
-                if (myCase.path.intermediate().stream().mapToInt(y -> y).noneMatch(y -> y == x)) {
+                if (myCase.path.intermediate().noneMatch(y -> y == x)) {
                     counterExample[0] = Optional.of(x);
                     return false;
                 }
@@ -68,11 +69,11 @@ class ControlPointTransition {
     @Order(3)
     void TestFinalPathOccupied() throws DomainCheckerException {
         test(myCase -> {
-            Optional<Integer> counterExample = myCase.finalPath.intermediate().stream().filter(x -> !myCase.globalOccupation.isOccupiedRouting(x)).findAny();
+            OptionalInt counterExample = myCase.finalPath.intermediate().stream().filter(x -> !myCase.globalOccupation.isOccupiedRouting(x)).findAny();
             if (counterExample.isPresent()) {
                 System.err.println("Final path: " + myCase.finalPath);
                 System.err.println("Occupationbits: " + myCase.globalOccupation.getRoutingOccupied());
-                System.err.println("Counterexample: " + counterExample.get());
+                System.err.println("Counterexample: " + counterExample.getAsInt());
                 return false;
             } else {
                 return true;
@@ -84,11 +85,11 @@ class ControlPointTransition {
     @Order(4)
     void TestFirstPathOccupied() throws DomainCheckerException {
         test(myCase -> {
-            Optional<Integer> counterExample = myCase.firstPath.intermediate().stream().filter(x -> !myCase.globalOccupation.isOccupiedRouting(x)).findAny();
+            OptionalInt counterExample = myCase.firstPath.intermediate().stream().filter(x -> !myCase.globalOccupation.isOccupiedRouting(x)).findAny();
             if (counterExample.isPresent()) {
                 System.err.println("Final path: " + myCase.firstPath);
                 System.err.println("Occupationbits: " + myCase.globalOccupation.getRoutingOccupied());
-                System.err.println("Counterexample: " + counterExample.get());
+                System.err.println("Counterexample: " + counterExample.getAsInt());
                 return false;
             } else {
                 return true;

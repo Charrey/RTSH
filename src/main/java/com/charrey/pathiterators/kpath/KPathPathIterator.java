@@ -8,6 +8,8 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
+import gnu.trove.list.TIntList;
+import gnu.trove.procedure.TIntProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -108,7 +110,7 @@ public class KPathPathIterator extends PathIterator {
         for (int i = 0; i < pathFound.length() - 1; i++) {
             int from = pathFound.get(i);
             Set<Integer> neighbours = targetGraph.outgoingEdgesOf(from).stream().map(x -> Graphs.getOppositeVertex(targetGraph, x, from)).collect(Collectors.toUnmodifiableSet());
-            List<Integer> otherCandidates = pathFound.asList().subList(i + 2, pathFound.length());
+            TIntList otherCandidates = pathFound.asList().subList(i + 2, pathFound.length());
             if (neighbours.stream().anyMatch(otherCandidates::contains)) {
                 return true;
             }

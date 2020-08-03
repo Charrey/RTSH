@@ -75,7 +75,7 @@ public class OccupationTransaction implements AbstractOccupation {
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.                                If this is thrown, this class remains unchanged.
      */
     public void occupyRoutingAndCheck(int vertexPlacementSize, @NotNull Path path, PartialMatching partialMatching) throws DomainCheckerException {
-        for (int i = 0; i < path.intermediate().size(); i++) {
+        for (int i = 0; i < path.intermediate().length(); i++) {
             try {
                 occupyRoutingAndCheck(vertexPlacementSize, path.intermediate().get(i), partialMatching);
             } catch (DomainCheckerException e) {

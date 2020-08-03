@@ -87,7 +87,7 @@ class ConfigurableTest {
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(
-                new TestCase(sourceGraph, targetGraph),
+                new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder().withKPathRouting().get(),
                 10 * 60 * 1000,
                 "ConfigurableTest ");
@@ -148,7 +148,7 @@ class ConfigurableTest {
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(
-                new TestCase(sourceGraph, targetGraph),
+                new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder()
                         .withKPathRouting().get(),
                 10 * 60 * 1000, "ConfigurableTest ");
@@ -203,7 +203,7 @@ class ConfigurableTest {
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(
-                new TestCase(sourceGraph, targetGraph),
+                new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder()
                         .withKPathRouting().get(), 10 * 60 * 1000, "ConfigurableTest ");
         assertTrue(result.succeed);
@@ -257,7 +257,7 @@ class ConfigurableTest {
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(
-                new TestCase(sourceGraph, targetGraph),
+                new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder()
                         .withKPathRouting().get(),
                 10 * 60 * 1000,

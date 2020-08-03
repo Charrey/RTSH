@@ -48,23 +48,27 @@ public class UtilityData {
         this.targetGraph = targetGraph;
     }
 
-    /**
-     * Returns the number of vertices in the target graph
-     *
-     * @return the number of vertices in the target graph
-     */
-    public int targetGraphSize() {
-        return targetGraph.vertexSet().size();
-    }
+// --Commented out by Inspection START (03/08/2020 11:23):
+//    /**
+//     * Returns the number of vertices in the target graph
+//     *
+//     * @return the number of vertices in the target graph
+//     */
+//    public int targetGraphSize() {
+//        return targetGraph.vertexSet().size();
+//    }
+// --Commented out by Inspection STOP (03/08/2020 11:23)
 
-    /**
-     * Returns the number of vertices in the source graph
-     *
-     * @return the number of vertices in the source graph
-     */
-    public int sourceGraphSize() {
-        return patternGraph.vertexSet().size();
-    }
+// --Commented out by Inspection START (03/08/2020 11:23):
+//    /**
+//     * Returns the number of vertices in the source graph
+//     *
+//     * @return the number of vertices in the source graph
+//     */
+//    public int sourceGraphSize() {
+//        return patternGraph.vertexSet().size();
+//    }
+// --Commented out by Inspection STOP (03/08/2020 11:23)
 
 
     private int[][] compatibility;
@@ -74,13 +78,12 @@ public class UtilityData {
      * <p>
      *
      * @param filteringSettings whether to filter the domains of each vertex v such that all candidates have neighbourhoods that can emulate v's neighbourhood.
-     * @param name              name to print when displaying compability filtering progress
      * @return A 2d array compatibility such that for each source vertex with vertex ordering x, compatibility[x] is an array of suitable target graph candidates.
      */
-    public int[][] getCompatibility(FilteringSettings filteringSettings, String name) {
+    public int[][] getCompatibility(FilteringSettings filteringSettings) {
         if (compatibility == null) {
             compatibility = new int[patternGraph.vertexSet().size()][];
-            TIntObjectMap<TIntSet> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, filteringSettings instanceof LabelDegreeFiltering, name);
+            TIntObjectMap<TIntSet> inbetween = new CompatibilityChecker().get(patternGraph, targetGraph, filteringSettings instanceof LabelDegreeFiltering);
             inbetween.forEachEntry((key, value) -> {
                 int[] array = value.toArray();
                 Arrays.sort(array);
@@ -113,72 +116,72 @@ public class UtilityData {
         return Objects.hash(targetGraph, patternGraph);
     }
 
-    /**
-     * Returns an array that provides for each target vertex an ordering in which to try other target vertices in DFS.
-     * Since this choice may depend on the target of the DFS, this array incorporates each possible goal vertex.
-     *
-     * @param strategy the DFS strategy used
-     * @return a 3-d array where the first argument is the goal vertex, the second argument is some target graph vertex and the result are neighbours of that vertex in the order that they need to be tried.
-     */
-    @SuppressWarnings({"rawtypes", "unchecked", "AssignmentOrReturnOfFieldWithMutableType"})
-    public @NotNull
-    int[][][] getTargetNeighbours(PathIterationConstants strategy) {
-        if (targetNeighbours == null) {
-            List<Integer> targetVertices = targetGraph.vertexSet()
-                    .stream()
-                    .sorted().collect(Collectors.toList());
-            switch (strategy) {
-                case DFS_ARBITRARY:
-                    int[][] sharedTargetNeighbours = new int[targetVertices.size()][];
-                    targetNeighbours = new int[targetGraph.vertexSet().size()][][];
-                    for (int i = 0; i < sharedTargetNeighbours.length; i++) {
-                        int candidate = targetVertices.get(i);
-                        assert candidate == i : "Target graph does not have consecutive vertex data starting from zero. Index: " + i + ", data: " + candidate;
-                        sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
-                                .stream()
-                                .mapToInt(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
-                                .toArray();
-                        Util.shuffle(sharedTargetNeighbours[i], random);
-                    }
-                    for (int i = 0; i < targetGraph.vertexSet().size(); i++) {
-                        targetNeighbours[i] = Arrays.copyOf(sharedTargetNeighbours, sharedTargetNeighbours.length);
-                    }
-                    break;
-                case DFS_GREEDY:
-                    targetNeighbours = getTargetNeighbours(DFS_ARBITRARY);
-                    ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths<Integer, MyEdge> shortestPaths = new CHManyToManyShortestPaths<>(targetGraph).getManyToManyPaths(targetGraph.vertexSet(), targetGraph.vertexSet());
-
-                    List[][] tempTargetNeigbours = new List[targetNeighbours.length][targetNeighbours.length];
-                    for (int i = 0; i < tempTargetNeigbours.length; i++) {
-                        for (int j = 0; j < tempTargetNeigbours[i].length; j++) {
-                            tempTargetNeigbours[i][j] = Arrays.stream(targetNeighbours[i][j]).boxed().collect(Collectors.toList());
-                        }
-                    }
-                    for (int goal = 0; goal < targetNeighbours.length; goal++) {
-                        double[] distances = new double[tempTargetNeigbours.length];
-                        for (int from = 0; from < tempTargetNeigbours[goal].length; from++) {
-                            List<Integer> toSort = tempTargetNeigbours[goal][from];
-                            Set<Integer> toRemove = new HashSet<>();
-                            for (int to : toSort) {
-                                GraphPath<Integer, MyEdge> path = shortestPaths.getPath(to, targetVertices.get(goal));
-                                if (path == null) {
-                                    toRemove.add(to);
-                                } else {
-                                    distances[to] = targetGraph.getEdgeWeight(targetGraph.getEdge(from, to)) + path.getWeight();
-                                }
-                            }
-                            toSort.removeAll(toRemove);
-                            toSort.sort(Comparator.comparingDouble(o -> distances[o]));
-                            targetNeighbours[goal][from] = toSort.stream().mapToInt(x -> x).toArray();
-                        }
-                    }
-                    break;
-                default:
-                    throw new UnsupportedOperationException();
-            }
-        }
-        return targetNeighbours;
-    }
+// --Commented out by Inspection START (03/08/2020 11:23):
+//    /**
+//     * Returns an array that provides for each target vertex an ordering in which to try other target vertices in DFS.
+//     * Since this choice may depend on the target of the DFS, this array incorporates each possible goal vertex.
+//     *
+//     * @param strategy the DFS strategy used
+//     * @return a 3-d array where the first argument is the goal vertex, the second argument is some target graph vertex and the result are neighbours of that vertex in the order that they need to be tried.
+//     */
+//    @SuppressWarnings({"rawtypes", "unchecked", "AssignmentOrReturnOfFieldWithMutableType"})
+//    public @NotNull
+//    int[][][] getTargetNeighbours(PathIterationConstants strategy) {
+//        if (targetNeighbours == null) {
+//            List<Integer> targetVertices = targetGraph.vertexSet()
+//                    .stream()
+//                    .sorted().collect(Collectors.toList());
+//            switch (strategy) {
+//                case DFS_ARBITRARY -> {
+//                    int[][] sharedTargetNeighbours = new int[targetVertices.size()][];
+//                    targetNeighbours = new int[targetGraph.vertexSet().size()][][];
+//                    for (int i = 0; i < sharedTargetNeighbours.length; i++) {
+//                        int candidate = targetVertices.get(i);
+//                        assert candidate == i : "Target graph does not have consecutive vertex data starting from zero. Index: " + i + ", data: " + candidate;
+//                        sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
+//                                .stream()
+//                                .mapToInt(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
+//                                .toArray();
+//                        Util.shuffle(sharedTargetNeighbours[i], random);
+//                    }
+//                    for (int i = 0; i < targetGraph.vertexSet().size(); i++) {
+//                        targetNeighbours[i] = Arrays.copyOf(sharedTargetNeighbours, sharedTargetNeighbours.length);
+//                    }
+//                }
+//                case DFS_GREEDY -> {
+//                    targetNeighbours = getTargetNeighbours(DFS_ARBITRARY);
+//                    ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths<Integer, MyEdge> shortestPaths = new CHManyToManyShortestPaths<>(targetGraph).getManyToManyPaths(targetGraph.vertexSet(), targetGraph.vertexSet());
+//                    List[][] tempTargetNeigbours = new List[targetNeighbours.length][targetNeighbours.length];
+//                    for (int i = 0; i < tempTargetNeigbours.length; i++) {
+//                        for (int j = 0; j < tempTargetNeigbours[i].length; j++) {
+//                            tempTargetNeigbours[i][j] = Arrays.stream(targetNeighbours[i][j]).boxed().collect(Collectors.toList());
+//                        }
+//                    }
+//                    for (int goal = 0; goal < targetNeighbours.length; goal++) {
+//                        double[] distances = new double[tempTargetNeigbours.length];
+//                        for (int from = 0; from < tempTargetNeigbours[goal].length; from++) {
+//                            List<Integer> toSort = tempTargetNeigbours[goal][from];
+//                            Set<Integer> toRemove = new HashSet<>();
+//                            for (int to : toSort) {
+//                                GraphPath<Integer, MyEdge> path = shortestPaths.getPath(to, targetVertices.get(goal));
+//                                if (path == null) {
+//                                    toRemove.add(to);
+//                                } else {
+//                                    distances[to] = targetGraph.getEdgeWeight(targetGraph.getEdge(from, to)) + path.getWeight();
+//                                }
+//                            }
+//                            toSort.removeAll(toRemove);
+//                            toSort.sort(Comparator.comparingDouble(o -> distances[o]));
+//                            targetNeighbours[goal][from] = toSort.stream().mapToInt(x -> x).toArray();
+//                        }
+//                    }
+//                }
+//                default -> throw new UnsupportedOperationException();
+//            }
+//        }
+//        return targetNeighbours;
+//    }
+// --Commented out by Inspection STOP (03/08/2020 11:23)
 
     public Set<Integer> unconfigurableCover(int of) {
         if (unconfigurableCover == null) {

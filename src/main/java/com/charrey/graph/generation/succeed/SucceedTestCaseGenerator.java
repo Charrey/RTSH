@@ -2,17 +2,21 @@ package com.charrey.graph.generation.succeed;
 
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
+import com.charrey.graph.Path;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.util.GraphUtil;
 import com.charrey.util.Util;
+import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.distribution.GeometricDistribution;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
+import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -52,10 +56,10 @@ public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
         final RandomGenerator randomGen = new Well512a();
         randomGen.setSeed(random.nextLong());
         MyGraph sourceGraph = getSource(patternNodes, patternEdges);
-        MyGraph targetGraph = GraphUtil.copy(sourceGraph, randomGen);
-        insertIntermediateNodes(targetGraph, extraRoutingNodes, randomGen);
-        addExtraNodes(targetGraph, extraNodes, patternNodes == 0 ? 0 : patternEdges / (double) patternNodes, randomGen);
-        return new TestCase(sourceGraph, targetGraph);
+        GraphUtil.CopyResult copy = GraphUtil.copy(sourceGraph, randomGen);
+        insertIntermediateNodes(sourceGraph, copy, extraRoutingNodes, randomGen);
+        addExtraNodes(copy.graph, extraNodes, patternNodes == 0 ? 0 : patternEdges / (double) patternNodes, randomGen);
+        return new TestCase(sourceGraph, copy.graph, copy.vertexMatching, copy.edgeMatching);
     }
 
     /**
@@ -119,18 +123,25 @@ public abstract class SucceedTestCaseGenerator extends TestCaseGenerator {
     }
 
 
-    private static void insertIntermediateNodes(@NotNull MyGraph targetGraph, double extraRoutingNodes, RandomGenerator random) {
+    private static void insertIntermediateNodes(MyGraph sourceGraph, @NotNull GraphUtil.CopyResult targetGraph, double extraRoutingNodes, RandomGenerator random) {
         IntegerDistribution distribution = new GeometricDistribution(random, 1./(extraRoutingNodes + 1));
-        for (MyEdge edge : new HashSet<>(targetGraph.edgeSet())) {
+        for (MyEdge edge : new HashSet<>(targetGraph.graph.edgeSet())) {
             int toAdd = distribution.sample();
             while (toAdd > 0) {
-                int source = targetGraph.getEdgeSource(edge);
-                int target = targetGraph.getEdgeTarget(edge);
-                targetGraph.removeEdge(source, target);
-                int intermediate = targetGraph.addVertex();
-                targetGraph.addEdge(intermediate, target);
-                edge = targetGraph.addEdge(source, intermediate);
+                int source = targetGraph.graph.getEdgeSource(edge);
+                int target = targetGraph.graph.getEdgeTarget(edge);
+                targetGraph.graph.removeEdge(source, target);
+                int intermediate = targetGraph.graph.addVertex();
+                targetGraph.graph.addEdge(intermediate, target);
+                edge = targetGraph.graph.addEdge(source, intermediate);
                 toAdd -= 1;
+                List<Pair<MyEdge, Integer>> matches = sourceGraph.edgeSet().stream().map(x -> new Pair<>(x, Util.indexOfSubList(targetGraph.edgeMatching.get(x).asList().toArray(), new int[]{source, target}))).collect(Collectors.toList());
+                matches.forEach(i -> {
+                    if (i.getSecond() >= 0) {
+                        assert targetGraph.edgeMatching.get(i.getFirst()).getGraph() == targetGraph.graph;
+                        targetGraph.edgeMatching.get(i.getFirst()).insert(i.getSecond() + 1, intermediate);
+                    }
+                });
             }
         }
     }

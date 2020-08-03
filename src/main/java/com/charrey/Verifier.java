@@ -40,7 +40,7 @@ class Verifier {
     private static boolean noVertexMatchUsedInPath(@NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
         //the intermediate list of nodes are disjoint from the nodes
         for (Path path : edgeMatching.allPaths()) {
-            List<Integer> intermediate = path.intermediate();
+            Path intermediate = path.intermediate();
             final boolean[] toReturnFalse = {false};
             vertexMatching.getPlacement().forEach(i -> {
                 if (intermediate.contains(i)) {
@@ -58,8 +58,8 @@ class Verifier {
 
     private static boolean pathsAreNodeDisjoint(@NotNull EdgeMatching edgeMatching) {
         for (Path path : edgeMatching.allPaths()) {
-            List<Integer> intermediate = path.intermediate();
-            if (!edgeMatching.allPaths().stream().allMatch(x -> x == path || x.intermediate().stream().noneMatch(intermediate::contains))) {
+            Path intermediate = path.intermediate();
+            if (!edgeMatching.allPaths().stream().allMatch(x -> x == path || x.intermediate().noneMatch(intermediate::contains))) {
                 return false;
             }
         }

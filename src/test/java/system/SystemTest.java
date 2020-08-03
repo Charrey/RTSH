@@ -23,16 +23,18 @@ public abstract class SystemTest {
     private final Object challengeLock = new Object();
 
     @NotNull
-    HomeomorphismResult testSucceed(@NotNull TestCase testCase, boolean writeChallenge, long timeout, @NotNull Settings settings) throws IOException {
+    HomeomorphismResult testSucceed(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) throws IOException {
         HomeomorphismResult morph = new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
         if (!(morph instanceof TimeoutResult) && !morph.succeed) {
             openInBrowser(testCase.getSourceGraph().toString(), testCase.getTargetGraph().toString());
-            if (writeChallenge) {
-                writeChallenge(new Pair<>(testCase.getSourceGraph(), testCase.getTargetGraph()));
-            }
             fail();
         }
         return morph;
+    }
+
+    @NotNull
+    HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) throws IOException {
+        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
     }
 
     private void writeChallenge(Pair<MyGraph, MyGraph> pair) throws IOException {

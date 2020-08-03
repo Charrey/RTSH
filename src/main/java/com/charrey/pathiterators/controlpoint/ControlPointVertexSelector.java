@@ -4,11 +4,13 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.AbstractOccupation;
 import com.charrey.util.GraphUtil;
+import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
 import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -47,8 +49,8 @@ public class ControlPointVertexSelector {
         this.localOccupation = initialLocalOccupation;
         Random random = new Random(1 + 3L * graph.hashCode() + 5L * occupation.hashCode() + 7L * initialLocalOccupation.hashCode() + 11L * from + 13L * to);
         vertices = GraphUtil.randomVertexOrder(graph, random);
-        Path path = ControlPointIterator.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail);
-        if (path == null) {
+        Optional<Path> path = Util.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail);
+        if (path.isEmpty()) {
             readyToDeliver = true;
             nextToReturn = -1;
         }
@@ -60,11 +62,7 @@ public class ControlPointVertexSelector {
 
 
     public boolean hasNext() {
-        if (!readyToDeliver) {
-            nextToReturn = iterate();
-            readyToDeliver = true;
-        }
-        return nextToReturn != -1;
+        throw new IllegalStateException();
     }
 
     private int iterate() {

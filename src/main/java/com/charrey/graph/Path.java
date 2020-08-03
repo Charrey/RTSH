@@ -1,21 +1,28 @@
 package com.charrey.graph;
 
+import com.charrey.settings.pruning.domainfilter.FilteringSettings;
+import com.charrey.util.datastructures.TroveIterator;
 import com.google.common.collect.Ordering;
+import gnu.trove.TCollections;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.linked.TIntLinkedList;
+import gnu.trove.procedure.TIntProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.GraphPath;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 /**
  * The type Path saves a path of a MyGraph.
  */
-public class Path implements Comparable<Path> {
+public class Path implements Comparable<Path>, Iterable<Integer> {
 
     @NotNull
-    private final List<Integer> vertexList;
+    private final TIntLinkedList vertexList;
     @NotNull
     private final Set<Integer> containing;
     private final int initialVertex;
@@ -30,7 +37,7 @@ public class Path implements Comparable<Path> {
      */
     public Path(@NotNull MyGraph graph, int initialVertex) {
         this.initialVertex = initialVertex;
-        vertexList = new ArrayList<>();
+        vertexList = new TIntLinkedList();
         containing = new HashSet<>();
         this.graph = graph;
         append(initialVertex);
@@ -43,7 +50,7 @@ public class Path implements Comparable<Path> {
      * @param gPath the JGraphT path to convert to our own datatype.
      */
     public Path(@NotNull MyGraph graph, @NotNull GraphPath<Integer, MyEdge> gPath) {
-        this.vertexList = new ArrayList<>();
+        this.vertexList = new TIntLinkedList();
         this.containing = new HashSet<>();
         this.initialVertex = gPath.getStartVertex();
         List<Integer> otherVertexList = gPath.getVertexList();
@@ -61,10 +68,27 @@ public class Path implements Comparable<Path> {
      */
     public Path(@NotNull MyGraph graph, @NotNull List<Integer> vertexList) {
         this.graph = graph;
-        this.vertexList = new ArrayList<>();
+        this.vertexList = new TIntLinkedList();
         this.containing = new HashSet<>();
         this.initialVertex = vertexList.get(0);
         vertexList.forEach(this::append);
+    }
+
+    /**
+     * Creates a path from a list of vertices, reading it left to right.
+     *
+     * @param graph      the graph of which vertices may be added to this Path.
+     * @param vertexList the list of vertices to create a graph path from.
+     */
+    public Path(@NotNull MyGraph graph, @NotNull TIntList vertexList) {
+        this.graph = graph;
+        this.vertexList = new TIntLinkedList();
+        this.containing = new HashSet<>();
+        this.initialVertex = vertexList.get(0);
+        vertexList.forEach(i -> {
+            append(i);
+            return true;
+        });
     }
 
     /**
@@ -73,7 +97,7 @@ public class Path implements Comparable<Path> {
      * @param copyOf the path to copy from.
      */
     public Path(@NotNull Path copyOf) {
-        this.vertexList = new ArrayList<>(copyOf.vertexList);
+        this.vertexList = new TIntLinkedList(copyOf.vertexList);
         this.containing = new HashSet<>(copyOf.containing);
         this.initialVertex = copyOf.initialVertex;
         this.graph = copyOf.graph;
@@ -85,17 +109,15 @@ public class Path implements Comparable<Path> {
      * @return a list view of this path.
      */
     @NotNull
-    public List<Integer> asList() {
-        return Collections.unmodifiableList(vertexList);
+    public TIntList asList() {
+        return TCollections.unmodifiableList(vertexList);
     }
 
-    /**
-     * Provides a stream of vertices in this path from the initial vertex to the final vertex.
-     *
-     * @return a stream of vertices in this path.
-     */
-    public Stream<Integer> stream() {
-        return vertexList.stream();
+
+    @NotNull
+    @Override
+    public Iterator<Integer> iterator() {
+        return new TroveIterator(vertexList.iterator());
     }
 
     /**
@@ -104,7 +126,10 @@ public class Path implements Comparable<Path> {
      * @param consumer the consumer
      */
     public void forEach(Consumer<? super Integer> consumer) {
-        vertexList.forEach(consumer);
+        vertexList.forEach(i -> {
+            consumer.accept(i);
+            return true;
+        });
     }
 
     public double getWeight() {
@@ -166,7 +191,7 @@ public class Path implements Comparable<Path> {
      * @return the vertex that was removed.
      */
     public int removeLast() {
-        int removed = vertexList.remove(vertexList.size() - 1);
+        int removed = vertexList.removeAt(vertexList.size() - 1);
         containing.remove(removed);
         return removed;
     }
@@ -197,8 +222,8 @@ public class Path implements Comparable<Path> {
      * @return a list of all intermediate vertices
      */
     @NotNull
-    public List<Integer> intermediate() {
-        return vertexList.subList(1, vertexList.size() - 1);
+    public Path intermediate() {
+        return new Path(graph, vertexList.subList(1, vertexList.size() - 1));
     }
 
     /**
@@ -232,6 +257,70 @@ public class Path implements Comparable<Path> {
 
     @Override
     public int compareTo(@NotNull Path o) {
-        return Ordering.natural().lexicographical().compare(new ArrayList<>(this.vertexList), new ArrayList<>(o.vertexList));
+        for (int i = 0; i < Math.min(length(), o.length()); i++) {
+            int res1 = get(i);
+            int res2 = o.get(i);
+            if (res1 != res2) {
+                return Integer.compare(res1, res2);
+            }
+        }
+        return Integer.compare(length(), o.length());
+    }
+
+    public void insert(int index, int value) {
+        if (!containing.contains(value)) {
+            if (index == length()) {
+                append(value);
+            } else {
+                if (index > 0) {
+                    if (graph.getEdge(vertexList.get(index - 1), value) == null) {
+                        throw new IllegalStateException("Attempt to insert a vertex " + value + " that is not connected to its predecessor " + vertexList.get(index - 1) + " in graph:\n" + graph);
+                    }
+                }
+                if (graph.getEdge(value, vertexList.get(index)) == null) {
+                    throw new IllegalStateException("Attempt to insert a vertex " + value + " that is not connected to its successor " + vertexList.get(index) + " in graph:\n" + graph);
+                }
+                containing.add(value);
+                vertexList.insert(index, value);
+            }
+        } else {
+            throw new IllegalStateException("Vertex already in this path.");
+        }
+    }
+
+    public void insertUnsafe(int index, int value) {
+        if (index == length()) {
+            append(value);
+        } else {
+            containing.add(value);
+            vertexList.insert(index, value);
+        }
+    }
+
+    public boolean noneMatch(Predicate<Integer> predicate) {
+        final boolean[] toReturn = {true};
+        this.vertexList.forEach(i -> {
+            if (predicate.test(i)) {
+                toReturn[0] = false;
+                return false;
+            } else {
+                return true;
+            }
+        });
+        return toReturn[0];
+    }
+
+    public Path subPath(int from, int to) {
+        return new Path(graph, vertexList.subList(from, to));
+    }
+
+    public IntStream stream() {
+        return Arrays.stream(vertexList.toArray());
+    }
+
+
+
+    public MyGraph getGraph() {
+        return graph;
     }
 }

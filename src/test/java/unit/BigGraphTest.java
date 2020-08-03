@@ -13,6 +13,7 @@ import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.settings.iterator.KPathStrategy;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -116,6 +117,7 @@ class BigGraphTest {
     }
 
     @Test
+    @Disabled("Takes too long")
     void importSingleTile() throws IOException, InterruptedException {
         targetGraph = new MyGraph(true);
         importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
@@ -126,7 +128,7 @@ class BigGraphTest {
         matchTo().forEach(v -> targetGraph.addAttribute(v, "label", "matchto"));
 
         MyGraph sourceGraph = getSourceGraph();
-        TestCase testCase = new TestCase(sourceGraph, targetGraph);
+        TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
 
         failed = false;
         Thread threadKPath = getThread(testCase, new KPathStrategy());

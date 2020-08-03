@@ -44,7 +44,7 @@ public abstract class TrulyRandomTestCaseGenerator extends TestCaseGenerator {
     protected TestCase getRandom() {
         MyGraph patternGraph = randomGraph(patternNodes, patternEdges);
         MyGraph targetGraph = randomGraph(targetNodes, targetEdges);
-        return new TestCase(patternGraph, targetGraph);
+        return new TestCase(patternGraph, targetGraph, null, null);
     }
 
     @Override

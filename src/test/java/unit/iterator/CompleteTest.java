@@ -14,6 +14,7 @@ import com.charrey.settings.iterator.*;
 import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
@@ -96,7 +97,7 @@ class CompleteTest extends PathIteratorTest {
                     Path path;
                     try {
                         while ((path = iterator.next()) != null) {
-                            assert path.asList().size() == new HashSet<>(path.asList()).size();
+                            assert path.asList().size() == new TIntHashSet(path.asList()).size();
                             pathCount.get(strategy).add(new Path(path));
                         }
                     } catch (Exception e) {

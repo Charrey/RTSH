@@ -7,6 +7,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
+import com.charrey.util.Util;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -102,16 +104,16 @@ public class ManagedControlPointIterator extends PathIterator {
         List<TIntSet> localOccupations = localOccupations();
         Path leftToMiddle = intermediatePaths.get(0);
         Path middleToRight = intermediatePaths.get(1);
-        Path leftToRight = ControlPointIterator.merge(graph, leftToMiddle, middleToRight);
+        Path leftToRight = Util.merge(graph, leftToMiddle, middleToRight);
 
-        for (int i = 0; i < middleToRight.intermediate().size(); i++){
+        for (int i = 0; i < middleToRight.intermediate().length(); i++){
             int middleAlt = middleToRight.intermediate().get(i);
             Path middleAltToRight = new Path(graph, middleToRight.asList().subList(i + 1, middleToRight.length()));
             TIntSet fictionalLocalOccupation = new TIntHashSet(localOccupations.get(1));
             middleAltToRight.forEach(fictionalLocalOccupation::add);
-            Path leftToMiddleAlt = ControlPointIterator.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail());
-            assert leftToMiddleAlt != null;
-            Path alternative = ControlPointIterator.merge(graph, leftToMiddleAlt, middleAltToRight);
+            Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail());
+            assert leftToMiddleAlt.isPresent();
+            Path alternative = Util.merge(graph, leftToMiddleAlt.get(), middleAltToRight);
             if (alternative.equals(leftToRight)) {
                 LOG.finest(() -> "Right-shift possible to vertex " + middleAlt);
                 return true;
@@ -129,18 +131,18 @@ public class ManagedControlPointIterator extends PathIterator {
         List<Path> intermediatePaths = intermediatePaths();
         List<TIntSet> localOccupations = localOccupations();
         Path middleToRight = intermediatePaths.get(1);
-        Path leftToRight = ControlPointIterator.merge(graph, intermediatePaths.get(0), intermediatePaths.get(1));
+        Path leftToRight = Util.merge(graph, intermediatePaths.get(0), intermediatePaths.get(1));
 
         assert middleToRight.first() == middle;
         assert middleToRight.last() == right;
-        Path skippedPath = ControlPointIterator.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right, refuseLongerPaths, tail());
-        assert skippedPath != null;
-        assert skippedPath.first() == left;
-        assert skippedPath.last() == right;
-        if (skippedPath.equals(leftToRight)) {
+        Optional<Path> skippedPath = Util.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right, refuseLongerPaths, tail());
+        assert skippedPath.isPresent();
+        assert skippedPath.get().first() == left;
+        assert skippedPath.get().last() == right;
+        if (skippedPath.get().equals(leftToRight)) {
             LOG.finest("Makes last control point useless...");
         }
-        return skippedPath.equals(leftToRight);
+        return skippedPath.get().equals(leftToRight);
     }
 
     @NotNull

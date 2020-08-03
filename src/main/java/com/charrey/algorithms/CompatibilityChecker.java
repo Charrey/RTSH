@@ -31,7 +31,7 @@ public class CompatibilityChecker {
      */
     @NotNull
     public TIntObjectMap<TIntSet> get(@NotNull MyGraph source,
-                                      @NotNull MyGraph target, boolean neighbourhoodFiltering, String name) {
+                                      @NotNull MyGraph target, boolean neighbourhoodFiltering) {
 
         TIntObjectMap<TIntSet> res = new TIntObjectHashMap<>();
         for (Integer v : source.vertexSet()) {
@@ -52,13 +52,7 @@ public class CompatibilityChecker {
                                          @NotNull MyGraph targetGraph) {
         final boolean[] changed = {false};
         Set<Pair<Integer, Integer>> toRemove = new HashSet<>();
-
-        final long[] toProcess = {0L};
-        Collection<TIntSet> values = compatibilityMap.valueCollection();
-        values.forEach(tIntSet -> toProcess[0] = toProcess[0] + tIntSet.size());
-
         final long[] lastTimePrinted = {System.currentTimeMillis()};
-        final long[] counter = {0};
 
         compatibilityMap.forEachEntry((key, values1) -> {
             values1.forEach(potentialTarget -> {
@@ -71,7 +65,6 @@ public class CompatibilityChecker {
                     changed[0] = true;
                     toRemove.add(new Pair<>(key, potentialTarget));
                 }
-                counter[0]++;
                 return true;
             });
             return true;

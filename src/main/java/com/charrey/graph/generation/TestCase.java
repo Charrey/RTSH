@@ -1,14 +1,17 @@
 package com.charrey.graph.generation;
 
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
+import com.charrey.graph.Path;
 import com.charrey.util.GraphUtil;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * A wrapper class for a source graph and a target graph to be used for finding a homeomorphism.
@@ -25,13 +28,19 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
 
     private final transient RandomGenerator random = new Well512a(1888939);
 
+    private final int[] expectedVertexMatching;
+    private final Map<MyEdge, Path> expectedEdgeMatching;
+
     /**
      * Creates a new Test case.
-     *
-     * @param sourceGraph the source graph
+     *  @param sourceGraph the source graph
      * @param targetGraph the target graph
+     * @param expectedVertexMatching
+     * @param expectedEdgeMatching
      */
-    public TestCase(MyGraph sourceGraph, MyGraph targetGraph) {
+    public TestCase(MyGraph sourceGraph, MyGraph targetGraph, int[] expectedVertexMatching, Map<MyEdge, Path> expectedEdgeMatching) {
+        this.expectedVertexMatching = expectedVertexMatching == null ? null : expectedVertexMatching.clone();
+        this.expectedEdgeMatching = expectedEdgeMatching == null ? null : Collections.unmodifiableMap(expectedEdgeMatching);
         sourceGraph.randomizeWeights();
         sourceGraph.lock();
         targetGraph.randomizeWeights();
@@ -55,6 +64,10 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
     }
 
     public synchronized TestCase copy() {
-        return new TestCase(GraphUtil.copy(sourceGraph, random), GraphUtil.copy(targetGraph, random));
+        return new TestCase(
+                GraphUtil.copy(sourceGraph, random).graph,
+                GraphUtil.copy(targetGraph, random).graph,
+                Arrays.copyOf(expectedVertexMatching, expectedVertexMatching.length),
+                expectedEdgeMatching.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, myEdgePathEntry -> new Path(myEdgePathEntry.getValue()))));
     }
 }

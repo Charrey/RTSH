@@ -92,7 +92,7 @@ class GlobalOccupationTest {
                 Path path;
                 while ((path = iterator.next()) != null) {
                     TIntSet occupationSays = occupation.getRoutingOccupied();
-                    TIntSet pathSays = new TIntHashSet(path.intermediate());
+                    TIntSet pathSays = new TIntHashSet(path.intermediate().asList());
                     assertEquals(occupationSays, pathSays, "Iteration: " + counter);
                 }
             }

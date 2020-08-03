@@ -36,25 +36,23 @@ public abstract class DefaultCachedPruner extends Pruner {
         }
     }
 
-    DefaultCachedPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation, boolean calcDomains) {
+    DefaultCachedPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
         super(settings, sourceGraph, targetGraph, occupation);
         this.domain = new ArrayList<>(sourceGraph.vertexSet().size());
         this.reverseDomain = new ArrayList<>(targetGraph.vertexSet().size());
         this.previousDomain = (TIntSet[]) Array.newInstance(TIntSet.class, sourceGraph.vertexSet().size());
-        if (calcDomains) {
-            while (domain.size() < sourceGraph.vertexSet().size()) {
-                domain.add(new TIntHashSet());
-            }
-            while (reverseDomain.size() < targetGraph.vertexSet().size()) {
-                reverseDomain.add(new TIntArrayList());
-            }
-            sourceGraph.vertexSet().stream().sorted().forEach(sourceV -> targetGraph.vertexSet().forEach(targetV -> {
-                if (settings.getFiltering().filter(sourceGraph, targetGraph, sourceV, targetV, occupation)) {
-                    domain.get(sourceV).add(targetV);
-                    reverseDomain.get(targetV).add(sourceV);
-                }
-            }));
+        while (domain.size() < sourceGraph.vertexSet().size()) {
+            domain.add(new TIntHashSet());
         }
+        while (reverseDomain.size() < targetGraph.vertexSet().size()) {
+            reverseDomain.add(new TIntArrayList());
+        }
+        sourceGraph.vertexSet().stream().sorted().forEach(sourceV -> targetGraph.vertexSet().forEach(targetV -> {
+            if (settings.getFiltering().filter(sourceGraph, targetGraph, sourceV, targetV, occupation)) {
+                domain.get(sourceV).add(targetV);
+                reverseDomain.get(targetV).add(sourceV);
+            }
+        }));
     }
 
     @Override

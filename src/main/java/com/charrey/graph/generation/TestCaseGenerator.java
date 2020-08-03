@@ -38,11 +38,8 @@ public abstract class TestCaseGenerator {
      */
     public void init(int amount) {
         testCases.clear();
-        LOG.info("Generating graphs..");
         for (int i = 0; i < amount; i++) {
             testCases.add(getRandom());
-            int finalI = i;
-            LOG.info(() -> finalI + "/" + amount);
         }
     }
 
