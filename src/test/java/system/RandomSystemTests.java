@@ -25,7 +25,7 @@ class RandomSystemTests extends SystemTest {
     private static final Pattern newline = Pattern.compile("\r\n");
     private final Settings settings = new SettingsBuilder()
             .withAllDifferentPruning()
-            .withDFSRouting()
+            .withGreedyDFSRouting()
             .withCachedPruning().get();
 
 

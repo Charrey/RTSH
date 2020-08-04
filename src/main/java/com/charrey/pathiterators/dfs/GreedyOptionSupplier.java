@@ -4,13 +4,18 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.util.Util;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.list.linked.TIntLinkedList;
+import gnu.trove.list.linked.TLinkedList;
+import gnu.trove.map.TIntDoubleMap;
+import gnu.trove.map.hash.TIntDoubleHashMap;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jgrapht.Graphs;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public class GreedyOptionSupplier extends OptionSupplier{
 
@@ -23,21 +28,18 @@ public class GreedyOptionSupplier extends OptionSupplier{
 
     @Override
     public int get(int at, int option, Path currentPath) {
-        List<Integer> candidates = Graphs.successorListOf(getGraph(), at);
-        AtomicInteger validOptions = new AtomicInteger();
-        candidates.sort(Comparator.comparingDouble(neighbour -> {
+        List<Integer> candidatesUnfiltered = Graphs.successorListOf(getGraph(), at);
+        Map<Integer, Double> candidatesFiltered = new HashMap<>();
+        candidatesUnfiltered.forEach(neighbour -> {
             Optional<Path> path = Util.filteredShortestPath(getGraph(), occupation, new TIntHashSet(currentPath.asList()), neighbour, getHead(), false, -1);
-            if (path.isPresent()) {
-                validOptions.getAndIncrement();
-                return path.get().getWeight();
-            } else {
-                return Double.POSITIVE_INFINITY;
-            }
-        }));
-        if (option + 1 > validOptions.get()) {
+            path.ifPresent(integers -> candidatesFiltered.put(neighbour, integers.getWeight()));
+        });
+        List<Integer> candidatesFilteredList = new ArrayList<>(candidatesFiltered.keySet());
+        candidatesFilteredList.sort(Comparator.comparingDouble(candidatesFiltered::get));
+        if (option >= candidatesFilteredList.size()) {
             return -1;
         } else {
-            return candidates.get(option);
+            return candidatesFilteredList.get(option);
         }
     }
 }
