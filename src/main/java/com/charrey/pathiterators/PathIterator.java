@@ -7,10 +7,11 @@ import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
+import com.charrey.pathiterators.dfs.CachedDFSPathIterator;
 import com.charrey.pathiterators.dfs.InPlaceDFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.PartialMatching;
-import com.charrey.settings.PathIterationConstants;
+import com.charrey.settings.pathiteration.PathIteration;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.ControlPointIteratorStrategy;
 import gnu.trove.set.hash.TIntHashSet;
@@ -78,11 +79,14 @@ public abstract class PathIterator {
         if (targetGraph.getEdge(tail, head) != null) {
             return new SingletonPathIterator(targetGraph, settings, tail, head, provider);
         }
-        //int[][] targetNeighbours = data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head];
-        //return new CachedDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, targetNeighbours);
         return switch (settings.getPathIteration().iterationStrategy) {
-            case DFS_ARBITRARY -> new InPlaceDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, PathIterationConstants.DFS_ARBITRARY);
-            case DFS_GREEDY -> new InPlaceDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, PathIterationConstants.DFS_GREEDY);
+            case DFS_ARBITRARY, DFS_GREEDY -> {
+                if (settings.getDFSCaching()) {
+                    yield new CachedDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head]);
+                } else {
+                    yield new InPlaceDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, settings.getPathIteration());
+                }
+            }
             case CONTROL_POINT -> new ManagedControlPointIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints());
             case KPATH -> new KPathPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider);
         };

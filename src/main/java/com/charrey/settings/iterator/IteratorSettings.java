@@ -1,28 +1,17 @@
 package com.charrey.settings.iterator;
 
-import com.charrey.settings.PathIterationConstants;
-import org.jetbrains.annotations.NotNull;
+import com.charrey.settings.pathiteration.PathIteration;
 
 @SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
-public abstract class IteratorSettings implements Comparable<IteratorSettings> {
+public abstract class IteratorSettings implements Cloneable {
 
 
-    public final PathIterationConstants iterationStrategy;
+    public final PathIteration iterationStrategy;
 
-    IteratorSettings(PathIterationConstants iterationStrategy) {
+    IteratorSettings(PathIteration iterationStrategy) {
         this.iterationStrategy = iterationStrategy;
     }
 
-    public abstract int serialized();
+    public abstract Object clone();
 
-    @Override
-    public int compareTo(@NotNull IteratorSettings o) {
-        return Integer.compare(serialized(), o.serialized());
-    }
-
-    @Override
-    public abstract boolean equals(Object o);
-
-    @Override
-    public abstract int hashCode();
 }

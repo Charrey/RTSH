@@ -1,6 +1,5 @@
 package system;
 
-import com.charrey.IsoFinder;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.graph.generation.random.TrulyRandomDirectedTestCaseGenerator;
@@ -9,7 +8,7 @@ import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerat
 import com.charrey.graph.generation.succeed.RandomSucceedUndirectedTestCaseGenerator;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.TimeoutResult;
-import com.charrey.settings.PathIterationConstants;
+import com.charrey.settings.pathiteration.PathIteration;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -22,16 +21,15 @@ import java.util.regex.Pattern;
 
 class RandomSystemTests extends SystemTest {
 
-    private static final Pattern newline = Pattern.compile("\r\n");
     private final Settings settings = new SettingsBuilder()
             .withAllDifferentPruning()
-            .withGreedyDFSRouting()
+            .withInplaceNewGreedyDFSRouting()
             .withCachedPruning().get();
 
 
     @Test
     void findCasesUndirectedRandom() throws IOException {
-        if (settings.getPathIteration().iterationStrategy == PathIterationConstants.KPATH) {
+        if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
         findCases(10 * 1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
@@ -39,7 +37,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesUndirectedSucceed() throws IOException {
-        if (settings.getPathIteration().iterationStrategy == PathIterationConstants.KPATH) {
+        if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
         findCases(10 * 1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);

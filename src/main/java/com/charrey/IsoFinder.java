@@ -14,7 +14,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.result.*;
 import com.charrey.settings.Settings;
-import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.WhenToApply;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -80,7 +80,7 @@ public class IsoFinder {
 
     private void setup(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull Settings settings, String name) throws DomainCheckerException {
         UtilityData data = new UtilityData(sourceGraph, targetGraph);
-        if (settings.getWhenToApply() == PruningApplicationConstants.CACHED && Arrays.stream(data.getCompatibility(settings.getFiltering())).anyMatch(x -> x.length == 0)) {
+        if (settings.getWhenToApply() == WhenToApply.CACHED && Arrays.stream(data.getCompatibility(settings.getFiltering())).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
         occupation = new GlobalOccupation(data, settings);

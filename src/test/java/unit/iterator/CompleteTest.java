@@ -75,7 +75,7 @@ class CompleteTest extends PathIteratorTest {
                 }
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
                 Map<IteratorSettings, Set<Path>> pathCount = new HashMap<>(); //s
-                for (IteratorSettings strategy : List.of(new DFSStrategy(), new GreedyDFSStrategy(), new ControlPointIteratorStrategy(100), new KPathStrategy())) {
+                for (IteratorSettings strategy : List.of(new DFSStrategy(), new OldGreedyDFSStrategy(), new ControlPointIteratorStrategy(100), new KPathStrategy())) {
                     settings = new SettingsBuilder(settings).withPathIteration(strategy).get();
                     pathCount.put(strategy, new HashSet<>());
                     GlobalOccupation occupation = new GlobalOccupation(data, settings);

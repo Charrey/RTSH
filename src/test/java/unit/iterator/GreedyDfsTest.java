@@ -7,6 +7,7 @@ import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerat
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.dfs.CachedDFSPathIterator;
+import com.charrey.pathiterators.dfs.InPlaceDFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
@@ -31,7 +32,7 @@ class GreedyDfsTest {
 
     @Test
     void testIterator() throws DomainCheckerException {
-        Settings settingsGreedy = new SettingsBuilder().withGreedyDFSRouting().get();
+        Settings settingsGreedy = new SettingsBuilder().withInplaceNewGreedyDFSRouting().get();
         Settings settingsKpath = new SettingsBuilder().withKPathRouting().get();
 
         final long seed = 1923;
@@ -64,7 +65,7 @@ class GreedyDfsTest {
                 GlobalOccupation occupationKPath = new GlobalOccupation(data, settingsKpath);
                 occupationKPath.occupyVertex(0, tail, new PartialMatching());
                 occupationKPath.occupyVertex(1, head, new PartialMatching(vertexMatching));
-                CachedDFSPathIterator greedyDFSIterator = (CachedDFSPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy, () -> {
+                PathIterator greedyDFSIterator = PathIterator.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy, () -> {
                     TIntList vertexMatching12 = new TIntArrayList();
                     vertexMatching12.add(tail);
                     vertexMatching12.add(head);

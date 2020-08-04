@@ -43,7 +43,7 @@ class NoDuplicatesTest {
 
     @Test
     void testGreedyDFS() throws DomainCheckerException {
-        testIterator(new GreedyDFSStrategy());
+        testIterator(new OldGreedyDFSStrategy());
     }
 
     @Test
@@ -75,7 +75,7 @@ class NoDuplicatesTest {
                 int tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
                 int head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
                 counter++;
-                if (counter < 17) {
+                if (counter < 0) {
                     continue;
                 }
                 System.out.println("Case "+ counter);

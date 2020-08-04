@@ -17,11 +17,11 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-public class GreedyOptionSupplier extends OptionSupplier{
+public class NewGreedyOptionSupplier extends OptionSupplier{
 
     private final GlobalOccupation occupation;
 
-    GreedyOptionSupplier(GlobalOccupation occupation, MyGraph graph, int head) {
+    NewGreedyOptionSupplier(GlobalOccupation occupation, MyGraph graph, int head) {
         super(graph, head);
         this.occupation = occupation;
     }
@@ -32,7 +32,7 @@ public class GreedyOptionSupplier extends OptionSupplier{
         Map<Integer, Double> candidatesFiltered = new HashMap<>();
         candidatesUnfiltered.forEach(neighbour -> {
             Optional<Path> path = Util.filteredShortestPath(getGraph(), occupation, new TIntHashSet(currentPath.asList()), neighbour, getHead(), false, -1);
-            path.ifPresent(integers -> candidatesFiltered.put(neighbour, integers.getWeight()));
+            path.ifPresent(realPath -> candidatesFiltered.put(neighbour, realPath.getWeight() + getGraph().getEdgeWeight(getGraph().getEdge(at, neighbour))));
         });
         List<Integer> candidatesFilteredList = new ArrayList<>(candidatesFiltered.keySet());
         candidatesFilteredList.sort(Comparator.comparingDouble(candidatesFiltered::get));

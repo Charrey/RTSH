@@ -42,7 +42,7 @@ class GlobalOccupationTest {
 
     @Test
     void testGreedyDFS() throws DomainCheckerException {
-        testIterator(new GreedyDFSStrategy());
+        testIterator(new OldGreedyDFSStrategy());
     }
 
     @Test

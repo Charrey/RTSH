@@ -1,5 +1,5 @@
 package com.charrey.settings.pruning;
 
-public enum PruningApplicationConstants {
+public enum WhenToApply {
     SERIAL, CACHED, PARALLEL
 }

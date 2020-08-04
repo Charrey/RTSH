@@ -4,7 +4,7 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.pruning.*;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
-import com.charrey.settings.pruning.PruningApplicationConstants;
+import com.charrey.settings.pruning.WhenToApply;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -62,7 +62,7 @@ public class GlobalOccupation implements AbstractOccupation {
     }
 
     private void initDomainChecker(Settings settings) {
-        if (settings.getWhenToApply() == PruningApplicationConstants.PARALLEL) {
+        if (settings.getWhenToApply() == WhenToApply.PARALLEL) {
             initDomainChecker(new SettingsBuilder(settings).withSerialPruning().get());
             domainChecker = new ParallelPruner(domainChecker, settings, data.getPatternGraph(), data.getTargetGraph());
             return;
@@ -72,14 +72,14 @@ public class GlobalOccupation implements AbstractOccupation {
                 domainChecker = new NoPruner();
                 break;
             case ZERODOMAIN:
-                if (settings.getWhenToApply() == PruningApplicationConstants.CACHED) {
+                if (settings.getWhenToApply() == WhenToApply.CACHED) {
                     domainChecker = new CachedZeroDomainPruner(data, settings, this);
-                } else if (settings.getWhenToApply() == PruningApplicationConstants.SERIAL) {
+                } else if (settings.getWhenToApply() == WhenToApply.SERIAL) {
                     domainChecker = new SerialZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), this);
                 }
                 break;
             case ALLDIFFERENT:
-                if (settings.getWhenToApply() == PruningApplicationConstants.SERIAL) {
+                if (settings.getWhenToApply() == WhenToApply.SERIAL) {
                     throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
                 }
                 domainChecker = new AllDifferentPruner(data, settings, this);

@@ -1,9 +1,14 @@
 package com.charrey.settings;
 
 import com.charrey.settings.iterator.*;
-import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pruning.WhenToApply;
+import com.charrey.settings.pruning.PruningMethod;
 import com.charrey.settings.pruning.domainfilter.*;
+
+import java.util.Set;
+
+import static com.charrey.settings.pathiteration.PathIteration.DFS_ARBITRARY;
+import static com.charrey.settings.pathiteration.PathIteration.DFS_GREEDY;
 
 public class SettingsBuilder {
 
@@ -17,21 +22,23 @@ public class SettingsBuilder {
     private boolean lockWhenToApply = false;
     private boolean lockVertexLimit = false;
     private boolean lockTargetVertexOrder = false;
+    private boolean lockDFSCaching = false;
 
     public SettingsBuilder() {
         settings = new Settings(
                 new LabelDegreeFiltering(),
                 true,
-                PruningConstants.NONE,
+                PruningMethod.NONE,
                 new KPathStrategy(),
-                PruningApplicationConstants.SERIAL,
+                WhenToApply.SERIAL,
                 Integer.MAX_VALUE,
-                TargetVertexOrder.LARGEST_DEGREE_FIRST
+                TargetVertexOrder.LARGEST_DEGREE_FIRST,
+                false
         );
     }
 
     public SettingsBuilder(Settings settings) {
-        this.settings = new Settings(settings.getFiltering(), settings.getRefuseLongerPaths(), settings.getPruningMethod(), settings.getPathIteration(), settings.getWhenToApply(), settings.getVertexLimit(), settings.getTargetVertexOrder());
+        this.settings = (Settings) settings.clone();
     }
 
     private SettingsBuilder setFiltering(FilteringSettings filtering) {
@@ -61,7 +68,7 @@ public class SettingsBuilder {
         return this;
     }
 
-    private SettingsBuilder withPruningMethod(PruningConstants pruningMethod) {
+    private SettingsBuilder withPruningMethod(PruningMethod pruningMethod) {
         if (lockPruning) {
             throw new IllegalStateException("Pruning method has already been set.");
         }
@@ -79,7 +86,7 @@ public class SettingsBuilder {
         return this;
     }
 
-    private SettingsBuilder setWhenToApply(PruningApplicationConstants whenToApply) {
+    private SettingsBuilder setWhenToApply(WhenToApply whenToApply) {
         if (lockWhenToApply) {
             throw new IllegalStateException("Pruning application method has already been set");
         }
@@ -96,6 +103,16 @@ public class SettingsBuilder {
         lockVertexLimit = true;
         return this;
     }
+
+    private SettingsBuilder setDFSCaching(boolean dfsCaching) {
+        if (lockDFSCaching) {
+            throw new IllegalStateException("DFS caching has already been set to " + settings.getDFSCaching());
+        }
+        settings.setPathIterationCaching(dfsCaching);
+        lockDFSCaching = true;
+        return this;
+    }
+
 
     public SettingsBuilder withLargestDegreeFirstTargetVertexOrder() {
         return setTargetVertexOrder(TargetVertexOrder.LARGEST_DEGREE_FIRST);
@@ -134,11 +151,11 @@ public class SettingsBuilder {
     }
 
     public SettingsBuilder withZeroDomainPruning() {
-        return withPruningMethod(PruningConstants.ZERODOMAIN);
+        return withPruningMethod(PruningMethod.ZERODOMAIN);
     }
 
     public SettingsBuilder withAllDifferentPruning() {
-        return withPruningMethod(PruningConstants.ALLDIFFERENT);
+        return withPruningMethod(PruningMethod.ALLDIFFERENT);
     }
 
     public SettingsBuilder withoutPruning() {
@@ -146,19 +163,31 @@ public class SettingsBuilder {
             throw new IllegalStateException("Pruning application may not be set when disabling pruning.");
         }
         lockWhenToApply = true;
-        return withPruningMethod(PruningConstants.NONE);
+        return withPruningMethod(PruningMethod.NONE);
     }
 
     public SettingsBuilder withKPathRouting() {
         return withPathIteration(new KPathStrategy());
     }
 
-    public SettingsBuilder withDFSRouting() {
-        return withPathIteration(new DFSStrategy());
+    public SettingsBuilder withCachedDFSRouting() {
+        return withPathIteration(new DFSStrategy()).setDFSCaching(true);
     }
 
-    public SettingsBuilder withGreedyDFSRouting() {
-        return withPathIteration(new GreedyDFSStrategy());
+    public SettingsBuilder withInplaceDFSRouting() {
+        return withPathIteration(new DFSStrategy()).setDFSCaching(false);
+    }
+
+    public SettingsBuilder withCachedGreedyDFSRouting() {
+        return withPathIteration(new OldGreedyDFSStrategy()).setDFSCaching(true);
+    }
+
+    public SettingsBuilder withInplaceOldGreedyDFSRouting() {
+        return withPathIteration(new OldGreedyDFSStrategy()).setDFSCaching(false);
+    }
+
+    public SettingsBuilder withInplaceNewGreedyDFSRouting() {
+        return withPathIteration(new NewGreedyDFSStrategy()).setDFSCaching(false);
     }
 
     public SettingsBuilder withControlPointRouting() {
@@ -170,19 +199,22 @@ public class SettingsBuilder {
     }
 
     public SettingsBuilder withSerialPruning() {
-        return setWhenToApply(PruningApplicationConstants.SERIAL);
+        return setWhenToApply(WhenToApply.SERIAL);
     }
 
     public SettingsBuilder withParallelPruning() {
-        return setWhenToApply(PruningApplicationConstants.PARALLEL);
+        return setWhenToApply(WhenToApply.PARALLEL);
     }
 
     public SettingsBuilder withCachedPruning() {
-        return setWhenToApply(PruningApplicationConstants.CACHED);
+        return setWhenToApply(WhenToApply.CACHED);
     }
 
 
     public Settings get() {
+        if (lockDFSCaching && !(Set.of(DFS_GREEDY, DFS_ARBITRARY).contains(settings.getPathIteration().iterationStrategy))) {
+            throw new IllegalStateException("DFS caching method has been set without specifying DFS as path iteration strategy.");
+        }
         lockFiltering = true;
         lockLongerPaths = true;
         lockPruning = true;
@@ -190,12 +222,13 @@ public class SettingsBuilder {
         lockWhenToApply = true;
         lockVertexLimit = true;
         lockTargetVertexOrder = true;
+        lockDFSCaching = true;
         check();
         return settings;
     }
 
     private void check() {
-        if (settings.getWhenToApply() != PruningApplicationConstants.CACHED && settings.getPruningMethod() == PruningConstants.ALLDIFFERENT) {
+        if (settings.getWhenToApply() != WhenToApply.CACHED && settings.getPruningMethod() == PruningMethod.ALLDIFFERENT) {
             throw new IllegalArgumentException("Alldifferent is not compatible with serial or parallel pruning.");
         }
     }

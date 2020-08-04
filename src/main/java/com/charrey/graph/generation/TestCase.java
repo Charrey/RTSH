@@ -64,10 +64,14 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
     }
 
     public synchronized TestCase copy() {
+        MyGraph sourceGraph = GraphUtil.copy(this.sourceGraph, random).graph;
+        MyGraph targetGraph = GraphUtil.copy(this.targetGraph, random).graph;
+        int[] expectedVertexMatching = this.expectedVertexMatching == null ? null : Arrays.copyOf(this.expectedVertexMatching, this.expectedVertexMatching.length);
+        Map<MyEdge, Path> expectedEdgeMatching = this.expectedEdgeMatching == null ? null : this.expectedEdgeMatching.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, myEdgePathEntry -> new Path(myEdgePathEntry.getValue())));
         return new TestCase(
-                GraphUtil.copy(sourceGraph, random).graph,
-                GraphUtil.copy(targetGraph, random).graph,
-                Arrays.copyOf(expectedVertexMatching, expectedVertexMatching.length),
-                expectedEdgeMatching.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, myEdgePathEntry -> new Path(myEdgePathEntry.getValue()))));
+                sourceGraph,
+                targetGraph,
+                expectedVertexMatching,
+                expectedEdgeMatching);
     }
 }

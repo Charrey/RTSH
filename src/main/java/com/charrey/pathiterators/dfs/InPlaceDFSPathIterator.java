@@ -6,7 +6,10 @@ import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.settings.PathIterationConstants;
+import com.charrey.settings.iterator.DFSStrategy;
+import com.charrey.settings.iterator.IteratorSettings;
+import com.charrey.settings.iterator.NewGreedyDFSStrategy;
+import com.charrey.settings.iterator.OldGreedyDFSStrategy;
 import com.charrey.settings.Settings;
 import com.charrey.util.datastructures.ScalingIntList;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +37,7 @@ public class InPlaceDFSPathIterator extends PathIterator {
                                   GlobalOccupation occupation,
                                   Supplier<Integer> placementSize,
                                   PartialMatchingProvider provider,
-                                  PathIterationConstants type) {
+                                  IteratorSettings type) {
         super(tail, head, settings, occupation, occupation.getTransaction(), provider);
         this.head = head;
         this.exploration = new Path(graph, tail);
@@ -42,10 +45,14 @@ public class InPlaceDFSPathIterator extends PathIterator {
         this.occupation = occupation;
         this.placementSize = placementSize;
         this.graph = graph;
-        if (type == PathIterationConstants.DFS_ARBITRARY) {
+        if (type instanceof DFSStrategy) {
             this.optionSupplier = new IndexOptionSupplier(graph, head);
+        } else if (type instanceof NewGreedyDFSStrategy){
+            this.optionSupplier = new NewGreedyOptionSupplier(occupation, graph, head);
+        } else if (type instanceof OldGreedyDFSStrategy) {
+            this.optionSupplier = new OldGreedyOptionSupplier(occupation, graph, head);
         } else {
-            this.optionSupplier = new GreedyOptionSupplier(occupation, graph, head);
+            throw new UnsupportedOperationException();
         }
     }
 

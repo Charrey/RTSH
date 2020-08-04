@@ -8,12 +8,11 @@ import com.charrey.result.SuccessResult;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.ControlPointIteratorStrategy;
-import com.charrey.settings.iterator.GreedyDFSStrategy;
+import com.charrey.settings.iterator.OldGreedyDFSStrategy;
 import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.settings.iterator.KPathStrategy;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -79,6 +78,7 @@ class BigGraphTest {
                     System.exit(0);
                 }
             } catch (Throwable e) {
+                e.printStackTrace();
                 failed = true;
                 throw e;
             }
@@ -117,10 +117,10 @@ class BigGraphTest {
     }
 
     @Test
-    @Disabled("Takes too long")
+    //@Disabled("Takes too long")
     void importSingleTile() throws IOException, InterruptedException {
         targetGraph = new MyGraph(true);
-        importDOT(targetGraph, new File("C:\\Users\\Pim van Leeuwen\\VirtualBox VMs\\Afstuderen Backup\\Shared folder\\singleTile.dot"));
+        importDOT(targetGraph, new File("C:\\Users\\Pim\\Virtual Machines\\Afstuderen\\singleTile.dot"));
         removeTails();
         targetGraph.randomizeWeights();
 
@@ -132,8 +132,8 @@ class BigGraphTest {
 
         failed = false;
         Thread threadKPath = getThread(testCase, new KPathStrategy());
-        Thread threadDFSArbitrary = getThread(testCase, new GreedyDFSStrategy());
-        Thread threadDFSGreedy = getThread(testCase, new GreedyDFSStrategy());
+        Thread threadDFSArbitrary = getThread(testCase, new OldGreedyDFSStrategy());
+        Thread threadDFSGreedy = getThread(testCase, new OldGreedyDFSStrategy());
         Thread threadControlPoint = getThread(testCase, new ControlPointIteratorStrategy(1));
         //threadKPath.start();
         //threadDFSArbitrary.start();

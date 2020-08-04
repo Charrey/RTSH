@@ -1,8 +1,9 @@
 package com.charrey.settings;
 
 import com.charrey.settings.iterator.IteratorSettings;
-import com.charrey.settings.pruning.PruningApplicationConstants;
-import com.charrey.settings.pruning.PruningConstants;
+import com.charrey.settings.pathiteration.DFSCaching;
+import com.charrey.settings.pruning.WhenToApply;
+import com.charrey.settings.pruning.PruningMethod;
 import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,8 +13,9 @@ import java.util.Objects;
  * Class to encapsulate the different settings under which homeomorphisms may be found. Each setting influences the
  * behaviour of the search in some way.
  */
-public class Settings {
+public class Settings implements Cloneable {
 
+    private boolean DFSCaching;
     /**
      * Whether to refuse paths that take up unnecessarily many resources.
      */
@@ -21,7 +23,7 @@ public class Settings {
     /**
      * Which pruning method to use (select from PruningConstants.java)
      */
-    private PruningConstants pruningMethod;
+    private PruningMethod pruningMethod;
     /**
      * Which method to iterate paths is used (select from PathIterationConstants.java)
      */
@@ -32,7 +34,7 @@ public class Settings {
      */
     private FilteringSettings filtering;
 
-    private PruningApplicationConstants whenToApply;
+    private WhenToApply whenToApply;
     private int vertexLimit;
     private TargetVertexOrder targetVertexOrder;
 
@@ -45,11 +47,12 @@ public class Settings {
      */
     Settings(FilteringSettings filtering,
              boolean refuseLongerPaths,
-             PruningConstants pruningMethod,
+             PruningMethod pruningMethod,
              IteratorSettings pathIteration,
-             PruningApplicationConstants whenToApply,
+             WhenToApply whenToApply,
              int vertexLimit,
-             TargetVertexOrder targetVertexOrder) {
+             TargetVertexOrder targetVertexOrder,
+             boolean DFSCaching) {
         this.filtering = filtering;
         this.refuseLongerPaths = refuseLongerPaths;
         this.pruningMethod = pruningMethod;
@@ -57,6 +60,7 @@ public class Settings {
         this.whenToApply = whenToApply;
         this.vertexLimit = vertexLimit;
         this.targetVertexOrder = targetVertexOrder;
+        this.DFSCaching = DFSCaching;
     }
 
     @Override
@@ -67,27 +71,40 @@ public class Settings {
         return filtering.equals(settings.filtering) &&
                 refuseLongerPaths == settings.refuseLongerPaths &&
                 pruningMethod == settings.pruningMethod &&
-                pathIteration.equals(settings.pathIteration);
+                pathIteration.equals(settings.pathIteration) &&
+                DFSCaching == settings.DFSCaching;
+    }
+
+    @Override
+    public Object clone() {
+        Settings toReturn;
+        try {
+            toReturn = (Settings) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new UnsupportedOperationException();
+        }
+        toReturn.pathIteration = (IteratorSettings) pathIteration.clone();
+        return toReturn;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration);
+        return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration, DFSCaching);
     }
 
-    public PruningApplicationConstants getWhenToApply() {
+    public WhenToApply getWhenToApply() {
         return whenToApply;
     }
 
-    void setWhenToApply(PruningApplicationConstants whenToApply) {
+    void setWhenToApply(WhenToApply whenToApply) {
         this.whenToApply = whenToApply;
     }
 
-    public PruningConstants getPruningMethod() {
+    public PruningMethod getPruningMethod() {
         return pruningMethod;
     }
 
-    void setPruningMethod(PruningConstants pruningMethod) {
+    void setPruningMethod(PruningMethod pruningMethod) {
         this.pruningMethod = pruningMethod;
     }
 
@@ -129,5 +146,13 @@ public class Settings {
 
     void setTargetVertexOrder(TargetVertexOrder order) {
         this.targetVertexOrder = order;
+    }
+
+    public boolean getDFSCaching() {
+        return DFSCaching;
+    }
+
+    void setPathIterationCaching(boolean DFSCaching) {
+        this.DFSCaching = DFSCaching;
     }
 }

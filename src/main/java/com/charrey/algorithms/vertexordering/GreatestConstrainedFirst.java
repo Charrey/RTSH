@@ -5,11 +5,17 @@ import com.charrey.util.GraphUtil;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.linked.TIntLinkedList;
+import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -44,12 +50,19 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
         }
         newToOld.add(maxDegreeVertex);
         while (newToOld.size() < graph.vertexSet().size()) {
-            TIntSet firstSelection = getFirstCriterium(graph, newToOld);
-            TIntSet secondSelection = getSecondCriterium(graph, newToOld, firstSelection);
-            TIntList thirdSelection = new TIntLinkedList(getThirdCriterium(graph, newToOld, secondSelection));
-            thirdSelection.sort();
-            assert secondSelection.containsAll(thirdSelection);
-            int toAdd = thirdSelection.get(0);
+            TIntIntMap score1 = getScore1(graph, newToOld);
+            TIntIntMap score2 = getScore2(graph, newToOld, score1);
+            TIntIntMap score3 = getScore3(graph, newToOld, score1, score2);
+//            TIntSet firstSelection = getFirstCriterium(graph, newToOld);
+//            TIntSet secondSelection = getSecondCriterium(graph, newToOld, firstSelection);
+//            TIntList thirdSelection = new TIntLinkedList(getThirdCriterium(graph, newToOld, secondSelection));
+
+            List<Integer> allVertices = graph.vertexSet().stream().filter(x -> !newToOld.contains(x)).sorted(Comparator.comparingInt(o -> -score1.get((Integer) o))
+                    .thenComparingInt(o -> -score2.get((Integer) o))
+                    .thenComparingInt(o -> -score3.get((Integer) o))
+                    .thenComparingInt(o -> (Integer) o)).collect(Collectors.toList());
+
+            int toAdd = allVertices.get(0);
             assert !newToOld.contains(toAdd);
             newToOld.add(toAdd);
         }
@@ -61,13 +74,42 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
         return new Mapping(MyGraph.applyOrdering(graph, newToOldArray, oldToNew), newToOldArray);
     }
 
+    private TIntIntMap getScore3(MyGraph graph, TIntList ordering, TIntIntMap score1, TIntIntMap score2) {
+        TIntIntMap res = new TIntIntHashMap();
+        graph.vertexSet().forEach(integer -> {
+            if (!ordering.contains(integer)) {
+                res.put(integer, Graphs.neighborSetOf(graph, integer).size() - (score1.get(integer) + score2.get(integer)));
+            }
+        });
+        return res;
+    }
+
+    private TIntIntMap getScore2(MyGraph graph, TIntList ordering, TIntIntMap score1) {
+        TIntIntMap res = new TIntIntHashMap();
+        graph.vertexSet().forEach(integer -> {
+            if (!ordering.contains(integer)) {
+                res.put(integer, (int) Graphs.neighborSetOf(graph, integer).stream().filter(x -> !ordering.contains(x) && Graphs.neighborSetOf(graph, x).stream().anyMatch(ordering::contains)).count());
+            }
+        });
+        return res;
+    }
+
+    private TIntIntMap getScore1(MyGraph graph, TIntList ordering) {
+        TIntIntMap res = new TIntIntHashMap();
+        graph.vertexSet().forEach(integer -> {
+            if (!ordering.contains(integer)) {
+                res.put(integer, (int) Graphs.neighborSetOf(graph, integer).stream().filter(ordering::contains).count());
+            }
+        });
+        return res;
+    }
+
     @NotNull
     private static TIntList getThirdCriterium(@NotNull MyGraph graph, @NotNull TIntList ordering, @NotNull TIntSet secondSelection) {
         TIntList thirdSelection = new TIntLinkedList();
         final long[] thirdValue = {-1};
         secondSelection.forEach(vertex -> {
             final long[] score = {0};
-
             GraphUtil.neighboursOf(graph,
                     Graphs.neighborSetOf(graph, vertex)
                             .stream()
@@ -78,7 +120,6 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
                 }
                 return true;
             });
-
             if (score[0] > thirdValue[0]) {
                 thirdSelection.clear();
                 thirdSelection.add(vertex);
@@ -95,10 +136,8 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
     private static TIntSet getSecondCriterium(@NotNull MyGraph graph, @NotNull TIntList ordering, @NotNull TIntSet firstSelections) {
         TIntSet secondSelection = new TIntHashSet();
         final long[] secondValue = {-1};
-
         firstSelections.forEach(vertex -> {
             final long[] score = {0};
-
             GraphUtil.neighboursOf(graph,
                     Graphs.neighborSetOf(graph, vertex)
                             .stream()

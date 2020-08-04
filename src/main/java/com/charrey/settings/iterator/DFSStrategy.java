@@ -1,31 +1,21 @@
 package com.charrey.settings.iterator;
 
-import com.charrey.settings.PathIterationConstants;
+import com.charrey.settings.pathiteration.PathIteration;
 
 public final class DFSStrategy extends IteratorSettings {
 
     public DFSStrategy() {
-        super(PathIterationConstants.DFS_ARBITRARY);
+        super(PathIteration.DFS_ARBITRARY);
     }
 
-
-    @Override
-    public int serialized() {
-        return PathIterationConstants.DFS_ARBITRARY.ordinal();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return o != null && getClass().equals(o.getClass());
-    }
-
-    @Override
-    public int hashCode() {
-        return PathIterationConstants.DFS_ARBITRARY.ordinal();
-    }
 
     @Override
     public String toString() {
         return "DFS            ";
+    }
+
+    @Override
+    public Object clone() {
+        return new DFSStrategy();
     }
 }
