@@ -78,14 +78,17 @@ public class IsoFinder {
         return res;
     }
 
-    private void setup(@NotNull MyGraph sourceGraph, @NotNull MyGraph targetGraph, @NotNull Settings settings, String name) throws DomainCheckerException {
+    private void setup(@NotNull MyGraph sourceGraph,
+                       @NotNull MyGraph targetGraph,
+                       @NotNull Settings settings,
+                       long timeoutTime) throws DomainCheckerException {
         UtilityData data = new UtilityData(sourceGraph, targetGraph);
         if (settings.getWhenToApply() == WhenToApply.CACHED && Arrays.stream(data.getCompatibility(settings.getFiltering())).anyMatch(x -> x.length == 0)) {
             throw new DomainCheckerException("Intial domain check failed");
         }
         occupation = new GlobalOccupation(data, settings);
         vertexMatching = new VertexMatching(sourceGraph, targetGraph, occupation, settings);
-        edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings);
+        edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings, timeoutTime);
         vertexMatching.setEdgeMatchingProvider(edgeMatching);
     }
 
@@ -99,6 +102,7 @@ public class IsoFinder {
      */
     @NotNull
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name) {
+        long timeoutTime = System.currentTimeMillis() + timeout;
         try {
             Mapping sourceGraphMapping;
             Mapping targetGraphMapping;
@@ -109,22 +113,19 @@ public class IsoFinder {
                 newSourceGraph = sourceGraphMapping.graph;
                 targetGraphMapping = new MaxDegreeFirst().apply(testcase.getTargetGraph());
                 newTargetGraph = targetGraphMapping.graph;
-                setup(newSourceGraph, newTargetGraph, settings, name);
+                setup(newSourceGraph, newTargetGraph, settings, timeoutTime);
             } catch (DomainCheckerException e) {
                 return new CompatibilityFailResult();
             }
             long iterations = 0;
-            long initialTime = System.currentTimeMillis();
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
-                //System.out.println(vertexMatching);
-                //System.out.println(edgeMatching);
                 iterations++;
                 if (System.currentTimeMillis() - lastPrint > 1000) {
                     long finalIterations = iterations;
                     LOG.info(() -> name + " is at " + finalIterations + " iterations...");
                     lastPrint = System.currentTimeMillis();
                 }
-                if (System.currentTimeMillis() > initialTime + timeout) {
+                if (System.currentTimeMillis() > timeoutTime || Thread.interrupted()) {
                     return new TimeoutResult(iterations);
                 }
                 LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());

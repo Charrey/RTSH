@@ -11,7 +11,6 @@ import com.charrey.pathiterators.dfs.CachedDFSPathIterator;
 import com.charrey.pathiterators.dfs.InPlaceDFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.PartialMatching;
-import com.charrey.settings.pathiteration.PathIteration;
 import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.ControlPointIteratorStrategy;
 import gnu.trove.set.hash.TIntHashSet;
@@ -35,6 +34,7 @@ public abstract class PathIterator {
      * The Refuse longer paths.
      */
     protected final boolean refuseLongerPaths;
+    protected long timeoutTime;
     private int counter = 0;
     protected final PartialMatchingProvider partialMatchingProvider;
     protected final OccupationTransaction transaction;
@@ -46,13 +46,20 @@ public abstract class PathIterator {
      * @param tail the tail
      * @param head the head
      */
-    protected PathIterator(int tail, int head, Settings settings, GlobalOccupation globalOccupation, OccupationTransaction transaction, PartialMatchingProvider partialMatchingProvider) {
+    protected PathIterator(int tail,
+                           int head,
+                           Settings settings,
+                           GlobalOccupation globalOccupation,
+                           OccupationTransaction transaction,
+                           PartialMatchingProvider partialMatchingProvider,
+                           long timeoutTime) {
         this.tail = tail;
         this.head = head;
         this.refuseLongerPaths = settings.getRefuseLongerPaths();
         this.partialMatchingProvider = partialMatchingProvider;
         this.globalOccupation = globalOccupation;
         this.transaction = transaction;
+        this.timeoutTime = timeoutTime;
     }
 
 
@@ -75,20 +82,21 @@ public abstract class PathIterator {
                                    @NotNull GlobalOccupation occupation,
                                    Supplier<Integer> placementSize,
                                    Settings settings,
-                                   PartialMatchingProvider provider) {
+                                   PartialMatchingProvider provider,
+                                   long timeoutTime) {
         if (targetGraph.getEdge(tail, head) != null) {
             return new SingletonPathIterator(targetGraph, settings, tail, head, provider);
         }
         return switch (settings.getPathIteration().iterationStrategy) {
             case DFS_ARBITRARY, DFS_GREEDY -> {
-                if (settings.getDFSCaching()) {
-                    yield new CachedDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head]);
+                if (settings.getDfsCaching()) {
+                    yield new CachedDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head], timeoutTime);
                 } else {
-                    yield new InPlaceDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, settings.getPathIteration());
+                    yield new InPlaceDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, settings.getPathIteration(), timeoutTime);
                 }
             }
-            case CONTROL_POINT -> new ManagedControlPointIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints());
-            case KPATH -> new KPathPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider);
+            case CONTROL_POINT -> new ManagedControlPointIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints(), timeoutTime);
+            case KPATH -> new KPathPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, timeoutTime);
         };
     }
 

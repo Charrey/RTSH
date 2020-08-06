@@ -93,7 +93,7 @@ class NoDuplicatesTest {
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                });
+                }, Long.MAX_VALUE);
                 Map<Path, Witness> seen = new HashMap<>();
                 Path path;
                 //5 4 1 3 2 is reached with controlpoints {4, 3} and with {4, 1, 3}.

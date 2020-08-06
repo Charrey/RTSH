@@ -7,12 +7,11 @@ import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.SuccessResult;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
-import com.charrey.settings.iterator.ControlPointIteratorStrategy;
-import com.charrey.settings.iterator.OldGreedyDFSStrategy;
-import com.charrey.settings.iterator.IteratorSettings;
-import com.charrey.settings.iterator.KPathStrategy;
+import com.charrey.settings.iterator.*;
 import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -31,6 +30,7 @@ class BigGraphTest {
 
 
     private MyGraph targetGraph;
+    private static MyGraph sourceGraph;
 
     private Set<Integer> wires() {
         return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("wire")).collect(Collectors.toUnmodifiableSet());
@@ -51,38 +51,19 @@ class BigGraphTest {
         }).collect(Collectors.toUnmodifiableSet());
     }
 
-    private Set<Integer> matchFrom() {
-        return targetGraph.vertexSet().stream().filter(vertex -> targetGraph.getLabels(vertex).iterator().next().startsWith("matchfrom")).collect(Collectors.toUnmodifiableSet());
-    }
-
-    private Set<Integer> matchTo() {
-        return targetGraph.vertexSet().stream().filter(vertex -> targetGraph.getLabels(vertex).iterator().next().startsWith("matchto")).collect(Collectors.toUnmodifiableSet());
-    }
+//    private Set<Integer> matchFrom() {
+//        return targetGraph.vertexSet().stream().filter(vertex -> targetGraph.getLabels(vertex).iterator().next().startsWith("matchfrom")).collect(Collectors.toUnmodifiableSet());
+//    }
+//
+//    private Set<Integer> matchTo() {
+//        return targetGraph.vertexSet().stream().filter(vertex -> targetGraph.getLabels(vertex).iterator().next().startsWith("matchto")).collect(Collectors.toUnmodifiableSet());
+//    }
 
 
     private static volatile boolean failed = false;
 
-    private static Thread getThread(TestCase testCase, IteratorSettings strategy) {
-        return new Thread(() -> {
-            Settings settings = new SettingsBuilder()
-                    .withZeroDomainPruning()
-                    .withPathIteration(strategy)
-                    .withParallelPruning()
-                    .withVertexLimit(20).get();
-            try {
-                HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, 60 * 60 * 1000, strategy.toString());
-                System.out.println(result);
-                System.out.println(strategy.toString() + " IS FINISHED ------------------------------------");
-                System.out.flush();
-                if (result instanceof SuccessResult) {
-                    System.exit(0);
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
-                failed = true;
-                throw e;
-            }
-        });
+    private static BigTestRunnable getThread(TestCase testCase, IteratorSettings strategy, long timeout) {
+        return new BigTestRunnable(testCase, strategy, timeout);
     }
 
     private static MyGraph getSourceGraph() {
@@ -109,41 +90,89 @@ class BigGraphTest {
         sourceGraph.addEdge(clockEnableArcNorth, clockEnableWire);
         sourceGraph.addEdge(clockEnableArcSouth, clockEnableWire);
         sourceGraph.addEdge(clockEnableArcWest, clockEnableWire);
-        //sourceGraph.addEdge(clockEnableArcEast, clockEnable);
-        //sourceGraph.addEdge(clockEnable, lut);
+        sourceGraph.addEdge(clockEnableArcEast, clockEnableWire);
+        sourceGraph.addEdge(clockEnableWire, lut);
+        sourceGraph.addEdge(northIn, lut);
+        sourceGraph.addEdge(westIn, lut);
+
 
         return sourceGraph;
 
     }
 
+
+    @BeforeEach
+    void init() {
+        sourceGraph = getSourceGraph();
+    }
+
     @Test
+    void test1x1() throws IOException, InterruptedException {
+        runTest("tile1x1.dot", 1*60*1000);
+    }
+
+    @Test
+    void test1x2() throws IOException, InterruptedException {
+        runTest("tile1x2.dot", 1*60*1000);
+    }
+
+    @Test
+    void test2x1() throws IOException, InterruptedException {
+        runTest("tile2x1.dot", 1*60*1000);
+    }
+
+    @Test
+    void test2x2() throws IOException, InterruptedException {
+        runTest("tile2x2.dot", 1*60*1000);
+    }
+
+
+
     //@Disabled("Takes too long")
-    void importSingleTile() throws IOException, InterruptedException {
-        targetGraph = new MyGraph(true);
-        importDOT(targetGraph, new File("C:\\Users\\Pim\\Virtual Machines\\Afstuderen\\singleTile.dot"));
-        removeTails();
-        targetGraph.randomizeWeights();
-
-        matchFrom().forEach(v -> targetGraph.addAttribute(v, "label", "matchfrom"));
-        matchTo().forEach(v -> targetGraph.addAttribute(v, "label", "matchto"));
-
-        MyGraph sourceGraph = getSourceGraph();
-        TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
+    void runTest(String filename, long timeout) throws IOException, InterruptedException {
+        final long initial = System.currentTimeMillis();
+        TestCase testCase = getTestCase(filename);
 
         failed = false;
-        Thread threadKPath = getThread(testCase, new KPathStrategy());
-        Thread threadDFSArbitrary = getThread(testCase, new OldGreedyDFSStrategy());
-        Thread threadDFSGreedy = getThread(testCase, new OldGreedyDFSStrategy());
-        Thread threadControlPoint = getThread(testCase, new ControlPointIteratorStrategy(1));
-        //threadKPath.start();
-        //threadDFSArbitrary.start();
-        //threadDFSGreedy.start();
+        final BigTestRunnable runnableKPath = getThread(testCase, new KPathStrategy(), timeout - (System.currentTimeMillis() - initial));
+        final BigTestRunnable runnableDFSArbitrary = getThread(testCase, new DFSStrategy(), timeout - (System.currentTimeMillis() - initial));
+        final BigTestRunnable runnableDFSGreedy = getThread(testCase, new OldGreedyDFSStrategy(), timeout - (System.currentTimeMillis() - initial));
+        final BigTestRunnable runnableControlPoint = getThread(testCase, new ControlPointIteratorStrategy(1), timeout - (System.currentTimeMillis() - initial));
+        final Thread threadKPath = new Thread(runnableKPath);
+        final Thread threadDFSArbitrary = new Thread(runnableDFSArbitrary);
+        final Thread threadDFSGreedy = new Thread(runnableDFSGreedy);
+        final Thread threadControlPoint = new Thread(runnableControlPoint);
+        Runnable onDone = () -> {
+            threadKPath.stop();
+            threadDFSArbitrary.stop();
+            threadDFSGreedy.stop();
+            threadControlPoint.stop();
+        };
+        runnableKPath.setOnDone(onDone);
+        runnableDFSArbitrary.setOnDone(onDone);
+        runnableDFSGreedy.setOnDone(onDone);
+        runnableControlPoint.setOnDone(onDone);
+
+        threadKPath.start();
+        threadDFSArbitrary.start();
+        threadDFSGreedy.start();
         threadControlPoint.start();
-        //threadKPath.join();
-        //threadDFSArbitrary.join();
-        //threadDFSGreedy.join();
+
+        threadKPath.join();
+        threadDFSArbitrary.join();
+        threadDFSGreedy.join();
         threadControlPoint.join();
         assertFalse(failed);
+    }
+
+    @NotNull
+    private TestCase getTestCase(String filename) throws IOException {
+        targetGraph = new MyGraph(true);
+        importDOT(targetGraph, new File("C:\\Users\\Pim\\Virtual Machines\\Afstuderen\\" + filename));
+        removeTails();
+        targetGraph.randomizeWeights();
+        TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
+        return testCase;
     }
 
     private void removeTails() {
@@ -153,7 +182,6 @@ class BigGraphTest {
             done = true;
             for (int v : new HashSet<>(targetGraph.vertexSet())) {
                 if (targetGraph.inDegreeOf(v) == 0 || targetGraph.outDegreeOf(v) == 0) {
-                    assert targetGraph.getLabels(v).size() == 1;
                     String label = targetGraph.getLabels(v).iterator().next();
                     switch (label) {
                         case "arc":
@@ -182,6 +210,7 @@ class BigGraphTest {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
         while ((line = reader.readLine()) != null) {
+            System.out.println(line);
             if (line.contains(targetGraph.isDirected() ? "->" : "--")) {
                 Matcher matcher = (targetGraph.isDirected() ? edgePatternDirected : edgePatternUndirected).matcher(line);
                 boolean found = matcher.find();
@@ -209,5 +238,48 @@ class BigGraphTest {
             }
         }
         System.gc();
+    }
+
+    private static class BigTestRunnable implements Runnable {
+        private final IteratorSettings strategy;
+        private final TestCase testCase;
+        private final long timeout;
+        private Runnable onDone;
+
+        public BigTestRunnable(TestCase testCase, IteratorSettings strategy, long timeout) {
+            this.strategy = strategy;
+            this.testCase = testCase;
+            this.timeout = timeout;
+        }
+
+        public void setOnDone(Runnable onDone) {
+            this.onDone = onDone;
+        }
+
+        @Override
+        public void run() {
+                Settings settings = new SettingsBuilder()
+                        .withZeroDomainPruning()
+                        .withPathIteration(strategy)
+                        .withParallelPruning()
+                        .withVertexLimit(20)
+                        //.withClosestTargetVertexOrder()
+                        .get();
+                try {
+                    HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, timeout, strategy.toString());
+                    System.out.println(result);
+                    System.out.println(strategy.toString() + " IS FINISHED ------------------------------------");
+                    System.out.flush();
+                    if (result instanceof SuccessResult) {
+                        onDone.run();
+                    }
+                } catch (Throwable e) {
+                    if (!(e instanceof ThreadDeath)) {
+                        e.printStackTrace();
+                        failed = true;
+                        throw e;
+                    }
+                }
+            }
     }
 }

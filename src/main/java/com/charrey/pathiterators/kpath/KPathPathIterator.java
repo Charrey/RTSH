@@ -9,14 +9,12 @@ import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
 import gnu.trove.list.TIntList;
-import gnu.trove.procedure.TIntProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.shortestpath.YenShortestPathIterator;
 import org.jgrapht.graph.MaskSubgraph;
 
-import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -52,8 +50,9 @@ public class KPathPathIterator extends PathIterator {
                              int head,
                              @NotNull GlobalOccupation occupation,
                              Supplier<Integer> verticesPlaced,
-                             PartialMatchingProvider partialMatchingProvider) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), partialMatchingProvider);
+                             PartialMatchingProvider partialMatchingProvider,
+                             long timeoutTime) {
+        super(tail, head, settings, occupation, occupation.getTransaction(), partialMatchingProvider, timeoutTime);
         this.targetGraph = targetGraph;
         this.occupation = occupation;
         init = occupation.toString();
@@ -72,6 +71,9 @@ public class KPathPathIterator extends PathIterator {
         }
         assert occupation.toString().equals(init) : "Initially: " + init + "; now: " + occupation;
         while (yen.hasNext()) {
+            if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
+                return null;
+            }
             Path pathFound = new Path(targetGraph, yen.next());
             if (refuseLongerPaths && hasUnnecessarilyLongPaths(pathFound)) {
                 continue;

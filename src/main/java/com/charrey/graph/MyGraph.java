@@ -142,7 +142,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             throw new IllegalStateException(GRAPH_IS_LOCKED_MESSAGE);
         }
         if (containsEdge(sourceVertex, targetVertex)) {
-            throw new IllegalArgumentException("This edge already exists!");
+            throw new IllegalArgumentException("This edge already exists: " + getEdge(sourceVertex, targetVertex));
         }
         MyEdge res = new MyEdge(sourceVertex, targetVertex);
         super.addEdge(sourceVertex, targetVertex, res);

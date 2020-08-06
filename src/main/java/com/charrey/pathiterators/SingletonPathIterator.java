@@ -26,7 +26,7 @@ public class SingletonPathIterator extends PathIterator {
      * @throws IllegalStateException thrown if the tail vertex has no outgoing edge to the head.
      */
     SingletonPathIterator(@NotNull MyGraph graph, Settings settings, int tail, int head, PartialMatchingProvider provider) {
-        super(tail, head, settings, null, null, provider);
+        super(tail, head, settings, null, null, provider, Long.MAX_VALUE);
         toReturn = new Path(graph, tail);
         toReturn.append(head);
     }

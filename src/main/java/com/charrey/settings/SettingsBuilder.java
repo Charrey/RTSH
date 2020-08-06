@@ -23,6 +23,7 @@ public class SettingsBuilder {
     private boolean lockVertexLimit = false;
     private boolean lockTargetVertexOrder = false;
     private boolean lockDFSCaching = false;
+    private boolean lockContraction = false;
 
     public SettingsBuilder() {
         settings = new Settings(
@@ -33,7 +34,8 @@ public class SettingsBuilder {
                 WhenToApply.SERIAL,
                 Integer.MAX_VALUE,
                 TargetVertexOrder.LARGEST_DEGREE_FIRST,
-                false
+                false,
+                true
         );
     }
 
@@ -106,10 +108,19 @@ public class SettingsBuilder {
 
     private SettingsBuilder setDFSCaching(boolean dfsCaching) {
         if (lockDFSCaching) {
-            throw new IllegalStateException("DFS caching has already been set to " + settings.getDFSCaching());
+            throw new IllegalStateException("DFS caching has already been set to " + settings.getDfsCaching());
         }
         settings.setPathIterationCaching(dfsCaching);
         lockDFSCaching = true;
+        return this;
+    }
+
+    private SettingsBuilder setContraction(boolean contraction) {
+        if (lockContraction) {
+            throw new IllegalStateException("Contraction has already been set to " + settings.getContraction());
+        }
+        settings.setContraction(contraction);
+        lockContraction = true;
         return this;
     }
 
@@ -210,6 +221,14 @@ public class SettingsBuilder {
         return setWhenToApply(WhenToApply.CACHED);
     }
 
+    public SettingsBuilder withContraction() {
+        return setContraction(true);
+    }
+
+    public SettingsBuilder withoutContraction() {
+        return setContraction(false);
+    }
+
 
     public Settings get() {
         if (lockDFSCaching && !(Set.of(DFS_GREEDY, DFS_ARBITRARY).contains(settings.getPathIteration().iterationStrategy))) {
@@ -223,6 +242,7 @@ public class SettingsBuilder {
         lockVertexLimit = true;
         lockTargetVertexOrder = true;
         lockDFSCaching = true;
+        lockContraction = true;
         check();
         return settings;
     }

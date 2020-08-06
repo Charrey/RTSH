@@ -32,6 +32,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     private final MyGraph targetGraph;
     private final boolean directed;
     private final Settings settings;
+    private final long timeoutTime;
 
     private MultipleKeyMap<PathIterator> pathfinders;
     private final GlobalOccupation occupation;
@@ -45,14 +46,14 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
 
     /**
      * Instantiates a new edgematching.
-     *
-     * @param vertexMatching the vertex matching class used in this homeomorphism finding session
+     *  @param vertexMatching the vertex matching class used in this homeomorphism finding session
      * @param data           the utility data class of this test case (for cached computations)
      * @param source         the source graph (new one)
      * @param target         the target graph
      * @param occupation     the global occupation which vertices have been used and which are available
+     * @param timeoutTime
      */
-    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, GlobalOccupation occupation, Settings settings) {
+    public EdgeMatching(VertexMatching vertexMatching, UtilityData data, MyGraph source, @NotNull MyGraph target, GlobalOccupation occupation, Settings settings, long timeoutTime) {
         this.vertexMatching = vertexMatching;
         this.source = source;
         this.data = data;
@@ -65,6 +66,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         this.vertexMatching.setOnDeletion(em::synchronize);
         this.occupation = occupation;
         this.settings = settings;
+        this.timeoutTime = timeoutTime;
     }
 
     private void initPathFinders() {
@@ -166,7 +168,8 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
                 occupation,
                 () -> vertexMatching.getPlacement().size(),
                 settings,
-                this);
+                this,
+                timeoutTime);
         pathfinders.put(tail, head, iterator);
         Path toReturn = iterator.next();
         if (toReturn != null) {

@@ -36,15 +36,16 @@ public class CachedDFSPathIterator extends PathIterator {
     private final Supplier<Integer> placementSize;
     private final MyGraph graph;
 
+
     /**
      * Instantiates a new DFS path iterator.
-     *
-     * @param graph         the target graph
+     *  @param graph         the target graph
      * @param tail          the start vertex of the path
      * @param head          the end vertex of the path
      * @param occupation    the GlobalOccupation where intermediate nodes are registered
      * @param placementSize supplier of the number of source graph vertices placed at this point in the search
      * @param neighbours    integer array such that for any target graph vertex x, neighbours[x] is an array of                          outgoing neighbours in the order that they need to be attempted.
+     * @param timeoutTime
      */
     public CachedDFSPathIterator(@NotNull MyGraph graph,
                                  Settings settings,
@@ -53,8 +54,9 @@ public class CachedDFSPathIterator extends PathIterator {
                                  GlobalOccupation occupation,
                                  Supplier<Integer> placementSize,
                                  PartialMatchingProvider provider,
-                                 @NotNull int[][] neighbours) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), provider);
+                                 @NotNull int[][] neighbours,
+                                 long timeoutTime) {
+        super(tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime);
         this.head = head;
         exploration = new Path(graph, tail);
         //noinspection AssignmentOrReturnOfFieldWithMutableType
@@ -64,6 +66,7 @@ public class CachedDFSPathIterator extends PathIterator {
         this.occupation = occupation;
         this.placementSize = placementSize;
         this.graph = graph;
+        this.timeoutTime = timeoutTime;
     }
 
     private boolean isCandidate(Integer vertex) {

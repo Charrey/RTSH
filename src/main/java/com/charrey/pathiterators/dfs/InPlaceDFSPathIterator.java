@@ -37,8 +37,9 @@ public class InPlaceDFSPathIterator extends PathIterator {
                                   GlobalOccupation occupation,
                                   Supplier<Integer> placementSize,
                                   PartialMatchingProvider provider,
-                                  IteratorSettings type) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), provider);
+                                  IteratorSettings type,
+                                  long timeoutTime) {
+        super(tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime);
         this.head = head;
         this.exploration = new Path(graph, tail);
         this.nextOptionToTry = new ScalingIntList();
@@ -48,9 +49,9 @@ public class InPlaceDFSPathIterator extends PathIterator {
         if (type instanceof DFSStrategy) {
             this.optionSupplier = new IndexOptionSupplier(graph, head);
         } else if (type instanceof NewGreedyDFSStrategy){
-            this.optionSupplier = new NewGreedyOptionSupplier(occupation, graph, head);
+            this.optionSupplier = new NewGreedyOptionSupplier(occupation, graph, head, timeoutTime);
         } else if (type instanceof OldGreedyDFSStrategy) {
-            this.optionSupplier = new OldGreedyOptionSupplier(occupation, graph, head);
+            this.optionSupplier = new OldGreedyOptionSupplier(graph, head, timeoutTime);
         } else {
             throw new UnsupportedOperationException();
         }
@@ -75,6 +76,9 @@ public class InPlaceDFSPathIterator extends PathIterator {
             removeHeadOfExploration();
         }
         while (exploration.last() != head) {
+            if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
+                return null;
+            }
             boolean foundCandidate = findCandidate();
             if (!foundCandidate) {
                 return null;
@@ -100,6 +104,9 @@ public class InPlaceDFSPathIterator extends PathIterator {
 
     private boolean findCandidate() {
         while (true) {
+            if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
+                return false;
+            }
             int option = nextOptionToTry.get(exploration.length() - 1);
             int neighbour = this.optionSupplier.get(exploration.last(), option, exploration);
             if (neighbour == -1) {

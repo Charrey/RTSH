@@ -52,12 +52,15 @@ public class ManagedControlPointIterator extends PathIterator {
                                        Settings settings, int tail,
                                        int head,
                                        @NotNull GlobalOccupation globalOccupation,
-                                       Supplier<Integer> verticesPlaced, PartialMatchingProvider provider, int maxControlPoints) {
-        super(tail, head, settings, globalOccupation, globalOccupation.getTransaction(), provider);
+                                       Supplier<Integer> verticesPlaced,
+                                       PartialMatchingProvider provider,
+                                       int maxControlPoints,
+                                       long timeoutTime) {
+        super(tail, head, settings, globalOccupation, globalOccupation.getTransaction(), provider, timeoutTime);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.settings = settings;
-        this.child = new ControlPointIterator(graph, tail, head, globalOccupation, transaction, new TIntHashSet(), numberOfControlPoints, verticesPlaced, settings, provider);
+        this.child = new ControlPointIterator(graph, tail, head, globalOccupation, transaction, new TIntHashSet(), numberOfControlPoints, verticesPlaced, settings, provider, timeoutTime);
         this.maxControlPoints = maxControlPoints;
         this.verticesPlaced = verticesPlaced;
     }
@@ -69,6 +72,9 @@ public class ManagedControlPointIterator extends PathIterator {
         while (true) {
             Path path;
             do {
+                if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
+                    return null;
+                }
                 path = child.next();
             } while (path != null && numberOfControlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
@@ -88,7 +94,7 @@ public class ManagedControlPointIterator extends PathIterator {
                 LOG.finest(() -> "Raising control point count to " + numberOfControlPoints);
                 TIntSet localOccupation = new TIntHashSet();
                 localOccupation.add(head());
-                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, transaction, localOccupation, numberOfControlPoints, verticesPlaced, settings, partialMatchingProvider);
+                child = new ControlPointIterator(graph, tail(), head(), globalOccupation, transaction, localOccupation, numberOfControlPoints, verticesPlaced, settings, partialMatchingProvider, timeoutTime);
             }
         }
     }

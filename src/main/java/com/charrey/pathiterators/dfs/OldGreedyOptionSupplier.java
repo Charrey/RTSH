@@ -3,20 +3,19 @@ package com.charrey.pathiterators.dfs;
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.occupation.GlobalOccupation;
-import gnu.trove.map.TIntDoubleMap;
-import gnu.trove.map.hash.TIntDoubleHashMap;
 import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 import org.jgrapht.alg.shortestpath.IntVertexDijkstraShortestPath;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class OldGreedyOptionSupplier extends OptionSupplier {
-    public OldGreedyOptionSupplier(GlobalOccupation occupation, MyGraph graph, int head) {
+    private final long timeoutTime;
+
+    public OldGreedyOptionSupplier(MyGraph graph, int head, long timeoutTime) {
         super(graph, head);
+        this.timeoutTime = timeoutTime;
     }
 
     @Override
@@ -24,6 +23,9 @@ public class OldGreedyOptionSupplier extends OptionSupplier {
         final ShortestPathAlgorithm<Integer, MyEdge> spa = new IntVertexDijkstraShortestPath<>(getGraph());
         Map<Integer, Double> scores = new HashMap<>();
         Graphs.successorListOf(getGraph(), at).forEach(candidate -> {
+            if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
+                return;
+            }
             GraphPath<Integer, MyEdge> path = spa.getPath(candidate, getHead());
             if (path != null) {
                 scores.put(candidate, path.getWeight() + getGraph().getEdgeWeight(getGraph().getEdge(at, candidate)));

@@ -10,14 +10,12 @@ import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
 import gnu.trove.TCollections;
-import gnu.trove.list.TIntList;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -81,8 +79,9 @@ class ControlPointIterator extends PathIterator {
                          int controlPoints,
                          Supplier<Integer> verticesPlaced,
                          Settings settings,
-                         PartialMatchingProvider provider) {
-        super(tail, head, settings, globalOccupation, occupation, provider);
+                         PartialMatchingProvider provider,
+                         long timeoutTime) {
+        super(tail, head, settings, globalOccupation, occupation, provider, timeoutTime);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;
         this.globalOccupation = globalOccupation;
@@ -244,6 +243,9 @@ class ControlPointIterator extends PathIterator {
         StringBuilder prefix = new StringBuilder();
         prefix.append("   ".repeat(Math.max(0, 10 - controlPoints)));
         while (!done) {
+            if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
+                return null;
+            }
             if (controlPoints == 0) {
                 return provideShortestPath(prefix);
             } else if (child == null) {
@@ -269,7 +271,7 @@ class ControlPointIterator extends PathIterator {
 
                     TIntSet previousOccupation = new TIntHashSet(localOccupation);
                     chosenPath.forEach(localOccupation::add);
-                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, globalOccupation, transaction, new TIntHashSet(localOccupation), controlPoints - 1, verticesPlaced, settings, partialMatchingProvider);
+                    child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, globalOccupation, transaction, new TIntHashSet(localOccupation), controlPoints - 1, verticesPlaced, settings, partialMatchingProvider, timeoutTime);
                     child.setRightNeighbourOfRightNeighbour(this.head(), chosenPath, previousOccupation);
                 }
             } else {

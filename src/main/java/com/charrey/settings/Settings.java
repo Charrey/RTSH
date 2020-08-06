@@ -1,7 +1,6 @@
 package com.charrey.settings;
 
 import com.charrey.settings.iterator.IteratorSettings;
-import com.charrey.settings.pathiteration.DFSCaching;
 import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.settings.pruning.PruningMethod;
 import com.charrey.settings.pruning.domainfilter.FilteringSettings;
@@ -15,7 +14,8 @@ import java.util.Objects;
  */
 public class Settings implements Cloneable {
 
-    private boolean DFSCaching;
+    private boolean contraction;
+    private boolean dfsCaching;
     /**
      * Whether to refuse paths that take up unnecessarily many resources.
      */
@@ -52,7 +52,8 @@ public class Settings implements Cloneable {
              WhenToApply whenToApply,
              int vertexLimit,
              TargetVertexOrder targetVertexOrder,
-             boolean DFSCaching) {
+             boolean dfsCaching,
+             boolean contraction) {
         this.filtering = filtering;
         this.refuseLongerPaths = refuseLongerPaths;
         this.pruningMethod = pruningMethod;
@@ -60,7 +61,8 @@ public class Settings implements Cloneable {
         this.whenToApply = whenToApply;
         this.vertexLimit = vertexLimit;
         this.targetVertexOrder = targetVertexOrder;
-        this.DFSCaching = DFSCaching;
+        this.dfsCaching = dfsCaching;
+        this.contraction = contraction;
     }
 
     @Override
@@ -72,7 +74,8 @@ public class Settings implements Cloneable {
                 refuseLongerPaths == settings.refuseLongerPaths &&
                 pruningMethod == settings.pruningMethod &&
                 pathIteration.equals(settings.pathIteration) &&
-                DFSCaching == settings.DFSCaching;
+                dfsCaching == settings.dfsCaching &&
+                contraction == settings.contraction;
     }
 
     @Override
@@ -89,7 +92,7 @@ public class Settings implements Cloneable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration, DFSCaching);
+        return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration, dfsCaching, contraction);
     }
 
     public WhenToApply getWhenToApply() {
@@ -148,11 +151,19 @@ public class Settings implements Cloneable {
         this.targetVertexOrder = order;
     }
 
-    public boolean getDFSCaching() {
-        return DFSCaching;
+    public boolean getDfsCaching() {
+        return dfsCaching;
     }
 
-    void setPathIterationCaching(boolean DFSCaching) {
-        this.DFSCaching = DFSCaching;
+    void setPathIterationCaching(boolean dfsCaching) {
+        this.dfsCaching = dfsCaching;
+    }
+
+    public boolean getContraction() {
+        return contraction;
+    }
+
+    void setContraction(boolean contraction) {
+        this.contraction = contraction;
     }
 }
