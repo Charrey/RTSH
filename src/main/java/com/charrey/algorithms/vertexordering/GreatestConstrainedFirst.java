@@ -12,10 +12,8 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -51,11 +49,8 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
         newToOld.add(maxDegreeVertex);
         while (newToOld.size() < graph.vertexSet().size()) {
             TIntIntMap score1 = getScore1(graph, newToOld);
-            TIntIntMap score2 = getScore2(graph, newToOld, score1);
+            TIntIntMap score2 = getScore2(graph, newToOld);
             TIntIntMap score3 = getScore3(graph, newToOld, score1, score2);
-//            TIntSet firstSelection = getFirstCriterium(graph, newToOld);
-//            TIntSet secondSelection = getSecondCriterium(graph, newToOld, firstSelection);
-//            TIntList thirdSelection = new TIntLinkedList(getThirdCriterium(graph, newToOld, secondSelection));
 
             List<Integer> allVertices = graph.vertexSet().stream().filter(x -> !newToOld.contains(x)).sorted(Comparator.comparingInt(o -> -score1.get((Integer) o))
                     .thenComparingInt(o -> -score2.get((Integer) o))
@@ -84,7 +79,7 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
         return res;
     }
 
-    private TIntIntMap getScore2(MyGraph graph, TIntList ordering, TIntIntMap score1) {
+    private TIntIntMap getScore2(MyGraph graph, TIntList ordering) {
         TIntIntMap res = new TIntIntHashMap();
         graph.vertexSet().forEach(integer -> {
             if (!ordering.contains(integer)) {

@@ -154,7 +154,6 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             tail = Math.min(from, to);
             head = Math.max(from, to);
         }
-        assert directed || tail < head;
         //get pathIterator
 
         if (pathfinders.containsKey(tail, head)) {
@@ -169,7 +168,8 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
                 () -> vertexMatching.getPlacement().size(),
                 settings,
                 this,
-                timeoutTime);
+                timeoutTime,
+                source.getChains(lastPlacedIndex, edges[lastPlacedIndex][paths.get(lastPlacedIndex).size()]));
         pathfinders.put(tail, head, iterator);
         Path toReturn = iterator.next();
         if (toReturn != null) {
@@ -188,12 +188,12 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         for (int i = 0; i < source.vertexSet().size(); i++) {
             int tempi = i;
             if (!directed) {
-                edges[i] = Graphs.neighborSetOf(source, tempi).stream().filter(x -> x < tempi).mapToInt(x -> x).toArray();
+                edges[i] = Graphs.neighborSetOf(source, tempi).stream().filter(x -> x <= tempi).mapToInt(x -> x).toArray();
             } else {
                 List<Integer> incomingEdges = IntStream.range(0, tempi).boxed()
                         .filter(x -> source.getEdge(x, tempi) != null)
                         .collect(Collectors.toUnmodifiableList());
-                List<Integer> outgoingEdges = IntStream.range(0, tempi).boxed()
+                List<Integer> outgoingEdges = IntStream.range(0, tempi + 1).boxed()
                         .filter(x -> source.getEdge(tempi, x) != null)
                         .collect(Collectors.toUnmodifiableList());
                 incoming[i] = new boolean[incomingEdges.size() + outgoingEdges.size()];

@@ -45,7 +45,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(100 * 1000, 50, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(10 * 1000, 50, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test

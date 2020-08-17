@@ -9,6 +9,7 @@ import gnu.trove.list.linked.TIntLinkedList;
 import gnu.trove.procedure.TIntProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 
 import java.util.*;
@@ -26,7 +27,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
     @NotNull
     private final Set<Integer> containing;
     private final int initialVertex;
-    private final MyGraph graph;
+    private final Graph<Integer, MyEdge> graph;
 
 
     /**
@@ -49,7 +50,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      * @param graph the graph of which vertices may be added to this Path.
      * @param gPath the JGraphT path to convert to our own datatype.
      */
-    public Path(@NotNull MyGraph graph, @NotNull GraphPath<Integer, MyEdge> gPath) {
+    public Path(@NotNull Graph<Integer, MyEdge> graph, @NotNull GraphPath<Integer, MyEdge> gPath) {
         this.vertexList = new TIntLinkedList();
         this.containing = new HashSet<>();
         this.initialVertex = gPath.getStartVertex();
@@ -66,7 +67,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      * @param graph      the graph of which vertices may be added to this Path.
      * @param vertexList the list of vertices to create a graph path from.
      */
-    public Path(@NotNull MyGraph graph, @NotNull List<Integer> vertexList) {
+    public Path(@NotNull Graph<Integer, MyEdge> graph, @NotNull List<Integer> vertexList) {
         this.graph = graph;
         this.vertexList = new TIntLinkedList();
         this.containing = new HashSet<>();
@@ -80,7 +81,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      * @param graph      the graph of which vertices may be added to this Path.
      * @param vertexList the list of vertices to create a graph path from.
      */
-    public Path(@NotNull MyGraph graph, @NotNull TIntList vertexList) {
+    public Path(@NotNull Graph<Integer, MyEdge> graph, @NotNull TIntList vertexList) {
         this.graph = graph;
         this.vertexList = new TIntLinkedList();
         this.containing = new HashSet<>();
@@ -125,6 +126,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      *
      * @param consumer the consumer
      */
+    @Override
     public void forEach(Consumer<? super Integer> consumer) {
         vertexList.forEach(i -> {
             consumer.accept(i);
@@ -146,7 +148,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      * @param toAdd vertex to append to this Path.
      */
     public void append(Integer toAdd) {
-        if (!containing.contains(toAdd)) {
+        if (!containing.contains(toAdd) || vertexList.get(0) == toAdd) {
             if (!containing.isEmpty() && graph.getEdge(vertexList.get(vertexList.size() - 1), toAdd) == null) {
                 throw new IllegalStateException("Attempt to add a vertex on this path that is not connected to the current head.");
             }
@@ -192,7 +194,9 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      */
     public int removeLast() {
         int removed = vertexList.removeAt(vertexList.size() - 1);
-        containing.remove(removed);
+        if (vertexList.get(0) != removed) {
+            containing.remove(removed);
+        }
         return removed;
     }
 
@@ -268,14 +272,12 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
     }
 
     public void insert(int index, int value) {
-        if (!containing.contains(value)) {
+        if (!containing.contains(value) || vertexList.get(0) == value) {
             if (index == length()) {
                 append(value);
             } else {
-                if (index > 0) {
-                    if (graph.getEdge(vertexList.get(index - 1), value) == null) {
-                        throw new IllegalStateException("Attempt to insert a vertex " + value + " that is not connected to its predecessor " + vertexList.get(index - 1) + " in graph:\n" + graph);
-                    }
+                if (index > 0 && graph.getEdge(vertexList.get(index - 1), value) == null) {
+                    throw new IllegalStateException("Attempt to insert a vertex " + value + " that is not connected to its predecessor " + vertexList.get(index - 1) + " in graph:\n" + graph);
                 }
                 if (graph.getEdge(value, vertexList.get(index)) == null) {
                     throw new IllegalStateException("Attempt to insert a vertex " + value + " that is not connected to its successor " + vertexList.get(index) + " in graph:\n" + graph);
@@ -320,7 +322,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
 
 
 
-    public MyGraph getGraph() {
+    public Graph<Integer, MyEdge> getGraph() {
         return graph;
     }
 }

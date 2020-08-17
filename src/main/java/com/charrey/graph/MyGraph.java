@@ -1,5 +1,9 @@
 package com.charrey.graph;
 
+import com.charrey.util.GraphUtil;
+import gnu.trove.list.TIntList;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.AbstractBaseGraph;
@@ -11,6 +15,7 @@ import org.jgrapht.util.SupplierUtil;
 
 import java.io.StringWriter;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +31,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     private double maxEdgeWeight = 1d;
     private final List<Map<String, Set<String>>> attributes;
     private boolean locked = false;
+    private Map<MyEdge, List<Map<String, Set<String>>>> chains;
 
     @Override
     public boolean equals(Object o) {
@@ -52,10 +58,10 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
                 SupplierUtil.createIntegerSupplier(), new MyEdge.MyEdgeSupplier(),
                 directed ?
                         new DefaultGraphType.Builder()
-                                .directed().allowMultipleEdges(false).allowSelfLoops(false).weighted(true)
+                                .directed().allowMultipleEdges(true).allowSelfLoops(true).weighted(true)
                                 .build() :
                         new DefaultGraphType.Builder()
-                                .undirected().allowMultipleEdges(false).allowSelfLoops(false).weighted(true)
+                                .undirected().allowMultipleEdges(true).allowSelfLoops(true).weighted(true)
                                 .build()
         );
         this.directed = directed;
@@ -72,6 +78,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
      */
     public static MyGraph applyOrdering(MyGraph source, int[] newToOld, int[] oldToNew) {
         MyGraph res = new MyGraph(source.directed);
+        res.chains = new HashMap<>();
         for (int newVertex = 0; newVertex < source.vertexSet().size(); newVertex++) {
             int newVertexFinal = newVertex;
             res.addVertex(newVertex);
@@ -79,12 +86,21 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             source.attributes.get(oldVertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(newVertexFinal, key, value)));
             Set<Integer> predecessors = Graphs.predecessorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableSet());
             predecessors.forEach(x -> res.addEdge(x, newVertexFinal));
-            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableSet()));
+            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x <= newVertexFinal).collect(Collectors.toUnmodifiableSet()));
             if (!source.directed) {
                 successors.removeAll(predecessors);
             }
             successors.forEach(x -> res.addEdge(newVertexFinal, x));
         }
+        if (source.chains != null) {
+            source.chains.forEach((key, value) -> {
+                Optional<MyEdge> newEdges = res.getAllEdges(oldToNew[key.getSource()], oldToNew[key.getTarget()])
+                        .stream().filter(x -> !res.chains.containsKey(x)).findFirst();
+                assert newEdges.isPresent();
+                res.chains.put(newEdges.get(), value);
+            });
+        }
+
         return res;
     }
 
@@ -140,9 +156,6 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     public MyEdge addEdge(Integer sourceVertex, Integer targetVertex) {
         if (locked) {
             throw new IllegalStateException(GRAPH_IS_LOCKED_MESSAGE);
-        }
-        if (containsEdge(sourceVertex, targetVertex)) {
-            throw new IllegalArgumentException("This edge already exists: " + getEdge(sourceVertex, targetVertex));
         }
         MyEdge res = new MyEdge(sourceVertex, targetVertex);
         super.addEdge(sourceVertex, targetVertex, res);
@@ -234,4 +247,42 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     }
 
 
+    public MyGraph contract() {
+        Contractor contractor = new Contractor();
+        MyGraph toReturn;
+        if (isDirected()) {
+            toReturn = contractor.contractDirected(this);
+        } else {
+            toReturn =  contractor.contractUndirected(this);
+        }
+        return toReturn;
+    }
+
+    private MyGraph contractUndirected() {
+        throw new UnsupportedOperationException(); //todo;
+    }
+
+
+    private TIntObjectMap<TIntObjectMap<Set<List<Map<String, Set<String>>>>>> chainCache = new TIntObjectHashMap<>();
+    public Set<List<Map<String, Set<String>>>> getChains(int from, int to) {
+        if (chains == null) {
+            return Collections.emptySet();
+        }
+        if (!chainCache.containsKey(from)) {
+            chainCache.put(from, new TIntObjectHashMap<>());
+        }
+        if (!chainCache.get(from).containsKey(to)) {
+            Set<MyEdge> edges = getAllEdges(from, to);
+            Set<List<Map<String, Set<String>>>>res = new HashSet<>();
+            edges.forEach(myEdge -> res.add(chains.get(myEdge)));
+            chainCache.get(from).put(to, res);
+            return res;
+        } else {
+            return chainCache.get(from).get(to);
+        }
+    }
+
+    public void setChains(Map<MyEdge, List<Map<String, Set<String>>>> chains) {
+        this.chains = chains;
+    }
 }

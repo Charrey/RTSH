@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * A wrapper class for a source graph and a target graph to be used for finding a homeomorphism.
  */
-public class TestCase implements Serializable, Iterable<MyGraph> {
+public class TestCase implements Iterable<MyGraph> {
     /**
      * The target graph in which the subgraph homeomorphism is found
      */
@@ -64,14 +64,14 @@ public class TestCase implements Serializable, Iterable<MyGraph> {
     }
 
     public synchronized TestCase copy() {
-        MyGraph sourceGraph = GraphUtil.copy(this.sourceGraph, random).graph;
-        MyGraph targetGraph = GraphUtil.copy(this.targetGraph, random).graph;
-        int[] expectedVertexMatching = this.expectedVertexMatching == null ? null : Arrays.copyOf(this.expectedVertexMatching, this.expectedVertexMatching.length);
-        Map<MyEdge, Path> expectedEdgeMatching = this.expectedEdgeMatching == null ? null : this.expectedEdgeMatching.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, myEdgePathEntry -> new Path(myEdgePathEntry.getValue())));
+        MyGraph sourceGraphCopy = GraphUtil.copy(this.sourceGraph, random).graph;
+        MyGraph targetGraphCopy = GraphUtil.copy(this.targetGraph, random).graph;
+        int[] expectedVertexMatchingCopy = this.expectedVertexMatching == null ? null : Arrays.copyOf(this.expectedVertexMatching, this.expectedVertexMatching.length);
+        Map<MyEdge, Path> expectedEdgeMatchingCopy = this.expectedEdgeMatching == null ? null : this.expectedEdgeMatching.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, myEdgePathEntry -> new Path(myEdgePathEntry.getValue())));
         return new TestCase(
-                sourceGraph,
-                targetGraph,
-                expectedVertexMatching,
-                expectedEdgeMatching);
+                sourceGraphCopy,
+                targetGraphCopy,
+                expectedVertexMatchingCopy,
+                expectedEdgeMatchingCopy);
     }
 }

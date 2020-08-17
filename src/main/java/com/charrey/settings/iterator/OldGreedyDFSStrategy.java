@@ -16,6 +16,6 @@ public final class OldGreedyDFSStrategy extends IteratorSettings {
 
     @Override
     public Object clone() {
-        return new OldGreedyDFSStrategy();
+        return super.clone();
     }
 }

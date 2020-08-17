@@ -48,27 +48,6 @@ public class UtilityData {
         this.targetGraph = targetGraph;
     }
 
-// --Commented out by Inspection START (03/08/2020 11:23):
-//    /**
-//     * Returns the number of vertices in the target graph
-//     *
-//     * @return the number of vertices in the target graph
-//     */
-//    public int targetGraphSize() {
-//        return targetGraph.vertexSet().size();
-//    }
-// --Commented out by Inspection STOP (03/08/2020 11:23)
-
-// --Commented out by Inspection START (03/08/2020 11:23):
-//    /**
-//     * Returns the number of vertices in the source graph
-//     *
-//     * @return the number of vertices in the source graph
-//     */
-//    public int sourceGraphSize() {
-//        return patternGraph.vertexSet().size();
-//    }
-// --Commented out by Inspection STOP (03/08/2020 11:23)
 
 
     private int[][] compatibility;
@@ -132,54 +111,58 @@ public class UtilityData {
                     .stream()
                     .sorted().collect(Collectors.toList());
             switch (strategy) {
-                case DFS_ARBITRARY -> {
-                    int[][] sharedTargetNeighbours = new int[targetVertices.size()][];
-                    targetNeighbours = new int[targetGraph.vertexSet().size()][][];
-                    for (int i = 0; i < sharedTargetNeighbours.length; i++) {
-                        int candidate = targetVertices.get(i);
-                        assert candidate == i : "Target graph does not have consecutive vertex data starting from zero. Index: " + i + ", data: " + candidate;
-                        sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
-                                .stream()
-                                .mapToInt(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
-                                .toArray();
-                        Util.shuffle(sharedTargetNeighbours[i], random);
-                    }
-                    for (int i = 0; i < targetGraph.vertexSet().size(); i++) {
-                        targetNeighbours[i] = Arrays.copyOf(sharedTargetNeighbours, sharedTargetNeighbours.length);
-                    }
-                }
-                case DFS_GREEDY -> {
-                    targetNeighbours = getTargetNeighbours(DFS_ARBITRARY);
-                    ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths<Integer, MyEdge> shortestPaths = new CHManyToManyShortestPaths<>(targetGraph).getManyToManyPaths(targetGraph.vertexSet(), targetGraph.vertexSet());
-                    List[][] tempTargetNeigbours = new List[targetNeighbours.length][targetNeighbours.length];
-                    for (int i = 0; i < tempTargetNeigbours.length; i++) {
-                        for (int j = 0; j < tempTargetNeigbours[i].length; j++) {
-                            tempTargetNeigbours[i][j] = Arrays.stream(targetNeighbours[i][j]).boxed().collect(Collectors.toList());
-                        }
-                    }
-                    for (int goal = 0; goal < targetNeighbours.length; goal++) {
-                        double[] distances = new double[tempTargetNeigbours.length];
-                        for (int from = 0; from < tempTargetNeigbours[goal].length; from++) {
-                            List<Integer> toSort = tempTargetNeigbours[goal][from];
-                            Set<Integer> toRemove = new HashSet<>();
-                            for (int to : toSort) {
-                                GraphPath<Integer, MyEdge> path = shortestPaths.getPath(to, targetVertices.get(goal));
-                                if (path == null) {
-                                    toRemove.add(to);
-                                } else {
-                                    distances[to] = targetGraph.getEdgeWeight(targetGraph.getEdge(from, to)) + path.getWeight();
-                                }
-                            }
-                            toSort.removeAll(toRemove);
-                            toSort.sort(Comparator.comparingDouble(o -> distances[o]));
-                            targetNeighbours[goal][from] = toSort.stream().mapToInt(x -> x).toArray();
-                        }
-                    }
-                }
+                case DFS_ARBITRARY -> setArbitraryTargetNeighbours(targetVertices);
+                case DFS_GREEDY -> setGreedyTargetNeighbours(targetVertices);
                 default -> throw new UnsupportedOperationException();
             }
         }
         return targetNeighbours;
+    }
+
+    private void setGreedyTargetNeighbours(List<Integer> targetVertices) {
+        targetNeighbours = getTargetNeighbours(DFS_ARBITRARY);
+        ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths<Integer, MyEdge> shortestPaths = new CHManyToManyShortestPaths<>(targetGraph).getManyToManyPaths(targetGraph.vertexSet(), targetGraph.vertexSet());
+        List[][] tempTargetNeigbours = new List[targetNeighbours.length][targetNeighbours.length];
+        for (int i = 0; i < tempTargetNeigbours.length; i++) {
+            for (int j = 0; j < tempTargetNeigbours[i].length; j++) {
+                tempTargetNeigbours[i][j] = Arrays.stream(targetNeighbours[i][j]).boxed().collect(Collectors.toList());
+            }
+        }
+        for (int goal = 0; goal < targetNeighbours.length; goal++) {
+            double[] distances = new double[tempTargetNeigbours.length];
+            for (int from = 0; from < tempTargetNeigbours[goal].length; from++) {
+                List<Integer> toSort = tempTargetNeigbours[goal][from];
+                Set<Integer> toRemove = new HashSet<>();
+                for (int to : toSort) {
+                    GraphPath<Integer, MyEdge> path = shortestPaths.getPath(to, targetVertices.get(goal));
+                    if (path == null) {
+                        toRemove.add(to);
+                    } else {
+                        distances[to] = targetGraph.getEdgeWeight(targetGraph.getEdge(from, to)) + path.getWeight();
+                    }
+                }
+                toSort.removeAll(toRemove);
+                toSort.sort(Comparator.comparingDouble(o -> distances[o]));
+                targetNeighbours[goal][from] = toSort.stream().mapToInt(x -> x).toArray();
+            }
+        }
+    }
+
+    private void setArbitraryTargetNeighbours(List<Integer> targetVertices) {
+        int[][] sharedTargetNeighbours = new int[targetVertices.size()][];
+        targetNeighbours = new int[targetGraph.vertexSet().size()][][];
+        for (int i = 0; i < sharedTargetNeighbours.length; i++) {
+            int candidate = targetVertices.get(i);
+            assert candidate == i : "Target graph does not have consecutive vertex data starting from zero. Index: " + i + ", data: " + candidate;
+            sharedTargetNeighbours[i] = targetGraph.outgoingEdgesOf(candidate)
+                    .stream()
+                    .mapToInt(x -> Graphs.getOppositeVertex(targetGraph, x, candidate))
+                    .toArray();
+            Util.shuffle(sharedTargetNeighbours[i], random);
+        }
+        for (int i = 0; i < targetGraph.vertexSet().size(); i++) {
+            targetNeighbours[i] = Arrays.copyOf(sharedTargetNeighbours, sharedTargetNeighbours.length);
+        }
     }
 
 

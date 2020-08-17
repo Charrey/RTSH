@@ -4,7 +4,7 @@ import com.charrey.settings.pathiteration.PathIteration;
 
 public final class ControlPointIteratorStrategy extends IteratorSettings {
 
-    private final int maxControlPoints;
+    private int maxControlPoints;
 
     public ControlPointIteratorStrategy(int maxControlPoints) {
         super(PathIteration.CONTROL_POINT);
@@ -23,6 +23,8 @@ public final class ControlPointIteratorStrategy extends IteratorSettings {
 
     @Override
     public Object clone() {
-        return new ControlPointIteratorStrategy(maxControlPoints);
+        ControlPointIteratorStrategy toReturn = (ControlPointIteratorStrategy) super.clone();
+        toReturn.maxControlPoints = maxControlPoints;
+        return toReturn;
     }
 }

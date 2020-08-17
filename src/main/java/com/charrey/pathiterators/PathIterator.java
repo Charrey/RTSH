@@ -17,6 +17,9 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -83,7 +86,8 @@ public abstract class PathIterator {
                                    Supplier<Integer> placementSize,
                                    Settings settings,
                                    PartialMatchingProvider provider,
-                                   long timeoutTime) {
+                                   long timeoutTime,
+                                   Set<List<Map<String, Set<String>>>> compatibilityChains) {
         if (targetGraph.getEdge(tail, head) != null) {
             return new SingletonPathIterator(targetGraph, settings, tail, head, provider);
         }
@@ -119,9 +123,17 @@ public abstract class PathIterator {
         if (globalOccupation != null) {
             globalOccupation.claimActiveOccupation(transaction);
             toReturn = getNext();
+            while (toReturn != null && toReturn.length() == 1) {
+                toReturn = getNext();
+
+            }
             globalOccupation.unclaimActiveOccupation();
         } else {
             toReturn = getNext();
+            while (toReturn != null && toReturn.length() == 1) {
+                toReturn = getNext();
+
+            }
         }
         counter++;
         return toReturn;

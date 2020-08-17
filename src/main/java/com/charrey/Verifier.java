@@ -8,7 +8,6 @@ import com.charrey.matching.VertexMatching;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Set;
 
 /**

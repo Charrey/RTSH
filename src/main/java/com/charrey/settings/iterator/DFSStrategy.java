@@ -16,6 +16,6 @@ public final class DFSStrategy extends IteratorSettings {
 
     @Override
     public Object clone() {
-        return new DFSStrategy();
+        return super.clone();
     }
 }

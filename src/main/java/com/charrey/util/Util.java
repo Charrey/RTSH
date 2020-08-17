@@ -5,7 +5,6 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.AbstractOccupation;
 import gnu.trove.TCollections;
-import gnu.trove.list.TIntList;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -16,7 +15,9 @@ import org.jgrapht.Graphs;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.graph.MaskSubgraph;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 

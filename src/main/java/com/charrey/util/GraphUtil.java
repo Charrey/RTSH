@@ -57,7 +57,9 @@ public class GraphUtil {
         int[] oldVertexToNew = new int[oldGraph.vertexSet().size()];
         List<Integer> oldVertices = new LinkedList<>(oldGraph.vertexSet());
         oldVertices.sort(Integer::compareTo);
-        Collections.shuffle(oldVertices, new RandomAdaptor(random));
+        if (random != null) {
+            Collections.shuffle(oldVertices, new RandomAdaptor(random));
+        }
         for (int oldVertex : oldVertices) {
             oldVertexToNew[oldVertex] = newGraph.addVertex();
             oldGraph.getAttributes(oldVertex).forEach((key, value1) -> value1.forEach(value -> newGraph.addAttribute(oldVertexToNew[oldVertex], key, value)));
@@ -69,7 +71,9 @@ public class GraphUtil {
             int compareSecond = Integer.compare(oldGraph.getEdgeTarget(o1), oldGraph.getEdgeTarget(o2));
             return compareFirst == 0 ? compareSecond : compareFirst;
         });
-        Collections.shuffle(oldEdges, new RandomAdaptor(random));
+        if (random != null) {
+            Collections.shuffle(oldEdges, new RandomAdaptor(random));
+        }
         for (MyEdge oldEdge : oldEdges) {
             newGraph.addEdge(oldVertexToNew[oldGraph.getEdgeSource(oldEdge)], oldVertexToNew[oldGraph.getEdgeTarget(oldEdge)]);
         }
@@ -124,21 +128,20 @@ public class GraphUtil {
         return cachedRandomVertexOrder.get(graph);
     }
 
-    public static MyGraph repairVertices(MyGraph targetGraph) {
-        int[] permutation = new int[targetGraph.vertexSet().size()];
-        int[] reversePermutation = new int[targetGraph.vertexSet().stream().mapToInt(x -> x).max().getAsInt() + 1];
+    public static MyGraph repairVertices(MyGraph graph) {
+        int[] permutation = new int[graph.vertexSet().size()];
+        int[] reversePermutation = new int[graph.vertexSet().stream().mapToInt(x -> x).max().getAsInt() + 1];
         int counter = 0;
-        List<Integer> vertexList = new ArrayList<>(targetGraph.vertexSet());
+        List<Integer> vertexList = new ArrayList<>(graph.vertexSet());
         for (Integer integer : vertexList) {
             permutation[counter] = integer;
             reversePermutation[integer] = counter;
             counter++;
         }
-        return MyGraph.applyOrdering(targetGraph, permutation, reversePermutation);
+        return MyGraph.applyOrdering(graph, permutation, reversePermutation);
     }
 
     public static TIntSet radiusNeighbourHood(MyGraph sourceGraphVertex, int targetGraphVertex, int radius) {
-
         throw new UnsupportedOperationException();
     }
 

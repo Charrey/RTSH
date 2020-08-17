@@ -14,6 +14,6 @@ public final class KPathStrategy extends IteratorSettings {
 
     @Override
     public Object clone() {
-        return new KPathStrategy();
+        return super.clone();
     }
 }

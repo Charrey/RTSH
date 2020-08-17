@@ -11,10 +11,11 @@ import com.charrey.settings.Settings;
 import gnu.trove.list.TIntList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
-import org.jgrapht.alg.shortestpath.YenShortestPathIterator;
 import org.jgrapht.graph.MaskSubgraph;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -32,7 +33,7 @@ public class KPathPathIterator extends PathIterator {
     private final Supplier<Integer> verticesPlaced;
 
     @NotNull
-    private final YenShortestPathIterator<Integer, MyEdge> yen;
+    private final Iterator<GraphPath<Integer, MyEdge>> inner;
 
     private int counter = 0;
 
@@ -57,7 +58,7 @@ public class KPathPathIterator extends PathIterator {
         this.occupation = occupation;
         init = occupation.toString();
         this.verticesPlaced = verticesPlaced;
-        yen = new YenShortestPathIterator<>(new MaskSubgraph<>(targetGraph, x -> !x.equals(tail) && !x.equals(head) && occupation.isOccupied(x), y -> false), tail, head);
+        inner = ShortestPathIteratorFactory.get(new MaskSubgraph<>(targetGraph, x -> !x.equals(tail) && !x.equals(head) && occupation.isOccupied(x), y -> false), head, tail);
     }
 
     private Path previousPath = null;
@@ -70,12 +71,12 @@ public class KPathPathIterator extends PathIterator {
             previousPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
         }
         assert occupation.toString().equals(init) : "Initially: " + init + "; now: " + occupation;
-        while (yen.hasNext()) {
+        while (inner.hasNext()) {
             if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
                 return null;
             }
-            Path pathFound = new Path(targetGraph, yen.next());
-            if (refuseLongerPaths && hasUnnecessarilyLongPaths(pathFound)) {
+            Path pathFound = new Path(targetGraph, inner.next());
+            if (pathFound.length() < 2 || (refuseLongerPaths && hasUnnecessarilyLongPaths(pathFound))) {
                 continue;
             }
             boolean okay = true;

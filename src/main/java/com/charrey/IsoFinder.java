@@ -106,12 +106,15 @@ public class IsoFinder {
         try {
             Mapping sourceGraphMapping;
             Mapping targetGraphMapping;
-            MyGraph newSourceGraph;
-            MyGraph newTargetGraph;
+            MyGraph newSourceGraph = testcase.getSourceGraph();
+            MyGraph newTargetGraph = testcase.getTargetGraph();
+            if (settings.getContraction()) {
+                newSourceGraph = newSourceGraph.contract();
+            }
             try {
-                sourceGraphMapping = new GreatestConstrainedFirst().apply(testcase.getSourceGraph());
+                sourceGraphMapping = new GreatestConstrainedFirst().apply(newSourceGraph);
                 newSourceGraph = sourceGraphMapping.graph;
-                targetGraphMapping = new MaxDegreeFirst().apply(testcase.getTargetGraph());
+                targetGraphMapping = new MaxDegreeFirst().apply(newTargetGraph);
                 newTargetGraph = targetGraphMapping.graph;
                 setup(newSourceGraph, newTargetGraph, settings, timeoutTime);
             } catch (DomainCheckerException e) {
@@ -145,11 +148,19 @@ public class IsoFinder {
                 } else if (vertexMatching.canRetry()) {
                     vertexMatching.removeLast();
                 } else {
-                    return new FailResult(iterations);
+                    if (System.currentTimeMillis() >= timeoutTime || Thread.currentThread().isInterrupted()) {
+                        return new TimeoutResult(iterations);
+                    } else {
+                        return new FailResult(iterations);
+                    }
                 }
             }
-            if (vertexMatching.getPlacement().size() < testcase.getSourceGraph().vertexSet().size()) {
-                return new FailResult(iterations);
+            if (vertexMatching.getPlacement().size() < newSourceGraph.vertexSet().size()) {
+                if (System.currentTimeMillis() >= timeoutTime || Thread.currentThread().isInterrupted()) {
+                    return new TimeoutResult(iterations);
+                } else {
+                    return new FailResult(iterations);
+                }
             } else {
                 int[] placement = vertexMatching.getPlacement().toArray();
                 int[] vertexMapping = new int[placement.length];
