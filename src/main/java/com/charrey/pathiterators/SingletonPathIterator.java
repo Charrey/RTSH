@@ -7,6 +7,8 @@ import com.charrey.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 /**
  * A pathiterator for paths with no intermediate vertices. This iterates exactly once, in which it returns the path
  * directly from the source to the target.
@@ -25,8 +27,8 @@ public class SingletonPathIterator extends PathIterator {
      * @param head  the target vertex of the path
      * @throws IllegalStateException thrown if the tail vertex has no outgoing edge to the head.
      */
-    SingletonPathIterator(@NotNull MyGraph graph, Settings settings, int tail, int head, PartialMatchingProvider provider) {
-        super(tail, head, settings, null, null, provider, Long.MAX_VALUE);
+    SingletonPathIterator(@NotNull MyGraph graph, Settings settings, int tail, int head, PartialMatchingProvider provider, Supplier<Integer> placementSize) {
+        super(tail, head, settings, null, null, provider, Long.MAX_VALUE, placementSize);
         toReturn = new Path(graph, tail);
         toReturn.append(head);
     }

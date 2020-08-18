@@ -6,6 +6,7 @@ import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
+import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pathiterators.dfs.CachedDFSPathIterator;
 import com.charrey.pathiterators.dfs.InPlaceDFSPathIterator;
@@ -88,12 +89,12 @@ class NoDuplicatesTest {
                 TIntList vertexMatching = new TIntArrayList();
                 vertexMatching.add(tail);
                 occupation.occupyVertex(1, head, new PartialMatching(vertexMatching));
-                PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
+                PathIterator iterator = PathIteratorFactory.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
                     TIntList vertexMatching1 = new TIntArrayList();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE, null);
+                }, Long.MAX_VALUE);
                 Map<Path, Witness> seen = new HashMap<>();
                 Path path;
                 //5 4 1 3 2 is reached with controlpoints {4, 3} and with {4, 1, 3}.

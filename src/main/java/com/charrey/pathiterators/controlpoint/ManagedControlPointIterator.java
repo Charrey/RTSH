@@ -56,7 +56,7 @@ public class ManagedControlPointIterator extends PathIterator {
                                        PartialMatchingProvider provider,
                                        int maxControlPoints,
                                        long timeoutTime) {
-        super(tail, head, settings, globalOccupation, globalOccupation.getTransaction(), provider, timeoutTime);
+        super(tail, head, settings, globalOccupation, globalOccupation.getTransaction(), provider, timeoutTime, verticesPlaced);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.settings = settings;
@@ -99,6 +99,7 @@ public class ManagedControlPointIterator extends PathIterator {
         }
     }
 
+
     @Override
     public String debugInfo() {
         return "controlpoints(" + numberOfControlPoints + ")";
@@ -120,7 +121,7 @@ public class ManagedControlPointIterator extends PathIterator {
             Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail());
             assert leftToMiddleAlt.isPresent();
             Path alternative = Util.merge(graph, leftToMiddleAlt.get(), middleAltToRight);
-            if (alternative.equals(leftToRight)) {
+            if (alternative.isEqualTo(leftToRight)) {
                 LOG.finest(() -> "Right-shift possible to vertex " + middleAlt);
                 return true;
             }
@@ -145,10 +146,10 @@ public class ManagedControlPointIterator extends PathIterator {
         assert skippedPath.isPresent();
         assert skippedPath.get().first() == left;
         assert skippedPath.get().last() == right;
-        if (skippedPath.get().equals(leftToRight)) {
+        if (skippedPath.get().isEqualTo(leftToRight)) {
             LOG.finest("Makes last control point useless...");
         }
-        return skippedPath.get().equals(leftToRight);
+        return skippedPath.get().isEqualTo(leftToRight);
     }
 
     @NotNull

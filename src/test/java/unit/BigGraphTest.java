@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -69,13 +70,9 @@ class BigGraphTest {
     private static MyGraph getSourceGraph() {
         MyGraph sourceGraph = new MyGraph(true);
         int northIn = sourceGraph.addVertex("label", "wire");
-        int northOut = sourceGraph.addVertex("label", "wire");
         int southIn = sourceGraph.addVertex("label", "wire");
-        int southOut = sourceGraph.addVertex("label", "wire");
         int westIn = sourceGraph.addVertex("label", "wire");
-        int westOut = sourceGraph.addVertex("label", "wire");
         int eastIn = sourceGraph.addVertex("label", "wire");
-        int eastOut = sourceGraph.addVertex("label", "wire");
 
         int lut = sourceGraph.addVertex("label", "SLICE");
         int clockEnableWire = sourceGraph.addVertex("label", "wire");
@@ -108,32 +105,31 @@ class BigGraphTest {
 
     @Test
     void test1x1() throws IOException, InterruptedException {
-        runTest("tile1x1.dot", 1*60*1000);
+        runTest("tile1x1.dot", (long) (0.1*60*1000));
     }
 
     @Test
     void test1x2() throws IOException, InterruptedException {
-        runTest("tile1x2.dot", 1*60*1000);
+        runTest("tile1x2.dot", (long) (0.1*60*1000));
     }
 
     @Test
     void test2x1() throws IOException, InterruptedException {
-        runTest("tile2x1.dot", 1*60*1000);
+        runTest("tile2x1.dot", (long) (0.1*60*1000));
     }
 
     @Test
     void test2x2() throws IOException, InterruptedException {
-        runTest("tile2x2.dot", 1*60*1000);
+        runTest("tile2x2.dot", (long) (0.1*60*1000));
     }
 
 
 
-    //@Disabled("Takes too long")
     void runTest(String filename, long timeout) throws IOException, InterruptedException {
         final long initial = System.currentTimeMillis();
         TestCase testCase = getTestCase(filename);
 
-        failed = false;
+        failed = true;
         final BigTestRunnable runnableKPath = getThread(testCase, new KPathStrategy(), timeout - (System.currentTimeMillis() - initial));
         final BigTestRunnable runnableDFSArbitrary = getThread(testCase, new DFSStrategy(), timeout - (System.currentTimeMillis() - initial));
         final BigTestRunnable runnableDFSGreedy = getThread(testCase, new OldGreedyDFSStrategy(), timeout - (System.currentTimeMillis() - initial));
@@ -147,6 +143,8 @@ class BigGraphTest {
             threadDFSArbitrary.stop();
             threadDFSGreedy.stop();
             threadControlPoint.stop();
+            failed = false;
+            System.out.println("FORCE STOPPED");
         };
         runnableKPath.setOnDone(onDone);
         runnableDFSArbitrary.setOnDone(onDone);
@@ -168,35 +166,10 @@ class BigGraphTest {
     @NotNull
     private TestCase getTestCase(String filename) throws IOException {
         targetGraph = new MyGraph(true);
-        importDOT(targetGraph, new File("C:\\Users\\Pim\\Virtual Machines\\Afstuderen\\" + filename));
-        removeTails();
+        importDOT(targetGraph, Paths.get("/").resolve("home").resolve("pim").resolve("Documents").resolve("Trellis").resolve(filename).toFile());
         targetGraph.randomizeWeights();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
         return testCase;
-    }
-
-    private void removeTails() {
-        boolean done = false;
-
-        while (!done) {
-            done = true;
-            for (int v : new HashSet<>(targetGraph.vertexSet())) {
-                if (targetGraph.inDegreeOf(v) == 0 || targetGraph.outDegreeOf(v) == 0) {
-                    String label = targetGraph.getLabels(v).iterator().next();
-                    switch (label) {
-                        case "arc":
-                        case "port":
-                        case "wire":
-                            done = false;
-                            targetGraph.removeVertex(v);
-                            continue;
-                        default:
-                            assert label.startsWith("matchfrom") || label.startsWith("matchto");
-                    }
-                }
-            }
-        }
-        targetGraph = GraphUtil.repairVertices(targetGraph);
     }
 
 
@@ -259,10 +232,10 @@ class BigGraphTest {
         @Override
         public void run() {
                 Settings settings = new SettingsBuilder()
-                        .withZeroDomainPruning()
                         .withPathIteration(strategy)
-                        .withParallelPruning()
-                        .withVertexLimit(20)
+                        .withoutPruning()
+                        .withVertexLimit(10)
+                        .withPathsLimit(10)
                         //.withClosestTargetVertexOrder()
                         .get();
                 try {

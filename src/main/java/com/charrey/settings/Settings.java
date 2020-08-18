@@ -36,6 +36,8 @@ public class Settings implements Cloneable {
 
     private WhenToApply whenToApply;
     private int vertexLimit;
+    private int pathsLimit;
+
     private TargetVertexOrder targetVertexOrder;
 
     /**
@@ -51,6 +53,7 @@ public class Settings implements Cloneable {
              IteratorSettings pathIteration,
              WhenToApply whenToApply,
              int vertexLimit,
+             int pathsLimit,
              TargetVertexOrder targetVertexOrder,
              boolean dfsCaching,
              boolean contraction) {
@@ -60,6 +63,7 @@ public class Settings implements Cloneable {
         this.pathIteration = pathIteration;
         this.whenToApply = whenToApply;
         this.vertexLimit = vertexLimit;
+        this.pathsLimit = pathsLimit;
         this.targetVertexOrder = targetVertexOrder;
         this.dfsCaching = dfsCaching;
         this.contraction = contraction;
@@ -75,7 +79,9 @@ public class Settings implements Cloneable {
                 pruningMethod == settings.pruningMethod &&
                 pathIteration.equals(settings.pathIteration) &&
                 dfsCaching == settings.dfsCaching &&
-                contraction == settings.contraction;
+                contraction == settings.contraction &&
+                vertexLimit == settings.vertexLimit &&
+                pathsLimit == settings.pathsLimit;
     }
 
     @Override
@@ -92,7 +98,7 @@ public class Settings implements Cloneable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration, dfsCaching, contraction);
+        return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration, dfsCaching, contraction, vertexLimit, pathsLimit);
     }
 
     public WhenToApply getWhenToApply() {
@@ -123,8 +129,16 @@ public class Settings implements Cloneable {
         return vertexLimit;
     }
 
+    public int getPathsLimit() {
+        return pathsLimit;
+    }
+
     void setVertexLimit(int vertexLimit) {
         this.vertexLimit = vertexLimit;
+    }
+
+    void setPathsLimit(int pathsLimit) {
+        this.pathsLimit = pathsLimit;
     }
 
     public IteratorSettings getPathIteration() {
@@ -166,4 +180,6 @@ public class Settings implements Cloneable {
     void setContraction(boolean contraction) {
         this.contraction = contraction;
     }
+
+
 }

@@ -6,6 +6,7 @@ import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
+import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
@@ -83,12 +84,12 @@ class GlobalOccupationTest {
                 TIntList vertexMatching = new TIntArrayList();
                 vertexMatching.add(tail);
                 occupation.occupyVertex(1, head, new PartialMatching(vertexMatching, new TIntObjectHashMap<>(), new TIntHashSet()));
-                PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
+                PathIterator iterator = PathIteratorFactory.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
                     TIntList vertexMatching1 = new TIntArrayList();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE, null);
+                }, Long.MAX_VALUE);
                 Path path;
                 while ((path = iterator.next()) != null) {
                     TIntSet occupationSays = occupation.getRoutingOccupied();

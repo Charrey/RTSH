@@ -37,6 +37,8 @@ public abstract class PathIterator {
      * The Refuse longer paths.
      */
     protected final boolean refuseLongerPaths;
+    private final int maxPaths;
+    private final Supplier<Integer> placementSize;
     protected long timeoutTime;
     private int counter = 0;
     protected final PartialMatchingProvider partialMatchingProvider;
@@ -45,9 +47,9 @@ public abstract class PathIterator {
 
     /**
      * Instantiates a new Path iterator.
-     *
-     * @param tail the tail
+     *  @param tail the tail
      * @param head the head
+     * @param placementSize
      */
     protected PathIterator(int tail,
                            int head,
@@ -55,7 +57,8 @@ public abstract class PathIterator {
                            GlobalOccupation globalOccupation,
                            OccupationTransaction transaction,
                            PartialMatchingProvider partialMatchingProvider,
-                           long timeoutTime) {
+                           long timeoutTime,
+                           Supplier<Integer> placementSize) {
         this.tail = tail;
         this.head = head;
         this.refuseLongerPaths = settings.getRefuseLongerPaths();
@@ -63,46 +66,10 @@ public abstract class PathIterator {
         this.globalOccupation = globalOccupation;
         this.transaction = transaction;
         this.timeoutTime = timeoutTime;
+        this.maxPaths = settings.getPathsLimit();
+        this.placementSize = placementSize;
     }
 
-
-    /**
-     * Get path iterator.
-     *
-     * @param targetGraph       the target graph
-     * @param data              the data
-     * @param tail              the tail
-     * @param head              the head
-     * @param occupation        the occupation
-     * @param placementSize     the placement size
-     * @return the path iterator
-     */
-    @NotNull
-    public static PathIterator get(@NotNull MyGraph targetGraph,
-                                   @NotNull UtilityData data,
-                                   int tail,
-                                   int head,
-                                   @NotNull GlobalOccupation occupation,
-                                   Supplier<Integer> placementSize,
-                                   Settings settings,
-                                   PartialMatchingProvider provider,
-                                   long timeoutTime,
-                                   Set<List<Map<String, Set<String>>>> compatibilityChains) {
-        if (targetGraph.getEdge(tail, head) != null) {
-            return new SingletonPathIterator(targetGraph, settings, tail, head, provider);
-        }
-        return switch (settings.getPathIteration().iterationStrategy) {
-            case DFS_ARBITRARY, DFS_GREEDY -> {
-                if (settings.getDfsCaching()) {
-                    yield new CachedDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head], timeoutTime);
-                } else {
-                    yield new InPlaceDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, settings.getPathIteration(), timeoutTime);
-                }
-            }
-            case CONTROL_POINT -> new ManagedControlPointIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints(), timeoutTime);
-            case KPATH -> new KPathPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, timeoutTime);
-        };
-    }
 
     protected PartialMatching getPartialMatching() {
         PartialMatching fromParent = partialMatchingProvider.getPartialMatching();
@@ -115,8 +82,8 @@ public abstract class PathIterator {
 
     @Nullable
     public Path next() {
-        int maxPaths = Integer.MAX_VALUE;
         if (counter == maxPaths) {
+            uncommit();
             return null;
         }
         Path toReturn;
@@ -125,18 +92,20 @@ public abstract class PathIterator {
             toReturn = getNext();
             while (toReturn != null && toReturn.length() == 1) {
                 toReturn = getNext();
-
             }
             globalOccupation.unclaimActiveOccupation();
         } else {
             toReturn = getNext();
             while (toReturn != null && toReturn.length() == 1) {
                 toReturn = getNext();
-
             }
         }
         counter++;
         return toReturn;
+    }
+
+    protected final void uncommit() {
+        transaction.uncommit(placementSize.get());
     }
 
     /**

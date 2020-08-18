@@ -49,7 +49,6 @@ public class UtilityData {
     }
 
 
-
     private int[][] compatibility;
 
     /**
@@ -103,7 +102,7 @@ public class UtilityData {
      * @param strategy the DFS strategy used
      * @return a 3-d array where the first argument is the goal vertex, the second argument is some target graph vertex and the result are neighbours of that vertex in the order that they need to be tried.
      */
-    @SuppressWarnings({"rawtypes", "unchecked", "AssignmentOrReturnOfFieldWithMutableType"})
+    @SuppressWarnings({"AssignmentOrReturnOfFieldWithMutableType"})
     public @NotNull
     int[][][] getTargetNeighbours(PathIteration strategy) {
         if (targetNeighbours == null) {
@@ -118,6 +117,8 @@ public class UtilityData {
         }
         return targetNeighbours;
     }
+
+
 
     private void setGreedyTargetNeighbours(List<Integer> targetVertices) {
         targetNeighbours = getTargetNeighbours(DFS_ARBITRARY);

@@ -70,8 +70,9 @@ public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvid
      * Tries the next partial vertex matching that does not trigger pruning methods. This initially attempts to place
      * a new vertex, but if no candidate vertex exists that is valid, this may also remove one or more already placed vertices
      * and try their next candidate pair.
+     * @return
      */
-    public void placeNext() {
+    public boolean placeNext() {
         assert canPlaceNext();
         while (!candidates2[placement.size()].hasNext()) {
             removeLast();
@@ -80,18 +81,20 @@ public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvid
         boolean occupied = occupation.isOccupied(toAdd);
         if (occupied) {
             if (canPlaceNext()) {
-                placeNext();
+                return placeNext();
             }
         } else {
             try {
                 occupation.occupyVertex(placement.size() + 1, toAdd, getPartialMatching());
                 placement.add(toAdd);
+                return true;
             } catch (DomainCheckerException e) {
                 if (canPlaceNext()) {
-                    placeNext();
+                    return placeNext();
                 }
             }
         }
+        return false;
     }
 
 

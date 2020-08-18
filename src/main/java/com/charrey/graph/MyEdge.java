@@ -34,11 +34,7 @@ public class MyEdge implements Comparable<MyEdge>, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MyEdge myEdge = (MyEdge) o;
-        return source.equals(myEdge.source) &&
-                target.equals(myEdge.target);
+        return this == o;
     }
 
     @Override

@@ -64,7 +64,7 @@ class ControlPointIterator extends PathIterator {
      * @param targetGraph            the target graph where homeomorphisms are found
      * @param tail                   the source vertex
      * @param head                   the target vertex
-     * @param occupation             the occupationTransaction where intermediate nodes are registered
+     * @param transaction             the occupationTransaction where intermediate nodes are registered
      * @param initialLocalOccupation a set used to keep track of vertices used in this very path
      * @param controlPoints          the number of control points that should be used
      * @param verticesPlaced         a supplier of the number of source graph vertices currently matched
@@ -74,20 +74,20 @@ class ControlPointIterator extends PathIterator {
                          int tail,
                          int head,
                          @NotNull GlobalOccupation globalOccupation,
-                         @NotNull OccupationTransaction occupation,
+                         @NotNull OccupationTransaction transaction,
                          @NotNull TIntSet initialLocalOccupation,
                          int controlPoints,
                          Supplier<Integer> verticesPlaced,
                          Settings settings,
                          PartialMatchingProvider provider,
                          long timeoutTime) {
-        super(tail, head, settings, globalOccupation, occupation, provider, timeoutTime);
+        super(tail, head, settings, globalOccupation, transaction, provider, timeoutTime, verticesPlaced);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;
         this.globalOccupation = globalOccupation;
         this.localOccupation = initialLocalOccupation;
         this.head = head;
-        this.controlPointCandidates = new ControlPointVertexSelector(targetGraph, occupation, TCollections.unmodifiableSet(initialLocalOccupation), tail, head, settings.getRefuseLongerPaths(), tail);
+        this.controlPointCandidates = new ControlPointVertexSelector(targetGraph, transaction, TCollections.unmodifiableSet(initialLocalOccupation), tail, head, settings.getRefuseLongerPaths(), tail);
         this.verticesPlaced = verticesPlaced;
         this.settings = settings;
     }
@@ -171,7 +171,7 @@ class ControlPointIterator extends PathIterator {
                     return true;
                 }
                 Path leftToRight = Util.merge(targetGraph, leftToMiddle.get(), middleToRight);
-                if (leftToRight.equals(leftToRightAlt)) {
+                if (leftToRight.isEqualTo(leftToRightAlt)) {
                     return true;
                 }
             }

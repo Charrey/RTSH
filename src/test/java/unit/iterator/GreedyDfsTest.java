@@ -6,8 +6,7 @@ import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
-import com.charrey.pathiterators.dfs.CachedDFSPathIterator;
-import com.charrey.pathiterators.dfs.InPlaceDFSPathIterator;
+import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
@@ -21,6 +20,8 @@ import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
+
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -65,23 +66,23 @@ class GreedyDfsTest {
                 GlobalOccupation occupationKPath = new GlobalOccupation(data, settingsKpath);
                 occupationKPath.occupyVertex(0, tail, new PartialMatching());
                 occupationKPath.occupyVertex(1, head, new PartialMatching(vertexMatching));
-                PathIterator greedyDFSIterator = PathIterator.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy, () -> {
+                PathIterator greedyDFSIterator = PathIteratorFactory.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy, () -> {
                     TIntList vertexMatching12 = new TIntArrayList();
                     vertexMatching12.add(tail);
                     vertexMatching12.add(head);
                     return new PartialMatching(vertexMatching12);
-                }, Long.MAX_VALUE, null);
-                KPathPathIterator kPathIterator = (KPathPathIterator) PathIterator.get(targetGraph, data, tail, head, occupationKPath, () -> 2, settingsKpath, () -> {
+                }, Long.MAX_VALUE);
+                KPathPathIterator kPathIterator = (KPathPathIterator) PathIteratorFactory.get(targetGraph, data, tail, head, occupationKPath, () -> 2, settingsKpath, () -> {
                     TIntList vertexMatching1 = new TIntArrayList();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE, null);
+                }, Long.MAX_VALUE);
 
                 Path path1 = kPathIterator.next();
                 Path path2 = greedyDFSIterator.next();
                 try {
-                    assertEquals(path1, path2);
+                    assertEquals(Objects.toString(path1), Objects.toString(path2));
                 } catch (AssertionFailedError e) {
                     System.err.println(counter);
                     if (path1 == null) {

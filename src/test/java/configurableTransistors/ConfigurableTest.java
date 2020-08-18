@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -88,7 +89,7 @@ class ConfigurableTest {
         System.out.println(targetGraph);
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(
                 new TestCase(sourceGraph, targetGraph, null, null),
-                new SettingsBuilder().withKPathRouting().get(),
+                new SettingsBuilder().withKPathRouting().withoutContraction().get(),
                 10 * 60 * 1000,
                 "ConfigurableTest ");
         assertFalse(result.succeed);
@@ -150,13 +151,13 @@ class ConfigurableTest {
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(
                 new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder()
-                        .withKPathRouting().get(),
+                        .withKPathRouting().withoutContraction().get(),
                 10 * 60 * 1000, "ConfigurableTest ");
         assertTrue(result.succeed);
-        Map<MyEdge, Path> expected = new HashMap<>();
-        expected.put(new MyEdge(0, 1), new Path(targetGraph, List.of(0, 1)));
-        expected.put(new MyEdge(1, 2), new Path(targetGraph, List.of(1, 2, 3, 4)));
-        assertEquals(expected, ((SuccessResult) result).getEdgePlacement());
+        Map<MyEdge, Set<Path>> expected = new HashMap<>();
+        expected.put(new MyEdge(0, 1), Set.of(new Path(targetGraph, List.of(0, 1))));
+        expected.put(new MyEdge(1, 2), Set.of(new Path(targetGraph, List.of(1, 2, 3, 4))));
+        assertEquals(expected.toString(), ((SuccessResult) result).getEdgePlacement().toString());
     }
 
     @Test
@@ -205,17 +206,17 @@ class ConfigurableTest {
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(
                 new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder()
-                        .withKPathRouting().get(), 10 * 60 * 1000, "ConfigurableTest ");
+                        .withKPathRouting().withoutContraction().get(), 10 * 60 * 1000, "ConfigurableTest ");
         assertTrue(result.succeed);
         System.out.println(result);
         assertArrayEquals(new int[]{0, 1, 4, 6, 7, 10}, ((SuccessResult) result).getVertexPlacement());
 
-        Map<MyEdge, Path> expected = new HashMap<>();
-        expected.put(new MyEdge(0, 1), new Path(targetGraph, List.of(0, 1)));
-        expected.put(new MyEdge(3, 4), new Path(targetGraph, List.of(6, 7)));
-        expected.put(new MyEdge(1, 2), new Path(targetGraph, List.of(1, 2, 3, 4)));
-        expected.put(new MyEdge(4, 5), new Path(targetGraph, List.of(7, 8, 9, 10)));
-        assertEquals(expected, ((SuccessResult) result).getEdgePlacement());
+        Map<MyEdge, Set<Path>> expected = new HashMap<>();
+        expected.put(new MyEdge(0, 1), Set.of(new Path(targetGraph, List.of(0, 1))));
+        expected.put(new MyEdge(3, 4), Set.of(new Path(targetGraph, List.of(6, 7))));
+        expected.put(new MyEdge(1, 2), Set.of(new Path(targetGraph, List.of(1, 2, 3, 4))));
+        expected.put(new MyEdge(4, 5), Set.of(new Path(targetGraph, List.of(7, 8, 9, 10))));
+        assertEquals(expected.toString(), ((SuccessResult) result).getEdgePlacement().toString());
     }
 
     @Test
@@ -259,6 +260,7 @@ class ConfigurableTest {
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(
                 new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder()
+                        .withoutContraction()
                         .withKPathRouting().get(),
                 10 * 60 * 1000,
                 "ConfigurableTest ");
@@ -266,11 +268,11 @@ class ConfigurableTest {
         System.out.println(result);
         assertArrayEquals(new int[]{0, 1, 4, 5, 6, 9}, ((SuccessResult) result).getVertexPlacement());
 
-        Map<MyEdge, Path> expected = new HashMap<>();
-        expected.put(new MyEdge(0, 1), new Path(targetGraph, List.of(0, 1)));
-        expected.put(new MyEdge(3, 4), new Path(targetGraph, List.of(5, 6)));
-        expected.put(new MyEdge(1, 2), new Path(targetGraph, List.of(1, 2, 3, 4)));
-        expected.put(new MyEdge(4, 5), new Path(targetGraph, List.of(6, 7, 8, 9)));
-        assertEquals(expected, ((SuccessResult) result).getEdgePlacement());
+        Map<MyEdge, Set<Path>> expected = new HashMap<>();
+        expected.put(new MyEdge(0, 1), Set.of(new Path(targetGraph, List.of(0, 1))));
+        expected.put(new MyEdge(3, 4), Set.of(new Path(targetGraph, List.of(5, 6))));
+        expected.put(new MyEdge(1, 2), Set.of(new Path(targetGraph, List.of(1, 2, 3, 4))));
+        expected.put(new MyEdge(4, 5), Set.of(new Path(targetGraph, List.of(6, 7, 8, 9))));
+        assertEquals(expected.toString(), ((SuccessResult) result).getEdgePlacement().toString());
     }
 }

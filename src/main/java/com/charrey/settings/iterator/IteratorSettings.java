@@ -12,12 +12,6 @@ public abstract class IteratorSettings implements Cloneable {
         this.iterationStrategy = iterationStrategy;
     }
 
-    public Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new UnsupportedOperationException();
-        }
-    }
+    public abstract Object clone();
 
 }

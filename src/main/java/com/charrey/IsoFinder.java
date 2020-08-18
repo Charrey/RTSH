@@ -18,7 +18,9 @@ import com.charrey.settings.pruning.WhenToApply;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 /**
@@ -47,31 +49,40 @@ public class IsoFinder {
         return true;
     }
 
-    private static Map<MyEdge, Path> repairPaths(MyGraph newSourceGraph, MyGraph oldTargetGraph, EdgeMatching edgeMatching, int[] sourcegraphNewToOld, VertexMatching vertexMatching, int[] targetgraphNewToOld) {
-        Map<MyEdge, Path> res = new HashMap<>();
+    private static Map<MyEdge, Set<Path>> repairPaths(MyGraph newSourceGraph, MyGraph oldTargetGraph, EdgeMatching edgeMatching, int[] sourcegraphNewToOld, VertexMatching vertexMatching, int[] targetgraphNewToOld) {
+        Map<MyEdge, Set<Path>> res = new HashMap<>();
         if (newSourceGraph.isDirected()) {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
                 int edgeSourceTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeSource(edge));
                 int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
-                Optional<Path> match = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).findAny();
-                assert match.isPresent();
-                Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[match.get().first()]);
-                for (int i = 1; i < match.get().asList().size(); i++) {
-                    gotten.append(targetgraphNewToOld[match.get().get(i)]);
-                }
-                res.put(new MyEdge(sourcegraphNewToOld[edge.getSource()], sourcegraphNewToOld[edge.getTarget()]), gotten);
+                Set<Path> toAdd = new HashSet<>();
+                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).collect(Collectors.toSet());
+                assert match.size() >= 1;
+                match.forEach(path -> {
+                    Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);
+                    for (int i = 1; i < path.asList().size(); i++) {
+                        gotten.append(targetgraphNewToOld[path.get(i)]);
+                    }
+                    toAdd.add(gotten);
+                });
+
+                res.put(new MyEdge(sourcegraphNewToOld[edge.getSource()], sourcegraphNewToOld[edge.getTarget()]), toAdd);
             }
         } else {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
                 int edgeSourceTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeSource(edge));
                 int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
-                Optional<Path> match = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).findAny();
-                assert match.isPresent();
-                Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[match.get().first()]);
-                for (int i = 1; i < match.get().asList().size(); i++) {
-                    gotten.append(targetgraphNewToOld[match.get().get(i)]);
-                }
-                res.put(new MyEdge(sourcegraphNewToOld[edge.getSource()], sourcegraphNewToOld[edge.getTarget()]), gotten);
+                Set<Path> toAdd = new HashSet<>();
+                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).collect(Collectors.toSet());
+                assert match.size() >= 1;
+                match.forEach(path -> {
+                    Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);
+                    for (int i = 1; i < path.asList().size(); i++) {
+                        gotten.append(targetgraphNewToOld[path.get(i)]);
+                    }
+                    toAdd.add(gotten);
+                });
+                res.put(new MyEdge(sourcegraphNewToOld[edge.getSource()], sourcegraphNewToOld[edge.getTarget()]), toAdd);
             }
         }
 
@@ -121,30 +132,36 @@ public class IsoFinder {
                 return new CompatibilityFailResult();
             }
             long iterations = 0;
+            boolean iterationpassed = true;
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
-                iterations++;
-                if (System.currentTimeMillis() - lastPrint > 1000) {
-                    long finalIterations = iterations;
-                    LOG.info(() -> name + " is at " + finalIterations + " iterations...");
-                    lastPrint = System.currentTimeMillis();
+                if (iterationpassed) {
+                    iterations++;
+                    if (System.currentTimeMillis() - lastPrint > 1000) {
+                        long finalIterations = iterations;
+                        LOG.info(() -> name + " is at " + finalIterations + " iterations...");
+                        lastPrint = System.currentTimeMillis();
+                    }
+                    LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());
                 }
+                iterationpassed = false;
                 if (System.currentTimeMillis() > timeoutTime || Thread.interrupted()) {
                     return new TimeoutResult(iterations);
                 }
-                LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());
                 if (edgeMatching.hasUnmatched()) {
                     Path nextpath = edgeMatching.placeNextUnmatched();
                     if (nextpath == null) {
                         if (edgeMatching.retry()) {
                             vertexMatching.giveAllowance();
+                            iterationpassed = true;
                         } else {
                             vertexMatching.removeLast();
                         }
                     }
                 } else if (vertexMatching.canPlaceNext()) {
-                    vertexMatching.placeNext();
+                    iterationpassed = vertexMatching.placeNext();
                 } else if (edgeMatching.retry()) {
                     vertexMatching.giveAllowance();
+                    iterationpassed = true;
                 } else if (vertexMatching.canRetry()) {
                     vertexMatching.removeLast();
                 } else {
@@ -171,7 +188,7 @@ public class IsoFinder {
                 assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
 
 
-                Map<MyEdge, Path> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.newToOld, vertexMatching, targetGraphMapping.newToOld);
+                Map<MyEdge, Set<Path>> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.newToOld, vertexMatching, targetGraphMapping.newToOld);
                 return new SuccessResult(vertexMapping, paths, iterations);
             }
         } finally {

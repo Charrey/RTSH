@@ -24,6 +24,7 @@ class RandomSystemTests extends SystemTest {
     private final Settings settings = new SettingsBuilder()
             .withAllDifferentPruning()
             .withInplaceNewGreedyDFSRouting()
+            .withoutContraction()
             .withCachedPruning().get();
 
 
@@ -32,7 +33,7 @@ class RandomSystemTests extends SystemTest {
         if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
-        findCases(10 * 1000, 5, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(10 * 1000, 1, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
     @Test
@@ -40,17 +41,17 @@ class RandomSystemTests extends SystemTest {
         if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
-        findCases(10 * 1000, 5, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(10 * 1000, 1, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(10 * 1000, 50, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(10 * 1000, 1, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
     void findCasesDirectedRandom() throws IOException {
-        findCases(10 * 1000, 5, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(10 * 1000, 1, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
 

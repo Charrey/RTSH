@@ -5,7 +5,7 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.occupation.GlobalOccupation;
-import com.charrey.pathiterators.PathIterator;
+import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
@@ -121,12 +121,12 @@ class ControlPointTransition {
                 TIntList vertexMatching = new TIntArrayList();
                 vertexMatching.add(tail);
                 occupation.occupyVertex(1, head, new PartialMatching(vertexMatching));
-                ManagedControlPointIterator iterator = (ManagedControlPointIterator) PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
+                ManagedControlPointIterator iterator = (ManagedControlPointIterator) PathIteratorFactory.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
                     TIntList vertexMatching1 = new TIntArrayList();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE, null);
+                }, Long.MAX_VALUE);
                 Path path;
                 while ((path = iterator.next()) != null) {
                     assertTrue(toTest.test(new Case(iterator.controlPoints(), occupation, path, iterator.finalPath(), iterator.firstPath())));

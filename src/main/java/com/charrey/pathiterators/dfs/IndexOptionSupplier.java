@@ -19,6 +19,7 @@ public class IndexOptionSupplier extends OptionSupplier {
         if (option >= successors.size()) {
             return -1;
         } else {
+            //System.out.println("Option " + option + " from " + at + " to " + getHead() + " is: " + successors.get(option));
             return successors.get(option);
         }
     }

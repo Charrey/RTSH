@@ -1,7 +1,5 @@
 package com.charrey.graph;
 
-import com.charrey.util.GraphUtil;
-import gnu.trove.list.TIntList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +13,6 @@ import org.jgrapht.util.SupplierUtil;
 
 import java.io.StringWriter;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -33,14 +30,16 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     private boolean locked = false;
     private Map<MyEdge, List<Map<String, Set<String>>>> chains;
 
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        MyGraph myGraph = (MyGraph) o;
-        return directed == myGraph.directed &&
-                attributes.equals(myGraph.attributes);
+        return this == o;
+        //        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        if (!super.equals(o)) return false;
+//        MyGraph myGraph = (MyGraph) o;
+//        return directed == myGraph.directed &&
+//                attributes.equals(myGraph.attributes);
     }
 
     @Override
@@ -85,12 +84,22 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             int oldVertex = newToOld[newVertex];
             source.attributes.get(oldVertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(newVertexFinal, key, value)));
             Set<Integer> predecessors = Graphs.predecessorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableSet());
-            predecessors.forEach(x -> res.addEdge(x, newVertexFinal));
+
+            predecessors.forEach(predecessor -> {
+                for (int i = 0; i < source.getAllEdges(newToOld[predecessor], newToOld[newVertexFinal]).size(); i++) {
+                    res.addEdge(predecessor, newVertexFinal);
+                }
+            });
+
             Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x <= newVertexFinal).collect(Collectors.toUnmodifiableSet()));
             if (!source.directed) {
                 successors.removeAll(predecessors);
             }
-            successors.forEach(x -> res.addEdge(newVertexFinal, x));
+            successors.forEach(successor -> {
+                for (int i = 0; i < source.getAllEdges(newToOld[newVertexFinal], newToOld[successor]).size(); i++) {
+                    res.addEdge(newVertexFinal, successor);
+                }
+            });
         }
         if (source.chains != null) {
             source.chains.forEach((key, value) -> {
@@ -100,7 +109,6 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
                 res.chains.put(newEdges.get(), value);
             });
         }
-
         return res;
     }
 

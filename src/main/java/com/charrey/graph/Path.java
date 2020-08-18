@@ -36,7 +36,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      * @param graph         the graph of which vertices may be added to this Path.
      * @param initialVertex the initial vertex
      */
-    public Path(@NotNull MyGraph graph, int initialVertex) {
+    public Path(@NotNull Graph<Integer, MyEdge> graph, int initialVertex) {
         this.initialVertex = initialVertex;
         vertexList = new TIntLinkedList();
         containing = new HashSet<>();
@@ -126,7 +126,6 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      *
      * @param consumer the consumer
      */
-    @Override
     public void forEach(Consumer<? super Integer> consumer) {
         vertexList.forEach(i -> {
             consumer.accept(i);
@@ -148,7 +147,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      * @param toAdd vertex to append to this Path.
      */
     public void append(Integer toAdd) {
-        if (!containing.contains(toAdd) || vertexList.get(0) == toAdd) {
+        if (!containing.contains(toAdd) ||  vertexList.get(0) == toAdd) {
             if (!containing.isEmpty() && graph.getEdge(vertexList.get(vertexList.size() - 1), toAdd) == null) {
                 throw new IllegalStateException("Attempt to add a vertex on this path that is not connected to the current head.");
             }
@@ -194,7 +193,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      */
     public int removeLast() {
         int removed = vertexList.removeAt(vertexList.size() - 1);
-        if (vertexList.get(0) != removed) {
+        if (!vertexList.contains(removed)) {
             containing.remove(removed);
         }
         return removed;
@@ -248,10 +247,11 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
 
     @Override
     public boolean equals(@Nullable Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Path path1 = (Path) o;
-        return vertexList.equals(path1.vertexList);
+       return this == o;
+    }
+
+    public boolean isEqualTo(Path other) {
+        return vertexList.equals(other.vertexList);
     }
 
     @Override
@@ -272,7 +272,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
     }
 
     public void insert(int index, int value) {
-        if (!containing.contains(value) || vertexList.get(0) == value) {
+        if (!containing.contains(value)) {
             if (index == length()) {
                 append(value);
             } else {
@@ -325,4 +325,6 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
     public Graph<Integer, MyEdge> getGraph() {
         return graph;
     }
+
+
 }

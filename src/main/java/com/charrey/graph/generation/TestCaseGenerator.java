@@ -9,6 +9,7 @@ import java.util.logging.Logger;
  */
 public abstract class TestCaseGenerator {
 
+
     private final Deque<TestCase> testCases = new ArrayDeque<>();
 
     /**

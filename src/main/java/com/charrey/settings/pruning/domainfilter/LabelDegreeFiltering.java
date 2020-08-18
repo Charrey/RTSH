@@ -10,7 +10,7 @@ public class LabelDegreeFiltering implements FilteringSettings {
 
     @Override
     public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
-        return targetGraph.getLabels(targetGraphVertex).containsAll(sourceGraph.getLabels(sourceGraphVertex)) &&
+        return sourceGraph.getLabels(sourceGraphVertex).containsAll(targetGraph.getLabels(targetGraphVertex)) &&
                 targetGraph.inDegreeOf(targetGraphVertex) >= sourceGraph.inDegreeOf(sourceGraphVertex) &&
                 targetGraph.outDegreeOf(targetGraphVertex) >= sourceGraph.outDegreeOf(sourceGraphVertex);
     }
