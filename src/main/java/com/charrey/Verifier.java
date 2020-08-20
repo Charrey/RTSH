@@ -29,13 +29,20 @@ class Verifier {
      * @return whether the homeomorphism is correct
      */
     static boolean isCorrect(@NotNull MyGraph sourceGraph, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
-        return everyVertexPlaced(sourceGraph, vertexMatching) &&
-                uniqueTargetVertices(vertexMatching) &&
-                pathCountCorrect(sourceGraph, edgeMatching) &&
-                directedEdgesHavePaths(sourceGraph, vertexMatching, edgeMatching) &&
-                undirectedEdgesHavePaths(sourceGraph, vertexMatching, edgeMatching) &&
-                pathsAreNodeDisjoint(edgeMatching) &&
-                noVertexMatchUsedInPath(vertexMatching, edgeMatching);
+        boolean everyVertexPlaced = everyVertexPlaced(sourceGraph, vertexMatching);
+        boolean uniqueTargetVertices = uniqueTargetVertices(vertexMatching);
+        boolean pathCountCorrect = pathCountCorrect(sourceGraph, edgeMatching);
+        boolean directedEdgesHavePaths = directedEdgesHavePaths(sourceGraph, vertexMatching, edgeMatching);
+        boolean undirectedEdgesHavePaths = undirectedEdgesHavePaths(sourceGraph, vertexMatching, edgeMatching);
+        boolean pathsAreNodeDisjoint = pathsAreNodeDisjoint(edgeMatching);
+        boolean noVertexMatchUsedInPath = noVertexMatchUsedInPath(vertexMatching, edgeMatching);
+        return everyVertexPlaced &&
+                uniqueTargetVertices &&
+                pathCountCorrect &&
+                directedEdgesHavePaths &&
+                undirectedEdgesHavePaths &&
+                pathsAreNodeDisjoint &&
+                noVertexMatchUsedInPath;
     }
 
     private static boolean noVertexMatchUsedInPath(@NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {

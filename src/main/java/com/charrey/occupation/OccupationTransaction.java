@@ -2,6 +2,7 @@ package com.charrey.occupation;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.pruning.Pruner;
@@ -53,9 +54,9 @@ public class OccupationTransaction implements AbstractOccupation {
      * @param vertex              the vertex being occupied for routing purposes
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.                                If this is thrown, this class remains unchanged.
      */
-    public void occupyRoutingAndCheck(Integer vertexPlacementSize, Integer vertex, PartialMatching partialMatching) throws DomainCheckerException {
+    public void occupyRoutingAndCheck(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         if (routingOccupied.contains(vertex)) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Vertex was already occupied for routing!");
         }
         routingOccupied.add(vertex);
         try {
@@ -74,7 +75,7 @@ public class OccupationTransaction implements AbstractOccupation {
      * @param path                the path whose vertices to occupy
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.                                If this is thrown, this class remains unchanged.
      */
-    public void occupyRoutingAndCheck(int vertexPlacementSize, @NotNull Path path, PartialMatching partialMatching) throws DomainCheckerException {
+    public void occupyRoutingAndCheck(int vertexPlacementSize, @NotNull Path path, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         for (int i = 0; i < path.intermediate().length(); i++) {
             try {
                 occupyRoutingAndCheck(vertexPlacementSize, path.intermediate().get(i), partialMatching);
@@ -145,7 +146,7 @@ public class OccupationTransaction implements AbstractOccupation {
     /**
      * Make the changes in this transaction visible to the rest of this program.
      */
-    public void commit(int vertexPlacementSize, PartialMatching partialMatching) throws DomainCheckerException {
+    public void commit(int vertexPlacementSize, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         if (inCommittedState) {
             throw new IllegalStateException("You must uncommit before committing.");
         }

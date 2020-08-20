@@ -79,7 +79,7 @@ public class ManagedControlPointIterator extends PathIterator {
             } while (path != null && numberOfControlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
                 try {
-                    transaction.commit(verticesPlaced.get(), getPartialMatching());
+                    transaction.commit(verticesPlaced.get(), this::getPartialMatching);
                 } catch (DomainCheckerException e) {
                     continue;
                 }

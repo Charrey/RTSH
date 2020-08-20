@@ -1,6 +1,7 @@
 package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
 import gnu.trove.list.TIntList;
@@ -56,12 +57,12 @@ public abstract class DefaultCachedPruner extends Pruner {
     }
 
     @Override
-    public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException {
+    public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         beforeOccupyVertex(verticesPlaced, occupied);
     }
 
     @Override
-    public void afterOccupyEdge(int verticesPlaced, int newlyOccupied, PartialMatching partialMatching) throws DomainCheckerException {
+    public void afterOccupyEdge(int verticesPlaced, int newlyOccupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         TIntList candidates = reverseDomain.get(newlyOccupied);
         int sourceVertexData = verticesPlaced - 1;
         removeFromDomains(newlyOccupied, candidates, sourceVertexData);
@@ -122,7 +123,7 @@ public abstract class DefaultCachedPruner extends Pruner {
 
 
     @Override
-    public void checkPartial(PartialMatching partialMatching) {
+    public void checkPartial(PartialMatchingProvider partialMatching) {
         throw new UnsupportedOperationException("Cached pruner cannot check partial.");
     }
 }

@@ -1,6 +1,7 @@
 package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
 
@@ -23,7 +24,7 @@ public class SerialZeroDomainPruner extends DefaultSerialPruner {
     }
 
     @Override
-    public void checkPartial(PartialMatching partialMatching) throws DomainCheckerException {
+    public void checkPartial(PartialMatchingProvider partialMatching) throws DomainCheckerException {
         for (int i = 0; i < this.sourceGraph.vertexSet().size(); i++) {
             int finalI = i;
             Iterator<Integer> customIterator = targetGraph.vertexSet().stream().filter(x ->

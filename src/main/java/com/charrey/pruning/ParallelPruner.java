@@ -1,6 +1,7 @@
 package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.settings.Settings;
 
 public class ParallelPruner extends DefaultSerialPruner {
@@ -48,8 +49,8 @@ public class ParallelPruner extends DefaultSerialPruner {
     }
 
     @Override
-    public void checkPartial(PartialMatching partialMatching) throws DomainCheckerException {
-        this.partialMatching = partialMatching;
+    public void checkPartial(PartialMatchingProvider partialMatching) throws DomainCheckerException {
+        this.partialMatching = partialMatching.getPartialMatching();
         if (this.isInPruningState) {
             inner.checkPartial(partialMatching);
             synchronized (this) {
@@ -65,6 +66,6 @@ public class ParallelPruner extends DefaultSerialPruner {
             Thread.sleep(10);
             toReturn = this.partialMatching;
         }
-        return partialMatching;
+        return toReturn;
     }
 }

@@ -1,6 +1,7 @@
 package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
 
@@ -41,7 +42,7 @@ public abstract class Pruner {
      * @param occupied       the target graph vertex to be matched
      * @throws DomainCheckerException thrown when this occupation would provably result in an unfruitful search path
      */
-    public abstract void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException;
+    public abstract void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException;
 
     /**
      * This method is called just before a new target graph vertex is used as intermediate vertex in a path.
@@ -50,7 +51,7 @@ public abstract class Pruner {
      * @param occupied       the target graph vertex to be used
      * @throws DomainCheckerException thrown when this occupation would provably result in an unfruitful search path
      */
-    public abstract void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException;
+    public abstract void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException;
 
     /**
      * This method is called just before a new target graph vertex is used as intermediate vertex in a path. This
@@ -79,5 +80,5 @@ public abstract class Pruner {
 
     public abstract void close();
 
-    public abstract void checkPartial(PartialMatching partialMatching) throws DomainCheckerException;
+    public abstract void checkPartial(PartialMatchingProvider partialMatching) throws DomainCheckerException;
 }

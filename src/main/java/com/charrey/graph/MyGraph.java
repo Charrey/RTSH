@@ -1,11 +1,13 @@
 package com.charrey.graph;
 
+import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.DefaultGraphType;
+import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.AttributeType;
 import org.jgrapht.nio.DefaultAttribute;
 import org.jgrapht.nio.dot.DOTExporter;
@@ -13,6 +15,8 @@ import org.jgrapht.util.SupplierUtil;
 
 import java.io.StringWriter;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +32,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     private double maxEdgeWeight = 1d;
     private final List<Map<String, Set<String>>> attributes;
     private boolean locked = false;
-    private Map<MyEdge, List<Map<String, Set<String>>>> chains;
+    private Map<MyEdge, Chain> chains = new HashMap<>();
 
 
     @Override
@@ -188,9 +192,23 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     @Override
     public String toString() {
         DOTExporter<Integer, MyEdge> exporter = new DOTExporter<>(x -> Integer.toString(x));
+        MultipleKeyMap<Deque<Chain>> chainscopy = new MultipleKeyMap<>();
+        chains.forEach((key, value) -> {
+            if (!chainscopy.containsKey(key.getSource(), key.getTarget())) {
+                chainscopy.put(key.getSource(), key.getTarget(), new LinkedList<>());
+            }
+            chainscopy.get(key.getSource(), key.getTarget()).add(value);
+        });
         exporter.setVertexAttributeProvider(integer ->
                 attributes.get(integer).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
                         x -> new DefaultAttribute<>((x.getKey().equals(LABEL) ? integer + " " : "") + x.getValue().toString(), AttributeType.STRING))));
+        exporter.setEdgeAttributeProvider(myEdge -> {
+            if (!chainscopy.containsKey(myEdge.getSource(), myEdge.getTarget()) || chainscopy.get(myEdge.getSource(), myEdge.getTarget()).isEmpty()) {
+                return null;
+            } else {
+                return Map.of("label", new DefaultAttribute<>("chain:" + chainscopy.get(myEdge.getSource(), myEdge.getTarget()).poll(), AttributeType.STRING));
+            }
+        });
         StringWriter writer = new StringWriter();
         exporter.exportGraph(this, writer);
         return writer.toString();
@@ -271,8 +289,8 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     }
 
 
-    private TIntObjectMap<TIntObjectMap<Set<List<Map<String, Set<String>>>>>> chainCache = new TIntObjectHashMap<>();
-    public Set<List<Map<String, Set<String>>>> getChains(int from, int to) {
+    private TIntObjectMap<TIntObjectMap<Set<Chain>>> chainCache = new TIntObjectHashMap<>();
+    public Set<Chain> getChains(int from, int to) {
         if (chains == null) {
             return Collections.emptySet();
         }
@@ -281,8 +299,12 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         }
         if (!chainCache.get(from).containsKey(to)) {
             Set<MyEdge> edges = getAllEdges(from, to);
-            Set<List<Map<String, Set<String>>>>res = new HashSet<>();
-            edges.forEach(myEdge -> res.add(chains.get(myEdge)));
+            Set<Chain> res = new HashSet<>();
+            edges.forEach(myEdge -> {
+                if (chains.containsKey(myEdge)) {
+                    res.add(chains.get(myEdge));
+                }
+            });
             chainCache.get(from).put(to, res);
             return res;
         } else {
@@ -290,7 +312,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         }
     }
 
-    public void setChains(Map<MyEdge, List<Map<String, Set<String>>>> chains) {
+    public void setChains(Map<MyEdge, Chain> chains) {
         this.chains = chains;
     }
 }

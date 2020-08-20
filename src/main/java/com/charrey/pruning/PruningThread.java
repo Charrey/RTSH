@@ -1,5 +1,7 @@
 package com.charrey.pruning;
 
+import com.charrey.matching.PartialMatchingProvider;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,7 +44,7 @@ public class PruningThread implements Runnable {
 
     private void check(PartialMatching partialMatching) {
         try {
-            pruner.checkPartial(partialMatching);
+            pruner.checkPartial(() -> partialMatching);
         } catch (DomainCheckerException e) {
             signalPrune();
         }

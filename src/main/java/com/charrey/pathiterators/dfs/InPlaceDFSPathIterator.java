@@ -76,6 +76,7 @@ public class InPlaceDFSPathIterator extends PathIterator {
             removeHeadOfExploration();
         }
         while (exploration.last() != head) {
+            assert exploration.length() != 0;
             if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
                 return null;
             }
@@ -83,19 +84,21 @@ public class InPlaceDFSPathIterator extends PathIterator {
             if (!foundCandidate) {
                 return null;
             }
+            assert exploration.length() != 0;
         }
         assert Arrays.stream(nextOptionToTry.toArray()).anyMatch(x -> x != 0);
         assert !previouschosenoption.equals(nextOptionToTry);
         Path toReturn = commitAndReturn();
         //assert !toReturn.equals(lastReturned) : "Path returned multiple times: " + lastReturned;
         lastReturned = new Path(toReturn);
+        assert toReturn.length() >= 1;
         return toReturn;
     }
 
 
     private Path commitAndReturn() {
         try {
-            transaction.commit(placementSize.get(), getPartialMatching());
+            transaction.commit(placementSize.get(), this::getPartialMatching);
         } catch (DomainCheckerException e) {
             return next();
         }
@@ -104,6 +107,7 @@ public class InPlaceDFSPathIterator extends PathIterator {
     }
 
     private boolean findCandidate() {
+        assert exploration.length() != 0;
         while (true) {
             if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
                 return false;
@@ -136,7 +140,7 @@ public class InPlaceDFSPathIterator extends PathIterator {
         boolean foundCandidate;
         if (newHead != head) {
             try {
-                transaction.occupyRoutingAndCheck(this.placementSize.get(), newHead, getPartialMatching());
+                transaction.occupyRoutingAndCheck(this.placementSize.get(), newHead, this::getPartialMatching);
                 foundCandidate = true;
             } catch (DomainCheckerException e) {
                 exploration.removeLast();

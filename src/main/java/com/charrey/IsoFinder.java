@@ -2,6 +2,7 @@ package com.charrey;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.algorithms.vertexordering.GreatestConstrainedFirst;
+import com.charrey.algorithms.vertexordering.Identity;
 import com.charrey.algorithms.vertexordering.Mapping;
 import com.charrey.algorithms.vertexordering.MaxDegreeFirst;
 import com.charrey.graph.MyEdge;
@@ -135,13 +136,7 @@ public class IsoFinder {
             boolean iterationpassed = true;
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
                 if (iterationpassed) {
-                    iterations++;
-                    if (System.currentTimeMillis() - lastPrint > 1000) {
-                        long finalIterations = iterations;
-                        LOG.info(() -> name + " is at " + finalIterations + " iterations...");
-                        lastPrint = System.currentTimeMillis();
-                    }
-                    LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());
+                    iterations = logProgress(name, iterations);
                 }
                 iterationpassed = false;
                 if (System.currentTimeMillis() > timeoutTime || Thread.interrupted()) {
@@ -171,6 +166,9 @@ public class IsoFinder {
                         return new FailResult(iterations);
                     }
                 }
+//                System.out.println(vertexMatching);
+//                System.out.println(edgeMatching);
+//                System.out.println();
             }
             if (vertexMatching.getPlacement().size() < newSourceGraph.vertexSet().size()) {
                 if (System.currentTimeMillis() >= timeoutTime || Thread.currentThread().isInterrupted()) {
@@ -196,6 +194,17 @@ public class IsoFinder {
                 occupation.close();
             }
         }
+    }
+
+    private long logProgress(String name, long iterations) {
+        iterations++;
+        if (System.currentTimeMillis() - lastPrint > 1000) {
+            long finalIterations = iterations;
+            LOG.info(() -> name + " is at " + finalIterations + " iterations...");
+            lastPrint = System.currentTimeMillis();
+        }
+        LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());
+        return iterations;
     }
 
 

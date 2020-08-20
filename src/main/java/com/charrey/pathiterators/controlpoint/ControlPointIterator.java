@@ -151,7 +151,7 @@ class ControlPointIterator extends PathIterator {
                 if (leftToMiddleAlt.isEmpty()) {
                     temporarilyRemoveGlobal.forEach(x -> {
                         try {
-                            transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, getPartialMatching());
+                            transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
                         } catch (DomainCheckerException e) {
                             assert false;
                         }
@@ -162,7 +162,7 @@ class ControlPointIterator extends PathIterator {
                 Optional<Path> leftToMiddle = filteredShortestPath(leftCandidate, middle);
                 temporarilyRemoveGlobal.forEach(x -> {
                     try {
-                        transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, getPartialMatching());
+                        transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
                     } catch (DomainCheckerException e) {
                         assert false;
                     }
@@ -194,7 +194,7 @@ class ControlPointIterator extends PathIterator {
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::add);
             temporaryRemoveFromGlobal.forEach(x -> {
                 try {
-                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, getPartialMatching());
+                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
                 } catch (DomainCheckerException e) {
                     e.printStackTrace();
                     assert false;
@@ -210,7 +210,7 @@ class ControlPointIterator extends PathIterator {
 
     private boolean tryOccupy(int verticesPlaced, Path path) {
         try {
-            transaction.occupyRoutingAndCheck(verticesPlaced, path, getPartialMatching());
+            transaction.occupyRoutingAndCheck(verticesPlaced, path, this::getPartialMatching);
             return true;
         } catch (DomainCheckerException e) {
             return false;
@@ -228,7 +228,7 @@ class ControlPointIterator extends PathIterator {
             return EXHAUSTED;
         }
         try {
-            this.transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenControlPoint, getPartialMatching());
+            this.transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenControlPoint, this::getPartialMatching);
         } catch (DomainCheckerException e) {
             LOG.finest(() -> prefix.toString() + "Domain check failed");
             chosenControlPoint = ControlPointIterator.ABSENT;
@@ -264,7 +264,7 @@ class ControlPointIterator extends PathIterator {
                         continue;
                     }
                     try {
-                        transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenPath, getPartialMatching());
+                        transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenPath, this::getPartialMatching);
                     } catch (DomainCheckerException e) {
                         continue;
                     }

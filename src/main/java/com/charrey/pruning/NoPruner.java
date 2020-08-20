@@ -1,5 +1,7 @@
 package com.charrey.pruning;
 
+import com.charrey.matching.PartialMatchingProvider;
+
 /**
  * Domain checker class that performs no pruning.
  */
@@ -21,12 +23,12 @@ public class NoPruner extends Pruner {
     }
 
     @Override
-    public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException {
+    public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         //do nothing
     }
 
     @Override
-    public void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException {
+    public void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         //do nothing
     }
 
@@ -51,7 +53,7 @@ public class NoPruner extends Pruner {
     }
 
     @Override
-    public void checkPartial(PartialMatching partialMatching) throws DomainCheckerException {
+    public void checkPartial(PartialMatchingProvider partialMatching) throws DomainCheckerException {
         //do nothing
     }
 

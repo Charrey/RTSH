@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 public abstract class PathIterator {
 
 
-    private final GlobalOccupation globalOccupation;
+    final GlobalOccupation globalOccupation;
 
 
     private final int head;
@@ -38,11 +38,11 @@ public abstract class PathIterator {
      */
     protected final boolean refuseLongerPaths;
     private final int maxPaths;
-    private final Supplier<Integer> placementSize;
+    final Supplier<Integer> placementSize;
     protected long timeoutTime;
     private int counter = 0;
     protected final PartialMatchingProvider partialMatchingProvider;
-    protected final OccupationTransaction transaction;
+    protected OccupationTransaction transaction;
 
 
     /**
@@ -88,12 +88,10 @@ public abstract class PathIterator {
         }
         Path toReturn;
         if (globalOccupation != null) {
-            globalOccupation.claimActiveOccupation(transaction);
             toReturn = getNext();
             while (toReturn != null && toReturn.length() == 1) {
                 toReturn = getNext();
             }
-            globalOccupation.unclaimActiveOccupation();
         } else {
             toReturn = getNext();
             while (toReturn != null && toReturn.length() == 1) {
@@ -101,11 +99,13 @@ public abstract class PathIterator {
             }
         }
         counter++;
-        return toReturn;
+        return toReturn == null ? null : new Path(toReturn);
     }
 
     protected final void uncommit() {
-        transaction.uncommit(placementSize.get());
+        if (transaction != null) {
+            transaction.uncommit(placementSize.get());
+        }
     }
 
     /**

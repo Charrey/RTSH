@@ -122,7 +122,7 @@ public class CachedDFSPathIterator extends PathIterator {
 
     private Path commitAndReturn() {
         try {
-            transaction.commit(placementSize.get(), getPartialMatching());
+            transaction.commit(placementSize.get(), this::getPartialMatching);
         } catch (DomainCheckerException e) {
             return next();
         }
@@ -145,7 +145,7 @@ public class CachedDFSPathIterator extends PathIterator {
         boolean foundCandidate;
         if (newHead != head) {
             try {
-                transaction.occupyRoutingAndCheck(this.placementSize.get(), newHead, getPartialMatching());
+                transaction.occupyRoutingAndCheck(this.placementSize.get(), newHead, this::getPartialMatching);
                 foundCandidate = true;
             } catch (DomainCheckerException e) {
                 if (!addedToForbidden.isEmpty()) {

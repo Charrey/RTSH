@@ -1,6 +1,8 @@
 package com.charrey.matching;
 
+import com.charrey.algorithms.AllDifferent;
 import com.charrey.algorithms.UtilityData;
+import com.charrey.graph.Chain;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
@@ -11,6 +13,8 @@ import com.charrey.settings.Settings;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -35,8 +39,9 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     private final Settings settings;
     private final long timeoutTime;
 
-    private MultipleKeyMap<PathIterator> pathfinders;
+    private MultipleKeyMap<Deque<PathIterator>> pathfinders;
     private final GlobalOccupation occupation;
+    private ChainManager chainManager;
 
     private int[][] edges; //do not change
     private boolean[][] incoming; //only for directed graphs
@@ -107,24 +112,32 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         }
         for (int i = pathList.size() - 1; i >= 0; i--) {
             Path toRetry = pathList.get(i).getFirst();
+
             int tail = toRetry.first();
             int head = toRetry.last();
-            assert pathfinders.containsKey(tail, head);
-            PathIterator pathfinder = pathfinders.get(tail, head);
+            assert pathfinders.containsKey(tail, head) && !pathfinders.get(tail, head).isEmpty();
+            PathIterator pathfinder = pathfinders.get(tail, head).peekFirst();
             Path pathFound = pathfinder.next();
             if (pathFound != null) {
+
                 assert pathFound.first() == tail : "Expected: " + tail + ", actual: " + pathFound.first();
                 assert pathFound.last() == head : "Expected: " + head + ", actual: " + pathFound.last();
                 Path toAdd = new Path(pathFound);
                 pathList.set(pathList.size() - 1, new Pair<>(toAdd, pathfinder.debugInfo()));
                 return true;
             } else {
-                pathfinders.remove(tail, head);
+                pathfinders.get(tail, head).removeFirst();
+                if (pathfinders.get(tail, head).isEmpty()) {
+                    pathfinders.remove(tail, head);
+                }
                 removeLastPath();
             }
         }
         return false;
     }
+
+    private Pair<Integer, Integer> observingForChains;
+    private Map<Path, Set<Chain>> satisfiedChains = new HashMap<>();
 
     /**
      * Adds a new mapping between a source graph edge and a target graph path (using the provided strategy) for a source
@@ -136,14 +149,18 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     public Path placeNextUnmatched() {
         assert this.hasUnmatched();
         //get things
-        int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
-        int from = vertexMatching.getPlacement().get(edges[lastPlacedIndex][paths.get(lastPlacedIndex).size()]);
-        int to = vertexMatching.getPlacement().get(lastPlacedIndex);
-        if (directed && !incoming[lastPlacedIndex][paths.get(lastPlacedIndex).size()]) {
+        int sourceGraphTo = vertexMatching.getPlacement().size() - 1;
+        int sourceGraphFrom = edges[sourceGraphTo][paths.get(sourceGraphTo).size()];
+        int from = vertexMatching.getPlacement().get(sourceGraphFrom);
+        int to = vertexMatching.getPlacement().get(sourceGraphTo);
+        if (directed && !incoming[sourceGraphTo][paths.get(sourceGraphTo).size()]) {
             //swap
             int temp = to;
             to = from;
             from = temp;
+            temp = sourceGraphTo;
+            sourceGraphTo = sourceGraphFrom;
+            sourceGraphFrom = temp;
         }
         int tail;
         int head;
@@ -156,13 +173,9 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         }
         assert directed || tail < head;
         //get pathIterator
-        int alreadyUsed = -100;
-        if (this.targetGraph.containsEdge(tail, head) && !paths.get(vertexMatching.getPlacement().size()-1).isEmpty()) {
-            alreadyUsed = getAlreadyUsed(tail, head);
-            for (int i = 0; i < alreadyUsed; i++) {
-                targetGraph.removeEdge(tail, head);
-            }
-        }
+
+
+        int removed = removeUsedDirectEdges(tail, head);
         PathIterator iterator = PathIteratorFactory.get(targetGraph,
             data,
             tail,
@@ -172,26 +185,99 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             settings,
             this,
             timeoutTime);
-        pathfinders.put(tail, head, iterator);
-        Path toReturn;
-        if (this.targetGraph.containsEdge(tail, head) && !paths.get(vertexMatching.getPlacement().size()-1).isEmpty()) {
-            toReturn = iterator.next();
-            for (int i = 0; i < alreadyUsed; i++) {
-                targetGraph.addEdge(tail, head);
+        if (!pathfinders.containsKey(tail, head)) {
+            pathfinders.put(tail, head, new LinkedList<>());
+        }
+        pathfinders.get(tail, head).addFirst(iterator);
+        Path toReturn = iterator.next();
+        if (toReturn != null) {
+            if (!new Pair<>(sourceGraphFrom, sourceGraphTo).equals(observingForChains)) {
+                observingForChains = new Pair<>(sourceGraphFrom, sourceGraphTo);
+                satisfiedChains = new HashMap<>();
+            }
+            Set<Chain> chains = source.getChains(sourceGraphFrom, sourceGraphTo);
+            Path finalToReturn1 = toReturn;
+            Set<Chain> satisfied = chains.stream().filter(x -> x.compatible(finalToReturn1)).collect(Collectors.toSet());
+            satisfiedChains.put(toReturn, satisfied);
+            int stillToGo = source.getAllEdges(sourceGraphFrom, sourceGraphTo).size() - satisfiedChains.size();
+            boolean chainOkay = checkChains(chains, stillToGo);
+            while (!chainOkay) {
+                toReturn = iterator.next();
+                if (toReturn == null) {
+                    break;
+                }
+                Path finalToReturn = toReturn;
+                satisfied = chains.stream().filter(x -> x.compatible(finalToReturn)).collect(Collectors.toSet());
+                satisfiedChains.put(toReturn, satisfied);
+                chainOkay = checkChains(chains, stillToGo);
+            }
+            readdUsedDirectEdges(tail, head, removed);
+            if (toReturn != null) {
+                addPath(toReturn, iterator.debugInfo());
+                return toReturn;
+            } else {
+                pathfinders.get(tail, head).removeFirst();
+                if (pathfinders.get(tail, head).isEmpty()) {
+                    pathfinders.remove(tail, head);
+                }
+                return null;
             }
         } else {
-            toReturn = iterator.next();
-        }
-        if (toReturn != null) {
-            addPath(toReturn, iterator.debugInfo());
-            return toReturn;
-        } else {
-            pathfinders.remove(tail, head);
+            readdUsedDirectEdges(tail, head, removed);
+            pathfinders.get(tail, head).removeFirst();
+            if (pathfinders.get(tail, head).isEmpty()) {
+                pathfinders.remove(tail, head);
+            }
             return null;
         }
     }
 
-    private int getAlreadyUsed(int tail, int head) {
+    private boolean checkChains(Set<Chain> chains, int wildcards) {
+        Map<Chain, Integer> chainMap = new HashMap<>();
+        Map<Path, Integer> pathMap = new HashMap<>();
+        int index = 0;
+        for (Chain chain : chains) {
+            chainMap.put(chain, index++);
+        }
+        index = 0;
+        for (Path path : satisfiedChains.keySet()) {
+            pathMap.put(path, index++);
+        }
+        List<TIntSet> res = new ArrayList<>(chainMap.size());
+        for (int i = 0; i < chainMap.size(); i++) {
+            res.add(new TIntHashSet());
+        }
+        for (Map.Entry<Path, Set<Chain>> entry : this.satisfiedChains.entrySet()) {
+            for (Chain chain : entry.getValue()) {
+                res.get(chainMap.get(chain)).add(pathMap.get(entry.getKey()));
+            }
+        }
+        for (int i = 0; i < wildcards; i++) {
+            int wildcard = index++;
+            res.forEach(tIntSet -> tIntSet.add(wildcard));
+        }
+        return new AllDifferent().get(res);
+    }
+
+
+    private void readdUsedDirectEdges(int tail, int head, int amount) {
+        for (int i = 0; i < amount; i++) {
+            targetGraph.addEdge(tail, head);
+        }
+    }
+
+    private int removeUsedDirectEdges(int tail, int head) {
+        int alreadyUsed = 0;
+        if (this.targetGraph.containsEdge(tail, head) && !paths.get(vertexMatching.getPlacement().size()-1).isEmpty()) {
+            alreadyUsed = getDirectConnectionsAlreadyUsed(tail, head);
+            for (int i = 0; i < alreadyUsed; i++) {
+                targetGraph.removeEdge(tail, head);
+            }
+        }
+        return alreadyUsed;
+    }
+
+    private int getDirectConnectionsAlreadyUsed(int tail, int head) {
         int alreadyUsed = 0;
         LinkedList<Pair<Path, String>> pathsPlaced = paths.get(vertexMatching.getPlacement().size()-1);
         ListIterator<Pair<Path, String>> listIterator = pathsPlaced.listIterator(pathsPlaced.size());
@@ -270,6 +356,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     private void synchronize(int vertex) {
         assert !vertexMatching.getPlacement().contains(vertex);
         paths.get(vertexMatching.getPlacement().size()).clear();
+        observingForChains = null;
     }
 
     /**

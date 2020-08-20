@@ -1,6 +1,7 @@
 package com.charrey.occupation;
 
 import com.charrey.algorithms.UtilityData;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.pruning.*;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
@@ -31,8 +32,6 @@ public class GlobalOccupation implements AbstractOccupation {
     private Pruner domainChecker;
     private final UtilityData data;
 
-    private AbstractOccupation activeOccupation = this;
-
     /**
      * Instantiates a new Global occupation.
      *
@@ -43,18 +42,6 @@ public class GlobalOccupation implements AbstractOccupation {
         initDomainChecker(settings);
         this.routingBits = new TIntHashSet();
         this.vertexBits = new TIntHashSet();
-    }
-
-    public AbstractOccupation getActiveOccupation() {
-        return activeOccupation;
-    }
-
-    public void claimActiveOccupation(AbstractOccupation active) {
-        this.activeOccupation = active;
-    }
-
-    public void unclaimActiveOccupation() {
-        this.activeOccupation = this;
     }
 
     public void close() {
@@ -111,7 +98,7 @@ public class GlobalOccupation implements AbstractOccupation {
         domainChecker.afterOccupyEdgeWithoutCheck(vertexPlacementSize, vertex);
     }
 
-    void occupyRoutingAndCheck(int vertexPlacementSize, int vertex, PartialMatching partialMatching) throws DomainCheckerException {
+    void occupyRoutingAndCheck(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         assert !routingBits.contains(vertex);
         routingBits.add(vertex);
         domainChecker.afterOccupyEdge(vertexPlacementSize, vertex, partialMatching);
@@ -131,7 +118,7 @@ public class GlobalOccupation implements AbstractOccupation {
         }
         TIntList hypothetical = new TIntArrayList(partialMatching.getVertexMapping());
         hypothetical.add(target);
-        domainChecker.beforeOccupyVertex(source, target, new PartialMatching(hypothetical, partialMatching.getEdgeMapping(), partialMatching.getPartialPath()));
+        domainChecker.beforeOccupyVertex(source, target, () -> new PartialMatching(hypothetical, partialMatching.getEdgeMapping(), partialMatching.getPartialPath()));
         vertexBits.add(target);
     }
 

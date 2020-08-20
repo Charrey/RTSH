@@ -1,6 +1,7 @@
 package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
 
@@ -21,12 +22,12 @@ public abstract class DefaultSerialPruner extends Pruner {
     }
 
     @Override
-    public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException {
+    public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         checkPartial(partialMatching);
     }
 
     @Override
-    public void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException {
+    public void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         checkPartial(partialMatching);
     }
 
