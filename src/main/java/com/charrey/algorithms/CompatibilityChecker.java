@@ -9,6 +9,7 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;

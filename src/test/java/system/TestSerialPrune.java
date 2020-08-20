@@ -20,6 +20,7 @@ class TestSerialPrune extends SystemTest {
     private final Settings settings = new SettingsBuilder()
             .withZeroDomainPruning()
             .withControlPointRouting(5)
+            .withoutContraction()
             .withSerialPruning().get();
 
     @Test

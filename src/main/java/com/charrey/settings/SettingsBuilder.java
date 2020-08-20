@@ -21,6 +21,7 @@ public class SettingsBuilder {
     private boolean lockPathIteration = false;
     private boolean lockWhenToApply = false;
     private boolean lockVertexLimit = false;
+    private boolean lockPathsLimit = false;
     private boolean lockTargetVertexOrder = false;
     private boolean lockDFSCaching = false;
     private boolean lockContraction = false;
@@ -32,6 +33,7 @@ public class SettingsBuilder {
                 PruningMethod.NONE,
                 new KPathStrategy(),
                 WhenToApply.SERIAL,
+                Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 TargetVertexOrder.LARGEST_DEGREE_FIRST,
                 false,
@@ -103,6 +105,15 @@ public class SettingsBuilder {
         }
         settings.setVertexLimit(limit);
         lockVertexLimit = true;
+        return this;
+    }
+
+    public SettingsBuilder withPathsLimit(int limit) {
+        if (lockPathsLimit) {
+            throw new IllegalStateException("Path limit has already been set to " + settings.getPathsLimit());
+        }
+        settings.setPathsLimit(limit);
+        lockPathsLimit = true;
         return this;
     }
 
@@ -240,6 +251,7 @@ public class SettingsBuilder {
         lockPathIteration = true;
         lockWhenToApply = true;
         lockVertexLimit = true;
+        lockPathsLimit = true;
         lockTargetVertexOrder = true;
         lockDFSCaching = true;
         lockContraction = true;
@@ -250,6 +262,12 @@ public class SettingsBuilder {
     private void check() {
         if (settings.getWhenToApply() != WhenToApply.CACHED && settings.getPruningMethod() == PruningMethod.ALLDIFFERENT) {
             throw new IllegalArgumentException("Alldifferent is not compatible with serial or parallel pruning.");
+        }
+        if (settings.getPathsLimit() < 1) {
+            throw new IllegalArgumentException("Paths limit must be greater than 0.");
+        }
+        if (settings.getVertexLimit() < 1) {
+            throw new IllegalArgumentException("Paths limit must be greater than 0.");
         }
     }
 

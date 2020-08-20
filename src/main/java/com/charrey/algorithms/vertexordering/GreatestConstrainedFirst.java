@@ -51,7 +51,6 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
             TIntIntMap score1 = getScore1(graph, newToOld);
             TIntIntMap score2 = getScore2(graph, newToOld);
             TIntIntMap score3 = getScore3(graph, newToOld, score1, score2);
-
             List<Integer> allVertices = graph.vertexSet().stream().filter(x -> !newToOld.contains(x)).sorted(Comparator.comparingInt(o -> -score1.get((Integer) o))
                     .thenComparingInt(o -> -score2.get((Integer) o))
                     .thenComparingInt(o -> -score3.get((Integer) o))

@@ -2,10 +2,12 @@ package com.charrey.graph.generation.succeed;
 
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
+import com.charrey.graph.Path;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.util.GraphUtil;
 import com.charrey.util.Util;
+import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.distribution.GeometricDistribution;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -14,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**

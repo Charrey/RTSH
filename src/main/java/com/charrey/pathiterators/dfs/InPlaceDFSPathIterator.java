@@ -37,15 +37,15 @@ public class InPlaceDFSPathIterator extends PathIterator {
                                   GlobalOccupation occupation,
                                   Supplier<Integer> placementSize,
                                   PartialMatchingProvider provider,
-                                  IteratorSettings type,
                                   long timeoutTime) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime);
+        super(tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize);
         this.head = head;
         this.exploration = new Path(graph, tail);
         this.nextOptionToTry = new ScalingIntList();
         this.occupation = occupation;
         this.placementSize = placementSize;
         this.graph = graph;
+        IteratorSettings type = settings.getPathIteration();
         if (type instanceof DFSStrategy) {
             this.optionSupplier = new IndexOptionSupplier(graph, head);
         } else if (type instanceof NewGreedyDFSStrategy){
@@ -87,10 +87,11 @@ public class InPlaceDFSPathIterator extends PathIterator {
         assert Arrays.stream(nextOptionToTry.toArray()).anyMatch(x -> x != 0);
         assert !previouschosenoption.equals(nextOptionToTry);
         Path toReturn = commitAndReturn();
-        assert !toReturn.equals(lastReturned) : "Path returned multiple times: " + lastReturned;
+        //assert !toReturn.equals(lastReturned) : "Path returned multiple times: " + lastReturned;
         lastReturned = new Path(toReturn);
         return toReturn;
     }
+
 
     private Path commitAndReturn() {
         try {

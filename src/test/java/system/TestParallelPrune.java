@@ -20,6 +20,7 @@ class TestParallelPrune extends SystemTest {
     private final Settings settings = new SettingsBuilder()
             .withZeroDomainPruning()
             .withControlPointRouting(5)
+            .withoutContraction()
             .withParallelPruning().get();
 
     @Test

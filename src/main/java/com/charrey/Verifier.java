@@ -8,7 +8,9 @@ import com.charrey.matching.VertexMatching;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Class that verifies correctness of a homeomorphism.
@@ -88,7 +90,7 @@ class Verifier {
             int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
             int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
             long matches = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).count();
-            if (matches != 1) {
+            if (matches == 0) {
                 return false;
             }
         }

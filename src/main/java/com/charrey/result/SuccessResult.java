@@ -4,6 +4,7 @@ import com.charrey.graph.MyEdge;
 import com.charrey.graph.Path;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SuccessResult extends HomeomorphismResult {
@@ -19,9 +20,9 @@ public class SuccessResult extends HomeomorphismResult {
      * - Remove an edge matching
      */
     private final int[] matching;
-    private final Map<MyEdge, Path> edgeMatching;
+    private final Map<MyEdge, Set<Path>> edgeMatching;
 
-    public SuccessResult(int[] matching, Map<MyEdge, Path> edgeMatching, long iterations) {
+    public SuccessResult(int[] matching, Map<MyEdge, Set<Path>> edgeMatching, long iterations) {
         super(true, iterations);
         this.matching = matching;
         this.edgeMatching = edgeMatching;
@@ -34,7 +35,7 @@ public class SuccessResult extends HomeomorphismResult {
             sb.append(i).append(" matched on ").append(matching[i]).append("\n");
         }
         sb.append("And with edge-on-path matching:\n");
-        for (Map.Entry<MyEdge, Path> entry : edgeMatching.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toUnmodifiableList())) {
+        for (Map.Entry<MyEdge, Set<Path>> entry : edgeMatching.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toUnmodifiableList())) {
             sb.append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\n");
         }
         return sb.toString();
@@ -44,7 +45,7 @@ public class SuccessResult extends HomeomorphismResult {
         return matching;
     }
 
-    public Map<MyEdge, Path> getEdgePlacement() {
+    public Map<MyEdge, Set<Path>> getEdgePlacement() {
         return edgeMatching;
     }
 }

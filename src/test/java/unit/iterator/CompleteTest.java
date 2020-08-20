@@ -6,6 +6,7 @@ import com.charrey.graph.Path;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
+import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
@@ -30,22 +31,22 @@ class CompleteTest extends PathIteratorTest {
 
     private final RandomGenerator random = new Well512a(102038);
     private static final int differentGraphSizes = 250;
-    private static final int trials = 100;
+    private static final int trials = 10;
     private static Settings settings = new SettingsBuilder()
             .withKPathRouting().get();
 
     @NotNull
-    private static String myMaptoString(@NotNull Map<IteratorSettings, Set<Path>> pathCount) {
+    private static String myMaptoString(@NotNull Map<IteratorSettings, Set<String>> pathCount) {
         StringBuilder sb = new StringBuilder();
-        Set<Path> common = new HashSet<>();
+        Set<String> common = new HashSet<>();
         pathCount.values().forEach(common::addAll);
         new HashSet<>(common).forEach(path -> {
             if (pathCount.entrySet().stream().anyMatch(x -> !x.getValue().contains(path))) {
                 common.remove(path);
             }
         });
-        for (Map.Entry<IteratorSettings, Set<Path>> entry : pathCount.entrySet()) {
-            List<Path> extra = entry.getValue().stream().filter(x -> !common.contains(x)).sorted().collect(Collectors.toList());
+        for (Map.Entry<IteratorSettings, Set<String>> entry : pathCount.entrySet()) {
+            List<String> extra = entry.getValue().stream().filter(x -> !common.contains(x)).sorted().collect(Collectors.toList());
             sb.append("Option ").append(entry.getKey()).append(":\t").append(common.size()).append(" common and ").append(extra.isEmpty() ? "nothing else" : extra).append("\n");
         }
         return sb.toString();
@@ -66,15 +67,15 @@ class CompleteTest extends PathIteratorTest {
                 UtilityData data = new UtilityData(sourceGraph, targetGraph);
                 int tail = Util.selectRandom(targetGraph.vertexSet(), x -> true, random);
                 int head = Util.selectRandom(targetGraph.vertexSet(), x -> x != tail, random);
+                counter++;
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
-                counter++;
                 if (counter < 0) {
                     continue;
                 }
                 System.out.print(counter % 100 == 0 ? counter + "/" + differentGraphSizes * trials + "\n" : "");
-                Map<IteratorSettings, Set<Path>> pathCount = new HashMap<>(); //s
+                Map<IteratorSettings, Set<String>> pathCount = new HashMap<>(); //s
                 for (IteratorSettings strategy : List.of(new DFSStrategy(), new OldGreedyDFSStrategy(), new ControlPointIteratorStrategy(100), new KPathStrategy())) {
                     settings = new SettingsBuilder(settings).withPathIteration(strategy).get();
                     pathCount.put(strategy, new HashSet<>());
@@ -88,17 +89,17 @@ class CompleteTest extends PathIteratorTest {
                     } catch (DomainCheckerException e) {
                         continue;
                     }
-                    PathIterator iterator = PathIterator.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
+                    PathIterator iterator = PathIteratorFactory.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
                         TIntList vertexMatching = new TIntArrayList();
                         vertexMatching.add(tail);
                         vertexMatching.add(head);
                         return new PartialMatching(vertexMatching);
-                    }, Long.MAX_VALUE, null);
+                    }, Long.MAX_VALUE);
                     Path path;
                     try {
                         while ((path = iterator.next()) != null) {
                             assert path.asList().size() == new TIntHashSet(path.asList()).size();
-                            pathCount.get(strategy).add(new Path(path));
+                            pathCount.get(strategy).add(new Path(path).toString());
                         }
                     } catch (Exception e) {
                         System.err.println(counter);

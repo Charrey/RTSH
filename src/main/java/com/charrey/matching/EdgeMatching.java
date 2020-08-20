@@ -5,6 +5,7 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
+import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.util.datastructures.MultipleKeyMap;
@@ -108,7 +109,6 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             Path toRetry = pathList.get(i).getFirst();
             int tail = toRetry.first();
             int head = toRetry.last();
-            assert directed || tail < head;
             assert pathfinders.containsKey(tail, head);
             PathIterator pathfinder = pathfinders.get(tail, head);
             Path pathFound = pathfinder.next();
@@ -154,24 +154,34 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             tail = Math.min(from, to);
             head = Math.max(from, to);
         }
+        assert directed || tail < head;
         //get pathIterator
-
-        if (pathfinders.containsKey(tail, head)) {
-            pathfinders.remove(tail, head);
-            assert false;
+        int alreadyUsed = -100;
+        if (this.targetGraph.containsEdge(tail, head) && !paths.get(vertexMatching.getPlacement().size()-1).isEmpty()) {
+            alreadyUsed = getAlreadyUsed(tail, head);
+            for (int i = 0; i < alreadyUsed; i++) {
+                targetGraph.removeEdge(tail, head);
+            }
         }
-        PathIterator iterator = PathIterator.get(targetGraph,
-                data,
-                tail,
-                head,
-                occupation,
-                () -> vertexMatching.getPlacement().size(),
-                settings,
-                this,
-                timeoutTime,
-                source.getChains(lastPlacedIndex, edges[lastPlacedIndex][paths.get(lastPlacedIndex).size()]));
+        PathIterator iterator = PathIteratorFactory.get(targetGraph,
+            data,
+            tail,
+            head,
+            occupation,
+            () -> vertexMatching.getPlacement().size(),
+            settings,
+            this,
+            timeoutTime);
         pathfinders.put(tail, head, iterator);
-        Path toReturn = iterator.next();
+        Path toReturn;
+        if (this.targetGraph.containsEdge(tail, head) && !paths.get(vertexMatching.getPlacement().size()-1).isEmpty()) {
+            toReturn = iterator.next();
+            for (int i = 0; i < alreadyUsed; i++) {
+                targetGraph.addEdge(tail, head);
+            }
+        } else {
+            toReturn = iterator.next();
+        }
         if (toReturn != null) {
             addPath(toReturn, iterator.debugInfo());
             return toReturn;
@@ -179,6 +189,21 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             pathfinders.remove(tail, head);
             return null;
         }
+    }
+
+    private int getAlreadyUsed(int tail, int head) {
+        int alreadyUsed = 0;
+        LinkedList<Pair<Path, String>> pathsPlaced = paths.get(vertexMatching.getPlacement().size()-1);
+        ListIterator<Pair<Path, String>> listIterator = pathsPlaced.listIterator(pathsPlaced.size());
+        do {
+            Pair<Path, String> element = listIterator.previous();
+            if (element.getFirst().isEqualTo(new Path(targetGraph, List.of(tail, head)))) {
+                alreadyUsed++;
+            } else {
+                break;
+            }
+        } while (listIterator.hasPrevious());
+        return alreadyUsed;
     }
 
     private void initPathsEdges() {
@@ -192,10 +217,20 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             } else {
                 List<Integer> incomingEdges = IntStream.range(0, tempi).boxed()
                         .filter(x -> source.getEdge(x, tempi) != null)
-                        .collect(Collectors.toUnmodifiableList());
-                List<Integer> outgoingEdges = IntStream.range(0, tempi + 1).boxed()
+                        .collect(Collectors.toList());
+                new ArrayList<>(incomingEdges).forEach(predecessor -> {
+                    for (int j = 0; j < source.getAllEdges(predecessor, tempi).size() - 1; j++) {
+                        incomingEdges.add(predecessor);
+                    }
+                });
+                List<Integer> outgoingEdges = IntStream.range(0, tempi + 1 ).boxed()
                         .filter(x -> source.getEdge(tempi, x) != null)
-                        .collect(Collectors.toUnmodifiableList());
+                        .collect(Collectors.toList());
+                new ArrayList<>(outgoingEdges).forEach(successor -> {
+                    for (int j = 0; j < source.getAllEdges(tempi, successor).size() - 1; j++) {
+                        outgoingEdges.add(successor);
+                    }
+                });
                 incoming[i] = new boolean[incomingEdges.size() + outgoingEdges.size()];
                 edges[i] = new int[incomingEdges.size() + outgoingEdges.size()];
                 for (int j = 0; j < incomingEdges.size(); j++) {
