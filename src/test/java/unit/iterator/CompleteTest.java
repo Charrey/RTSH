@@ -94,7 +94,7 @@ class CompleteTest extends PathIteratorTest {
                         vertexMatching.add(tail);
                         vertexMatching.add(head);
                         return new PartialMatching(vertexMatching);
-                    }, Long.MAX_VALUE);
+                    }, Long.MAX_VALUE, 0);
                     Path path;
                     try {
                         while ((path = iterator.next()) != null) {

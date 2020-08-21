@@ -37,8 +37,8 @@ public class InPlaceDFSPathIterator extends PathIterator {
                                   GlobalOccupation occupation,
                                   Supplier<Integer> placementSize,
                                   PartialMatchingProvider provider,
-                                  long timeoutTime) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize);
+                                  long timeoutTime, int cripple) {
+        super(graph, tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize, cripple);
         this.head = head;
         this.exploration = new Path(graph, tail);
         this.nextOptionToTry = new ScalingIntList();

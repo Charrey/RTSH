@@ -199,9 +199,14 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             }
             chainscopy.get(key.getSource(), key.getTarget()).add(value);
         });
-        exporter.setVertexAttributeProvider(integer ->
-                attributes.get(integer).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                        x -> new DefaultAttribute<>((x.getKey().equals(LABEL) ? integer + " " : "") + x.getValue().toString(), AttributeType.STRING))));
+        exporter.setVertexAttributeProvider(integer -> {
+            if (attributes.get(integer).values().stream().allMatch(Set::isEmpty)) {
+                return null;
+            } else {
+                return attributes.get(integer).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                        x -> new DefaultAttribute<>((x.getKey().equals(LABEL) ? integer + " " : "") + x.getValue().toString(), AttributeType.STRING)));
+            }
+        });
         exporter.setEdgeAttributeProvider(myEdge -> {
             if (!chainscopy.containsKey(myEdge.getSource(), myEdge.getTarget()) || chainscopy.get(myEdge.getSource(), myEdge.getTarget()).isEmpty()) {
                 return null;

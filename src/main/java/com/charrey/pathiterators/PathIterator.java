@@ -1,25 +1,15 @@
 package com.charrey.pathiterators;
 
-import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
-import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
-import com.charrey.pathiterators.dfs.CachedDFSPathIterator;
-import com.charrey.pathiterators.dfs.InPlaceDFSPathIterator;
-import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.PartialMatching;
 import com.charrey.settings.Settings;
-import com.charrey.settings.iterator.ControlPointIteratorStrategy;
 import gnu.trove.set.hash.TIntHashSet;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -39,6 +29,8 @@ public abstract class PathIterator {
     protected final boolean refuseLongerPaths;
     private final int maxPaths;
     final Supplier<Integer> placementSize;
+    private final int cripple;
+    private final MyGraph graph;
     protected long timeoutTime;
     private int counter = 0;
     protected final PartialMatchingProvider partialMatchingProvider;
@@ -51,14 +43,17 @@ public abstract class PathIterator {
      * @param head the head
      * @param placementSize
      */
-    protected PathIterator(int tail,
+    protected PathIterator(MyGraph graph,
+                           int tail,
                            int head,
                            Settings settings,
                            GlobalOccupation globalOccupation,
                            OccupationTransaction transaction,
                            PartialMatchingProvider partialMatchingProvider,
                            long timeoutTime,
-                           Supplier<Integer> placementSize) {
+                           Supplier<Integer> placementSize,
+                           int cripple) {
+        this.graph = graph;
         this.tail = tail;
         this.head = head;
         this.refuseLongerPaths = settings.getRefuseLongerPaths();
@@ -68,6 +63,7 @@ public abstract class PathIterator {
         this.timeoutTime = timeoutTime;
         this.maxPaths = settings.getPathsLimit();
         this.placementSize = placementSize;
+        this.cripple = cripple;
     }
 
 
@@ -86,17 +82,15 @@ public abstract class PathIterator {
             uncommit();
             return null;
         }
-        Path toReturn;
-        if (globalOccupation != null) {
+        for (int i = 0; i < cripple; i++) {
+            graph.removeEdge(tail, head);
+        }
+        Path toReturn = getNext();
+        while (toReturn != null && toReturn.length() == 1) {
             toReturn = getNext();
-            while (toReturn != null && toReturn.length() == 1) {
-                toReturn = getNext();
-            }
-        } else {
-            toReturn = getNext();
-            while (toReturn != null && toReturn.length() == 1) {
-                toReturn = getNext();
-            }
+        }
+        for (int i = 0; i < cripple; i++) {
+            graph.addEdge(tail, head);
         }
         counter++;
         return toReturn == null ? null : new Path(toReturn);

@@ -55,8 +55,8 @@ public class CachedDFSPathIterator extends PathIterator {
                                  Supplier<Integer> placementSize,
                                  PartialMatchingProvider provider,
                                  @NotNull int[][] neighbours,
-                                 long timeoutTime) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize);
+                                 long timeoutTime, int cripple) {
+        super(graph, tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize, cripple);
         this.head = head;
         exploration = new Path(graph, tail);
         //noinspection AssignmentOrReturnOfFieldWithMutableType

@@ -35,22 +35,43 @@ public class PathIteratorFactory {
                                    Supplier<Integer> placementSize,
                                    Settings settings,
                                    PartialMatchingProvider provider,
-                                   long timeoutTime) {
-        if (targetGraph.getEdge(tail, head) != null) {
-            return new SingletonPathIterator(targetGraph, settings, tail, head, provider, placementSize);
-        } else if (tail == head) {
-            return new LoopAdaptor(targetGraph, settings, data, tail, occupation, placementSize, provider, timeoutTime);
+                                   long timeoutTime,
+                                   int crippled) {
+        PathIterator toReturn;
+
+        for (int i = 0; i < crippled; i++) {
+            targetGraph.removeEdge(tail, head);
         }
-        return switch (settings.getPathIteration().iterationStrategy) {
-            case DFS_ARBITRARY, DFS_GREEDY -> {
-                if (settings.getDfsCaching()) {
-                    yield new CachedDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head], timeoutTime);
-                } else {
-                    yield new InPlaceDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, timeoutTime);
-                }
-            }
-            case CONTROL_POINT -> new ManagedControlPointIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints(), timeoutTime);
-            case KPATH -> new KPathPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, timeoutTime);
-        };
+
+        if (targetGraph.getEdge(tail, head) != null) {
+            toReturn = new SingletonPathIterator(targetGraph, settings, tail, head, provider, placementSize, crippled);
+        } else if (tail == head) {
+            toReturn = LoopAdaptor.get(targetGraph, settings, data, tail, occupation, placementSize, provider, timeoutTime, crippled);
+        } else {
+            switch (settings.getPathIteration().iterationStrategy) {
+                case DFS_ARBITRARY, DFS_GREEDY:
+                    if (settings.getDfsCaching()) {
+                        toReturn = new CachedDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head], timeoutTime, crippled);
+                    } else {
+                        toReturn = new InPlaceDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, timeoutTime, crippled);
+                    }
+                    break;
+
+                case CONTROL_POINT:
+                    toReturn = new ManagedControlPointIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, ((ControlPointIteratorStrategy) settings.getPathIteration()).getMaxControlpoints(), timeoutTime, crippled);
+                    break;
+                case KPATH:
+                    toReturn = new KPathPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, timeoutTime, crippled);
+                    break;
+                default:
+                    throw new UnsupportedOperationException();
+            };
+        }
+
+        for (int i = 0; i < crippled; i++) {
+            targetGraph.addEdge(tail, head);
+        }
+
+        return toReturn;
     }
 }

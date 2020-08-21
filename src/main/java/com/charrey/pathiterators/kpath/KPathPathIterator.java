@@ -51,8 +51,8 @@ public class KPathPathIterator extends PathIterator {
                              @NotNull GlobalOccupation occupation,
                              Supplier<Integer> verticesPlaced,
                              PartialMatchingProvider partialMatchingProvider,
-                             long timeoutTime) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), partialMatchingProvider, timeoutTime, verticesPlaced);
+                             long timeoutTime, int cripple) {
+        super(targetGraph, tail, head, settings, occupation, occupation.getTransaction(), partialMatchingProvider, timeoutTime, verticesPlaced, cripple);
         this.targetGraph = targetGraph;
         this.occupation = occupation;
         init = occupation.toString();

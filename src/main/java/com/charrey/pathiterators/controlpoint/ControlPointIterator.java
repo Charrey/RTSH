@@ -81,7 +81,7 @@ class ControlPointIterator extends PathIterator {
                          Settings settings,
                          PartialMatchingProvider provider,
                          long timeoutTime) {
-        super(tail, head, settings, globalOccupation, transaction, provider, timeoutTime, verticesPlaced);
+        super(targetGraph, tail, head, settings, globalOccupation, transaction, provider, timeoutTime, verticesPlaced, 0);
         this.targetGraph = targetGraph;
         this.controlPoints = controlPoints;
         this.globalOccupation = globalOccupation;

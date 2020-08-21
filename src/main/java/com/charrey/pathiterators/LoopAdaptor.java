@@ -1,15 +1,15 @@
 package com.charrey.pathiterators;
 
 import com.charrey.algorithms.UtilityData;
-import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
+import com.charrey.occupation.AbstractOccupation;
 import com.charrey.occupation.GlobalOccupation;
+import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
 import org.jetbrains.annotations.Nullable;
-import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.util.Pair;
 
@@ -23,7 +23,6 @@ public class LoopAdaptor extends PathIterator {
 
     private final MyGraph graph;
     private final int tailHead;
-    PathIterator inner;
 
     double[] distances;
     int[] neighbours;
@@ -31,24 +30,45 @@ public class LoopAdaptor extends PathIterator {
     List<PathIterator> spas;
 
 
-    public LoopAdaptor(MyGraph targetGraph,
+
+    public static PathIterator get(MyGraph targetGraph,
                        Settings settings,
                        UtilityData data,
                        int tailHead,
                        GlobalOccupation occupation,
                        Supplier<Integer> placementSize,
                        PartialMatchingProvider provider,
-                       long timeoutTime) {
-        super(tailHead, tailHead, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize);
+                       long timeoutTime, int cripple) {
+        OccupationTransaction tempTransaction = occupation.getTransaction();
+        int[] neighbours = Graphs.successorListOf(targetGraph, tailHead).stream().filter(x -> x != tailHead && canOccupyRouting(tempTransaction, x, provider, placementSize)).mapToInt(x -> x).toArray();
+        if (neighbours.length == 0) {
+            return new VoidPathIterator(settings);
+        } else {
+            return new LoopAdaptor(targetGraph, settings, data, tailHead, occupation, placementSize, provider, timeoutTime, neighbours, cripple);
+        }
+    }
+
+
+    private LoopAdaptor(MyGraph targetGraph,
+                       Settings settings,
+                       UtilityData data,
+                       int tailHead,
+                       GlobalOccupation occupation,
+                       Supplier<Integer> placementSize,
+                       PartialMatchingProvider provider,
+                       long timeoutTime,
+                        int[] neighbours,
+                        int cripple) {
+        super(targetGraph, tailHead, tailHead, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize, cripple);
         this.graph = targetGraph;
         this.tailHead = tailHead;
-        neighbours = Graphs.successorListOf(graph, tailHead).stream().filter(x -> x != tailHead).mapToInt(x -> x).toArray();
+        this.neighbours = neighbours;
         distances = new double[neighbours.length];
         spas = new ArrayList<>(neighbours.length);
         pathQueue = new PriorityQueue<>(neighbours.length, Comparator.comparingDouble(o -> distances[o.getFirst()] + o.getSecond().getWeight()));
         for (int i = 0; i < neighbours.length; i++) {
             distances[i] = graph.getEdgeWeight(graph.getEdge(tailHead, neighbours[i]));
-            PathIterator pathIterator = PathIteratorFactory.get(graph, data, neighbours[i], tailHead, occupation, placementSize, settings, provider, timeoutTime);
+            PathIterator pathIterator = PathIteratorFactory.get(graph, data, neighbours[i], tailHead, occupation, placementSize, settings, provider, timeoutTime, 0);
             spas.add(pathIterator);
             Path path = pathIterator.next();
             pathIterator.uncommit();
@@ -59,10 +79,24 @@ public class LoopAdaptor extends PathIterator {
         }
     }
 
+    private static boolean canOccupyRouting(OccupationTransaction transaction, Integer toOccupy, PartialMatchingProvider partialMatchingProvider, Supplier<Integer> placementSize) {
+        if (transaction.isOccupied(toOccupy)) {
+            return false;
+        } else {
+            try {
+                transaction.occupyRoutingAndCheck(placementSize.get(), toOccupy, partialMatchingProvider);
+                transaction.releaseRouting(placementSize.get(), toOccupy);
+                return true;
+            } catch (DomainCheckerException e) {
+                return false;
+            }
+        }
+    }
+
     @Nullable
     @Override
     public Path getNext() {
-        uncommit();
+        transaction.uncommit(placementSize.get());
         transaction = this.globalOccupation.getTransaction();
         if (pathQueue.isEmpty()) {
             return null;
@@ -82,7 +116,7 @@ public class LoopAdaptor extends PathIterator {
                 transaction.occupyRoutingAndCheck(placementSize.get(), path, partialMatchingProvider);
                 transaction.commit(placementSize.get() , partialMatchingProvider);
             } catch (DomainCheckerException e) {
-                assert false;
+                return getNext();
             }
             return path;
         }

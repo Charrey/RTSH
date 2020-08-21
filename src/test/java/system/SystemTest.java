@@ -26,7 +26,7 @@ public abstract class SystemTest {
     HomeomorphismResult testSucceed(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) throws IOException {
         HomeomorphismResult morph = new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
         if (!(morph instanceof TimeoutResult) && !morph.succeed) {
-            openInBrowser(testCase.getSourceGraph().toString(), testCase.getTargetGraph().toString());
+            //openInBrowser(testCase.getSourceGraph().toString(), testCase.getTargetGraph().toString());
             fail();
         }
         return morph;

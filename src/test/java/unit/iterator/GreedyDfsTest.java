@@ -71,13 +71,13 @@ class GreedyDfsTest {
                     vertexMatching12.add(tail);
                     vertexMatching12.add(head);
                     return new PartialMatching(vertexMatching12);
-                }, Long.MAX_VALUE);
+                }, Long.MAX_VALUE, 0);
                 KPathPathIterator kPathIterator = (KPathPathIterator) PathIteratorFactory.get(targetGraph, data, tail, head, occupationKPath, () -> 2, settingsKpath, () -> {
                     TIntList vertexMatching1 = new TIntArrayList();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE);
+                }, Long.MAX_VALUE, 0);
 
                 Path path1 = kPathIterator.next();
                 Path path2 = greedyDFSIterator.next();

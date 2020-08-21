@@ -21,6 +21,7 @@ import org.jgrapht.Graphs;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -117,7 +118,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             int head = toRetry.last();
             assert pathfinders.containsKey(tail, head) && !pathfinders.get(tail, head).isEmpty();
             PathIterator pathfinder = pathfinders.get(tail, head).peekFirst();
-            Path pathFound = pathfinder.next();
+            Path pathFound = pathfinder.next(); //was this pathfinder initiated with a crippled graph?
             if (pathFound != null) {
 
                 assert pathFound.first() == tail : "Expected: " + tail + ", actual: " + pathFound.first();
@@ -175,7 +176,6 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         //get pathIterator
 
 
-        int removed = removeUsedDirectEdges(tail, head);
         PathIterator iterator = PathIteratorFactory.get(targetGraph,
             data,
             tail,
@@ -184,7 +184,8 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             () -> vertexMatching.getPlacement().size(),
             settings,
             this,
-            timeoutTime);
+            timeoutTime,
+                getDirectConnectionsAlreadyUsed(tail, head));
         if (!pathfinders.containsKey(tail, head)) {
             pathfinders.put(tail, head, new LinkedList<>());
         }
@@ -199,7 +200,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             Path finalToReturn1 = toReturn;
             Set<Chain> satisfied = chains.stream().filter(x -> x.compatible(finalToReturn1)).collect(Collectors.toSet());
             satisfiedChains.put(toReturn, satisfied);
-            int stillToGo = source.getAllEdges(sourceGraphFrom, sourceGraphTo).size() - satisfiedChains.size();
+            int stillToGo = matchesStillToGo(sourceGraphTo, sourceGraphFrom, tail, head);
             boolean chainOkay = checkChains(chains, stillToGo);
             while (!chainOkay) {
                 toReturn = iterator.next();
@@ -211,7 +212,6 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
                 satisfiedChains.put(toReturn, satisfied);
                 chainOkay = checkChains(chains, stillToGo);
             }
-            readdUsedDirectEdges(tail, head, removed);
             if (toReturn != null) {
                 addPath(toReturn, iterator.debugInfo());
                 return toReturn;
@@ -223,13 +223,20 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
                 return null;
             }
         } else {
-            readdUsedDirectEdges(tail, head, removed);
             pathfinders.get(tail, head).removeFirst();
             if (pathfinders.get(tail, head).isEmpty()) {
                 pathfinders.remove(tail, head);
             }
             return null;
         }
+    }
+
+    private int matchesStillToGo(int sourceGraphTo, int sourceGraphFrom, int tail, int head) {
+        int initial = source.getAllEdges(sourceGraphFrom, sourceGraphTo).size();
+        long done = paths.get(vertexMatching.getPlacement().size()-1)
+                .stream()
+                .filter(path -> List.of(path.getFirst().first(), path.getFirst().last()).equals(List.of(tail, head))).count();
+        return (int) (initial - done);
     }
 
     private boolean checkChains(Set<Chain> chains, int wildcards) {
@@ -267,25 +274,25 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     }
 
     private int removeUsedDirectEdges(int tail, int head) {
-        int alreadyUsed = 0;
-        if (this.targetGraph.containsEdge(tail, head) && !paths.get(vertexMatching.getPlacement().size()-1).isEmpty()) {
-            alreadyUsed = getDirectConnectionsAlreadyUsed(tail, head);
-            for (int i = 0; i < alreadyUsed; i++) {
-                targetGraph.removeEdge(tail, head);
-            }
+        int alreadyUsed = getDirectConnectionsAlreadyUsed(tail, head);
+        for (int i = 0; i < alreadyUsed; i++) {
+            targetGraph.removeEdge(tail, head);
         }
         return alreadyUsed;
     }
 
     private int getDirectConnectionsAlreadyUsed(int tail, int head) {
         int alreadyUsed = 0;
+        if (!this.targetGraph.containsEdge(tail, head) || paths.get(vertexMatching.getPlacement().size()-1).isEmpty()) {
+            return 0;
+        }
         LinkedList<Pair<Path, String>> pathsPlaced = paths.get(vertexMatching.getPlacement().size()-1);
         ListIterator<Pair<Path, String>> listIterator = pathsPlaced.listIterator(pathsPlaced.size());
         do {
             Pair<Path, String> element = listIterator.previous();
             if (element.getFirst().isEqualTo(new Path(targetGraph, List.of(tail, head)))) {
                 alreadyUsed++;
-            } else {
+            } else if (element.getFirst().first() != tail || element.getFirst().last() != head) {
                 break;
             }
         } while (listIterator.hasPrevious());

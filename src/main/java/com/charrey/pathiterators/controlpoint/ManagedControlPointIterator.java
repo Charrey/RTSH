@@ -55,8 +55,8 @@ public class ManagedControlPointIterator extends PathIterator {
                                        Supplier<Integer> verticesPlaced,
                                        PartialMatchingProvider provider,
                                        int maxControlPoints,
-                                       long timeoutTime) {
-        super(tail, head, settings, globalOccupation, globalOccupation.getTransaction(), provider, timeoutTime, verticesPlaced);
+                                       long timeoutTime, int cripple) {
+        super(graph, tail, head, settings, globalOccupation, globalOccupation.getTransaction(), provider, timeoutTime, verticesPlaced, cripple);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.settings = settings;

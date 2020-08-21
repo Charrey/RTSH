@@ -8,9 +8,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -73,5 +71,9 @@ public class TestCase implements Iterable<MyGraph> {
                 targetGraphCopy,
                 expectedVertexMatchingCopy,
                 expectedEdgeMatchingCopy);
+    }
+
+    public int[] getExpectedVertexMatching() {
+        return expectedVertexMatching;
     }
 }

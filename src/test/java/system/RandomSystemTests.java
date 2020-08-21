@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -46,7 +47,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(10000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(10000 * 1000, 10, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 1, 30), true);
     }
 
     @Test
@@ -78,7 +79,7 @@ class RandomSystemTests extends SystemTest {
 
                 HomeomorphismResult homeomorphism;
                 //System.out.println("case " + attempts);
-                if (attempts >= 11048) {
+                if (attempts >= 0) {//22687
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);
@@ -88,6 +89,10 @@ class RandomSystemTests extends SystemTest {
                     } catch (AssertionError | IllegalStateException | IllegalArgumentException e) {
                         System.err.println(attempts);
                         System.err.println(testCase.getSourceGraph());
+                        int[] expected = testCase.getExpectedVertexMatching();
+                        for (int j = 0; j < expected.length; j++) {
+                            testCase.getTargetGraph().addAttribute(expected[j], "label", String.valueOf(j));
+                        }
                         System.err.println(testCase.getTargetGraph());
                         throw e;
                     }
