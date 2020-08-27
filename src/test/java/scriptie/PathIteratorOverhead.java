@@ -1,4 +1,4 @@
-package system;
+package scriptie;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
@@ -12,26 +12,27 @@ import com.charrey.settings.SettingsBuilder;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import system.SystemTest;
 
 import java.util.*;
 
-public class ScriptieTests extends SystemTest {
+public class PathIteratorOverhead extends SystemTest {
 
 
     private static List<Configuration> configurations = new LinkedList<>();
 
     @BeforeAll
     public static void init() {
-        configurations.add(new Configuration("*", "blue", "K-Path", new SettingsBuilder().withKPathRouting().withoutContraction().get()));
-        configurations.add(new Configuration("x", "red", "DFS", new SettingsBuilder().withInplaceDFSRouting().withoutContraction().get()));
-        configurations.add(new Configuration("+", "green", "CP", new SettingsBuilder().withControlPointRouting().withoutContraction().get()));
-        configurations.add(new Configuration("o", "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withoutContraction().get()));
+        configurations.add(new Configuration("*"       , "blue"  , "K-Path"   , new SettingsBuilder().withKPathRouting().withoutContraction().get()));
+        configurations.add(new Configuration("x"       , "red"   , "DFS"      , new SettingsBuilder().withInplaceDFSRouting().withoutContraction().get()));
+        configurations.add(new Configuration("+"       , "green" , "CP"       , new SettingsBuilder().withControlPointRouting().withoutContraction().get()));
+        configurations.add(new Configuration("o"       , "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withoutContraction().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withoutContraction().get()));
-        configurations.add(new Configuration("star", "gray", "GDFS C", new SettingsBuilder().withCachedGreedyDFSRouting().withoutContraction().get()));
+        configurations.add(new Configuration("star"    , "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withoutContraction().get()));
     }
 
     @Test
-    public void run() throws InterruptedException {
+    void run() throws InterruptedException {
         Random random = new Random(512);
         long timeout = 10*60*1000L;
         Map<Configuration, Thread> threads = new HashMap<>();
@@ -50,7 +51,7 @@ public class ScriptieTests extends SystemTest {
                     while (System.currentTimeMillis() - timeStartForThisX < timeout) {
                         TestCase tc = getTestCase(random, currentX);
                         long startTime = System.nanoTime();
-                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.settings);
+                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettings());
                         long period = System.nanoTime() - startTime;
                         if (result instanceof FailResult) {
                             times.add(period);
@@ -92,39 +93,5 @@ public class ScriptieTests extends SystemTest {
     }
 
 
-    private static class Configuration {
-        private final String prefix;
-        private final String suffix;
-        private final Settings settings;
-        private final String name;
 
-        public Configuration(String mark, String color, String name, Settings settings) {
-            this.prefix = "\\addplot[\n" +
-                    "        smooth,\n" +
-                    "        mark=" + mark + ",\n" +
-                    "        " + color + ",\n" +
-                    "        error bars/.cd, y dir=both, y explicit,\n" +
-                    "    ] plot coordinates {\n";
-            this.settings = settings;
-            this.suffix = "};\n    \\addlegendentry{" + name + "}\n\n";
-            this.name = name;
-        }
-
-        public Settings getSettings() {
-            return settings;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-
-        public String getString(List<Integer> x, List<Double> results, List<Double> deviations) {
-            StringBuilder sb = new StringBuilder(prefix);
-            for (int i = 0; i < results.size(); i++) {
-                sb.append("        (").append(x.get(i)).append(",").append(results.get(i)).append(") +=(0,").append(deviations.get(i)).append(") -= (0,").append(deviations.get(i)).append(")\n");
-            }
-            return sb.append(suffix).toString();
-        }
-    }
 }
