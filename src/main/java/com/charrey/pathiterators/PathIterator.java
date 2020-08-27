@@ -1,5 +1,6 @@
 package com.charrey.pathiterators;
 
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
@@ -10,6 +11,8 @@ import com.charrey.settings.Settings;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -82,16 +85,15 @@ public abstract class PathIterator {
             uncommit();
             return null;
         }
+        Set<MyEdge> removed = new HashSet<>();
         for (int i = 0; i < cripple; i++) {
-            graph.removeEdge(tail, head);
+            removed.add(graph.removeEdge(tail, head));
         }
         Path toReturn = getNext();
         while (toReturn != null && toReturn.length() == 1) {
             toReturn = getNext();
         }
-        for (int i = 0; i < cripple; i++) {
-            graph.addEdge(tail, head);
-        }
+        removed.forEach(x -> graph.addEdge(tail, head, x));
         counter++;
         return toReturn == null ? null : new Path(toReturn);
     }

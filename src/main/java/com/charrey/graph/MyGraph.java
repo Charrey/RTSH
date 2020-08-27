@@ -4,10 +4,10 @@ import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
+import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.DefaultGraphType;
-import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.AttributeType;
 import org.jgrapht.nio.DefaultAttribute;
 import org.jgrapht.nio.dot.DOTExporter;
@@ -15,8 +15,6 @@ import org.jgrapht.util.SupplierUtil;
 
 import java.io.StringWriter;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -34,16 +32,18 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     private boolean locked = false;
     private Map<MyEdge, Chain> chains = new HashMap<>();
 
+    private int edgeCounter = 0;
+
+    public MyEdge removeEdge(Integer sourceVertex, Integer targetVertex) {
+        MyEdge toRemove = getAllEdges(sourceVertex, targetVertex).stream().max(Comparator.comparingInt(MyEdge::getId)).get();
+        removeEdge(toRemove);
+        return toRemove;
+    }
+
 
     @Override
     public boolean equals(Object o) {
         return this == o;
-        //        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        if (!super.equals(o)) return false;
-//        MyGraph myGraph = (MyGraph) o;
-//        return directed == myGraph.directed &&
-//                attributes.equals(myGraph.attributes);
     }
 
     @Override
@@ -71,6 +71,30 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         attributes = new ArrayList<>();
     }
 
+
+    /**
+     * Instantiates a new empty graph.
+     *
+     * @param directed whether the graph is directed. If false, the graph will be undirected.
+     */
+    public MyGraph(Graph<Integer, MyEdge> copyOf) {
+        super(
+                SupplierUtil.createIntegerSupplier(), new MyEdge.MyEdgeSupplier(),
+                copyOf.getType().isDirected() ?
+                        new DefaultGraphType.Builder()
+                                .directed().allowMultipleEdges(true).allowSelfLoops(true).weighted(true)
+                                .build() :
+                        new DefaultGraphType.Builder()
+                                .undirected().allowMultipleEdges(true).allowSelfLoops(true).weighted(true)
+                                .build()
+        );
+        this.directed = copyOf.getType().isDirected();
+        this.attributes = new ArrayList<>();
+        copyOf.vertexSet().stream().sorted().forEach(this::addVertex);
+        copyOf.edgeSet().forEach(myEdge -> addEdge(myEdge.getSource(), myEdge.getTarget(), myEdge));
+        copyOf.edgeSet().forEach(myEdge -> setEdgeWeight(myEdge, copyOf.getEdgeWeight(myEdge)));
+    }
+
     /**
      * Applies a new vertex ordering to a graph, yielding a new graph that has this ordering. The old graph remains
      * unmodified.
@@ -87,23 +111,16 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             res.addVertex(newVertex);
             int oldVertex = newToOld[newVertex];
             source.attributes.get(oldVertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(newVertexFinal, key, value)));
-            Set<Integer> predecessors = Graphs.predecessorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableSet());
 
-            predecessors.forEach(predecessor -> {
-                for (int i = 0; i < source.getAllEdges(newToOld[predecessor], newToOld[newVertexFinal]).size(); i++) {
-                    res.addEdge(predecessor, newVertexFinal);
-                }
-            });
-
-            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x <= newVertexFinal).collect(Collectors.toUnmodifiableSet()));
+            List<Integer> predecessors = source.incomingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableList());
+            predecessors.forEach(predecessor -> res.addEdge(predecessor, newVertexFinal));
+            List<Integer> successors = source.outgoingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x <= newVertexFinal).collect(Collectors.toList());
             if (!source.directed) {
-                successors.removeAll(predecessors);
-            }
-            successors.forEach(successor -> {
-                for (int i = 0; i < source.getAllEdges(newToOld[newVertexFinal], newToOld[successor]).size(); i++) {
-                    res.addEdge(newVertexFinal, successor);
+                for (Integer predecessor : predecessors) {
+                    successors.remove(predecessor);
                 }
-            });
+            }
+            successors.forEach(successor -> res.addEdge(newVertexFinal, successor));
         }
         if (source.chains != null) {
             source.chains.forEach((key, value) -> {
@@ -145,6 +162,8 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         }
         defaultEdge.setSource(sourceVertex);
         defaultEdge.setTarget(targetVertex);
+        defaultEdge.setId(edgeCounter);
+        edgeCounter++;
         return super.addEdge(sourceVertex, targetVertex, defaultEdge);
     }
 
@@ -173,6 +192,8 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         super.addEdge(sourceVertex, targetVertex, res);
         this.setEdgeWeight(res, maxEdgeWeight);
         maxEdgeWeight = Math.nextAfter(maxEdgeWeight, Double.POSITIVE_INFINITY);
+        res.setId(edgeCounter);
+        edgeCounter++;
         return res;
     }
 
@@ -226,9 +247,8 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         }
         boolean toReturn = super.addVertex(vertex);
         if (toReturn) {
-            attributes.add(new HashMap<>());
-            if (vertex != attributes.size() - 1) {
-                throw new IllegalStateException("Vertices must be added in ascending consecutive order!");
+            while (vertex != attributes.size() - 1) {
+                attributes.add(new HashMap<>());
             }
         }
         return toReturn;
@@ -287,10 +307,6 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             toReturn =  contractor.contractUndirected(this);
         }
         return toReturn;
-    }
-
-    private MyGraph contractUndirected() {
-        throw new UnsupportedOperationException(); //todo;
     }
 
 

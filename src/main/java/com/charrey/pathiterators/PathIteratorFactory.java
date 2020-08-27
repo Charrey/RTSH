@@ -1,6 +1,7 @@
 package com.charrey.pathiterators;
 
 import com.charrey.algorithms.UtilityData;
+import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
@@ -12,6 +13,8 @@ import com.charrey.settings.Settings;
 import com.charrey.settings.iterator.ControlPointIteratorStrategy;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class PathIteratorFactory {
@@ -39,8 +42,9 @@ public class PathIteratorFactory {
                                    int crippled) {
         PathIterator toReturn;
 
+        Set<MyEdge> removed = new HashSet<>();
         for (int i = 0; i < crippled; i++) {
-            targetGraph.removeEdge(tail, head);
+            removed.add(targetGraph.removeEdge(tail, head));
         }
 
         if (targetGraph.getEdge(tail, head) != null) {
@@ -67,11 +71,7 @@ public class PathIteratorFactory {
                     throw new UnsupportedOperationException();
             };
         }
-
-        for (int i = 0; i < crippled; i++) {
-            targetGraph.addEdge(tail, head);
-        }
-
+        removed.forEach(x -> targetGraph.addEdge(x.getSource(), x.getTarget(), x));
         return toReturn;
     }
 }

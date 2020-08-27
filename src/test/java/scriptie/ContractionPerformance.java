@@ -41,18 +41,30 @@ public class ContractionPerformance extends SystemTest {
                 List<Double> results = new ArrayList<>();
                 List<Double> stdevs = new ArrayList<>();
 
-                int currentX = 4;
+                int currentX = 6;
                 int lastCasesDone = 10;
                 while (lastCasesDone > 1) {
                     System.out.println(configuration + ", x = " + currentX);
                     long timeStartForThisX = System.currentTimeMillis();
                     List<Long> times = new ArrayList<>();
+                    int cases = 0;
                     while (System.currentTimeMillis() - timeStartForThisX < timeout) {
+                        cases++;
                         TestCase tc = getTestCase(currentX, currentX * 3, (int)Math.round(currentX * 1.5), (int) Math.round(currentX * 1.5 * 4), random.nextLong());
+                        if (cases < 0) {
+                            continue;
+                        }
                         long startTime = System.nanoTime();
-                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettings());
+                        HomeomorphismResult result;
+                        try {
+                            result = testWithoutExpectation(tc, timeout, configuration.getSettings());
+                        } catch (Exception | Error e) {
+                            System.out.println(configuration.toString() + " failed, case="+cases);
+                            throw e;
+                        }
                         long period = System.nanoTime() - startTime;
                         if (result instanceof FailResult) {
+                            System.out.println(configuration.toString() + " failed, case="+cases);
                             assert false;
                         } else if (result instanceof SuccessResult) {
                             times.add(period);

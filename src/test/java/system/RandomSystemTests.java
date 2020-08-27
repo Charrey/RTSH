@@ -5,6 +5,7 @@ import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.graph.generation.random.TrulyRandomDirectedTestCaseGenerator;
 import com.charrey.graph.generation.random.TrulyRandomUndirectedTestCaseGenerator;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
+import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator2;
 import com.charrey.graph.generation.succeed.RandomSucceedUndirectedTestCaseGenerator;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.TimeoutResult;
@@ -23,10 +24,8 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withLabelDegreeFiltering()
             .withKPathRouting()
-            .withoutContraction()
-            .withParallelPruning().get();
+            .withContraction().get();
 
 
     @Test
@@ -47,7 +46,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(100 * 1000, 100, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 1, 30), true);
+        findCases(100000 * 1000, 10000, new RandomSucceedDirectedTestCaseGenerator2(6, 18, 9, 36, 30), true);
     }
 
     @Test
@@ -90,8 +89,10 @@ class RandomSystemTests extends SystemTest {
                         System.err.println(attempts);
                         System.err.println(testCase.getSourceGraph());
                         int[] expected = testCase.getExpectedVertexMatching();
-                        for (int j = 0; j < expected.length; j++) {
-                            testCase.getTargetGraph().addAttribute(expected[j], "label", String.valueOf(j));
+                        if (expected != null) {
+                            for (int j = 0; j < expected.length; j++) {
+                                testCase.getTargetGraph().addAttribute(expected[j], "label", String.valueOf(j));
+                            }
                         }
                         System.err.println(testCase.getTargetGraph());
                         throw e;

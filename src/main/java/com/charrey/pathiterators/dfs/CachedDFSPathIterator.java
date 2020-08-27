@@ -106,6 +106,9 @@ public class CachedDFSPathIterator extends PathIterator {
     private boolean findCandidate(int indexOfHeadVertex) {
         boolean foundCandidate = false;
         for (int i = chosenOption[indexOfHeadVertex]; i < outgoingNeighbours[exploration.last()].length; i++) {
+            if (!graph.containsEdge(exploration.last(), outgoingNeighbours[exploration.last()][i])) { //initial cache is without cripple
+                continue;
+            }
             int neighbour = outgoingNeighbours[exploration.last()][i];
             if (isCandidate(neighbour)) {
                 addForbidden();
