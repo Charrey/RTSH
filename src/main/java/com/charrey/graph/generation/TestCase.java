@@ -39,10 +39,14 @@ public class TestCase implements Iterable<MyGraph> {
     public TestCase(MyGraph sourceGraph, MyGraph targetGraph, int[] expectedVertexMatching, Map<MyEdge, Path> expectedEdgeMatching) {
         this.expectedVertexMatching = expectedVertexMatching == null ? null : expectedVertexMatching.clone();
         this.expectedEdgeMatching = expectedEdgeMatching == null ? null : Collections.unmodifiableMap(expectedEdgeMatching);
-        sourceGraph.randomizeWeights();
-        sourceGraph.lock();
-        targetGraph.randomizeWeights();
-        targetGraph.lock();
+        try {
+            sourceGraph.randomizeWeights();
+            sourceGraph.lock();
+        } catch (IllegalStateException ignored) {}
+        try {
+            targetGraph.randomizeWeights();
+            targetGraph.lock();
+        } catch (IllegalStateException ignored) {}
         this.sourceGraph = sourceGraph;
         this.targetGraph = targetGraph;
     }

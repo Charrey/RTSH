@@ -38,7 +38,7 @@ public class VisitStateOnce extends SystemTest {
         if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
-        findCases(10 * 1000, 50, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(100 * 1000, 50, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
     @Test
@@ -46,17 +46,17 @@ public class VisitStateOnce extends SystemTest {
         if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
-        findCases(10 * 1000, 50, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(100 * 1000, 50, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(10 * 1000, 50, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(100 * 1000, 50, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
     void findCasesDirectedRandom() throws IOException {
-        findCases(10 * 1000, 50, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(100 * 1000, 50, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
     private void findCases(long time, int iterations, @NotNull TestCaseGenerator graphGen, boolean expectSucceed) throws IOException {

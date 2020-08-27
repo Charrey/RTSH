@@ -23,10 +23,10 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withAllDifferentPruning()
-            .withInplaceNewGreedyDFSRouting()
-            .withContraction()
-            .withCachedPruning().get();
+            .withLabelDegreeFiltering()
+            .withKPathRouting()
+            .withoutContraction()
+            .withParallelPruning().get();
 
 
     @Test
@@ -34,7 +34,7 @@ class RandomSystemTests extends SystemTest {
         if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
-        findCases(10 * 1000, 1, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(100 * 1000, 1, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
     @Test
@@ -42,17 +42,17 @@ class RandomSystemTests extends SystemTest {
         if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
-        findCases(10 * 1000, 1, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(100 * 1000, 100, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(10000 * 1000, 10, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 1, 30), true);
+        findCases(100 * 1000, 100, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 1, 30), true);
     }
 
     @Test
     void findCasesDirectedRandom() throws IOException {
-        findCases(10 * 1000, 1, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(100 * 1000, 100, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
     }
 
 
@@ -79,7 +79,7 @@ class RandomSystemTests extends SystemTest {
 
                 HomeomorphismResult homeomorphism;
                 //System.out.println("case " + attempts);
-                if (attempts >= 0) {//22687
+                if (attempts >= 0) {//6
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);

@@ -3,7 +3,10 @@ package com.charrey.util.datastructures;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.BiConsumer;
 
 /**
  * The type Multiple key map.
@@ -14,6 +17,14 @@ public class MultipleKeyMap<V> {
 
     @NotNull
     private final Map<Integer, Map<Integer, V>> nestedMap2;
+
+
+    public Set<Entry> entrySet() {
+        Set<Entry> res = new HashSet<>();
+        nestedMap2.forEach((key, map) -> map.forEach((key2, value) -> res.add(new Entry(key, key2, value))));
+        return res;
+    }
+
 
     /**
      * Instantiates a new Multiple key map.
@@ -68,4 +79,27 @@ public class MultipleKeyMap<V> {
         }
     }
 
+    public class Entry {
+        private final V value;
+        private final Integer secondKey;
+        private final Integer firstKey;
+
+        public Entry(Integer a, Integer b, V value) {
+            this.firstKey = a;
+            this.secondKey = b;
+            this.value = value;
+        }
+
+        public Integer getFirstKey() {
+            return firstKey;
+        }
+
+        public Integer getSecondKey() {
+            return secondKey;
+        }
+
+        public V getValue() {
+            return value;
+        }
+    }
 }

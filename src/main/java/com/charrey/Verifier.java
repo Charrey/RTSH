@@ -5,9 +5,12 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
+import com.charrey.util.datastructures.MultipleKeyMap;
+import gnu.trove.map.TObjectIntMap;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -78,15 +81,24 @@ class Verifier {
         if (sourceGraph.isDirected()) {
             return true;
         }
-        for (MyEdge edge : sourceGraph.edgeSet()) {
-            int edgeSourceTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeSource(edge));
-            int edgeTargetTarget = vertexMatching.getPlacement().get(sourceGraph.getEdgeTarget(edge));
-            long matches = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).count();
-            if (matches != 1) {
-                return false;
+        MultipleKeyMap<Integer> needed = new MultipleKeyMap<>();
+        sourceGraph.edgeSet().forEach(myEdge -> {
+            if (!needed.containsKey(myEdge.getSource(), myEdge.getTarget())) {
+                needed.put(myEdge.getSource(), myEdge.getTarget(), 1);
+            } else {
+                needed.put(myEdge.getSource(), myEdge.getTarget(), needed.get(myEdge.getSource(), myEdge.getTarget()) + 1);
             }
-        }
-        return true;
+        });
+        final boolean[] toReturn = {true};
+        needed.entrySet().forEach(entry -> {
+            int edgeSourceTarget = vertexMatching.getPlacement().get(entry.getFirstKey());
+            int edgeTargetTarget = vertexMatching.getPlacement().get(entry.getSecondKey());
+            long matches = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(List.of(x.last(), x.first())).equals(new HashSet<>(List.of(edgeSourceTarget, edgeTargetTarget)))).count();
+            if (matches != entry.getValue()) {
+                toReturn[0] = false;
+            }
+        });
+        return toReturn[0];
     }
 
     private static boolean directedEdgesHavePaths(@NotNull MyGraph sourceGraph, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {

@@ -74,7 +74,7 @@ public class IsoFinder {
                 int edgeSourceTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeSource(edge));
                 int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
                 Set<Path> toAdd = new HashSet<>();
-                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).collect(Collectors.toSet());
+                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(List.of(x.last(), x.first())).equals(new HashSet<>(List.of(edgeSourceTarget, edgeTargetTarget)))).collect(Collectors.toSet());
                 assert match.size() >= 1;
                 match.forEach(path -> {
                     Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);
@@ -200,7 +200,7 @@ public class IsoFinder {
         iterations++;
         if (System.currentTimeMillis() - lastPrint > 1000) {
             long finalIterations = iterations;
-            LOG.info(() -> name + " is at " + finalIterations + " iterations...");
+            //LOG.info(() -> name + " is at " + finalIterations + " iterations...");
             lastPrint = System.currentTimeMillis();
         }
         LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());

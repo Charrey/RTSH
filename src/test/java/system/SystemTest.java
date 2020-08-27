@@ -33,7 +33,7 @@ public abstract class SystemTest {
     }
 
     @NotNull
-    HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) throws IOException {
+    HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
         return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
     }
 

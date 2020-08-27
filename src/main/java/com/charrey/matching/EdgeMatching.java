@@ -172,7 +172,6 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             tail = Math.min(from, to);
             head = Math.max(from, to);
         }
-        assert directed || tail < head;
         //get pathIterator
 
 
@@ -236,6 +235,9 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         long done = paths.get(vertexMatching.getPlacement().size()-1)
                 .stream()
                 .filter(path -> List.of(path.getFirst().first(), path.getFirst().last()).equals(List.of(tail, head))).count();
+        if (!source.isDirected()) {
+            done -= 1;
+        }
         return (int) (initial - done);
     }
 
@@ -267,20 +269,6 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     }
 
 
-    private void readdUsedDirectEdges(int tail, int head, int amount) {
-        for (int i = 0; i < amount; i++) {
-            targetGraph.addEdge(tail, head);
-        }
-    }
-
-    private int removeUsedDirectEdges(int tail, int head) {
-        int alreadyUsed = getDirectConnectionsAlreadyUsed(tail, head);
-        for (int i = 0; i < alreadyUsed; i++) {
-            targetGraph.removeEdge(tail, head);
-        }
-        return alreadyUsed;
-    }
-
     private int getDirectConnectionsAlreadyUsed(int tail, int head) {
         int alreadyUsed = 0;
         if (!this.targetGraph.containsEdge(tail, head) || paths.get(vertexMatching.getPlacement().size()-1).isEmpty()) {
@@ -306,7 +294,8 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         for (int i = 0; i < source.vertexSet().size(); i++) {
             int tempi = i;
             if (!directed) {
-                edges[i] = Graphs.neighborSetOf(source, tempi).stream().filter(x -> x <= tempi).mapToInt(x -> x).toArray();
+                edges[i] = source.edgesOf(tempi).stream().map(x -> Graphs.getOppositeVertex(source, x, tempi)).filter(x -> x <= tempi).mapToInt(x -> x).toArray();
+                //edges[i] = Graphs.neighborSetOf(source, tempi).stream().filter(x -> x <= tempi).mapToInt(x -> x).toArray();
             } else {
                 List<Integer> incomingEdges = IntStream.range(0, tempi).boxed()
                         .filter(x -> source.getEdge(x, tempi) != null)
@@ -342,7 +331,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
 
     private void addPath(@NotNull Path found, String debugInfo) {
         assert !found.isEmpty();
-        assert directed || found.last() > found.first();
+        assert directed || found.last() >= found.first();
         int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
         Path added = new Path(found);
         paths.get(lastPlacedIndex).add(new Pair<>(added, debugInfo));
@@ -383,7 +372,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     private void removeLastPath() {
         List<Pair<Path, String>> pathList = this.paths.get(this.vertexMatching.getPlacement().size() - 1);
         Path removed = pathList.remove(pathList.size() - 1).getFirst();
-        assert directed || removed.last() > removed.first();
+        assert directed || removed.last() >= removed.first();
     }
 
 

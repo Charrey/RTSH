@@ -17,26 +17,26 @@ public class Contractor {
             int vertexObserving = toContract.iterator().next();
             assert res.containsVertex(vertexObserving);
             toContract.remove(vertexObserving);
-            if (suitableForContraction(res, vertexObserving)) {
+            if (suitableForContractionDirected(res, vertexObserving)) {
                 int successor = Graphs.successorListOf(res, vertexObserving).get(0);
                 int predecessor = Graphs.predecessorListOf(res, vertexObserving).get(0);
                 Set<String> labels = res.getAttributes(vertexObserving).getOrDefault("label", Collections.emptySet());
-                MyEdge contracted = contractSingleVertex(res, vertexObserving);
+                MyEdge contracted = contractSingleVertexDirected(res, vertexObserving);
                 Chain chain = new Chain();
                 chain.append(labels);
-                while (suitableForContraction(res, successor)) {
+                while (suitableForContractionDirected(res, successor)) {
                     int newSuccessor = Graphs.successorListOf(res, successor).get(0);
                     toContract.remove(successor);
                     labels = res.getAttributes(successor).getOrDefault("label", Collections.emptySet());
-                    contracted = contractSingleVertex(res, successor);
+                    contracted = contractSingleVertexDirected(res, successor);
                     chain.append(labels);
                     successor = newSuccessor;
                 }
-                while (suitableForContraction(res, predecessor)) {
+                while (suitableForContractionDirected(res, predecessor)) {
                     int newPredecessor = Graphs.predecessorListOf(res, predecessor).get(0);
                     toContract.remove(predecessor);
                     labels = res.getAttributes(predecessor).getOrDefault("label", Collections.emptySet());
-                    contracted = contractSingleVertex(res, predecessor);
+                    contracted = contractSingleVertexDirected(res, predecessor);
                     chain.prepend(labels);
                     predecessor = newPredecessor;
                 }
@@ -47,12 +47,58 @@ public class Contractor {
         return GraphUtil.repairVertices(res);
     }
 
-    public MyGraph contractUndirected(MyGraph graph) {
-        throw new UnsupportedOperationException();
+    public MyGraph contractUndirected(MyGraph input) {
+        final MyGraph res = GraphUtil.copy(input, null).graph;
+        Set<Integer> toContract = res.vertexSet().stream().filter(x -> res.degreeOf(x) == 2).collect(Collectors.toSet());
+        Map<MyEdge, Chain> chains = new HashMap<>();
+        while (!toContract.isEmpty()) {
+            int vertexObserving = toContract.iterator().next();
+            assert res.containsVertex(vertexObserving);
+            toContract.remove(vertexObserving);
+            if (res.degreeOf(vertexObserving) == 2 && !res.containsEdge(vertexObserving, vertexObserving)) {
+                int successor = Graphs.neighborListOf(res, vertexObserving).get(0);
+                int predecessor = Graphs.neighborListOf(res, vertexObserving).get(1);
+
+                Set<String> labels = res.getAttributes(vertexObserving).getOrDefault("label", Collections.emptySet());
+                MyEdge contracted = contractSingleVertexUndirected(res, vertexObserving);
+                Chain chain = new Chain();
+                chain.append(labels);
+
+                while (res.degreeOf(successor) == 2 && !res.containsEdge(successor, successor)) {
+                    int finalPredecessor = predecessor;
+                    Optional<Integer> newSuccessor = Graphs.neighborListOf(res, successor).stream().filter(x -> x != finalPredecessor).findAny();
+                    toContract.remove(successor);
+                    labels = res.getAttributes(successor).getOrDefault("label", Collections.emptySet());
+                    contracted = contractSingleVertexUndirected(res, successor);
+                    chain.append(labels);
+                    if (newSuccessor.isPresent()) {
+                        successor = newSuccessor.get();
+                    } else {
+                        break;
+                    }
+                }
+                while (res.degreeOf(predecessor) == 2 && !res.containsEdge(predecessor, predecessor)) {
+                    int finalSuccessor = successor;
+                    Optional<Integer> newPredecessor = Graphs.neighborListOf(res, predecessor).stream().filter(x -> x != finalSuccessor).findAny();
+                    toContract.remove(predecessor);
+                    labels = res.getAttributes(predecessor).getOrDefault("label", Collections.emptySet());
+                    contracted = contractSingleVertexUndirected(res, predecessor);
+                    chain.prepend(labels);
+                    if (newPredecessor.isPresent()) {
+                        predecessor = newPredecessor.get();
+                    } else {
+                        break;
+                    }
+                }
+                chains.put(contracted, chain.lock());
+            }
+        }
+        res.setChains(Collections.unmodifiableMap(chains));
+        return GraphUtil.repairVertices(res);
     }
 
-    private MyEdge contractSingleVertex(MyGraph graph, int vertex) {
-        assert suitableForContraction(graph, vertex);
+
+    private MyEdge contractSingleVertexDirected(MyGraph graph, int vertex) {
         int predecessor = Graphs.predecessorListOf(graph, vertex).get(0);
         int successor = Graphs.successorListOf(graph, vertex).get(0);
         if (successor == vertex || predecessor==vertex) {
@@ -62,7 +108,19 @@ public class Contractor {
         return graph.addEdge(predecessor, successor);
     }
 
-    private static boolean suitableForContraction(MyGraph graph, int vertex) {
+    private MyEdge contractSingleVertexUndirected(MyGraph graph, int vertex) {
+        List<Integer> neighbourList = graph.edgesOf(vertex).stream().map(x -> Graphs.getOppositeVertex(graph, x, vertex)).collect(Collectors.toList());
+        assert neighbourList.size() == 2;
+        int predecessor = neighbourList.get(0);
+        int successor = neighbourList.get(1);
+        if (successor == vertex || predecessor == vertex) {
+            throw new IllegalStateException("Cannot contract self-loop");
+        }
+        graph.removeVertex(vertex);
+        return graph.addEdge(predecessor, successor);
+    }
+
+    private static boolean suitableForContractionDirected(MyGraph graph, int vertex) {
         assert graph.containsVertex(vertex);
         List<Integer> predecessors = Graphs.predecessorListOf(graph, vertex);
         if (predecessors.size() != 1) {
@@ -71,4 +129,7 @@ public class Contractor {
         List<Integer> successors = Graphs.successorListOf(graph, vertex);
         return successors.size() == 1 && !predecessors.get(0).equals(vertex) ;
     }
+
+
+
 }
