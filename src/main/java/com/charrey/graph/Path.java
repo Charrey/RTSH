@@ -149,7 +149,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
     public void append(Integer toAdd) {
         if (!containing.contains(toAdd) ||  vertexList.get(0) == toAdd) {
             if (!containing.isEmpty() && graph.getEdge(vertexList.get(vertexList.size() - 1), toAdd) == null) {
-                throw new IllegalStateException("Attempt to add a vertex on this path that is not connected to the current head.");
+                throw new IllegalStateException("Attempt to add a vertex " + toAdd + " on this path (" + vertexList  + ") that is not connected to the current head. Graph:\n" + graph);
             }
             containing.add(toAdd);
             vertexList.add(toAdd);
