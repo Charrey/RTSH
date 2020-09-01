@@ -5,9 +5,6 @@ import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.random.TrulyRandomDirectedTestCaseGenerator;
 import com.charrey.result.FailResult;
 import com.charrey.result.HomeomorphismResult;
-import com.charrey.result.SuccessResult;
-import com.charrey.result.TimeoutResult;
-import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.junit.jupiter.api.BeforeAll;
@@ -66,7 +63,7 @@ public class PathIteratorOverhead extends SystemTest {
                     lastCasesDone = times.size();
                     currentX++;
                 }
-                System.out.println(configuration.getString(x, results, stdevs));
+                System.out.println(configuration.getString(x, results));
             });
             threads.put(configuration, theThread);
         }

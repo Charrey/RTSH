@@ -226,6 +226,9 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      */
     @NotNull
     public Path intermediate() {
+        if (vertexList.size() <= 1) {
+            System.out.println();
+        }
         return new Path(graph, vertexList.subList(1, vertexList.size() - 1));
     }
 

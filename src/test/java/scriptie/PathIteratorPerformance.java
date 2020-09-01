@@ -1,8 +1,6 @@
 package scriptie;
 
-import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
-import com.charrey.graph.generation.random.TrulyRandomDirectedTestCaseGenerator;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator2;
 import com.charrey.result.FailResult;
 import com.charrey.result.HomeomorphismResult;
@@ -67,7 +65,7 @@ public class PathIteratorPerformance extends SystemTest {
                     lastCasesDone = times.size();
                     currentX++;
                 }
-                System.out.println(configuration.getString(x, results, stdevs));
+                System.out.println(configuration.getString(x, results));
             });
             threads.put(configuration, theThread);
         }

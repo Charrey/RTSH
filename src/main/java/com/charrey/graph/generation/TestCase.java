@@ -80,4 +80,12 @@ public class TestCase implements Iterable<MyGraph> {
     public int[] getExpectedVertexMatching() {
         return expectedVertexMatching;
     }
+
+    @Override
+    public String toString() {
+        return "TestCase{" +
+                "targetGraph=\n" + targetGraph +
+                ", sourceGraph=\n" + sourceGraph +
+                "}\n";
+    }
 }

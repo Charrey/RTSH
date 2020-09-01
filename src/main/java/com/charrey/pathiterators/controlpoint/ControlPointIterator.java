@@ -282,7 +282,9 @@ class ControlPointIterator extends PathIterator {
             }
         }
         if (controlPoints == 0 && chosenPath != null) {
-            chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+            if (chosenPath.length() > 2) {
+                chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+            }
             chosenPath = null;
         }
         return null;
@@ -317,7 +319,6 @@ class ControlPointIterator extends PathIterator {
         LOG.finest(() -> prefix.toString() + "querying shortest path...");
         done = true;
         Optional<Path> shortestPath = filteredShortestPath(tail(), head);
-        assert shortestPath.isEmpty() || shortestPath.get().intermediate().noneMatch(localOccupation::contains);
         if (shortestPath.isEmpty() || (settings.getRefuseLongerPaths() && isUnNecessarilyLong(shortestPath.get())) || !tryOccupy(verticesPlaced.get(), shortestPath.get())) {
             LOG.finest("...failed");
             return null;

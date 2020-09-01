@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import system.SystemTest;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class ContractionPerformance extends SystemTest {
@@ -29,9 +30,19 @@ public class ContractionPerformance extends SystemTest {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting()    .withContraction().get()));
     }
 
+    @Test
+    public void testLittleBigger() throws InterruptedException { //crashes x = 6 case 816 CP
+        run(3.0, 1.5, 4.0);
+    }
 
     @Test
-    void run() throws InterruptedException {
+    public void testMuchBigger() throws InterruptedException { //crashes x = 7 case 445 CP
+        run(3.0, 5.0, 4.0);
+    }
+
+
+
+    void run(double sourceDegree, double sizeFactor, double targetdegree) throws InterruptedException {
         Random random = new Random(512);
         long timeout = 10*60*1000L;
         Map<Configuration, Thread> threads = new HashMap<>();
@@ -41,16 +52,17 @@ public class ContractionPerformance extends SystemTest {
                 List<Double> results = new ArrayList<>();
                 List<Double> stdevs = new ArrayList<>();
 
-                int currentX = 6;
+                int currentX = 4;
                 int lastCasesDone = 10;
                 while (lastCasesDone > 1) {
-                    System.out.println(configuration + ", x = " + currentX);
+                    System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " " + configuration + ", x = " + currentX + ", cases done = " + lastCasesDone);
                     long timeStartForThisX = System.currentTimeMillis();
                     List<Long> times = new ArrayList<>();
                     int cases = 0;
                     while (System.currentTimeMillis() - timeStartForThisX < timeout) {
                         cases++;
-                        TestCase tc = getTestCase(currentX, currentX * 3, (int)Math.round(currentX * 1.5), (int) Math.round(currentX * 1.5 * 4), random.nextLong());
+                        long testcaseSeed = random.nextLong();
+                        TestCase tc = getTestCase(currentX, (int) Math.round(currentX * sourceDegree), (int)Math.round(currentX * sizeFactor), (int) Math.round(currentX * sizeFactor * targetdegree), testcaseSeed);
                         if (cases < 0) {
                             continue;
                         }
@@ -59,7 +71,7 @@ public class ContractionPerformance extends SystemTest {
                         try {
                             result = testWithoutExpectation(tc, timeout, configuration.getSettings());
                         } catch (Exception | Error e) {
-                            System.out.println(configuration.toString() + " failed, case="+cases);
+                            System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
                             throw e;
                         }
                         long period = System.nanoTime() - startTime;
@@ -79,7 +91,7 @@ public class ContractionPerformance extends SystemTest {
                     lastCasesDone = times.size();
                     currentX++;
                 }
-                System.out.println(configuration.getString(x, results, stdevs));
+                System.out.println(configuration.getString(x, results));
             });
             threads.put(configuration, theThread);
         }
@@ -94,6 +106,4 @@ public class ContractionPerformance extends SystemTest {
         gen.init(1);
         return gen.getNext();
     }
-
-
 }

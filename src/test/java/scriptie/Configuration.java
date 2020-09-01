@@ -14,10 +14,8 @@ public class Configuration {
 
     public Configuration(String mark, String color, String name, Settings settings) {
         this.prefix = "\\addplot[\n" +
-                "        smooth,\n" +
                 "        mark=" + mark + ",\n" +
                 "        " + color + ",\n" +
-                "        error bars/.cd, y dir=both, y explicit,\n" +
                 "    ] plot coordinates {\n";
         this.settings = settings;
         this.suffix = "};\n    \\addlegendentry{" + name + "}\n\n";
@@ -33,10 +31,10 @@ public class Configuration {
         return name;
     }
 
-    public String getString(List<Integer> x, List<Double> results, List<Double> deviations) {
+    public String getString(List<Integer> x, List<Double> results) {
         StringBuilder sb = new StringBuilder(prefix);
         for (int i = 0; i < results.size(); i++) {
-            sb.append("        (").append(x.get(i)).append(",").append(results.get(i)).append(") +=(0,").append(deviations.get(i)).append(") -= (0,").append(deviations.get(i)).append(")\n");
+            sb.append("        (").append(x.get(i)).append(",").append(results.get(i)).append(")\n");
         }
         return sb.append(suffix).toString();
     }

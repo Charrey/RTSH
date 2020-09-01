@@ -16,7 +16,9 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -24,7 +26,7 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withKPathRouting()
+            .withControlPointRouting()
             .withContraction().get();
 
 
@@ -78,7 +80,7 @@ class RandomSystemTests extends SystemTest {
 
                 HomeomorphismResult homeomorphism;
                 //System.out.println("case " + attempts);
-                if (attempts >= 0) {//6
+                if (attempts >= 2363) {//6
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);
@@ -110,6 +112,7 @@ class RandomSystemTests extends SystemTest {
                     }
                 }
                 attempts++;
+                System.out.println("Case " + attempts + " at: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
             }
             totalIterations += (total / iterations);
             System.out.println(patternNodes + "\t" + patternEdges + "\t" + (long) totalIterations + "\t" + casesSucceed + "/" + iterations + "\t" + casesCompatibilityFailed + "/" + iterations + "\t" + casesFailed + "/" + iterations + "\t");
