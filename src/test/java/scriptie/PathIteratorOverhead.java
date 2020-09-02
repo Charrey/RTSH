@@ -48,7 +48,7 @@ public class PathIteratorOverhead extends SystemTest {
                     while (System.currentTimeMillis() - timeStartForThisX < timeout) {
                         TestCase tc = getTestCase(random, currentX);
                         long startTime = System.nanoTime();
-                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettings());
+                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
                         long period = System.nanoTime() - startTime;
                         if (result instanceof FailResult) {
                             times.add(period);

@@ -79,13 +79,11 @@ public class KPathPathIterator extends PathIterator {
                 continue;
             }
             boolean okay = true;
-            for (int v : pathFound.intermediate()) {
-                try {
-                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), v, this::getPartialMatching);
-                } catch (DomainCheckerException e) {
-                    okay = false;
-                    break;
-                }
+            try {
+                transaction.occupyRoutingAndCheck(verticesPlaced.get(), pathFound, this::getPartialMatching);
+            } catch (DomainCheckerException e) {
+                okay = false;
+                break;
             }
             if (okay) {
                 try {

@@ -42,7 +42,8 @@ public class RandomSucceedDirectedTestCaseGenerator2 extends TestCaseGenerator {
     @Override
     protected TestCase getRandom() {
         final RandomGenerator randomGen = new Well512a();
-        randomGen.setSeed(random.nextLong());
+        long newSeed = random.nextLong();
+        randomGen.setSeed(newSeed);
         MyGraph sourceGraph = getSource();
         GraphUtil.CopyResult copy = GraphUtil.copy(sourceGraph, randomGen);
         Set<Integer> addedArbitrary = insertIntermediateNodes(copy.graph, 0.5);

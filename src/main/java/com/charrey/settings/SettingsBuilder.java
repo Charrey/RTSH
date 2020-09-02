@@ -37,7 +37,7 @@ public class SettingsBuilder {
                 Integer.MAX_VALUE,
                 TargetVertexOrder.LARGEST_DEGREE_FIRST,
                 false,
-                true
+                false
         );
     }
 

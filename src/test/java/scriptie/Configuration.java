@@ -9,21 +9,33 @@ import java.util.List;
 public class Configuration {
     private final String prefix;
     private final String suffix;
-    private final Settings settings;
+    private final Settings settingsWithContraction;
     private final String name;
+    private final Settings settingsWitoutContraction;
 
-    public Configuration(String mark, String color, String name, Settings settings) {
+
+    public Configuration(String mark, String color, String name, Settings settingsWithContraction) {
+        this(mark, color, name, settingsWithContraction, null);
+    }
+
+
+    public Configuration(String mark, String color, String name, Settings settingsWithContraction, Settings settingsWithoutContraction) {
         this.prefix = "\\addplot[\n" +
                 "        mark=" + mark + ",\n" +
                 "        " + color + ",\n" +
                 "    ] plot coordinates {\n";
-        this.settings = settings;
+        this.settingsWithContraction = settingsWithContraction;
+        this.settingsWitoutContraction = settingsWithoutContraction;
         this.suffix = "};\n    \\addlegendentry{" + name + "}\n\n";
         this.name = name;
     }
 
-    public Settings getSettings() {
-        return settings;
+    public Settings getSettingsWithContraction() {
+        return settingsWithContraction;
+    }
+
+    public Settings getSettingsWithoutContraction() {
+        return settingsWithContraction;
     }
 
     @Override

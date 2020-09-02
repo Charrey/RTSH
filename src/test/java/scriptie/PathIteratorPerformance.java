@@ -48,7 +48,7 @@ public class PathIteratorPerformance extends SystemTest {
                     while (System.currentTimeMillis() - timeStartForThisX < timeout) {
                         TestCase tc = getTestCase(currentX, currentX * 3, (int)Math.round(currentX * 1.5), (int) Math.round(currentX * 1.5 * 4), random.nextLong());
                         long startTime = System.nanoTime();
-                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettings());
+                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
                         long period = System.nanoTime() - startTime;
                         if (result instanceof FailResult) {
                             assert false;
