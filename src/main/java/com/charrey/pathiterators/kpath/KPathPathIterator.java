@@ -78,23 +78,19 @@ public class KPathPathIterator extends PathIterator {
             if (refuseLongerPaths && hasUnnecessarilyLongPaths(pathFound)) {
                 continue;
             }
-            boolean okay = true;
             try {
                 transaction.occupyRoutingAndCheck(verticesPlaced.get(), pathFound, this::getPartialMatching);
             } catch (DomainCheckerException e) {
-                okay = false;
-                break;
+                continue;
             }
-            if (okay) {
-                try {
-                    transaction.commit(verticesPlaced.get(), this::getPartialMatching);
-                } catch (DomainCheckerException e) {
-                    return next();
-                }
-                previousPath = new Path(pathFound);
-                counter++;
-                return previousPath;
+            try {
+                transaction.commit(verticesPlaced.get(), this::getPartialMatching);
+            } catch (DomainCheckerException e) {
+                return next();
             }
+            previousPath = new Path(pathFound);
+            counter++;
+            return previousPath;
         }
         previousPath = null;
         return null;

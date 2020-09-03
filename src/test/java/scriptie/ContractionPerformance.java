@@ -40,7 +40,7 @@ public class ContractionPerformance extends SystemTest {
 
 
     static void directedLatexTest(List<Configuration> configurations, double sourceDegree, double sizeFactor, double targetdegree) throws InterruptedException {
-        long timeout = 30*60*1000L;
+        long timeout = 2*60*1000L;
         Map<Configuration, Thread> threads = new HashMap<>();
         for (Configuration configuration : configurations) {
             Thread theThread = new Thread(() -> {
@@ -92,6 +92,7 @@ public class ContractionPerformance extends SystemTest {
                     }
                     lastCasesDone = times.size();
                     currentX++;
+                    System.out.println(configuration.getString(x, results));
                 }
                 System.out.println(configuration.getString(x, results));
             });

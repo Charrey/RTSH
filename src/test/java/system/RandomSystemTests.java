@@ -26,10 +26,10 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withSerialPruning()
+            .withKPathRouting()
+            .withCachedPruning()
             .withZeroDomainPruning()
-            .withMatchedReachabilityFiltering()
-            .withContraction().get();
+            .get();
 
 
     @Test
@@ -50,7 +50,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(100000 * 1000, 100, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(100000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(4, 3, 0.1, 2, 30), true);
     }
 
     @Test
@@ -65,6 +65,7 @@ class RandomSystemTests extends SystemTest {
         long start = System.currentTimeMillis();
         double totalIterations = 0L;
         long attempts = 0;
+        long lastPrint = System.currentTimeMillis();
         while (true) {
             graphGen.init(iterations);
             double total = 0.;
@@ -114,7 +115,10 @@ class RandomSystemTests extends SystemTest {
                     }
                 }
                 attempts++;
-                System.out.println("Case " + attempts + " at: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                if (System.currentTimeMillis() - lastPrint > 1000) {
+                    System.out.println("Case " + attempts + " at: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                    lastPrint = System.currentTimeMillis();
+                }
             }
             totalIterations += (total / iterations);
             System.out.println(patternNodes + "\t" + patternEdges + "\t" + (long) totalIterations + "\t" + casesSucceed + "/" + iterations + "\t" + casesCompatibilityFailed + "/" + iterations + "\t" + casesFailed + "/" + iterations + "\t");
