@@ -100,6 +100,7 @@ public class IsoFinder {
         }
         occupation = new GlobalOccupation(data, settings);
         vertexMatching = new VertexMatching(sourceGraph, targetGraph, occupation, settings);
+        occupation.init(vertexMatching);
         edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings, timeoutTime);
         vertexMatching.setEdgeMatchingProvider(edgeMatching);
     }
@@ -166,9 +167,6 @@ public class IsoFinder {
                         return new FailResult(iterations);
                     }
                 }
-//                System.out.println(vertexMatching);
-//                System.out.println(edgeMatching);
-//                System.out.println();
             }
             if (vertexMatching.getPlacement().size() < newSourceGraph.vertexSet().size()) {
                 if (System.currentTimeMillis() >= timeoutTime || Thread.currentThread().isInterrupted()) {

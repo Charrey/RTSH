@@ -2,6 +2,7 @@ package com.charrey.occupation;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.matching.PartialMatchingProvider;
+import com.charrey.matching.VertexMatching;
 import com.charrey.pruning.*;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
@@ -28,6 +29,7 @@ public class GlobalOccupation implements AbstractOccupation {
     private final TIntSet routingBits;
     @NotNull
     private final TIntSet vertexBits;
+    private final Settings settings;
 
     private Pruner domainChecker;
     private final UtilityData data;
@@ -39,18 +41,22 @@ public class GlobalOccupation implements AbstractOccupation {
      */
     public GlobalOccupation(@NotNull UtilityData data, Settings settings) {
         this.data = data;
-        initDomainChecker(settings);
+        this.settings = settings;
         this.routingBits = new TIntHashSet();
         this.vertexBits = new TIntHashSet();
+    }
+
+    public void init(VertexMatching vertexMatching) {
+        initDomainChecker(settings, vertexMatching);
     }
 
     public void close() {
         this.domainChecker.close();
     }
 
-    private void initDomainChecker(Settings settings) {
+    private void initDomainChecker(Settings settings, VertexMatching vertexMatching) {
         if (settings.getWhenToApply() == WhenToApply.PARALLEL) {
-            initDomainChecker(new SettingsBuilder(settings).withSerialPruning().get());
+            initDomainChecker(new SettingsBuilder(settings).withSerialPruning().get(), vertexMatching);
             domainChecker = new ParallelPruner(domainChecker, settings, data.getPatternGraph(), data.getTargetGraph());
             return;
         }
@@ -60,16 +66,16 @@ public class GlobalOccupation implements AbstractOccupation {
                 break;
             case ZERODOMAIN:
                 if (settings.getWhenToApply() == WhenToApply.CACHED) {
-                    domainChecker = new CachedZeroDomainPruner(data, settings, this);
+                    domainChecker = new CachedZeroDomainPruner(data, settings, this, vertexMatching);
                 } else if (settings.getWhenToApply() == WhenToApply.SERIAL) {
-                    domainChecker = new SerialZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), this);
+                    domainChecker = new SerialZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), this, vertexMatching);
                 }
                 break;
             case ALLDIFFERENT:
                 if (settings.getWhenToApply() == WhenToApply.SERIAL) {
                     throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
                 }
-                domainChecker = new AllDifferentPruner(data, settings, this);
+                domainChecker = new AllDifferentPruner(data, settings, this, vertexMatching);
                 break;
             default:
                 throw new UnsupportedOperationException();

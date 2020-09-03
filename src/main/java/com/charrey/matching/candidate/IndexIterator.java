@@ -1,6 +1,7 @@
 package com.charrey.matching.candidate;
 
 import com.charrey.graph.MyGraph;
+import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
 
@@ -11,8 +12,8 @@ public class IndexIterator extends VertexCandidateIterator {
 
     private Iterator<Integer> innerIterator;
 
-    public IndexIterator(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, Settings settings, GlobalOccupation occupation) {
-        super(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex);
+    public IndexIterator(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, Settings settings, GlobalOccupation occupation, VertexMatching vertexMatching) {
+        super(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching);
         reset();
     }
 

@@ -191,6 +191,29 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         pathfinders.get(tail, head).addFirst(iterator);
         Path toReturn = iterator.next();
         if (toReturn != null) {
+            toReturn = assertChainCompatible(sourceGraphTo, sourceGraphFrom, tail, head, iterator, toReturn);
+            if (toReturn != null) {
+                addPath(toReturn, iterator.debugInfo());
+                return toReturn;
+            } else {
+                pathfinders.get(tail, head).removeFirst();
+                if (pathfinders.get(tail, head).isEmpty()) {
+                    pathfinders.remove(tail, head);
+                }
+                return null;
+            }
+        } else {
+            pathfinders.get(tail, head).removeFirst();
+            if (pathfinders.get(tail, head).isEmpty()) {
+                pathfinders.remove(tail, head);
+            }
+            return null;
+        }
+    }
+
+    @Nullable
+    private Path assertChainCompatible(int sourceGraphTo, int sourceGraphFrom, int tail, int head, PathIterator iterator, Path toReturn) {
+        if (settings.getContraction()) {
             if (!new Pair<>(sourceGraphFrom, sourceGraphTo).equals(observingForChains)) {
                 observingForChains = new Pair<>(sourceGraphFrom, sourceGraphTo);
                 satisfiedChains = new HashMap<>();
@@ -211,23 +234,8 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
                 satisfiedChains.put(toReturn, satisfied);
                 chainOkay = checkChains(chains, stillToGo);
             }
-            if (toReturn != null) {
-                addPath(toReturn, iterator.debugInfo());
-                return toReturn;
-            } else {
-                pathfinders.get(tail, head).removeFirst();
-                if (pathfinders.get(tail, head).isEmpty()) {
-                    pathfinders.remove(tail, head);
-                }
-                return null;
-            }
-        } else {
-            pathfinders.get(tail, head).removeFirst();
-            if (pathfinders.get(tail, head).isEmpty()) {
-                pathfinders.remove(tail, head);
-            }
-            return null;
         }
+        return toReturn;
     }
 
     private int matchesStillToGo(int sourceGraphTo, int sourceGraphFrom, int tail, int head) {

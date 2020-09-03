@@ -2,6 +2,7 @@ package com.charrey.pruning;
 
 import com.charrey.algorithms.AllDifferent;
 import com.charrey.algorithms.UtilityData;
+import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
 import gnu.trove.list.TIntList;
@@ -31,8 +32,8 @@ public class AllDifferentPruner extends DefaultCachedPruner {
      *
      * @param data utility data (for cached computation)
      */
-    public AllDifferentPruner(@NotNull UtilityData data, Settings settings, GlobalOccupation occupation) {
-        super(settings, data.getPatternGraph(), data.getTargetGraph(), occupation);
+    public AllDifferentPruner(@NotNull UtilityData data, Settings settings, GlobalOccupation occupation, VertexMatching vertexMatching) {
+        super(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching);
         this.allDifferent = new AllDifferent();
     }
 

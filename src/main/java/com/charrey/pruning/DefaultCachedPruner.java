@@ -2,6 +2,7 @@ package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.PartialMatchingProvider;
+import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
 import gnu.trove.list.TIntList;
@@ -37,7 +38,7 @@ public abstract class DefaultCachedPruner extends Pruner {
         }
     }
 
-    DefaultCachedPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
+    DefaultCachedPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation, VertexMatching vertexMatching) {
         super(settings, sourceGraph, targetGraph, occupation);
         this.domain = new ArrayList<>(sourceGraph.vertexSet().size());
         this.reverseDomain = new ArrayList<>(targetGraph.vertexSet().size());
@@ -49,7 +50,7 @@ public abstract class DefaultCachedPruner extends Pruner {
             reverseDomain.add(new TIntArrayList());
         }
         sourceGraph.vertexSet().stream().sorted().forEach(sourceV -> targetGraph.vertexSet().forEach(targetV -> {
-            if (settings.getFiltering().filter(sourceGraph, targetGraph, sourceV, targetV, occupation)) {
+            if (settings.getFiltering().filter(sourceGraph, targetGraph, sourceV, targetV, occupation, vertexMatching)) {
                 domain.get(sourceV).add(targetV);
                 reverseDomain.get(targetV).add(sourceV);
             }

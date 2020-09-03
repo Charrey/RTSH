@@ -26,7 +26,9 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withCachedGreedyDFSRouting()
+            .withSerialPruning()
+            .withZeroDomainPruning()
+            .withMatchedReachabilityFiltering()
             .withContraction().get();
 
 
@@ -48,7 +50,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(100000 * 1000, 10000, new RandomSucceedDirectedTestCaseGenerator2(7, 3*7, (int) Math.round(7*1.5), (int) Math.round(7*1.5 * 4), 30), true);
+        findCases(100000 * 1000, 100, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
