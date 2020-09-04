@@ -23,7 +23,7 @@ public class CachedDFSPathIterator extends PathIterator {
     private final int head;
 
     @NotNull
-    private final int[][] outgoingNeighbours;
+    private final Supplier<int[][]> outgoingNeighbours;
     @NotNull
     private final int[] chosenOption;
     @NotNull
@@ -54,14 +54,14 @@ public class CachedDFSPathIterator extends PathIterator {
                                  GlobalOccupation occupation,
                                  Supplier<Integer> placementSize,
                                  PartialMatchingProvider provider,
-                                 @NotNull int[][] neighbours,
+                                 @NotNull Supplier<int[][]> neighbours,
                                  long timeoutTime, int cripple) {
         super(graph, tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize, cripple);
         this.head = head;
         exploration = new Path(graph, tail);
         //noinspection AssignmentOrReturnOfFieldWithMutableType
         this.outgoingNeighbours = neighbours;
-        chosenOption = new int[neighbours.length];
+        chosenOption = new int[graph.vertexSet().size()];
         Arrays.fill(chosenOption, 0);
         this.occupation = occupation;
         this.placementSize = placementSize;
@@ -105,11 +105,11 @@ public class CachedDFSPathIterator extends PathIterator {
 
     private boolean findCandidate(int indexOfHeadVertex) {
         boolean foundCandidate = false;
-        for (int i = chosenOption[indexOfHeadVertex]; i < outgoingNeighbours[exploration.last()].length; i++) {
-            if (!graph.containsEdge(exploration.last(), outgoingNeighbours[exploration.last()][i])) { //initial cache is without cripple
+        for (int i = chosenOption[indexOfHeadVertex]; i < outgoingNeighbours.get()[exploration.last()].length; i++) {
+            if (!graph.containsEdge(exploration.last(), outgoingNeighbours.get()[exploration.last()][i])) { //initial cache is without cripple
                 continue;
             }
-            int neighbour = outgoingNeighbours[exploration.last()][i];
+            int neighbour = outgoingNeighbours.get()[exploration.last()][i];
             if (isCandidate(neighbour)) {
                 addForbidden();
                 exploration.append(neighbour);
@@ -135,7 +135,7 @@ public class CachedDFSPathIterator extends PathIterator {
 
     private boolean backtrackExhaustedOptions() {
         int foo = exploration.length() - 1;
-        while (chosenOption[foo] >= outgoingNeighbours[exploration.get(foo)].length) {
+        while (chosenOption[foo] >= outgoingNeighbours.get()[exploration.get(foo)].length) {
             if (!removeHead()) {
                 return true;
             }

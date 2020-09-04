@@ -21,7 +21,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(),new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 3.0, 1.5, 4.0);
+        directedLatexTest(configurations, 2.429, 1.5, 3.425);
     }
 
     @Test
@@ -33,7 +33,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(),new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 3.0, 5.0, 4.0);
+        directedLatexTest(configurations, 2.429, 5.0, 3.425);
     }
 
 
@@ -46,7 +46,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 3.0, 1.5, 4.0);
+        directedLatexTest(configurations, 2.429, 1.5, 3.425);
     }
 
     @Test
@@ -58,7 +58,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 3.0, 5.0, 4.0);
+        directedLatexTest(configurations, 2.429, 5.0, 3.425);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 3.0, 1.5, 4.0);
+        directedLatexTest(configurations, 2.429, 1.5, 3.425);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 3.0, 5.0, 4.0);
+        directedLatexTest(configurations, 2.429, 5.0, 3.425);
     }
 
 
@@ -95,7 +95,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(),new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 3.0, 1.5, 4.0);
+        directedLatexTest(configurations, 2.429, 1.5, 3.425);
     }
 
     @Test
@@ -107,7 +107,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(), new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(),new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 3.0, 5.0, 4.0);
+        directedLatexTest(configurations, 2.429, 5.0, 3.425);
     }
 
 

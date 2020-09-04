@@ -2,6 +2,7 @@ package scriptie;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
+import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.graph.generation.random.TrulyRandomDirectedTestCaseGenerator;
 import com.charrey.result.FailResult;
 import com.charrey.result.HomeomorphismResult;
@@ -16,37 +17,48 @@ import java.util.*;
 public class PathIteratorOverhead extends SystemTest {
 
 
-    private static List<Configuration> configurations = new LinkedList<>();
-
-    @BeforeAll
-    public static void init() {
+    @Test
+    public void testSmallNoLabels() throws InterruptedException {
+        List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*"       , "blue"  , "K-Path"   , new SettingsBuilder().withKPathRouting().withoutContraction().get()));
         configurations.add(new Configuration("x"       , "red"   , "DFS"      , new SettingsBuilder().withInplaceDFSRouting().withoutContraction().get()));
         configurations.add(new Configuration("+"       , "green" , "CP"       , new SettingsBuilder().withControlPointRouting().withoutContraction().get()));
         configurations.add(new Configuration("o"       , "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withoutContraction().get()));
         configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withoutContraction().get()));
         configurations.add(new Configuration("star"    , "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withoutContraction().get()));
+        run(configurations, false);
     }
 
     @Test
-    void run() throws InterruptedException {
-        Random random = new Random(512);
+    public void testSmallLabels() throws InterruptedException {
+        List<Configuration> configurations = new LinkedList<>();
+        configurations.add(new Configuration("*"       , "blue"  , "K-Path"   , new SettingsBuilder().withKPathRouting().withoutContraction().get()));
+        configurations.add(new Configuration("x"       , "red"   , "DFS"      , new SettingsBuilder().withInplaceDFSRouting().withoutContraction().get()));
+        configurations.add(new Configuration("+"       , "green" , "CP"       , new SettingsBuilder().withControlPointRouting().withoutContraction().get()));
+        configurations.add(new Configuration("o"       , "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withoutContraction().get()));
+        configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withoutContraction().get()));
+        configurations.add(new Configuration("star"    , "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withoutContraction().get()));
+        run(configurations, true);
+    }
+
+
+    void run(List<Configuration> configurations, boolean labels) throws InterruptedException {
         long timeout = 10*60*1000L;
         Map<Configuration, Thread> threads = new HashMap<>();
         for (Configuration configuration : configurations) {
             Thread theThread = new Thread(() -> {
+                Random threadRandom = new Random(1293148);
                 List<Integer> x = new ArrayList<>();
                 List<Double> results = new ArrayList<>();
-                List<Double> stdevs = new ArrayList<>();
-
                 int currentX = 4;
                 int lastCasesDone = 10;
                 while (lastCasesDone > 1) {
-                    System.out.println(configuration + ", x = " + currentX);
+                    Random xRandom = new Random(threadRandom.nextLong());
+                    System.out.println(configuration + ", x = " + currentX + ", last cases = " + lastCasesDone);
                     long timeStartForThisX = System.currentTimeMillis();
                     List<Long> times = new ArrayList<>();
                     while (System.currentTimeMillis() - timeStartForThisX < timeout) {
-                        TestCase tc = getTestCase(random, currentX);
+                        TestCase tc = getTestCase(xRandom, currentX, labels);
                         long startTime = System.nanoTime();
                         HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
                         long period = System.nanoTime() - startTime;
@@ -56,8 +68,6 @@ public class PathIteratorOverhead extends SystemTest {
                     }
                     if (!times.isEmpty()) {
                         results.add(times.stream().mapToDouble(y -> y / 1_000_000_000d).average().orElse(-1));
-                        double stdevNotFoundTime = new StandardDeviation().evaluate(times.stream().mapToDouble(y -> y / 1_000_000_000d).toArray());
-                        stdevs.add(stdevNotFoundTime);
                         x.add(currentX);
                     }
                     lastCasesDone = times.size();
@@ -73,20 +83,44 @@ public class PathIteratorOverhead extends SystemTest {
         }
     }
 
-    private TestCase getTestCase(Random random, int sourceGraphNodes) {
+    private TestCase getTestCase(Random random, int sourceGraphNodes, boolean labels) {
         int patternNodes = sourceGraphNodes;
-        int patternEdges = Math.toIntExact(Math.round(patternNodes * 3.0));
-        TrulyRandomDirectedTestCaseGenerator gen = new TrulyRandomDirectedTestCaseGenerator(patternNodes, patternEdges, 1.5, random.nextInt());
-        gen.init(1);
+        int patternEdges = Math.toIntExact(Math.round(patternNodes * 2.429));
+        TestCaseGenerator gen = new TrulyRandomDirectedTestCaseGenerator(patternNodes, patternEdges, 1, random.nextInt()).init(1);
         MyGraph sourceGraph = gen.getNext().getSourceGraph();
-
         patternNodes = Math.toIntExact(Math.round(patternNodes * 1.5));
-        patternEdges = Math.toIntExact(Math.round(patternNodes * 4.0));
-        gen = new TrulyRandomDirectedTestCaseGenerator(patternNodes, patternEdges, 1.5, random.nextInt());
-        gen.init(1);
+        patternEdges = Math.toIntExact(Math.round(patternNodes * 3.425));
+        gen = new TrulyRandomDirectedTestCaseGenerator(patternNodes, patternEdges, 1, random.nextInt()).init(1);
         MyGraph targetGraph = gen.getNext().getSourceGraph();
-        TestCase tc = new TestCase(sourceGraph, targetGraph, null, null);
-        return tc;
+        if (labels) {
+            int sourceWires = (int) Math.max(1, Math.round(9d * sourceGraph.vertexSet().size() / 14d));
+            int sourceSlices = (int) Math.max(1, Math.round(sourceGraph.vertexSet().size() / 14d));
+            List<Integer> vertices = new ArrayList<>(sourceGraph.vertexSet());
+            Collections.shuffle(vertices, random);
+            for (int i = 0; i < sourceWires; i++) {
+                sourceGraph.addAttribute(vertices.get(i), "label", "wire");
+            }
+            for (int i = sourceWires + 1; i < sourceWires + sourceSlices; i++) {
+                sourceGraph.addAttribute(vertices.get(i), "label", "SLICE");
+            }
+            for (int i = sourceWires + sourceSlices + 1; i < vertices.size(); i++) {
+                sourceGraph.addAttribute(vertices.get(i), "label", "arc");
+            }
+            int targetWires = (int) Math.max(sourceWires, Math.round(414d * sourceGraph.vertexSet().size() / 2908d));
+            int targetSlices = (int) Math.max(sourceSlices, Math.round(4d * sourceGraph.vertexSet().size() / 2908d));
+            vertices = new ArrayList<>(targetGraph.vertexSet());
+            Collections.shuffle(vertices, random);
+            for (int i = 0; i < targetWires; i++) {
+                targetGraph.addAttribute(vertices.get(i), "label", "wire");
+            }
+            for (int i = targetWires + 1; i < targetWires + targetSlices; i++) {
+                targetGraph.addAttribute(vertices.get(i), "label", "SLICE");
+            }
+            for (int i = targetWires + targetSlices + 1; i < vertices.size(); i++) {
+                targetGraph.addAttribute(vertices.get(i), "label", "arc");
+            }
+        }
+        return new TestCase(sourceGraph, targetGraph, null, null);
     }
 
 

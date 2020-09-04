@@ -35,7 +35,7 @@ public class Configuration {
     }
 
     public Settings getSettingsWithoutContraction() {
-        return settingsWithContraction;
+        return settingsWitoutContraction;
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.charrey.graph.generation;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.logging.Logger;
 
 /**
  * The type Test case generator.
@@ -34,12 +33,14 @@ public abstract class TestCaseGenerator {
      * Pregenerate a specific number of test cases.
      *
      * @param amount the number of test cases to generate.
+     * @return this
      */
-    public void init(int amount) {
+    public TestCaseGenerator init(int amount) {
         testCases.clear();
         for (int i = 0; i < amount; i++) {
             testCases.add(getRandom());
         }
+        return this;
     }
 
     /**

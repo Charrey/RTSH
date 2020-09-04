@@ -42,7 +42,6 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
 
     private MultipleKeyMap<Deque<PathIterator>> pathfinders;
     private final GlobalOccupation occupation;
-    private ChainManager chainManager;
 
     private int[][] edges; //do not change
     private boolean[][] incoming; //only for directed graphs

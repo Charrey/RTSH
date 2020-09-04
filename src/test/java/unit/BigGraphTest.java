@@ -75,6 +75,7 @@ class BigGraphTest {
         int eastIn = sourceGraph.addVertex("label", "wire");
 
         int lut = sourceGraph.addVertex("label", "SLICE");
+
         int clockEnableWire = sourceGraph.addVertex("label", "wire");
         int clockEnableArcNorth = sourceGraph.addVertex("label", "arc");
         int clockEnableArcSouth = sourceGraph.addVertex("label", "arc");
@@ -84,14 +85,27 @@ class BigGraphTest {
         sourceGraph.addEdge(southIn, clockEnableArcSouth);
         sourceGraph.addEdge(westIn, clockEnableArcWest);
         sourceGraph.addEdge(eastIn, clockEnableArcEast);
+
         sourceGraph.addEdge(clockEnableArcNorth, clockEnableWire);
         sourceGraph.addEdge(clockEnableArcSouth, clockEnableWire);
         sourceGraph.addEdge(clockEnableArcWest, clockEnableWire);
         sourceGraph.addEdge(clockEnableArcEast, clockEnableWire);
+
         sourceGraph.addEdge(clockEnableWire, lut);
         sourceGraph.addEdge(northIn, lut);
         sourceGraph.addEdge(westIn, lut);
+        sourceGraph.addEdge(eastIn, lut);
+        sourceGraph.addEdge(southIn, lut);
 
+        int northOut = sourceGraph.addVertex("label", "wire");
+        int southOut = sourceGraph.addVertex("label", "wire");
+        int westOut = sourceGraph.addVertex("label", "wire");
+        int eastOut = sourceGraph.addVertex("label", "wire");
+
+        sourceGraph.addEdge(lut, northOut);
+        sourceGraph.addEdge(lut, southOut);
+        sourceGraph.addEdge(lut, eastOut);
+        sourceGraph.addEdge(lut, westOut);
 
         return sourceGraph;
 
