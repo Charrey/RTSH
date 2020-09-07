@@ -1,6 +1,7 @@
 package scriptie;
 
 import com.charrey.graph.generation.TestCase;
+import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator2;
 import com.charrey.result.FailResult;
 import com.charrey.result.HomeomorphismResult;
@@ -76,7 +77,7 @@ public class PathIteratorPerformance extends SystemTest {
     }
 
     private TestCase getTestCase(int vs, int es, int vt, int et, long seed) {
-        RandomSucceedDirectedTestCaseGenerator2 gen = new RandomSucceedDirectedTestCaseGenerator2(vs, es, vt, et, seed);
+        RandomSucceedDirectedTestCaseGenerator2 gen = new RandomSucceedDirectedTestCaseGenerator2(vs, es, vt, et, seed, false);
         gen.init(1);
         return gen.getNext();
     }

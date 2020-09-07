@@ -5,14 +5,14 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.util.GraphUtil;
+import guru.nidi.graphviz.model.Link;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
 
-import java.util.HashSet;
-import java.util.OptionalDouble;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * A class that generates random test cases of directed graphs that guarantees a homeomorphism is possible.
@@ -25,13 +25,15 @@ public class RandomSucceedDirectedTestCaseGenerator2 extends TestCaseGenerator {
     private final int es;
     private final int vt;
     private final Random random;
+    private final boolean labels;
 
-    public RandomSucceedDirectedTestCaseGenerator2(int vs, int es, int vt, int et, long seed) {
+    public RandomSucceedDirectedTestCaseGenerator2(int vs, int es, int vt, int et, long seed, boolean labels) {
         this.vs = vs;
         this.es = es;
         this.vt = vt;
         this.et = et;
         this.random = new Random(seed);
+        this.labels = labels;
     }
 
     @Override
@@ -45,10 +47,29 @@ public class RandomSucceedDirectedTestCaseGenerator2 extends TestCaseGenerator {
         long newSeed = random.nextLong();
         randomGen.setSeed(newSeed);
         MyGraph sourceGraph = getSource();
+        if (labels) {
+            addSourceGraphLabels(sourceGraph);
+        }
         GraphUtil.CopyResult copy = GraphUtil.copy(sourceGraph, randomGen);
-        Set<Integer> addedArbitrary = insertIntermediateNodes(copy.graph, 0.5);
+        Set<Integer> addedArbitrary = insertIntermediateNodes(sourceGraph, copy.graph, 0.5, labels);
         addEdges(copy.graph, addedArbitrary);
         return new TestCase(sourceGraph, copy.graph, null, null);
+    }
+
+    private void addSourceGraphLabels(MyGraph sourceGraph) {
+        int sourceWires = (int) Math.max(1, Math.round(9d * sourceGraph.vertexSet().size() / 14d));
+        int sourceSlices = (int) Math.max(1, Math.round(sourceGraph.vertexSet().size() / 14d));
+        List<Integer> vertices = new ArrayList<>(sourceGraph.vertexSet());
+        Collections.shuffle(vertices, random);
+        for (int i = 0; i < sourceWires; i++) {
+            sourceGraph.addAttribute(vertices.get(i), "label", "wire");
+        }
+        for (int i = sourceWires; i < sourceWires + sourceSlices; i++) {
+            sourceGraph.addAttribute(vertices.get(i), "label", "SLICE");
+        }
+        for (int i = sourceWires + sourceSlices; i < vertices.size(); i++) {
+            sourceGraph.addAttribute(vertices.get(i), "label", "arc");
+        }
     }
 
     private void addEdges(MyGraph graph, Set<Integer> addedArbitrary) {
@@ -78,10 +99,37 @@ public class RandomSucceedDirectedTestCaseGenerator2 extends TestCaseGenerator {
     }
 
 
-    private Set<Integer> insertIntermediateNodes(MyGraph target, double insertProbability) {
+    private Set<Integer> insertIntermediateNodes(MyGraph source, MyGraph target, double insertProbability, boolean labels) {
         Set<Integer> addedArbitrary = new HashSet<>();
+        LinkedList<String> toAdd = new LinkedList<>();
+        if (labels) {
+
+            int sourceWires = (int) source.vertexSet().stream().filter(x -> source.getLabels(x).contains("wire")).count();
+            int sourceSlices = (int) source.vertexSet().stream().filter(x -> source.getLabels(x).contains("SLICE")).count();
+            int sourceArcs = source.vertexSet().size() - (sourceWires + sourceSlices);
+            int targetWires = (int) Math.max(sourceWires, Math.round(414d * vt / 2908d)) - sourceWires;
+            int targetPorts = (int) Math.round(124d * vt / 2908d);
+            int targetSlices = (int) Math.max(sourceSlices, Math.round(4d * vt / 2908d)) - sourceSlices;
+            int targetArcs = vt - (targetPorts + sourceWires + targetWires + sourceSlices + targetSlices + sourceWires + targetWires) - sourceArcs;
+            for (int i = 0; i < targetWires; i++) {
+                toAdd.add("wire");
+            }
+            for (int i = 0; i < targetPorts; i++) {
+                toAdd.add("port");
+            }
+            for (int i = 0; i < targetSlices; i++) {
+                toAdd.add("SLICE");
+            }
+            for (int i = 0; i < targetArcs; i++) {
+                toAdd.add("arc");
+            }
+            Collections.shuffle(toAdd, random);
+        }
         while (target.vertexSet().size() < vt) {
             int newVertex = target.addVertex();
+            if (labels) {
+                target.addAttribute(newVertex, "label", toAdd.pollFirst());
+            }
             if (random.nextDouble() < insertProbability) {
                 MyEdge randomEdge = target.edgeSet().stream().skip(random.nextInt(target.edgeSet().size())).findFirst().get();
                 int sourceVertex = target.getEdgeSource(randomEdge);
@@ -94,6 +142,7 @@ public class RandomSucceedDirectedTestCaseGenerator2 extends TestCaseGenerator {
                 addedArbitrary.add(newVertex);
             }
         }
+        assert toAdd.isEmpty();
         return addedArbitrary;
     }
 

@@ -29,17 +29,17 @@ public class ContractionPerformance extends SystemTest {
 
     @Test
     public void testLittleBigger() throws InterruptedException { //crashes x = 6 case 816 CP
-        directedLatexTest(configurations, 3.0, 1.5, 4.0);
+        directedLatexTest(configurations, 3.0, 1.5, 4.0, false);
     }
 
     @Test
     public void testMuchBigger() throws InterruptedException { //crashes x = 7 case 445 CP
-        directedLatexTest(configurations, 3.0, 5.0, 4.0);
+        directedLatexTest(configurations, 3.0, 5.0, 4.0, false);
     }
 
 
 
-    static void directedLatexTest(List<Configuration> configurations, double sourceDegree, double sizeFactor, double targetdegree) throws InterruptedException {
+    static void directedLatexTest(List<Configuration> configurations, double sourceDegree, double sizeFactor, double targetdegree, boolean labels) throws InterruptedException {
         long timeout = 10*60*1000L;
         Map<Configuration, Thread> threads = new HashMap<>();
         for (Configuration configuration : configurations) {
@@ -60,7 +60,7 @@ public class ContractionPerformance extends SystemTest {
                     while (System.currentTimeMillis() - timeStartForThisX < timeout) {
                         cases++;
                         long testcaseSeed = perXRandom.nextLong();
-                        TestCase tc = getTestCase(currentX, (int) Math.round(currentX * sourceDegree), (int)Math.round(currentX * sizeFactor), (int) Math.round(currentX * sizeFactor * targetdegree), testcaseSeed);
+                        TestCase tc = getTestCase(currentX, (int) Math.round(currentX * sourceDegree), (int)Math.round(currentX * sizeFactor), (int) Math.round(currentX * sizeFactor * targetdegree), testcaseSeed, labels);
                         if (cases < 0) {
                             continue;
                         }
@@ -107,8 +107,8 @@ public class ContractionPerformance extends SystemTest {
         }
     }
 
-    private static TestCase getTestCase(int vs, int es, int vt, int et, long seed) {
-        RandomSucceedDirectedTestCaseGenerator2 gen = new RandomSucceedDirectedTestCaseGenerator2(vs, es, vt, et, seed);
+    private static TestCase getTestCase(int vs, int es, int vt, int et, long seed, boolean labels) {
+        RandomSucceedDirectedTestCaseGenerator2 gen = new RandomSucceedDirectedTestCaseGenerator2(vs, es, vt, et, seed, labels);
         gen.init(1);
         return gen.getNext();
     }

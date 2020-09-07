@@ -100,23 +100,27 @@ public class PathIteratorOverhead extends SystemTest {
             for (int i = 0; i < sourceWires; i++) {
                 sourceGraph.addAttribute(vertices.get(i), "label", "wire");
             }
-            for (int i = sourceWires + 1; i < sourceWires + sourceSlices; i++) {
+            for (int i = sourceWires; i < sourceWires + sourceSlices; i++) {
                 sourceGraph.addAttribute(vertices.get(i), "label", "SLICE");
             }
-            for (int i = sourceWires + sourceSlices + 1; i < vertices.size(); i++) {
+            for (int i = sourceWires + sourceSlices; i < vertices.size(); i++) {
                 sourceGraph.addAttribute(vertices.get(i), "label", "arc");
             }
-            int targetWires = (int) Math.max(sourceWires, Math.round(414d * sourceGraph.vertexSet().size() / 2908d));
-            int targetSlices = (int) Math.max(sourceSlices, Math.round(4d * sourceGraph.vertexSet().size() / 2908d));
+            int targetWires = (int) Math.max(sourceWires, Math.round(414d * targetGraph.vertexSet().size() / 2908d));
+            int targetPorts = targetWires + (int) Math.max(sourceWires, Math.round(124d * targetGraph.vertexSet().size() / 2908d));
+            int targetSlices = targetPorts + (int) Math.max(sourceSlices, Math.round(4d * targetGraph.vertexSet().size() / 2908d));
             vertices = new ArrayList<>(targetGraph.vertexSet());
             Collections.shuffle(vertices, random);
             for (int i = 0; i < targetWires; i++) {
                 targetGraph.addAttribute(vertices.get(i), "label", "wire");
             }
-            for (int i = targetWires + 1; i < targetWires + targetSlices; i++) {
+            for (int i = targetWires; i < targetPorts; i++) {
+                targetGraph.addAttribute(vertices.get(i), "label", "port");
+            }
+            for (int i = targetPorts; i < targetSlices; i++) {
                 targetGraph.addAttribute(vertices.get(i), "label", "SLICE");
             }
-            for (int i = targetWires + targetSlices + 1; i < vertices.size(); i++) {
+            for (int i = targetSlices; i < vertices.size(); i++) {
                 targetGraph.addAttribute(vertices.get(i), "label", "arc");
             }
         }
