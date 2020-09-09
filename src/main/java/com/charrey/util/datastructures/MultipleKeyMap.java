@@ -2,10 +2,7 @@ package com.charrey.util.datastructures;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 /**
@@ -18,6 +15,18 @@ public class MultipleKeyMap<V> {
     @NotNull
     private final Map<Integer, Map<Integer, V>> nestedMap2;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MultipleKeyMap<?> that = (MultipleKeyMap<?>) o;
+        return nestedMap2.equals(that.nestedMap2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nestedMap2);
+    }
 
     public Set<Entry> entrySet() {
         Set<Entry> res = new HashSet<>();

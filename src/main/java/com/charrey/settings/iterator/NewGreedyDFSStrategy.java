@@ -15,7 +15,7 @@ public final class NewGreedyDFSStrategy extends IteratorSettings {
     }
 
     @Override
-    public Object clone() {
+    public IteratorSettings newInstance() {
         return new NewGreedyDFSStrategy();
     }
 }

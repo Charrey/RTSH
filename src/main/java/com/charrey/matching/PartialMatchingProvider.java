@@ -1,6 +1,6 @@
 package com.charrey.matching;
 
-import com.charrey.pruning.PartialMatching;
+import com.charrey.pruning.serial.PartialMatching;
 
 public interface PartialMatchingProvider {
 

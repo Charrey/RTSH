@@ -13,7 +13,7 @@ public final class KPathStrategy extends IteratorSettings {
     }
 
     @Override
-    public Object clone() {
+    public IteratorSettings newInstance() {
         return new KPathStrategy();
     }
 }

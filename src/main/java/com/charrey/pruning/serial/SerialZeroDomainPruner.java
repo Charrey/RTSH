@@ -1,9 +1,11 @@
-package com.charrey.pruning;
+package com.charrey.pruning.serial;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.matching.VertexMatching;
-import com.charrey.occupation.GlobalOccupation;
+import com.charrey.occupation.AbstractOccupation;
+import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
 
 import java.util.Iterator;
@@ -12,7 +14,7 @@ public class SerialZeroDomainPruner extends DefaultSerialPruner {
 
     private final VertexMatching vertexMatching;
 
-    public SerialZeroDomainPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation, VertexMatching vertexMatching) {
+    public SerialZeroDomainPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, AbstractOccupation occupation, VertexMatching vertexMatching) {
         super(settings, sourceGraph, targetGraph, occupation);
         this.vertexMatching = vertexMatching;
     }

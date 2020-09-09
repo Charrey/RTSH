@@ -2,14 +2,17 @@ package com.charrey.settings.pruning.domainfilter;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.VertexMatching;
-import com.charrey.occupation.GlobalOccupation;
-import gnu.trove.set.TIntSet;
+import com.charrey.occupation.AbstractOccupation;
 
 public interface FilteringSettings {
 
-    boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation, VertexMatching vmatching);
+    boolean filter(MyGraph sourceGraph,
+                   MyGraph targetGraph,
+                   int sourceGraphVertex,
+                   int targetGraphVertex,
+                   AbstractOccupation occupation,
+                   VertexMatching vertexMatching);
 
-    TIntSet sourceVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int targetGraphVertex, GlobalOccupation occupation);
 
-    TIntSet targetVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, GlobalOccupation occupation);
+    FilteringSettings newInstance();
 }

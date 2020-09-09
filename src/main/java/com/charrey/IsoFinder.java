@@ -116,6 +116,7 @@ public class IsoFinder {
     @NotNull
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name) {
         long timeoutTime = System.currentTimeMillis() + timeout;
+        settings = settings.newInstance();
         try {
             Mapping sourceGraphMapping;
             Mapping targetGraphMapping;
@@ -138,6 +139,8 @@ public class IsoFinder {
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
                 if (iterationpassed) {
                     iterations = logProgress(name, iterations);
+//                    System.out.println(vertexMatching);
+//                    System.out.println(edgeMatching);
                 }
                 iterationpassed = false;
                 if (System.currentTimeMillis() > timeoutTime || Thread.interrupted()) {
@@ -167,6 +170,7 @@ public class IsoFinder {
                         return new FailResult(iterations);
                     }
                 }
+
             }
             if (vertexMatching.getPlacement().size() < newSourceGraph.vertexSet().size()) {
                 if (System.currentTimeMillis() >= timeoutTime || Thread.currentThread().isInterrupted()) {

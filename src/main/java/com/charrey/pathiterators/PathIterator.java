@@ -6,7 +6,7 @@ import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
-import com.charrey.pruning.PartialMatching;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.Nullable;

@@ -4,7 +4,6 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.pruning.PartialMatching;
 import com.charrey.pruning.Pruner;
 import com.charrey.util.MyLinkedList;
 import gnu.trove.set.TIntSet;
@@ -107,7 +106,7 @@ public class OccupationTransaction implements AbstractOccupation {
         waiting.removeFromBack(new TransactionElement(vertexPlacementSize, vertex));
     }
 
-    private boolean isOccupiedRouting(int v) {
+    public boolean isOccupiedRouting(Integer v) {
         return routingOccupied.contains(v);
     }
 

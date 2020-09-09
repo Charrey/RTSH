@@ -1,13 +1,13 @@
 package scriptie;
 
 import com.charrey.settings.SettingsBuilder;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static scriptie.ContractionPerformance.directedLatexTest;
+import static scriptie.Util.comparitiveTest;
+
 
 public class PruningPerformance {
 
@@ -33,7 +33,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 1.5, 3.425, false);
+        comparitiveTest(configurations, 2.429, 1.5, 3.425, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 1.5, 3.425, true);
+        comparitiveTest(configurations, 2.429, 1.5, 3.425, true, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -81,7 +81,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 5.0, 3.425, false);
+        comparitiveTest(configurations, 2.429, 5.0, 3.425, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -105,7 +105,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 5.0, 3.425, true);
+        comparitiveTest(configurations, 2.429, 5.0, 3.425, true, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
 
@@ -130,7 +130,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 1.5, 3.425, false);
+        comparitiveTest(configurations, 2.429, 1.5, 3.425, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -154,7 +154,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 1.5, 3.425, true);
+        comparitiveTest(configurations, 2.429, 1.5, 3.425, true, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -178,7 +178,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 5.0, 3.425, false);
+        comparitiveTest(configurations, 2.429, 5.0, 3.425, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
     @Test
     public void testCachedZeroDomainBigLabels() throws InterruptedException {
@@ -201,7 +201,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 5.0, 3.425, true);
+        comparitiveTest(configurations, 2.429, 5.0, 3.425, true, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -225,7 +225,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 1.5, 3.425, false);
+        comparitiveTest(configurations, 2.429, 1.5, 3.425, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -249,7 +249,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 1.5, 3.425, true);
+        comparitiveTest(configurations, 2.429, 1.5, 3.425, true, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -273,7 +273,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 5.0, 3.425, false);
+        comparitiveTest(configurations, 2.429, 5.0, 3.425, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -297,7 +297,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 5.0, 3.425, true);
+        comparitiveTest(configurations, 2.429, 5.0, 3.425, true, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
 
@@ -322,7 +322,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 1.5, 3.425, false);
+        comparitiveTest(configurations, 2.429, 1.5, 3.425, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -346,7 +346,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 1.5, 3.425, true);
+        comparitiveTest(configurations, 2.429, 1.5, 3.425, true, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -370,7 +370,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 5.0, 3.425, false);
+        comparitiveTest(configurations, 2.429, 5.0, 3.425, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
     @Test
@@ -394,7 +394,7 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        directedLatexTest(configurations, 2.429, 5.0, 3.425, true);
+        comparitiveTest(configurations, 2.429, 5.0, 3.425, true, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
     }
 
 

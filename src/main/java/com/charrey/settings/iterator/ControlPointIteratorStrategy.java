@@ -22,7 +22,7 @@ public final class ControlPointIteratorStrategy extends IteratorSettings {
     }
 
     @Override
-    public Object clone() {
+    public IteratorSettings newInstance() {
         return new ControlPointIteratorStrategy(maxControlPoints);
     }
 }

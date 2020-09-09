@@ -12,4 +12,6 @@ public interface AbstractOccupation {
      * @return whether that vertex is occupied
      */
     boolean isOccupied(int vertex);
+
+    boolean isOccupiedRouting(Integer x);
 }

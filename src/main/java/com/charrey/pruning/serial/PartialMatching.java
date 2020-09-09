@@ -1,4 +1,4 @@
-package com.charrey.pruning;
+package com.charrey.pruning.serial;
 
 import com.charrey.graph.Path;
 import gnu.trove.TCollections;

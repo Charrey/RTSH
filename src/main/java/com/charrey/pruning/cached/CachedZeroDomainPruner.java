@@ -1,8 +1,9 @@
-package com.charrey.pruning;
+package com.charrey.pruning.cached;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
+import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
 import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.NotNull;

@@ -1,13 +1,15 @@
-package com.charrey.pruning;
+package com.charrey.pruning.serial;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.PartialMatchingProvider;
-import com.charrey.occupation.GlobalOccupation;
+import com.charrey.occupation.AbstractOccupation;
+import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
 
 public abstract class DefaultSerialPruner extends Pruner {
 
-    DefaultSerialPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
+    protected DefaultSerialPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, AbstractOccupation occupation) {
         super(settings, sourceGraph, targetGraph, occupation);
     }
 

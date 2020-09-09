@@ -2,21 +2,21 @@ package com.charrey.settings.pruning.domainfilter;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.VertexMatching;
+import com.charrey.occupation.AbstractOccupation;
 import com.charrey.occupation.GlobalOccupation;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 import org.jgrapht.Graphs;
 
 public class UnmatchedDegreesFiltering implements FilteringSettings {
 
     @Override
-    public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation, VertexMatching vertexMatching) {
+    public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, AbstractOccupation occupation, VertexMatching vertexMatching) {
         return occupation.isOccupied(targetGraphVertex) || (sourceGraph.getLabels(sourceGraphVertex).containsAll(targetGraph.getLabels(targetGraphVertex)) &&
                 incomingUnmatched(targetGraph, targetGraphVertex, occupation) >= incomingGreater(sourceGraph, sourceGraphVertex) &&
                 outgoingUnmatched(targetGraph, targetGraphVertex, occupation) >= outgoingGreater(sourceGraph ,sourceGraphVertex));
     }
 
-    private int outgoingUnmatched(MyGraph targetGraph, int targetGraphVertex, GlobalOccupation occupation) {
+
+    private int outgoingUnmatched(MyGraph targetGraph, int targetGraphVertex, AbstractOccupation occupation) {
         return Math.toIntExact(targetGraph.outgoingEdgesOf(targetGraphVertex)
                 .stream()
                 .map(x -> Graphs.getOppositeVertex(targetGraph, x, targetGraphVertex))
@@ -38,7 +38,7 @@ public class UnmatchedDegreesFiltering implements FilteringSettings {
                 .filter(x -> x > vertex).count());
     }
 
-    private int incomingUnmatched(MyGraph targetGraph, int targetGraphVertex, GlobalOccupation occupation) {
+    private int incomingUnmatched(MyGraph targetGraph, int targetGraphVertex, AbstractOccupation occupation) {
         return Math.toIntExact(targetGraph.incomingEdgesOf(targetGraphVertex)
                 .stream()
                 .map(x -> Graphs.getOppositeVertex(targetGraph, x, targetGraphVertex))
@@ -47,13 +47,8 @@ public class UnmatchedDegreesFiltering implements FilteringSettings {
     }
 
     @Override
-    public TIntSet sourceVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int targetGraphVertex, GlobalOccupation occupation) {
-        return new TIntHashSet();
-    }
-
-    @Override
-    public TIntSet targetVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, GlobalOccupation occupation) {
-        return new TIntHashSet();
+    public FilteringSettings newInstance() {
+        return new UnmatchedDegreesFiltering();
     }
 
 

@@ -6,7 +6,7 @@ import com.charrey.matching.candidate.VertexCandidateIterator;
 import com.charrey.matching.candidate.VertexCandidateIteratorFactory;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.pruning.PartialMatching;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;

@@ -53,7 +53,7 @@ public class RandomSucceedDirectedTestCaseGenerator2 extends TestCaseGenerator {
         GraphUtil.CopyResult copy = GraphUtil.copy(sourceGraph, randomGen);
         Set<Integer> addedArbitrary = insertIntermediateNodes(sourceGraph, copy.graph, 0.5, labels);
         addEdges(copy.graph, addedArbitrary);
-        return new TestCase(sourceGraph, copy.graph, null, null);
+        return new TestCase(sourceGraph, copy.graph, copy.vertexMatching, null);
     }
 
     private void addSourceGraphLabels(MyGraph sourceGraph) {

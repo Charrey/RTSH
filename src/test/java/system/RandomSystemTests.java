@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -26,7 +27,7 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withKPathRouting()
+            .withMatchedReachabilityFiltering()
             .withCachedPruning()
             .withZeroDomainPruning()
             .get();
@@ -50,7 +51,7 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesDirectedSucceed() throws IOException {
-        findCases(100000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(4, 3, 0.1, 2, 30), true);
+        findCases(100000 * 1000, 10, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
     }
 
     @Test
@@ -83,14 +84,14 @@ class RandomSystemTests extends SystemTest {
 
                 HomeomorphismResult homeomorphism;
                 //System.out.println("case " + attempts);
-                if (attempts >= 0) {//6
+                if (attempts >= 0) {//
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);
                         } else {
                             homeomorphism = testWithoutExpectation(testCase, time - (System.currentTimeMillis() - start), settings);
                         }
-                    } catch (AssertionError | IllegalStateException | IllegalArgumentException e) {
+                    } catch (AssertionError | IllegalStateException | IllegalArgumentException | NoSuchElementException e) {
                         System.err.println(attempts);
                         System.err.println(testCase.getSourceGraph());
                         int[] expected = testCase.getExpectedVertexMatching();

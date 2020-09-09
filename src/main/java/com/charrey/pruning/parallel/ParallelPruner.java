@@ -1,7 +1,11 @@
-package com.charrey.pruning;
+package com.charrey.pruning.parallel;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.PartialMatchingProvider;
+import com.charrey.pruning.serial.DefaultSerialPruner;
+import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.serial.PartialMatching;
+import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
 
 public class ParallelPruner extends DefaultSerialPruner {

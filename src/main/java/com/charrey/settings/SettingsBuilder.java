@@ -42,7 +42,7 @@ public class SettingsBuilder {
     }
 
     public SettingsBuilder(Settings settings) {
-        this.settings = (Settings) settings.clone();
+        this.settings = settings.newInstance();
     }
 
     private SettingsBuilder setFiltering(FilteringSettings filtering) {
@@ -255,6 +255,9 @@ public class SettingsBuilder {
         lockTargetVertexOrder = true;
         lockDFSCaching = true;
         lockContraction = true;
+        if (settings.getFiltering() instanceof MReachabilityFiltering && settings.getWhenToApply() == WhenToApply.CACHED) {
+            ((MReachabilityFiltering)settings.getFiltering()).setCached();
+        }
         check();
         return settings;
     }

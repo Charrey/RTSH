@@ -85,18 +85,6 @@ public class Settings implements Cloneable {
     }
 
     @Override
-    public Object clone() {
-        Settings toReturn;
-        try {
-            toReturn = (Settings) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new UnsupportedOperationException();
-        }
-        toReturn.pathIteration = (IteratorSettings) pathIteration.clone();
-        return toReturn;
-    }
-
-    @Override
     public int hashCode() {
         return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration, dfsCaching, contraction, vertexLimit, pathsLimit);
     }
@@ -182,4 +170,7 @@ public class Settings implements Cloneable {
     }
 
 
+    public Settings newInstance() {
+       return new Settings(filtering.newInstance(), refuseLongerPaths, pruningMethod, pathIteration.newInstance(), whenToApply, vertexLimit, pathsLimit, targetVertexOrder, dfsCaching, contraction);
+    }
 }

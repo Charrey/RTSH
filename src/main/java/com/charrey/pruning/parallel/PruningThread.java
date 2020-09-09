@@ -1,6 +1,7 @@
-package com.charrey.pruning;
+package com.charrey.pruning.parallel;
 
-import com.charrey.matching.PartialMatchingProvider;
+import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.serial.PartialMatching;
 
 import java.util.LinkedList;
 import java.util.List;

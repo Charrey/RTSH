@@ -8,7 +8,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.pruning.PartialMatching;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.util.Util;

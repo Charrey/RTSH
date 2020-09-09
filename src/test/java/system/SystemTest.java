@@ -24,7 +24,7 @@ public abstract class SystemTest {
     }
 
     @NotNull
-    protected static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
+    public static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
         return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
     }
 

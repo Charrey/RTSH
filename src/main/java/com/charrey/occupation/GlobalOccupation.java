@@ -4,9 +4,8 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.matching.VertexMatching;
 import com.charrey.pruning.*;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
-import com.charrey.settings.SettingsBuilder;
-import com.charrey.settings.pruning.WhenToApply;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -31,7 +30,7 @@ public class GlobalOccupation implements AbstractOccupation {
     private final TIntSet vertexBits;
     private final Settings settings;
 
-    private Pruner domainChecker;
+    private Pruner pruner;
     private final UtilityData data;
 
     /**
@@ -47,38 +46,12 @@ public class GlobalOccupation implements AbstractOccupation {
     }
 
     public void init(VertexMatching vertexMatching) {
-        initDomainChecker(settings, vertexMatching);
+        this.pruner = PrunerFactory.get(settings, vertexMatching, data, this);
     }
 
     public void close() {
-        this.domainChecker.close();
-    }
-
-    private void initDomainChecker(Settings settings, VertexMatching vertexMatching) {
-        if (settings.getWhenToApply() == WhenToApply.PARALLEL) {
-            initDomainChecker(new SettingsBuilder(settings).withSerialPruning().get(), vertexMatching);
-            domainChecker = new ParallelPruner(domainChecker, settings, data.getPatternGraph(), data.getTargetGraph());
-            return;
-        }
-        switch (settings.getPruningMethod()) {
-            case NONE:
-                domainChecker = new NoPruner();
-                break;
-            case ZERODOMAIN:
-                if (settings.getWhenToApply() == WhenToApply.CACHED) {
-                    domainChecker = new CachedZeroDomainPruner(data, settings, this, vertexMatching);
-                } else if (settings.getWhenToApply() == WhenToApply.SERIAL) {
-                    domainChecker = new SerialZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), this, vertexMatching);
-                }
-                break;
-            case ALLDIFFERENT:
-                if (settings.getWhenToApply() == WhenToApply.SERIAL) {
-                    throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
-                }
-                domainChecker = new AllDifferentPruner(data, settings, this, vertexMatching);
-                break;
-            default:
-                throw new UnsupportedOperationException();
+        if (pruner !=null) {
+            this.pruner.close();
         }
     }
 
@@ -88,7 +61,10 @@ public class GlobalOccupation implements AbstractOccupation {
      * @return the transaction
      */
     public OccupationTransaction getTransaction() {
-        return new OccupationTransaction(new TIntHashSet(routingBits), new TIntHashSet(vertexBits), domainChecker.copy(), data, this);
+        Pruner prunerCopy = pruner.copy();
+        OccupationTransaction toReturn =  new OccupationTransaction(new TIntHashSet(routingBits), new TIntHashSet(vertexBits), prunerCopy, data, this);
+        prunerCopy.setOccupation(toReturn);
+        return toReturn;
     }
 
 
@@ -101,13 +77,13 @@ public class GlobalOccupation implements AbstractOccupation {
     void occupyRoutingWithoutCheck(int vertexPlacementSize, int vertex) {
         assert !routingBits.contains(vertex);
         routingBits.add(vertex);
-        domainChecker.afterOccupyEdgeWithoutCheck(vertexPlacementSize, vertex);
+        pruner.afterOccupyEdgeWithoutCheck(vertexPlacementSize, vertex);
     }
 
     void occupyRoutingAndCheck(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         assert !routingBits.contains(vertex);
         routingBits.add(vertex);
-        domainChecker.afterOccupyEdge(vertexPlacementSize, vertex, partialMatching);
+        pruner.afterOccupyEdge(vertexPlacementSize, vertex, partialMatching);
     }
 
 
@@ -124,7 +100,7 @@ public class GlobalOccupation implements AbstractOccupation {
         }
         TIntList hypothetical = new TIntArrayList(partialMatching.getVertexMapping());
         hypothetical.add(target);
-        domainChecker.beforeOccupyVertex(source, target, () -> new PartialMatching(hypothetical, partialMatching.getEdgeMapping(), partialMatching.getPartialPath()));
+        pruner.beforeOccupyVertex(source, target, () -> new PartialMatching(hypothetical, partialMatching.getEdgeMapping(), partialMatching.getPartialPath()));
         vertexBits.add(target);
     }
 
@@ -142,7 +118,7 @@ public class GlobalOccupation implements AbstractOccupation {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for routing purposes): " + vertex);
         }
         routingBits.remove(vertex);
-        domainChecker.afterReleaseEdge(vertexPlacementSize, vertex);
+        pruner.afterReleaseEdge(vertexPlacementSize, vertex);
     }
 
     /**
@@ -157,7 +133,7 @@ public class GlobalOccupation implements AbstractOccupation {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for vertex-on-vertex purposes): " + vertex);
         }
         vertexBits.remove(vertex);
-        domainChecker.afterReleaseVertex(vertexPlacementSize, vertex);
+        pruner.afterReleaseVertex(vertexPlacementSize, vertex);
     }
 
     /**
@@ -166,7 +142,8 @@ public class GlobalOccupation implements AbstractOccupation {
      * @param vertex the vertex to query
      * @return whether in the current matching this vertex is used as intermediate vertex
      */
-    public boolean isOccupiedRouting(int vertex) {
+    @Override
+    public boolean isOccupiedRouting(Integer vertex) {
         return routingBits.contains(vertex);
     }
 
