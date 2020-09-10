@@ -118,7 +118,7 @@ public class ManagedControlPointIterator extends PathIterator {
             Path middleAltToRight = new Path(graph, middleToRight.asList().subList(i + 1, middleToRight.length()));
             TIntSet fictionalLocalOccupation = new TIntHashSet(localOccupations.get(1));
             middleAltToRight.forEach(fictionalLocalOccupation::add);
-            Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail());
+            Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail(), Util.emptyTIntSet);
             assert leftToMiddleAlt.isPresent();
             Path alternative = Util.merge(graph, leftToMiddleAlt.get(), middleAltToRight);
             if (alternative.isEqualTo(leftToRight)) {
@@ -142,7 +142,7 @@ public class ManagedControlPointIterator extends PathIterator {
 
         assert middleToRight.first() == middle;
         assert middleToRight.last() == right;
-        Optional<Path> skippedPath = Util.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right, refuseLongerPaths, tail());
+        Optional<Path> skippedPath = Util.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right, refuseLongerPaths, tail(), Util.emptyTIntSet);
         assert skippedPath.isPresent();
         assert skippedPath.get().first() == left;
         assert skippedPath.get().last() == right;

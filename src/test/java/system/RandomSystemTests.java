@@ -86,7 +86,7 @@ class RandomSystemTests extends SystemTest {
 
                 HomeomorphismResult homeomorphism;
                 //System.out.println("case " + attempts);
-                if (attempts >= 11095) {//
+                if (attempts >= 0) {//11246
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);

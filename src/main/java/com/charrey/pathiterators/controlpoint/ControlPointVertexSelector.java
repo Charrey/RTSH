@@ -49,7 +49,7 @@ public class ControlPointVertexSelector {
         this.localOccupation = initialLocalOccupation;
         Random random = new Random(1 + 3L * graph.hashCode() + 5L * occupation.hashCode() + 7L * initialLocalOccupation.hashCode() + 11L * from + 13L * to);
         vertices = GraphUtil.randomVertexOrder(graph, random);
-        Optional<Path> path = Util.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail);
+        Optional<Path> path = Util.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail, Util.emptyTIntSet);
         if (path.isEmpty()) {
             readyToDeliver = true;
             nextToReturn = -1;

@@ -75,7 +75,7 @@ public abstract class DefaultCachedPruner extends Pruner {
             for (int i = candidates.size() - 1; i >= 0 && candidates.get(i) > sourceVertexData; i--) {
                 domain.get(candidates.get(i)).add(newlyOccupied);
             }
-            throw new DomainCheckerException("Pruner kicked in after occupying routing vertex " + newlyOccupied);
+            throw new DomainCheckerException(() -> "Pruner kicked in after occupying routing vertex " + newlyOccupied);
         }
     }
 
@@ -111,7 +111,7 @@ public abstract class DefaultCachedPruner extends Pruner {
                 domain.get(sourceGraphCandidates.get(i)).add(v);
             }
             domain.set(sourceVertexData, previousDomain[sourceVertexData]);
-            throw new DomainCheckerException("Pruner kicked in after occupying vertex " + v);
+            throw new DomainCheckerException(() -> "Pruner kicked in after occupying vertex " + v);
         }
     }
 

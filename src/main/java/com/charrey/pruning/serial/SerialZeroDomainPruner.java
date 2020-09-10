@@ -36,7 +36,8 @@ public class SerialZeroDomainPruner extends DefaultSerialPruner {
             Iterator<Integer> customIterator = targetGraph.vertexSet().stream().filter(x ->
                     settings.getFiltering().filter(sourceGraph, targetGraph, finalI, x, occupation, vertexMatching)).iterator();
             if (!customIterator.hasNext()) {
-                throw new DomainCheckerException("Vertex exists with empty domain: " + i);
+                int finalI1 = i;
+                throw new DomainCheckerException(() -> "Vertex exists with empty domain: " + finalI1);
             }
         }
     }

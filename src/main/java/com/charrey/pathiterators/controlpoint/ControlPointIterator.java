@@ -100,7 +100,7 @@ class ControlPointIterator extends PathIterator {
 
     @NotNull
     private Optional<Path> filteredShortestPath(int from, int to) {
-        return Util.filteredShortestPath(targetGraph, transaction, localOccupation, from, to, settings.getRefuseLongerPaths(), tail());
+        return Util.filteredShortestPath(targetGraph, transaction, localOccupation, from, to, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
     }
 
     /**
@@ -147,7 +147,7 @@ class ControlPointIterator extends PathIterator {
                 middleAltToRight.forEach(fictionalOccupation::add);
                 Path temporarilyRemoveGlobal = middleToRight.subPath(0, middleToRight.length() - 1);
                 temporarilyRemoveGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
-                Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(targetGraph, transaction, fictionalOccupation, leftCandidate, middleAlt, settings.getRefuseLongerPaths(), tail());
+                Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(targetGraph, transaction, fictionalOccupation, leftCandidate, middleAlt, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
                 if (leftToMiddleAlt.isEmpty()) {
                     temporarilyRemoveGlobal.forEach(x -> {
                         try {
@@ -190,7 +190,7 @@ class ControlPointIterator extends PathIterator {
 
             Path temporaryRemoveFromGlobal = pathFromRightNeighbourToItsRightNeighbour.subPath(0, pathFromRightNeighbourToItsRightNeighbour.length() - 1);
             temporaryRemoveFromGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
-            Optional<Path> skippedPath = Util.filteredShortestPath(targetGraph, transaction, localOccupation, left, right, settings.getRefuseLongerPaths(), tail());
+            Optional<Path> skippedPath = Util.filteredShortestPath(targetGraph, transaction, localOccupation, left, right, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::add);
             temporaryRemoveFromGlobal.forEach(x -> {
                 try {

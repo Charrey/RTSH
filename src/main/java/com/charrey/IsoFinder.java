@@ -2,7 +2,6 @@ package com.charrey;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.algorithms.vertexordering.GreatestConstrainedFirst;
-import com.charrey.algorithms.vertexordering.Identity;
 import com.charrey.algorithms.vertexordering.Mapping;
 import com.charrey.algorithms.vertexordering.MaxDegreeFirst;
 import com.charrey.graph.MyEdge;
@@ -19,7 +18,6 @@ import com.charrey.settings.pruning.WhenToApply;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -58,7 +56,7 @@ public class IsoFinder {
                 int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
                 Set<Path> toAdd = new HashSet<>();
                 Set<Path> match = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).collect(Collectors.toSet());
-                assert match.size() >= 1;
+                assert !match.isEmpty();
                 match.forEach(path -> {
                     Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);
                     for (int i = 1; i < path.asList().size(); i++) {
@@ -75,7 +73,7 @@ public class IsoFinder {
                 int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
                 Set<Path> toAdd = new HashSet<>();
                 Set<Path> match = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(List.of(x.last(), x.first())).equals(new HashSet<>(List.of(edgeSourceTarget, edgeTargetTarget)))).collect(Collectors.toSet());
-                assert match.size() >= 1;
+                assert !match.isEmpty();
                 match.forEach(path -> {
                     Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);
                     for (int i = 1; i < path.asList().size(); i++) {
@@ -96,7 +94,7 @@ public class IsoFinder {
                        long timeoutTime) throws DomainCheckerException {
         UtilityData data = new UtilityData(sourceGraph, targetGraph);
         if (settings.getWhenToApply() == WhenToApply.CACHED && Arrays.stream(data.getCompatibility(settings.getFiltering())).anyMatch(x -> x.length == 0)) {
-            throw new DomainCheckerException("Intial domain check failed");
+            throw new DomainCheckerException(() -> "Intial domain check failed");
         }
         occupation = new GlobalOccupation(data, settings);
         vertexMatching = new VertexMatching(sourceGraph, targetGraph, occupation, settings);
@@ -139,8 +137,8 @@ public class IsoFinder {
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
                 if (iterationpassed) {
                     iterations = logProgress(name, iterations);
-                    System.out.println(vertexMatching);
-                    System.out.println(edgeMatching);
+//                    System.out.println(vertexMatching);
+//                    System.out.println(edgeMatching);
                 }
                 iterationpassed = false;
                 if (System.currentTimeMillis() > timeoutTime || Thread.interrupted()) {

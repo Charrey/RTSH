@@ -42,10 +42,10 @@ public class MReachabilityFiltering implements FilteringSettings {
                 continue;
             }
             if (cached && pathCache.get(vertexMatching.getPlacement().get(predecessor), targetGraphVertex) != null) {
-                Path cached = pathCache.get(vertexMatching.getPlacement().get(predecessor), targetGraphVertex);
-                if (cached.intermediate().stream().anyMatch(occupation::isOccupied)) {
+                Path cachedPath = pathCache.get(vertexMatching.getPlacement().get(predecessor), targetGraphVertex);
+                if (cachedPath.intermediate().stream().anyMatch(occupation::isOccupied)) {
                     removeFromCache(vertexMatching.getPlacement().get(predecessor), targetGraphVertex);
-                    Optional<Path> path = Util.filteredShortestPath(targetGraph, occupation, new TIntHashSet(), vertexMatching.getPlacement().get(predecessor), targetGraphVertex, false, -1);
+                    Optional<Path> path = Util.filteredShortestPath(targetGraph, occupation, new TIntHashSet(), vertexMatching.getPlacement().get(predecessor), targetGraphVertex, false, -1, Util.emptyTIntSet);
                     if (path.isEmpty()) {
                         return false;
                     } else {
@@ -61,10 +61,10 @@ public class MReachabilityFiltering implements FilteringSettings {
                 continue;
             }
             if (cached && pathCache.get(targetGraphVertex, vertexMatching.getPlacement().get(successor)) != null) {
-                Path cached = pathCache.get(targetGraphVertex, vertexMatching.getPlacement().get(successor));
-                if (cached.intermediate().stream().anyMatch(occupation::isOccupied)) {
+                Path cachedPath = pathCache.get(targetGraphVertex, vertexMatching.getPlacement().get(successor));
+                if (cachedPath.intermediate().stream().anyMatch(occupation::isOccupied)) {
                     removeFromCache(targetGraphVertex, vertexMatching.getPlacement().get(successor));
-                    Optional<Path> path = Util.filteredShortestPath(targetGraph, occupation, new TIntHashSet(), targetGraphVertex, vertexMatching.getPlacement().get(successor), false, -1);
+                    Optional<Path> path = Util.filteredShortestPath(targetGraph, occupation, new TIntHashSet(), targetGraphVertex, vertexMatching.getPlacement().get(successor), false, -1, Util.emptyTIntSet);
                     if (path.isEmpty()) {
                         return false;
                     } else {

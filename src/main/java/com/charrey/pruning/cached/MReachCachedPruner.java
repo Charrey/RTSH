@@ -14,21 +14,18 @@ import com.charrey.settings.pruning.domainfilter.UnmatchedDegreesFiltering;
 import com.charrey.util.Util;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.TIntCollection;
-import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.linked.TIntLinkedList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
 
 
@@ -136,12 +133,15 @@ public abstract class MReachCachedPruner extends Pruner {
 
     @Override
     public void afterReleaseVertex(int verticesPlaced, int released) {
-        reverseDomain.pollFirst();
-        domain.pollFirst();
+        popStacks();
     }
 
     @Override
     public void afterReleaseEdge(int verticesPlaced, int released) {
+        popStacks();
+    }
+
+    private void popStacks() {
         reverseDomain.pollFirst();
         domain.pollFirst();
     }
@@ -149,7 +149,7 @@ public abstract class MReachCachedPruner extends Pruner {
     @Override
     public void beforeOccupyVertex(int verticesPlaced, int targetVertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         if (!getDomain(verticesPlaced - 1, domain).contains(targetVertex)) {
-            throw new DomainCheckerException(null);
+            throw new DomainCheckerException(() -> "1");
         }
         TIntList singletonReverseDomain = new TIntLinkedList();
         TIntSet singletonDomain = new TIntHashSet();
@@ -183,33 +183,41 @@ public abstract class MReachCachedPruner extends Pruner {
         if (isUnfruitfulCached(verticesPlaced)) {
             domain.pollFirst();
             reverseDomain.pollFirst();
-            throw new DomainCheckerException(null);
+            throw new DomainCheckerException(() -> "Pruner found insuitable domains after mapping " + (verticesPlaced - 1) + " to " + targetVertex);
         }
     }
 
     protected void NReachabilityCheck(TIntObjectMap<TIntSet> newDomainLayer, TIntObjectMap<TIntList> newReverseDomainLayer) {
-        TIntSet keysToCheck = new TIntHashSet(newDomainLayer.keySet());
+        TIntList keysToCheck = new TIntLinkedList();
+        newDomainLayer.keySet().forEach(value -> {
+            keysToCheck.add(value);
+            return true;
+        });
         int level = 0;
         while (!keysToCheck.isEmpty() || level >= nReachLevel) {
             int sourceGraphVertexToCheck = keysToCheck.iterator().next();
             keysToCheck.remove(sourceGraphVertexToCheck);
-            TIntSet domain = getDomain(sourceGraphVertexToCheck);
+            TIntSet sourceVertexDomain = getDomain(sourceGraphVertexToCheck);
             List<Integer> predecessors = Graphs.predecessorListOf(sourceGraph, sourceGraphVertexToCheck);
             List<Integer> successors = Graphs.successorListOf(sourceGraph, sourceGraphVertexToCheck);
             for (Integer predecessor : predecessors) {
                 TIntSet predecessorDomain = getDomain(predecessor);
                 new TIntHashSet(predecessorDomain).forEach(predecessorCandidate -> {
-                    if (anyMatch(domain, x -> reachabilityCache.containsKey(predecessorCandidate, x))) {
+                    if ((vertexMatching.get().contains(predecessorCandidate) && allMatch(sourceVertexDomain, x -> vertexMatching.get().contains(x))) || anyMatch(sourceVertexDomain, x -> reachabilityCache.containsKey(predecessorCandidate, x))) {
                         return true;
                     }
-                    Optional<Path> optionalPath = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), new TIntHashSet(new int[] {predecessorCandidate}), domain);
+                    Optional<Path> optionalPath = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), new TIntHashSet(new int[] {predecessorCandidate}), sourceVertexDomain);
                     if (optionalPath.isPresent()) {
                         reachabilityCache.put(predecessorCandidate, optionalPath.get().last(), optionalPath.get());
                         if (optionalPath.get().length() > 2) {
                             optionalPath.get().intermediate().forEach(x -> reversePathLookup.get(x).add(optionalPath.get()));
                         }
                     } else {
-                        Graphs.neighborSetOf(sourceGraph, predecessor).forEach(keysToCheck::add);
+                        Graphs.neighborSetOf(sourceGraph, predecessor).forEach(val -> {
+                            if (!keysToCheck.contains(val)) {
+                                keysToCheck.add(val);
+                            }
+                        });
                         removeFromDomain(newReverseDomainLayer, newDomainLayer, predecessor, predecessorCandidate);
                     }
                     return true;
@@ -218,17 +226,21 @@ public abstract class MReachCachedPruner extends Pruner {
             for (Integer successor : successors) {
                 TIntSet successorDomain = getDomain(successor);
                 new TIntHashSet(successorDomain).forEach(successorCandidate -> {
-                    if (anyMatch(domain, x -> reachabilityCache.containsKey(x, successorCandidate))) {
+                    if ((vertexMatching.get().contains(successorCandidate) && allMatch(sourceVertexDomain, x -> vertexMatching.get().contains(x))) || anyMatch(sourceVertexDomain, x -> reachabilityCache.containsKey(x, successorCandidate))) {
                         return true;
                     }
-                    Optional<Path> optionalPath = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), domain, new TIntHashSet(new int[] {successorCandidate}));
+                    Optional<Path> optionalPath = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), sourceVertexDomain, new TIntHashSet(new int[] {successorCandidate}));
                     if (optionalPath.isPresent()) {
                         reachabilityCache.put(optionalPath.get().first(), successorCandidate, optionalPath.get());
                         if (optionalPath.get().length() > 2) {
                             optionalPath.get().intermediate().forEach(x -> reversePathLookup.get(x).add(optionalPath.get()));
                         }
                     } else {
-                        Graphs.neighborSetOf(sourceGraph, successor).forEach(keysToCheck::add);
+                        Graphs.neighborSetOf(sourceGraph, successor).forEach(val -> {
+                            if (!keysToCheck.contains(val)) {
+                                keysToCheck.add(val);
+                            }
+                        });
                         removeFromDomain(newReverseDomainLayer, newDomainLayer, successor, successorCandidate);
                     }
                     return true;
@@ -238,8 +250,12 @@ public abstract class MReachCachedPruner extends Pruner {
         }
     }
 
-    private static boolean anyMatch(TIntCollection collection, Predicate<Integer> predicate) {
+    private static boolean anyMatch(TIntCollection collection, IntPredicate predicate) {
         return !collection.forEach(value -> !predicate.test(value));
+    }
+
+    private static boolean allMatch(TIntCollection collection, IntPredicate predicate) {
+        return collection.forEach(predicate::test);
     }
 
     private void MReachabilityCheck(int targetVertex, Set<Integer> neighbours, boolean successors) throws DomainCheckerException {
@@ -247,11 +263,11 @@ public abstract class MReachCachedPruner extends Pruner {
             int from = successors ? targetVertex : neighbour;
             int to = successors ? neighbour : targetVertex;
             if (!reachabilityCache.containsKey(from, to)) {
-                Optional<Path> path = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), from, to, false, -1);
+                Optional<Path> path = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), from, to, false, -1, Util.emptyTIntSet);
                 if (path.isEmpty()) {
                     domain.pollFirst();
                     reverseDomain.pollFirst();
-                    throw new DomainCheckerException(null);
+                    throw new DomainCheckerException(() -> "3");
                 } else {
                     reachabilityCache.put(from, to, path.get());
                     if (path.get().length() > 2) {
@@ -301,7 +317,7 @@ public abstract class MReachCachedPruner extends Pruner {
                     path.intermediate().forEach(x -> reversePathLookup.get(x).add(path));
                 }
             });
-            throw new DomainCheckerException(null);
+            throw new DomainCheckerException(() -> "4");
         }
     }
 
@@ -388,7 +404,7 @@ public abstract class MReachCachedPruner extends Pruner {
     }
 
     @Override
-    public void checkPartial(PartialMatchingProvider partialMatching) throws DomainCheckerException {
+    public void checkPartial(PartialMatchingProvider partialMatching) {
 
     }
 }
