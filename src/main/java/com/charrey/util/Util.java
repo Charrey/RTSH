@@ -13,10 +13,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
+import org.jgrapht.alg.interfaces.ManyToManyShortestPathsAlgorithm;
+import org.jgrapht.alg.interfaces.ManyToManyShortestPathsAlgorithm.ManyToManyShortestPaths;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
+import org.jgrapht.alg.shortestpath.DijkstraManyToManyShortestPaths;
+import org.jgrapht.graph.GraphWalk;
 import org.jgrapht.graph.MaskSubgraph;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -82,6 +87,28 @@ public class Util {
                                 (refuseLongerPaths && violatesLongerPaths(targetGraph, x, from, to, tail, localOccupation))), x -> false);
         GraphPath<Integer, MyEdge> algo = new BFSShortestPath<>(fakeGraph).getPath(from, to);
         return algo == null ? Optional.empty() : Optional.of(new Path(targetGraph, algo));
+    }
+
+    public static Optional<Path> filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull AbstractOccupation globalOccupation, @NotNull TIntSet localOccupation, TIntSet from, TIntSet to) {
+        int virtualSource = targetGraph.addVertex();
+        int virtualTarget = targetGraph.addVertex();
+        to.forEach(integer -> {
+            targetGraph.addEdge(integer, virtualTarget);
+            return true;
+        });
+        from.forEach(integer -> {
+            targetGraph.addEdge(virtualSource, integer);
+            return true;
+        });
+
+        Optional<Path> toReturn = filteredShortestPath(targetGraph, globalOccupation, localOccupation, virtualSource, virtualTarget, false, -1);
+
+        if (toReturn.isPresent()) {
+            toReturn = Optional.of(toReturn.get().intermediate());
+        }
+        targetGraph.removeVertex(virtualSource);
+        targetGraph.removeVertex(virtualTarget);
+        return toReturn;
     }
 
     /**

@@ -11,6 +11,8 @@ import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.settings.pruning.domainfilter.MReachabilityFiltering;
+import com.charrey.settings.pruning.domainfilter.NReachabilityFiltering;
+import com.charrey.settings.pruning.domainfilter.UnmatchedDegreesFiltering;
 
 public class PrunerFactory {
 
@@ -35,8 +37,8 @@ public class PrunerFactory {
                 if (settings.getWhenToApply() == WhenToApply.SERIAL) {
                     throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
                 } else {
-                    if (settings.getFiltering() instanceof MReachabilityFiltering) {
-                        yield new MReachCachedAllDifferentPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching, 3);
+                    if (settings.getFiltering() instanceof NReachabilityFiltering || settings.getFiltering() instanceof MReachabilityFiltering || settings.getFiltering() instanceof UnmatchedDegreesFiltering) {
+                        yield new MReachCachedAllDifferentPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching, settings.getFiltering() instanceof  NReachabilityFiltering ? ((NReachabilityFiltering)settings.getFiltering()).getLevel() : 0);
                     }
                     yield new AllDifferentPruner(data, settings, occupation, vertexMatching);
                 }

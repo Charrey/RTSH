@@ -5,6 +5,7 @@ import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.settings.pruning.PruningMethod;
 import com.charrey.settings.pruning.domainfilter.*;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.charrey.settings.pathiteration.PathIteration.DFS_ARBITRARY;
@@ -160,8 +161,12 @@ public class SettingsBuilder {
         return setFiltering(new MReachabilityFiltering());
     }
 
+    public SettingsBuilder withNeighbourReachabilityFiltering(int level) {
+        return setFiltering(new NReachabilityFiltering(level));
+    }
+
     public SettingsBuilder withNeighbourReachabilityFiltering() {
-        return setFiltering(new NReachabilityFiltering());
+        return setFiltering(new NReachabilityFiltering(Integer.MAX_VALUE));
     }
 
     public SettingsBuilder avoidingLongerPaths() {
@@ -273,6 +278,7 @@ public class SettingsBuilder {
             throw new IllegalArgumentException("Paths limit must be greater than 0.");
         }
     }
+
 
 
 }

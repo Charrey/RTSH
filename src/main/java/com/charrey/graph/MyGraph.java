@@ -72,11 +72,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     }
 
 
-    /**
-     * Instantiates a new empty graph.
-     *
-     * @param directed whether the graph is directed. If false, the graph will be undirected.
-     */
+
     public MyGraph(Graph<Integer, MyEdge> copyOf) {
         super(
                 SupplierUtil.createIntegerSupplier(), new MyEdge.MyEdgeSupplier(),
@@ -93,6 +89,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         copyOf.vertexSet().stream().sorted().forEach(this::addVertex);
         copyOf.edgeSet().forEach(myEdge -> addEdge(myEdge.getSource(), myEdge.getTarget(), myEdge));
         copyOf.edgeSet().forEach(myEdge -> setEdgeWeight(myEdge, copyOf.getEdgeWeight(myEdge)));
+        setVertexSupplier(SupplierUtil.createIntegerSupplier(copyOf.vertexSet().size()));
     }
 
     /**
@@ -130,6 +127,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
                 res.chains.put(newEdges.get(), value);
             });
         }
+        res.setVertexSupplier(SupplierUtil.createIntegerSupplier(source.vertexSet().size()));
         return res;
     }
 

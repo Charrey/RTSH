@@ -1,24 +1,45 @@
 package com.charrey.pruning.cached;
 
+import com.charrey.algorithms.AllDifferent;
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.AbstractOccupation;
 import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
+import gnu.trove.set.TIntSet;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class MReachCachedAllDifferentPruner extends MReachCachedPruner {
-    public MReachCachedAllDifferentPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, AbstractOccupation occupation, VertexMatching vertexMatching, int nReachLevel) {
+
+    AllDifferent allDifferent = new AllDifferent();
+
+
+    public MReachCachedAllDifferentPruner(Settings settings,
+                                          MyGraph sourceGraph,
+                                          MyGraph targetGraph,
+                                          AbstractOccupation occupation,
+                                          VertexMatching vertexMatching,
+                                          int nReachLevel) {
         super(settings, sourceGraph, targetGraph, occupation, vertexMatching, nReachLevel);
+    }
+
+    public MReachCachedAllDifferentPruner(MReachCachedAllDifferentPruner copyOf) {
+        super(copyOf);
+        allDifferent = copyOf.allDifferent;
     }
 
     @Override
     public boolean isUnfruitfulCached(int verticesPlaced) {
-        return true;
+        List<TIntSet> toCheck = new LinkedList<>();
+        sourceGraph.vertexSet().forEach(x -> toCheck.add(getDomain(x)));
+        return !allDifferent.get(toCheck);
     }
 
     @Override
     public Pruner copy() {
-        MReachCachedAllDifferentPruner res = new MReachCachedAllDifferentPruner(settings, sourceGraph, targetGraph, occupation, vertexMatching, nReachLevel);
-        return res;
+        return new MReachCachedAllDifferentPruner(this);
     }
 }
