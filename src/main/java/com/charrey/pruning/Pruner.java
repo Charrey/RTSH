@@ -2,8 +2,7 @@ package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.PartialMatchingProvider;
-import com.charrey.occupation.AbstractOccupation;
-import com.charrey.occupation.OccupationTransaction;
+import com.charrey.occupation.ReadOnlyOccupation;
 import com.charrey.settings.Settings;
 
 public abstract class Pruner {
@@ -11,9 +10,9 @@ public abstract class Pruner {
     protected final Settings settings;
     protected final MyGraph targetGraph;
     protected final MyGraph sourceGraph;
-    public AbstractOccupation occupation;
+    public ReadOnlyOccupation occupation;
 
-    public Pruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, AbstractOccupation occupation) {
+    public Pruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, ReadOnlyOccupation occupation) {
         this.settings = settings;
         this.sourceGraph = sourceGraph;
         this.targetGraph = targetGraph;
@@ -83,7 +82,7 @@ public abstract class Pruner {
 
     public abstract void checkPartial(PartialMatchingProvider partialMatching) throws DomainCheckerException;
 
-    public void setOccupation(AbstractOccupation newOccupation) {
+    public void setOccupation(ReadOnlyOccupation newOccupation) {
         this.occupation = newOccupation;
     }
 }

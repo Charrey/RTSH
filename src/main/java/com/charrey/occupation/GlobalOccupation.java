@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
  * Class that tracks for an entire homeomorphism source which target graph vertices are used up for which goal.
  * This class also throws exceptions when usage of a vertex would result in a dead end in the search.
  */
-public class GlobalOccupation implements AbstractOccupation {
+public class GlobalOccupation implements ReadOnlyOccupation {
 
     @NotNull
     private final TIntSet routingBits;

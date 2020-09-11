@@ -1,9 +1,10 @@
 package com.charrey.matching.candidate;
 
 import com.charrey.graph.MyGraph;
-import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
+import com.charrey.settings.pruning.domainfilter.UnmatchedDegreesFiltering;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -18,24 +19,22 @@ public abstract class VertexCandidateIterator implements Iterator<Integer> {
     protected final GlobalOccupation occupation;
     protected final int sourceGraphVertex;
     private final int limit;
-    private final VertexMatching vertexMatching;
     int nextToReturn = -1;
     private int counter = 0;
 
 
-    VertexCandidateIterator(MyGraph sourceGraph, MyGraph targetGraph, Settings settings, GlobalOccupation occupation, int sourceGraphVertex, VertexMatching vertexMatching) {
+    VertexCandidateIterator(MyGraph sourceGraph, MyGraph targetGraph, Settings settings, GlobalOccupation occupation, int sourceGraphVertex) {
         this.sourceGraph = sourceGraph;
         this.targetGraph = targetGraph;
         this.settings = settings;
         this.occupation = occupation;
         this.sourceGraphVertex = sourceGraphVertex;
         this.limit = settings.getVertexLimit();
-        this.vertexMatching = vertexMatching;
     }
 
     Iterator<Integer> getInnerIterator() {
         return targetGraph.vertexSet().stream().filter(x ->
-                settings.getFiltering().filter(sourceGraph, targetGraph, sourceGraphVertex, x, occupation, vertexMatching) && !occupation.isOccupied(x)).iterator();
+                new UnmatchedDegreesFiltering().filter(sourceGraph, targetGraph, sourceGraphVertex, x, occupation) && !occupation.isOccupied(x)).iterator();
     }
 
     public abstract void doReset();

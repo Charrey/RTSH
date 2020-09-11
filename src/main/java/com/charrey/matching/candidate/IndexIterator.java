@@ -13,7 +13,7 @@ public class IndexIterator extends VertexCandidateIterator {
     private Iterator<Integer> innerIterator;
 
     public IndexIterator(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, Settings settings, GlobalOccupation occupation, VertexMatching vertexMatching) {
-        super(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching);
+        super(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex);
         reset();
     }
 

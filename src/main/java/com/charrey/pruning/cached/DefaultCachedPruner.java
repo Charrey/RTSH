@@ -7,6 +7,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.TIntSet;
@@ -21,7 +22,6 @@ public abstract class DefaultCachedPruner extends Pruner {
     protected final List<TIntSet> domain;
     private final List<TIntList> reverseDomain;
     private final TIntSet[] previousDomain;
-    private final VertexMatching vertexMatching;
 
 
     DefaultCachedPruner(DefaultCachedPruner copyOf) {
@@ -38,10 +38,9 @@ public abstract class DefaultCachedPruner extends Pruner {
         for (int i = 0; i < copyOf.previousDomain.length; i++) {
             previousDomain[i] = copyOf.previousDomain[i] == null ? null : new TIntHashSet(copyOf.previousDomain[i]);
         }
-        vertexMatching = copyOf.vertexMatching;
     }
 
-    DefaultCachedPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation, VertexMatching vertexMatching) {
+    DefaultCachedPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
         super(settings, sourceGraph, targetGraph, occupation);
         this.domain = new ArrayList<>(sourceGraph.vertexSet().size());
         this.reverseDomain = new ArrayList<>(targetGraph.vertexSet().size());
@@ -52,9 +51,8 @@ public abstract class DefaultCachedPruner extends Pruner {
         while (reverseDomain.size() < targetGraph.vertexSet().size()) {
             reverseDomain.add(new TIntArrayList());
         }
-        this.vertexMatching = vertexMatching;
         sourceGraph.vertexSet().stream().sorted().forEach(sourceV -> targetGraph.vertexSet().forEach(targetV -> {
-            if (settings.getFiltering().filter(sourceGraph, targetGraph, sourceV, targetV, occupation, vertexMatching)) {
+            if (new LabelDegreeFiltering().filter(sourceGraph, targetGraph, sourceV, targetV, occupation)) {
                 domain.get(sourceV).add(targetV);
                 reverseDomain.get(targetV).add(sourceV);
             }

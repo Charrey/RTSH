@@ -28,10 +28,10 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withControlPointRouting()
+            .withInplaceDFSRouting()
             .withNeighbourReachabilityFiltering()
-            .withCachedPruning()
-            .withAllDifferentPruning()
+            .withSerialPruning()
+            .withZeroDomainPruning()
             .get();
 
 

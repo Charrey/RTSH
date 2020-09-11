@@ -4,13 +4,11 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.matching.VertexMatching;
-import com.charrey.occupation.AbstractOccupation;
+import com.charrey.occupation.ReadOnlyOccupation;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
-import com.charrey.settings.pruning.domainfilter.MReachabilityFiltering;
-import com.charrey.settings.pruning.domainfilter.NReachabilityFiltering;
-import com.charrey.settings.pruning.domainfilter.UnmatchedDegreesFiltering;
+import com.charrey.settings.pruning.domainfilter.*;
 import com.charrey.util.Util;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.TIntCollection;
@@ -45,7 +43,7 @@ public abstract class MReachCachedPruner extends Pruner {
     public MReachCachedPruner(Settings settings,
                               MyGraph sourceGraph,
                               MyGraph targetGraph,
-                              AbstractOccupation occupation,
+                              ReadOnlyOccupation occupation,
                               VertexMatching vertexMatching,
                               int nReachLevel) {
         super(settings, sourceGraph, targetGraph, occupation);
@@ -116,12 +114,12 @@ public abstract class MReachCachedPruner extends Pruner {
     }
 
     private void initializeDomains() {
-        UnmatchedDegreesFiltering subFiltering = new UnmatchedDegreesFiltering();
+        LabelDegreeFiltering subFiltering = new LabelDegreeFiltering();
         targetGraph.vertexSet().forEach(x -> reverseDomain.peekFirst().put(x, new TIntLinkedList()));
         sourceGraph.vertexSet().forEach(source -> {
            TIntSet toPut = new TIntHashSet();
             targetGraph.vertexSet().forEach(target -> {
-                if (subFiltering.filter(sourceGraph, targetGraph, source, target, occupation, vertexMatching)) {
+                if (subFiltering.filter(sourceGraph, targetGraph, source, target, occupation)) {
                     toPut.add(target);
                     reverseDomain.peekFirst().get(target).add(source);
                 }
@@ -188,65 +186,55 @@ public abstract class MReachCachedPruner extends Pruner {
     }
 
     protected void NReachabilityCheck(TIntObjectMap<TIntSet> newDomainLayer, TIntObjectMap<TIntList> newReverseDomainLayer) {
-        TIntList keysToCheck = new TIntLinkedList();
-        newDomainLayer.keySet().forEach(value -> {
-            keysToCheck.add(value);
-            return true;
-        });
+        TIntList currentLevel;
+        TIntList nextLevel = new TIntLinkedList();
+        nextLevel.addAll(newDomainLayer.keySet());
         int level = 0;
-        while (!keysToCheck.isEmpty() || level >= nReachLevel) {
-            int sourceGraphVertexToCheck = keysToCheck.iterator().next();
-            keysToCheck.remove(sourceGraphVertexToCheck);
-            TIntSet sourceVertexDomain = getDomain(sourceGraphVertexToCheck);
-            List<Integer> predecessors = Graphs.predecessorListOf(sourceGraph, sourceGraphVertexToCheck);
-            List<Integer> successors = Graphs.successorListOf(sourceGraph, sourceGraphVertexToCheck);
-            for (Integer predecessor : predecessors) {
-                TIntSet predecessorDomain = getDomain(predecessor);
-                new TIntHashSet(predecessorDomain).forEach(predecessorCandidate -> {
-                    if ((vertexMatching.get().contains(predecessorCandidate) && allMatch(sourceVertexDomain, x -> vertexMatching.get().contains(x))) || anyMatch(sourceVertexDomain, x -> reachabilityCache.containsKey(predecessorCandidate, x))) {
-                        return true;
-                    }
-                    Optional<Path> optionalPath = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), new TIntHashSet(new int[] {predecessorCandidate}), sourceVertexDomain);
-                    if (optionalPath.isPresent()) {
-                        reachabilityCache.put(predecessorCandidate, optionalPath.get().last(), optionalPath.get());
-                        if (optionalPath.get().length() > 2) {
-                            optionalPath.get().intermediate().forEach(x -> reversePathLookup.get(x).add(optionalPath.get()));
-                        }
-                    } else {
-                        Graphs.neighborSetOf(sourceGraph, predecessor).forEach(val -> {
-                            if (!keysToCheck.contains(val)) {
-                                keysToCheck.add(val);
-                            }
-                        });
-                        removeFromDomain(newReverseDomainLayer, newDomainLayer, predecessor, predecessorCandidate);
-                    }
-                    return true;
-                });
-            }
-            for (Integer successor : successors) {
-                TIntSet successorDomain = getDomain(successor);
-                new TIntHashSet(successorDomain).forEach(successorCandidate -> {
-                    if ((vertexMatching.get().contains(successorCandidate) && allMatch(sourceVertexDomain, x -> vertexMatching.get().contains(x))) || anyMatch(sourceVertexDomain, x -> reachabilityCache.containsKey(x, successorCandidate))) {
-                        return true;
-                    }
-                    Optional<Path> optionalPath = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), sourceVertexDomain, new TIntHashSet(new int[] {successorCandidate}));
-                    if (optionalPath.isPresent()) {
-                        reachabilityCache.put(optionalPath.get().first(), successorCandidate, optionalPath.get());
-                        if (optionalPath.get().length() > 2) {
-                            optionalPath.get().intermediate().forEach(x -> reversePathLookup.get(x).add(optionalPath.get()));
-                        }
-                    } else {
-                        Graphs.neighborSetOf(sourceGraph, successor).forEach(val -> {
-                            if (!keysToCheck.contains(val)) {
-                                keysToCheck.add(val);
-                            }
-                        });
-                        removeFromDomain(newReverseDomainLayer, newDomainLayer, successor, successorCandidate);
-                    }
-                    return true;
-                });
+        while (!nextLevel.isEmpty() && level < nReachLevel) {
+            currentLevel = nextLevel;
+            nextLevel = new TIntLinkedList();
+            while (!currentLevel.isEmpty()) {
+                int sourceGraphVertexToCheck = currentLevel.iterator().next();
+                currentLevel.remove(sourceGraphVertexToCheck);
+                final TIntList finalNextLevel = nextLevel;
+                NFilterOnce(newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, finalNextLevel, true);
+                NFilterOnce(newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, finalNextLevel, false);
             }
             level++;
+        }
+    }
+
+    private void NFilterOnce(TIntObjectMap<TIntSet> newDomainLayer, TIntObjectMap<TIntList> newReverseDomainLayer, int sourceGraphVertexToCheck, TIntList nextLevel, boolean predecessors) {
+        TIntSet sourceVertexDomain = getDomain(sourceGraphVertexToCheck);
+        List<Integer> neighbours = predecessors ? Graphs.predecessorListOf(sourceGraph, sourceGraphVertexToCheck) : Graphs.successorListOf(sourceGraph, sourceGraphVertexToCheck);
+        for (Integer neighbour : neighbours) {
+            TIntSet neighbourDomain = getDomain(neighbour);
+            new TIntHashSet(neighbourDomain).forEach(neighbourCandidate -> {
+                if ((vertexMatching.get().contains(neighbourCandidate) && allMatch(sourceVertexDomain, x -> vertexMatching.get().contains(x))) || anyMatch(sourceVertexDomain, x -> {
+                    int first = predecessors ? neighbourCandidate : x;
+                    int second = predecessors ? x : neighbourCandidate;
+                    return reachabilityCache.containsKey(first, second);
+                })) {
+                    return true;
+                }
+                TIntSet first = predecessors ? new TIntHashSet(new int[]{neighbourCandidate}) : sourceVertexDomain;
+                TIntSet second = predecessors ? sourceVertexDomain : new TIntHashSet(new int[]{neighbourCandidate});
+                Optional<Path> optionalPath = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), first, second);
+                if (optionalPath.isPresent()) {
+                    reachabilityCache.put(optionalPath.get().first(), optionalPath.get().last(), optionalPath.get());
+                    if (optionalPath.get().length() > 2) {
+                        optionalPath.get().intermediate().forEach(x -> reversePathLookup.get(x).add(optionalPath.get()));
+                    }
+                } else {
+                    Graphs.neighborSetOf(sourceGraph, neighbour).forEach(val -> {
+                        if (!nextLevel.contains(val)) {
+                            nextLevel.add(val);
+                        }
+                    });
+                    removeFromDomain(newReverseDomainLayer, newDomainLayer, neighbour, neighbourCandidate);
+                }
+                return true;
+            });
         }
     }
 
@@ -267,7 +255,7 @@ public abstract class MReachCachedPruner extends Pruner {
                 if (path.isEmpty()) {
                     domain.pollFirst();
                     reverseDomain.pollFirst();
-                    throw new DomainCheckerException(() -> "3");
+                    throw new DomainCheckerException(() -> from + " in target graph needs connectivity to " + to + ", but doesn't have it");
                 } else {
                     reachabilityCache.put(from, to, path.get());
                     if (path.get().length() > 2) {

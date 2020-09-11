@@ -3,7 +3,7 @@ package com.charrey.util;
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.occupation.AbstractOccupation;
+import com.charrey.occupation.ReadOnlyOccupation;
 import gnu.trove.TCollections;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
@@ -72,7 +72,7 @@ public class Util {
      * @return the path
      */
     @NotNull
-    public static Optional<Path> filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull AbstractOccupation globalOccupation, @NotNull TIntSet localOccupation, int from, int to, boolean refuseLongerPaths, int tail, TIntSet allowedToBeOccupied) {
+    public static Optional<Path> filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull ReadOnlyOccupation globalOccupation, @NotNull TIntSet localOccupation, int from, int to, boolean refuseLongerPaths, int tail, TIntSet allowedToBeOccupied) {
         assert targetGraph.containsVertex(from);
         assert targetGraph.containsVertex(to);
         Graph<Integer, MyEdge> fakeGraph = new MaskSubgraph<>(targetGraph, x ->
@@ -84,7 +84,7 @@ public class Util {
         return algo == null ? Optional.empty() : Optional.of(new Path(targetGraph, algo));
     }
 
-    public static Optional<Path> filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull AbstractOccupation globalOccupation, @NotNull TIntSet localOccupation, TIntSet from, TIntSet to) {
+    public static Optional<Path> filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull ReadOnlyOccupation globalOccupation, @NotNull TIntSet localOccupation, TIntSet from, TIntSet to) {
         int virtualSource = targetGraph.addVertex();
         int virtualTarget = targetGraph.addVertex();
         to.forEach(integer -> {

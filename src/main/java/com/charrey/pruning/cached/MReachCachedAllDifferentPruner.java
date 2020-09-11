@@ -3,14 +3,13 @@ package com.charrey.pruning.cached;
 import com.charrey.algorithms.AllDifferent;
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.VertexMatching;
-import com.charrey.occupation.AbstractOccupation;
+import com.charrey.occupation.ReadOnlyOccupation;
 import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
 import gnu.trove.set.TIntSet;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class MReachCachedAllDifferentPruner extends MReachCachedPruner {
 
@@ -20,7 +19,7 @@ public class MReachCachedAllDifferentPruner extends MReachCachedPruner {
     public MReachCachedAllDifferentPruner(Settings settings,
                                           MyGraph sourceGraph,
                                           MyGraph targetGraph,
-                                          AbstractOccupation occupation,
+                                          ReadOnlyOccupation occupation,
                                           VertexMatching vertexMatching,
                                           int nReachLevel) {
         super(settings, sourceGraph, targetGraph, occupation, vertexMatching, nReachLevel);

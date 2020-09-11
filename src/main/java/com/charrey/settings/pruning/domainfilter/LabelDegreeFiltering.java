@@ -1,14 +1,13 @@
 package com.charrey.settings.pruning.domainfilter;
 
 import com.charrey.graph.MyGraph;
-import com.charrey.matching.VertexMatching;
-import com.charrey.occupation.AbstractOccupation;
+import com.charrey.occupation.ReadOnlyOccupation;
 
 public class LabelDegreeFiltering implements FilteringSettings {
 
 
-    @Override
-    public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, AbstractOccupation occupation, VertexMatching vertexMatching) {
+
+    public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, ReadOnlyOccupation occupation) {
         return sourceGraph.getLabels(sourceGraphVertex).containsAll(targetGraph.getLabels(targetGraphVertex)) &&
                 targetGraph.inDegreeOf(targetGraphVertex) >= sourceGraph.inDegreeOf(sourceGraphVertex) &&
                 targetGraph.outDegreeOf(targetGraphVertex) >= sourceGraph.outDegreeOf(sourceGraphVertex);
@@ -19,6 +18,5 @@ public class LabelDegreeFiltering implements FilteringSettings {
     public FilteringSettings newInstance() {
         return new LabelDegreeFiltering();
     }
-
 
 }

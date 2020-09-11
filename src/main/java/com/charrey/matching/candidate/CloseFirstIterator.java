@@ -24,7 +24,7 @@ public class CloseFirstIterator extends VertexCandidateIterator {
     private double lastDistance = 0d;
 
     CloseFirstIterator(MyGraph sourceGraph, MyGraph targetGraph, Settings settings, GlobalOccupation occupation, int sourceGraphVertex, VertexMatching vertexMatching) {
-        super(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching);
+        super(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex);
         this.vertexMatching = vertexMatching;
         reset();
     }

@@ -4,7 +4,6 @@ import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
-import com.charrey.occupation.AbstractOccupation;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pruning.DomainCheckerException;

@@ -1,7 +1,6 @@
 package com.charrey.pruning;
 
 import com.charrey.algorithms.UtilityData;
-import com.charrey.graph.MyGraph;
 import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.cached.*;
@@ -28,7 +27,7 @@ public class PrunerFactory {
                     case CACHED -> {
                         if (settings.getFiltering() instanceof MReachabilityFiltering)
                             yield new MReachCachedZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching, 4);
-                        yield new CachedZeroDomainPruner(data, settings, occupation, vertexMatching);
+                        yield new CachedZeroDomainPruner(data, settings, occupation);
                     }
                     case SERIAL -> new SerialZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching);
                     default -> throw new UnsupportedOperationException();
@@ -40,7 +39,7 @@ public class PrunerFactory {
                     if (settings.getFiltering() instanceof NReachabilityFiltering || settings.getFiltering() instanceof MReachabilityFiltering || settings.getFiltering() instanceof UnmatchedDegreesFiltering) {
                         yield new MReachCachedAllDifferentPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching, settings.getFiltering() instanceof  NReachabilityFiltering ? ((NReachabilityFiltering)settings.getFiltering()).getLevel() : 0);
                     }
-                    yield new AllDifferentPruner(data, settings, occupation, vertexMatching);
+                    yield new AllDifferentPruner(data, settings, occupation);
                 }
             }
         };
