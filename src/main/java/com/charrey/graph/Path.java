@@ -4,6 +4,7 @@ import com.charrey.util.datastructures.TroveIterator;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.linked.TIntLinkedList;
+import gnu.trove.procedure.TIntProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graph;
@@ -127,6 +128,13 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
     @Override
     public void forEach(Consumer<? super Integer> consumer) {
         vertexList.forEach(i -> {
+            consumer.accept(i);
+            return true;
+        });
+    }
+
+    public void forEachReverse(Consumer<? super Integer> consumer) {
+        vertexList.forEachDescending(i -> {
             consumer.accept(i);
             return true;
         });

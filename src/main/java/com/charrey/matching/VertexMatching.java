@@ -134,7 +134,7 @@ public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvid
         }
         final int toRemove = placement.get(placement.size() - 1);
         placement.removeAt(placement.size() - 1);
-        this.occupation.releaseVertex(placement.size(), toRemove);
+        this.occupation.releaseVertex(placement.size(), toRemove, this::getPartialMatching);
         this.onDeletion.accept(toRemove);
     }
 

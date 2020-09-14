@@ -146,7 +146,7 @@ class ControlPointIterator extends PathIterator {
                 TIntSet fictionalOccupation = new TIntHashSet(previousLocalOccupation);
                 middleAltToRight.forEach(fictionalOccupation::add);
                 Path temporarilyRemoveGlobal = middleToRight.subPath(0, middleToRight.length() - 1);
-                temporarilyRemoveGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+                temporarilyRemoveGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
                 Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(targetGraph, transaction, fictionalOccupation, leftCandidate, middleAlt, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
                 if (leftToMiddleAlt.isEmpty()) {
                     temporarilyRemoveGlobal.forEach(x -> {
@@ -160,7 +160,7 @@ class ControlPointIterator extends PathIterator {
                 }
                 Path leftToRightAlt = Util.merge(targetGraph, leftToMiddleAlt.get(), middleAltToRight);
                 Optional<Path> leftToMiddle = filteredShortestPath(leftCandidate, middle);
-                temporarilyRemoveGlobal.forEach(x -> {
+                temporarilyRemoveGlobal.forEachReverse(x -> {
                     try {
                         transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
                     } catch (DomainCheckerException e) {
@@ -183,23 +183,25 @@ class ControlPointIterator extends PathIterator {
         if (this.rightNeighbourOfRightNeighbour == -1 || left == -1) {
             return false;
         } else {
+            if (!transaction.isFruitful(verticesPlaced.get(), this::getPartialMatching)) {
+                return true;
+            }
             assert pathFromRightNeighbourToItsRightNeighbour != null;
             int middle = this.head();
             int right = this.rightNeighbourOfRightNeighbour;
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::remove);
 
             Path temporaryRemoveFromGlobal = pathFromRightNeighbourToItsRightNeighbour.subPath(0, pathFromRightNeighbourToItsRightNeighbour.length() - 1);
-            temporaryRemoveFromGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+            temporaryRemoveFromGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
             Optional<Path> skippedPath = Util.filteredShortestPath(targetGraph, transaction, localOccupation, left, right, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
-            this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::add);
-            temporaryRemoveFromGlobal.forEach(x -> {
+            temporaryRemoveFromGlobal.forEachReverse(x -> {
                 try {
                     transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
                 } catch (DomainCheckerException e) {
-                    e.printStackTrace();
                     assert false;
                 }
             });
+            this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::add);
             if (skippedPath.isEmpty()) {
                 return true;
             } else {
@@ -221,6 +223,7 @@ class ControlPointIterator extends PathIterator {
 
     private int findNextControlPoint(StringBuilder prefix) {
         do {
+            chosenPath = null;
             chosenControlPoint = controlPointCandidates.next();
         } while (chosenControlPoint != ABSENT && (makesNeighbourUseless(chosenControlPoint) || rightShiftPossible(chosenControlPoint)));
         if (chosenControlPoint == ABSENT) {
@@ -232,9 +235,24 @@ class ControlPointIterator extends PathIterator {
         } catch (DomainCheckerException e) {
             LOG.finest(() -> prefix.toString() + "Domain check failed");
             chosenControlPoint = ControlPointIterator.ABSENT;
-            return ControlPointIterator.ABSENT;
+            return findNextControlPoint(prefix);
         }
         return 0;
+    }
+
+    @Override
+    public TIntSet getLocallyOccupied() {
+        TIntSet res = new TIntHashSet();
+        if (this.chosenControlPoint != ABSENT) {
+            res.add(chosenControlPoint);
+        }
+        if (this.chosenPath != null) {
+            res.addAll(chosenPath.intermediate().asList());
+        }
+        if (child != null) {
+            res.addAll(child.getLocallyOccupied());
+        }
+        return res;
     }
 
     @Nullable
@@ -253,14 +271,12 @@ class ControlPointIterator extends PathIterator {
                 int result = findNextControlPoint(prefix);
                 if (result == EXHAUSTED) {
                     return null;
-                } else if (result == ABSENT) {
-                    continue;
                 }
-
                 Optional<Path> graphPath = filteredShortestPath(chosenControlPoint, head);
                 if (graphPath.isPresent()) {
                     chosenPath = graphPath.get();
                     if (settings.getRefuseLongerPaths() && isUnNecessarilyLong(chosenPath)) {
+                        //System.out.println("Path is refused because it is unnecessarily long");
                         continue;
                     }
                     try {
@@ -283,7 +299,7 @@ class ControlPointIterator extends PathIterator {
         }
         if (controlPoints == 0 && chosenPath != null) {
             if (chosenPath.length() > 2) {
-                chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+                chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
             }
             chosenPath = null;
         }
@@ -292,7 +308,7 @@ class ControlPointIterator extends PathIterator {
 
     private void releasePreviousControlPoint() {
         if (chosenControlPoint != ABSENT) {
-            this.transaction.releaseRouting(verticesPlaced.get(), chosenControlPoint);
+            this.transaction.releaseRouting(verticesPlaced.get(), chosenControlPoint, this::getPartialMatching);
         }
     }
 
@@ -309,7 +325,7 @@ class ControlPointIterator extends PathIterator {
         } else {
             child = null;
             chosenPath.forEach(localOccupation::remove);
-            chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+            chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
             return null;
         }
     }

@@ -3,6 +3,7 @@ package com.charrey.pruning;
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.ReadOnlyOccupation;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 
 public abstract class Pruner {
@@ -25,7 +26,7 @@ public abstract class Pruner {
      * @param verticesPlaced the number of placed source graph vertices
      * @param released       the released vertex
      */
-    public abstract void afterReleaseVertex(int verticesPlaced, int released);
+    public abstract void afterReleaseVertex(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider);
 
     /**
      * This method is called after a target graph vertex used as intermediate vertex is released.
@@ -33,7 +34,7 @@ public abstract class Pruner {
      * @param verticesPlaced the number of placed source graph vertices
      * @param released       the released vertex
      */
-    public abstract void afterReleaseEdge(int verticesPlaced, int released);
+    public abstract void afterReleaseEdge(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider);
 
     /**
      * This method is called just before a new target graph vertex is used in vertex-on-vertex matching.
@@ -69,7 +70,7 @@ public abstract class Pruner {
      * @param verticesPlaced the number of placed source graph vertices
      * @return true if the domainchecker can prove that the current matching is unfruitful, or false if it cannot.
      */
-    public abstract boolean isUnfruitfulCached(int verticesPlaced);
+
 
     /**
      * Provides a deep copy of this checker.
@@ -85,4 +86,6 @@ public abstract class Pruner {
     public void setOccupation(ReadOnlyOccupation newOccupation) {
         this.occupation = newOccupation;
     }
+
+    public abstract boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider);
 }

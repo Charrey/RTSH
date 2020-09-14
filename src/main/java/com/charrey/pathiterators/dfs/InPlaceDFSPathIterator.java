@@ -6,12 +6,15 @@ import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.iterator.DFSStrategy;
 import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.settings.iterator.NewGreedyDFSStrategy;
 import com.charrey.settings.iterator.OldGreedyDFSStrategy;
 import com.charrey.settings.Settings;
 import com.charrey.util.datastructures.ScalingIntList;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -71,7 +74,7 @@ public class InPlaceDFSPathIterator extends PathIterator {
     @Override
     public Path getNext() {
         ScalingIntList previouschosenoption = new ScalingIntList(nextOptionToTry);
-        transaction.uncommit(placementSize.get());
+        transaction.uncommit(placementSize.get(), this::getPartialMatching);
         if (exploration.length() > 1) {
             removeHeadOfExploration();
         }
@@ -152,13 +155,17 @@ public class InPlaceDFSPathIterator extends PathIterator {
         return foundCandidate;
     }
 
+    public TIntSet getLocallyOccupied() {
+        return new TIntHashSet(exploration.intermediate().asList());
+    }
+
 
     private boolean removeHeadOfExploration() {
         int removed = exploration.removeLast();
         if (exploration.isEmpty()) {
             return false;
         } else if (removed != head) {
-            transaction.releaseRouting(placementSize.get(), removed);
+            transaction.releaseRouting(placementSize.get(), removed, this::getPartialMatching);
         }
         return true;
     }

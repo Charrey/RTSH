@@ -83,7 +83,7 @@ public class OccupationTransaction implements ReadOnlyOccupation {
                 occupyRoutingAndCheck(vertexPlacementSize, path.intermediate().get(i), partialMatching);
             } catch (DomainCheckerException e) {
                 for (int j = i - 1; j >= 0; j--) {
-                    releaseRouting(vertexPlacementSize, path.intermediate().get(j));
+                    releaseRouting(vertexPlacementSize, path.intermediate().get(j), partialMatching);
                 }
                 throw e;
             }
@@ -97,12 +97,12 @@ public class OccupationTransaction implements ReadOnlyOccupation {
      * @param vertex              the vertex that is being unregistered
      * @throws IllegalArgumentException thrown when the vertex was not occupied for routing
      */
-    public void releaseRouting(int vertexPlacementSize, int vertex) {
+    public void releaseRouting(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatchingProvider) {
         if (!isOccupiedRouting(vertex)) {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for routing purposes): " + vertex);
         }
         routingOccupied.remove(vertex);
-        domainChecker.afterReleaseEdge(vertexPlacementSize, vertex);
+        domainChecker.afterReleaseEdge(vertexPlacementSize, vertex, partialMatchingProvider);
         waiting.removeFromBack(new TransactionElement(vertexPlacementSize, vertex));
     }
 
@@ -124,7 +124,7 @@ public class OccupationTransaction implements ReadOnlyOccupation {
      * to mark vertex 16 as occupied and commit() was called, the occupation would be visible everywhere in this
      * program. By calling uncommit(), the occupation becomes hidden again.
      */
-    public void uncommit(int verticesPlaced) {
+    public void uncommit(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
         if (!inCommittedState) {
             return;
         }
@@ -137,10 +137,10 @@ public class OccupationTransaction implements ReadOnlyOccupation {
         }
         for (int i = waiting.size() - 1; i >= 0; i--) {
             TransactionElement transactionElement = waiting.get(i);
-            parent.releaseRouting(transactionElement.verticesPlaced, transactionElement.added);
+            parent.releaseRouting(transactionElement.verticesPlaced, transactionElement.added, partialMatchingProvider);
         }
         for (int coverElement : totalCover) {
-            parent.releaseRouting(verticesPlaced, coverElement);
+            parent.releaseRouting(verticesPlaced, coverElement, partialMatchingProvider);
         }
         inCommittedState = false;
     }
@@ -169,11 +169,15 @@ public class OccupationTransaction implements ReadOnlyOccupation {
                 parent.occupyRoutingAndCheck(vertexPlacementSize, coverElement, partialMatching);
                 committed.add(new TransactionElement(vertexPlacementSize, coverElement));
             } catch (DomainCheckerException e) {
-                committed.forEach(x -> parent.releaseRouting(x.verticesPlaced, x.added));
+                committed.forEach(x -> parent.releaseRouting(x.verticesPlaced, x.added, partialMatching));
                 throw e;
             }
         }
         inCommittedState = true;
+    }
+
+    public boolean isFruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
+        return  !domainChecker.isUnfruitful(verticesPlaced, partialMatchingProvider);
     }
 
     private static class TransactionElement {

@@ -13,12 +13,12 @@ public class NoPruner extends Pruner {
     }
 
     @Override
-    public void afterReleaseVertex(int verticesPlaced, int released) {
+    public void afterReleaseVertex(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider) {
         //do nothing
     }
 
     @Override
-    public void afterReleaseEdge(int verticesPlaced, int released) {
+    public void afterReleaseEdge(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider) {
         //do nothing
     }
 
@@ -38,7 +38,7 @@ public class NoPruner extends Pruner {
     }
 
     @Override
-    public boolean isUnfruitfulCached(int verticesPlaced) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
         return false;
     }
 

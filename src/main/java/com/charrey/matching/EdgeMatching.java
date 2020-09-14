@@ -25,6 +25,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.charrey.matching.EdgeMatching.PartialMatchingMode.*;
+
 /**
  * A class that saves which source graph edge is mapped to which target graph path, and provides methods to facilitate
  * such matchings.
@@ -48,6 +50,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     private ArrayList<LinkedList<Pair<Path, String>>> paths;
 
     private final UtilityData data;
+    private PartialMatchingMode partialMatchingMode = ALL;
 
     /**
      * Instantiates a new edgematching.
@@ -111,12 +114,13 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         }
         for (int i = pathList.size() - 1; i >= 0; i--) {
             Path toRetry = pathList.get(i).getFirst();
-
             int tail = toRetry.first();
             int head = toRetry.last();
             assert pathfinders.containsKey(tail, head) && !pathfinders.get(tail, head).isEmpty();
             PathIterator pathfinder = pathfinders.get(tail, head).peekFirst();
-            Path pathFound = pathfinder.next(); //was this pathfinder initiated with a crippled graph?
+            this.partialMatchingMode = WITHOUT_LAST;
+            Path pathFound = pathfinder.next();
+            this.partialMatchingMode = ALL;
             if (pathFound != null) {
 
                 assert pathFound.first() == tail : "Expected: " + tail + ", actual: " + pathFound.first();
@@ -396,8 +400,15 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     public TIntObjectMap<Set<Path>> get() {
         TIntObjectMap<Set<Path>> toReturn = new TIntObjectHashMap<>();
         for (int i = 0; i < paths.size(); i++) {
-            toReturn.put(i, new HashSet<>(paths.get(i).stream().map(x -> new Path(x.getFirst())).collect(Collectors.toSet())));
+            toReturn.put(i, new HashSet<>(paths.get(i).stream().map(Pair::getFirst).collect(Collectors.toSet())));
+        }
+        if (this.partialMatchingMode == WITHOUT_LAST) {
+            toReturn.get(vertexMatching.get().size() - 1).remove(paths.get(vertexMatching.get().size() - 1).getLast().getFirst());
         }
         return toReturn;
+    }
+
+    enum PartialMatchingMode {
+        WITHOUT_LAST, ALL
     }
 }

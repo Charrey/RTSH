@@ -8,6 +8,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
+import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.util.Pair;
@@ -84,7 +85,7 @@ public class LoopAdaptor extends PathIterator {
         } else {
             try {
                 transaction.occupyRoutingAndCheck(placementSize.get(), toOccupy, partialMatchingProvider);
-                transaction.releaseRouting(placementSize.get(), toOccupy);
+                transaction.releaseRouting(placementSize.get(), toOccupy, partialMatchingProvider);
                 return true;
             } catch (DomainCheckerException e) {
                 return false;
@@ -92,10 +93,15 @@ public class LoopAdaptor extends PathIterator {
         }
     }
 
+    @Override
+    public TIntSet getLocallyOccupied() {
+        throw new UnsupportedOperationException();
+    }
+
     @Nullable
     @Override
     public Path getNext() {
-        transaction.uncommit(placementSize.get());
+        transaction.uncommit(placementSize.get(), this::getPartialMatching);
         transaction = this.globalOccupation.getTransaction();
         if (pathQueue.isEmpty()) {
             return null;

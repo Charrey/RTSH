@@ -1,6 +1,7 @@
 package com.charrey.pruning.serial;
 
 import com.charrey.graph.Path;
+import com.charrey.util.Util;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -22,12 +23,12 @@ public class PartialMatching {
     }
 
     public PartialMatching(TIntList vertexMapping) {
-        this(vertexMapping, new TIntObjectHashMap<>());
+        this(vertexMapping, new TIntObjectHashMap<>(), Util.emptyTIntSet);
     }
 
-    public PartialMatching(TIntList vertexMapping, TIntObjectMap<Set<Path>> edgeMapping) {
-        this(vertexMapping, edgeMapping, new TIntHashSet());
-    }
+//    public PartialMatching(TIntList vertexMapping, TIntObjectMap<Set<Path>> edgeMapping) {
+//        this(vertexMapping, edgeMapping, new TIntHashSet());
+//    }
 
     public PartialMatching(TIntList vertexMapping, TIntObjectMap<Set<Path>> edgeMapping, TIntSet partialPath) {
         this.vertexMapping = TCollections.unmodifiableList(vertexMapping);

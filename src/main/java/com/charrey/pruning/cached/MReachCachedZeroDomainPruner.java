@@ -1,6 +1,7 @@
 package com.charrey.pruning.cached;
 
 import com.charrey.graph.MyGraph;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.ReadOnlyOccupation;
 import com.charrey.pruning.Pruner;
@@ -16,7 +17,7 @@ public class MReachCachedZeroDomainPruner  extends MReachCachedPruner {
     }
 
     @Override
-    public boolean isUnfruitfulCached(int verticesPlaced) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
         return sourceGraph.vertexSet().stream().anyMatch(x -> getDomain(x).isEmpty());
     }
 

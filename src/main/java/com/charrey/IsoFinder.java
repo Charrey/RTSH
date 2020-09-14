@@ -187,6 +187,8 @@ public class IsoFinder {
 
 
                 Map<MyEdge, Set<Path>> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.newToOld, vertexMatching, targetGraphMapping.newToOld);
+//                System.out.println(vertexMatching);
+//                System.out.println(edgeMatching);
                 return new SuccessResult(vertexMapping, paths, iterations);
             }
         } finally {

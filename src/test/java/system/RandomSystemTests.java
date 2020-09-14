@@ -17,10 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.ConcurrentModificationException;
-import java.util.Date;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -28,9 +25,14 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withInplaceDFSRouting()
+            //.withInplaceDFSRouting()
+            //.withControlPointRouting()
+            //.withCachedDFSRouting()
+            //.withCachedGreedyDFSRouting()
+            //.withInplaceNewGreedyDFSRouting()
+            .withInplaceOldGreedyDFSRouting()
             .withNeighbourReachabilityFiltering()
-            .withSerialPruning()
+            .withParallelPruning()
             .withZeroDomainPruning()
             .get();
 
@@ -52,8 +54,22 @@ class RandomSystemTests extends SystemTest {
     }
 
     @Test
-    void findCasesDirectedSucceed() throws IOException {
-        findCases(100000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+    void findCasesDirectedSucceed() throws IOException, InterruptedException {
+        Runnable runnable = () -> {
+            try {
+                findCases(100000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        };
+        Set<Thread> threads = new HashSet<>();
+        for (int i = 0; i < 1; i++) {
+            threads.add(new Thread(runnable));
+        }
+        threads.forEach(Thread::start);
+        for (Thread thread : threads) {
+            thread.join();
+        }
     }
 
     @Test
@@ -86,7 +102,7 @@ class RandomSystemTests extends SystemTest {
 
                 HomeomorphismResult homeomorphism;
                 //System.out.println("case " + attempts);
-                if (attempts >= 0) {//11246
+                if (attempts >= 0) {//
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);

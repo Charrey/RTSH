@@ -2,6 +2,7 @@ package com.charrey.pruning.cached;
 
 import com.charrey.algorithms.AllDifferent;
 import com.charrey.graph.MyGraph;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.ReadOnlyOccupation;
 import com.charrey.pruning.Pruner;
@@ -31,7 +32,7 @@ public class MReachCachedAllDifferentPruner extends MReachCachedPruner {
     }
 
     @Override
-    public boolean isUnfruitfulCached(int verticesPlaced) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
         List<TIntSet> toCheck = new LinkedList<>();
         sourceGraph.vertexSet().forEach(x -> toCheck.add(getDomain(x)));
         return !allDifferent.get(toCheck);

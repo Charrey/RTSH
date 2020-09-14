@@ -14,12 +14,12 @@ public abstract class DefaultSerialPruner extends Pruner {
     }
 
     @Override
-    public void afterReleaseVertex(int verticesPlaced, int released) {
+    public void afterReleaseVertex(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider) {
         //ignore
     }
 
     @Override
-    public void afterReleaseEdge(int verticesPlaced, int released) {
+    public void afterReleaseEdge(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider) {
         //ignore
     }
 
@@ -36,10 +36,16 @@ public abstract class DefaultSerialPruner extends Pruner {
     @Override
     public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int occupied) {
         //ignore
+
     }
 
     @Override
-    public boolean isUnfruitfulCached(int verticesPlaced) {
-        throw new UnsupportedOperationException("Cached operations not available in SerialPruner.");
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
+        try {
+            checkPartial(partialMatchingProvider);
+        } catch (DomainCheckerException e) {
+            return true;
+        }
+        return false;
     }
 }

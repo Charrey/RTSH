@@ -7,6 +7,8 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -83,10 +85,15 @@ public class CachedDFSPathIterator extends PathIterator {
         return isCandidate;
     }
 
+    @Override
+    public TIntSet getLocallyOccupied() {
+        return new TIntHashSet(exploration.subPath(1, exploration.length()).asList());
+    }
+
     @Nullable
     @Override
     public Path getNext() {
-        transaction.uncommit(placementSize.get());
+        transaction.uncommit(placementSize.get(), this::getPartialMatching);
         if (exploration.length() > 1) {
             removeHead();
         }
@@ -189,7 +196,7 @@ public class CachedDFSPathIterator extends PathIterator {
         if (exploration.isEmpty()) {
             return false;
         } else if (removed != head) {
-            transaction.releaseRouting(placementSize.get(), removed);
+            transaction.releaseRouting(placementSize.get(), removed, this::getPartialMatching);
             chosenOption[exploration.length()] = 0;
         }
         chosenOption[exploration.length() - 1] += 1;

@@ -2,7 +2,6 @@ package com.charrey.pruning.cached;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.PartialMatchingProvider;
-import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.Pruner;
@@ -60,8 +59,20 @@ public abstract class DefaultCachedPruner extends Pruner {
     }
 
     @Override
-    public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
-        beforeOccupyVertex(verticesPlaced, occupied);
+    public void beforeOccupyVertex(int verticesPlaced, int targetVertex, PartialMatchingProvider partialMatchingProvider) throws DomainCheckerException {
+        TIntList sourceGraphCandidates = reverseDomain.get(targetVertex);
+        int sourceVertexData = verticesPlaced - 1;
+        previousDomain[sourceVertexData] = new TIntHashSet(domain.get(sourceVertexData));
+        domain.get(sourceVertexData).clear();
+        domain.get(sourceVertexData).add(targetVertex);
+        removeFromDomains(targetVertex, sourceGraphCandidates, sourceVertexData);
+        if (isUnfruitful(verticesPlaced, partialMatchingProvider)) {
+            for (int i = sourceGraphCandidates.size() - 1; i >= 0 && sourceGraphCandidates.get(i) > sourceVertexData; i--) {
+                domain.get(sourceGraphCandidates.get(i)).add(targetVertex);
+            }
+            domain.set(sourceVertexData, previousDomain[sourceVertexData]);
+            throw new DomainCheckerException(() -> "Pruner kicked in after occupying vertex " + targetVertex);
+        }
     }
 
     @Override
@@ -69,7 +80,7 @@ public abstract class DefaultCachedPruner extends Pruner {
         TIntList candidates = reverseDomain.get(newlyOccupied);
         int sourceVertexData = verticesPlaced - 1;
         removeFromDomains(newlyOccupied, candidates, sourceVertexData);
-        if (isUnfruitfulCached(verticesPlaced)) {
+        if (isUnfruitful(verticesPlaced, partialMatching)) {
             for (int i = candidates.size() - 1; i >= 0 && candidates.get(i) > sourceVertexData; i--) {
                 domain.get(candidates.get(i)).add(newlyOccupied);
             }
@@ -78,7 +89,7 @@ public abstract class DefaultCachedPruner extends Pruner {
     }
 
     @Override
-    public void afterReleaseVertex(int verticesPlaced, int v) {
+    public void afterReleaseVertex(int verticesPlaced, int v, PartialMatchingProvider partialMatchingProvider) {
         TIntList sourceGraphCandidates = reverseDomain.get(v);
         for (int i = sourceGraphCandidates.size() - 1; i >= 0 && sourceGraphCandidates.get(i) > verticesPlaced; i--) {
             if (domain.get(sourceGraphCandidates.get(i)).contains(v)) {
@@ -90,28 +101,14 @@ public abstract class DefaultCachedPruner extends Pruner {
     }
 
     @Override
-    public void afterReleaseEdge(int verticesPlaced, int v) {
+    public void afterReleaseEdge(int verticesPlaced, int v, PartialMatchingProvider partialMatchingProvider) {
         TIntList sourceGraphCandidates = reverseDomain.get(v);
         for (int i = sourceGraphCandidates.size() - 1; i >= 0 && sourceGraphCandidates.get(i) >= verticesPlaced; i--) {
             domain.get(sourceGraphCandidates.get(i)).add(v);
         }
     }
 
-    private void beforeOccupyVertex(int verticesPlaced, int v) throws DomainCheckerException {
-        TIntList sourceGraphCandidates = reverseDomain.get(v);
-        int sourceVertexData = verticesPlaced - 1;
-        previousDomain[sourceVertexData] = new TIntHashSet(domain.get(sourceVertexData));
-        domain.get(sourceVertexData).clear();
-        domain.get(sourceVertexData).add(v);
-        removeFromDomains(v, sourceGraphCandidates, sourceVertexData);
-        if (isUnfruitfulCached(verticesPlaced)) {
-            for (int i = sourceGraphCandidates.size() - 1; i >= 0 && sourceGraphCandidates.get(i) > sourceVertexData; i--) {
-                domain.get(sourceGraphCandidates.get(i)).add(v);
-            }
-            domain.set(sourceVertexData, previousDomain[sourceVertexData]);
-            throw new DomainCheckerException(() -> "Pruner kicked in after occupying vertex " + v);
-        }
-    }
+
 
     public void afterOccupyEdgeWithoutCheck(int verticesPlaced, int v) {
         TIntList candidates2 = reverseDomain.get(v);

@@ -38,7 +38,7 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      *
      * @param data the data
      */
-    public GlobalOccupation(@NotNull UtilityData data, Settings settings) {
+    public GlobalOccupation(UtilityData data, Settings settings) {
         this.data = data;
         this.settings = settings;
         this.routingBits = new TIntHashSet();
@@ -80,7 +80,7 @@ public class GlobalOccupation implements ReadOnlyOccupation {
         pruner.afterOccupyEdgeWithoutCheck(vertexPlacementSize, vertex);
     }
 
-    void occupyRoutingAndCheck(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
+    public void occupyRoutingAndCheck(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         assert !routingBits.contains(vertex);
         routingBits.add(vertex);
         pruner.afterOccupyEdge(vertexPlacementSize, vertex, partialMatching);
@@ -112,13 +112,13 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      * @param vertex              the vertex that is being unregistered
      * @throws IllegalArgumentException thrown when the vertex was not occupied for routing
      */
-    void releaseRouting(int vertexPlacementSize, int vertex) {
+    void releaseRouting(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatchingProvider) {
         assert isOccupiedRouting(vertex);
         if (!isOccupiedRouting(vertex)) {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for routing purposes): " + vertex);
         }
         routingBits.remove(vertex);
-        pruner.afterReleaseEdge(vertexPlacementSize, vertex);
+        pruner.afterReleaseEdge(vertexPlacementSize, vertex, partialMatchingProvider);
     }
 
     /**
@@ -128,12 +128,12 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      * @param vertex              the vertex that is being unregistered
      * @throws IllegalArgumentException thrown when the vertex was not occupied for vertex-on-vertex matching
      */
-    public void releaseVertex(int vertexPlacementSize, int vertex) {
+    public void releaseVertex(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatchingProvider) {
         if (!isOccupiedVertex(vertex)) {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for vertex-on-vertex purposes): " + vertex);
         }
         vertexBits.remove(vertex);
-        pruner.afterReleaseVertex(vertexPlacementSize, vertex);
+        pruner.afterReleaseVertex(vertexPlacementSize, vertex, partialMatchingProvider);
     }
 
     /**

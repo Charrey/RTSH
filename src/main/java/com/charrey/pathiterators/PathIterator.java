@@ -8,6 +8,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
+import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,8 +73,10 @@ public abstract class PathIterator {
 
     protected PartialMatching getPartialMatching() {
         PartialMatching fromParent = partialMatchingProvider.getPartialMatching();
-        return new PartialMatching(fromParent.getVertexMapping(), fromParent.getEdgeMapping(), new TIntHashSet());
+        return new PartialMatching(fromParent.getVertexMapping(), fromParent.getEdgeMapping(), getLocallyOccupied());
     }
+
+    public abstract TIntSet getLocallyOccupied();
 
 
     @Nullable
@@ -100,7 +103,7 @@ public abstract class PathIterator {
 
     protected final void uncommit() {
         if (transaction != null) {
-            transaction.uncommit(placementSize.get());
+            transaction.uncommit(placementSize.get(), this::getPartialMatching);
         }
     }
 

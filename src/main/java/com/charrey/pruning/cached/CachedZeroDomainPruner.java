@@ -1,6 +1,7 @@
 package com.charrey.pruning.cached;
 
 import com.charrey.algorithms.UtilityData;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.Pruner;
@@ -39,7 +40,7 @@ public class CachedZeroDomainPruner extends DefaultCachedPruner {
 
 
     @Override
-    public boolean isUnfruitfulCached(int verticesPlaced) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
         return domain.subList(verticesPlaced, domain.size()).stream().anyMatch(TIntSet::isEmpty);
     }
 

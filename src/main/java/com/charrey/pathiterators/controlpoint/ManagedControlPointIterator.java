@@ -65,10 +65,15 @@ public class ManagedControlPointIterator extends PathIterator {
         this.verticesPlaced = verticesPlaced;
     }
 
+    @Override
+    public TIntSet getLocallyOccupied() {
+        return child == null ? Util.emptyTIntSet : child.getLocallyOccupied();
+    }
+
     @Nullable
     @Override
     public Path getNext() {
-        transaction.uncommit(verticesPlaced.get());
+        transaction.uncommit(verticesPlaced.get(), this::getPartialMatching);
         while (true) {
             Path path;
             do {
@@ -81,6 +86,7 @@ public class ManagedControlPointIterator extends PathIterator {
                 try {
                     transaction.commit(verticesPlaced.get(), this::getPartialMatching);
                 } catch (DomainCheckerException e) {
+                    System.out.println("Failed to commit");
                     continue;
                 }
                 Path finalPath = path;
@@ -102,7 +108,7 @@ public class ManagedControlPointIterator extends PathIterator {
 
     @Override
     public String debugInfo() {
-        return "controlpoints(" + numberOfControlPoints + ")";
+        return "controlpoints(" + controlPoints() + ")";
     }
 
     private boolean rightShiftPossible() {
