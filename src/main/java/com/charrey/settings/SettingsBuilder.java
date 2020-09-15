@@ -1,11 +1,10 @@
 package com.charrey.settings;
 
 import com.charrey.settings.iterator.*;
-import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.settings.pruning.PruningMethod;
+import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.settings.pruning.domainfilter.*;
 
-import java.util.List;
 import java.util.Set;
 
 import static com.charrey.settings.pathiteration.PathIteration.DFS_ARBITRARY;
@@ -143,6 +142,10 @@ public class SettingsBuilder {
 
     public SettingsBuilder withClosestTargetVertexOrder() {
         return setTargetVertexOrder(TargetVertexOrder.CLOSEST_TO_MATCHED);
+    }
+
+    public SettingsBuilder withClosestTargetVertexOrderCached() {
+        return setTargetVertexOrder(TargetVertexOrder.CLOSEST_TO_MATCHED_CACHED);
     }
 
     public SettingsBuilder withLabelDegreeFiltering() {

@@ -33,6 +33,7 @@ class RandomSystemTests extends SystemTest {
             //.withInplaceOldGreedyDFSRouting()
             .withNeighbourReachabilityFiltering()
             .withParallelPruning()
+            .withClosestTargetVertexOrderCached()
             .withZeroDomainPruning()
             .get();
 
@@ -54,7 +55,7 @@ class RandomSystemTests extends SystemTest {
     }
 
     @Test
-    void findCasesDirectedSucceed() throws IOException, InterruptedException {
+    void findCasesDirectedSucceed() throws InterruptedException {
         Runnable runnable = () -> {
             try {
                 findCases(100000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
