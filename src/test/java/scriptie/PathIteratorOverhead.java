@@ -8,11 +8,14 @@ import com.charrey.result.FailResult;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.settings.SettingsBuilder;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.chocosolver.solver.ParallelPortfolio;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import system.SystemTest;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PathIteratorOverhead extends SystemTest {
 
@@ -24,7 +27,7 @@ public class PathIteratorOverhead extends SystemTest {
         configurations.add(new Configuration("x"       , "red"   , "DFS"      , new SettingsBuilder().withInplaceDFSRouting().withoutContraction().get()));
         configurations.add(new Configuration("+"       , "green" , "CP"       , new SettingsBuilder().withControlPointRouting().withoutContraction().get()));
         configurations.add(new Configuration("o"       , "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withoutContraction().get()));
-        configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withoutContraction().get()));
+        configurations.add(new Configuration("asterisk", "black", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withoutContraction().get()));
         configurations.add(new Configuration("star"    , "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withoutContraction().get()));
         run(configurations, false);
     }
@@ -36,11 +39,12 @@ public class PathIteratorOverhead extends SystemTest {
         configurations.add(new Configuration("x"       , "red"   , "DFS"      , new SettingsBuilder().withInplaceDFSRouting().withoutContraction().get()));
         configurations.add(new Configuration("+"       , "green" , "CP"       , new SettingsBuilder().withControlPointRouting().withoutContraction().get()));
         configurations.add(new Configuration("o"       , "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().withoutContraction().get()));
-        configurations.add(new Configuration("asterisk", "yellow", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withoutContraction().get()));
+        configurations.add(new Configuration("asterisk", "black", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().withoutContraction().get()));
         configurations.add(new Configuration("star"    , "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().withoutContraction().get()));
         run(configurations, true);
     }
 
+    private Portfolio folio = new Portfolio();
 
     void run(List<Configuration> configurations, boolean labels) throws InterruptedException {
         long timeout = 10*60*1000L;
@@ -54,7 +58,7 @@ public class PathIteratorOverhead extends SystemTest {
                 int lastCasesDone = 10;
                 while (lastCasesDone > 1) {
                     Random xRandom = new Random(threadRandom.nextLong());
-                    System.out.println(configuration + ", x = " + currentX + ", last cases = " + lastCasesDone);
+                    System.out.println(configuration + ", x = " + currentX + ", last cases = " + lastCasesDone + ", timestamp=" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
                     long timeStartForThisX = System.currentTimeMillis();
                     List<Long> times = new ArrayList<>();
                     while (System.currentTimeMillis() - timeStartForThisX < timeout) {
@@ -64,10 +68,12 @@ public class PathIteratorOverhead extends SystemTest {
                         long period = System.nanoTime() - startTime;
                         if (result instanceof FailResult) {
                             times.add(period);
+                            folio.register(currentX, times.size(), period);
                         }
                     }
                     if (!times.isEmpty()) {
-                        results.add(times.stream().mapToDouble(y -> y / 1_000_000_000d).average().orElse(-1));
+                        double toAdd = times.stream().mapToDouble(y -> y / 1_000_000_000d).average().orElse(-1);
+                        results.add(toAdd);
                         x.add(currentX);
                     }
                     lastCasesDone = times.size();
@@ -81,6 +87,7 @@ public class PathIteratorOverhead extends SystemTest {
         for (Thread thread : threads.values()) {
             thread.join();
         }
+        System.out.println(folio.toString());
     }
 
     private TestCase getTestCase(Random random, int sourceGraphNodes, boolean labels) {
@@ -107,7 +114,7 @@ public class PathIteratorOverhead extends SystemTest {
                 sourceGraph.addAttribute(vertices.get(i), "label", "arc");
             }
             int targetWires = (int) Math.max(sourceWires, Math.round(414d * targetGraph.vertexSet().size() / 2908d));
-            int targetPorts = targetWires + (int) Math.max(sourceWires, Math.round(124d * targetGraph.vertexSet().size() / 2908d));
+            int targetPorts = targetWires + (int) Math.round(124d * targetGraph.vertexSet().size() / 2908d);
             int targetSlices = targetPorts + (int) Math.max(sourceSlices, Math.round(4d * targetGraph.vertexSet().size() / 2908d));
             vertices = new ArrayList<>(targetGraph.vertexSet());
             Collections.shuffle(vertices, random);
