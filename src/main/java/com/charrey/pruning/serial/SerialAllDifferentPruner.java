@@ -23,7 +23,7 @@ public class SerialAllDifferentPruner extends DefaultSerialPruner {
     }
 
     @Override
-    public void checkPartial(PartialMatchingProvider partialMatching) throws DomainCheckerException {
+    public void checkPartial(PartialMatchingProvider partialMatching, int lastPlaced) throws DomainCheckerException {
 
     }
 }

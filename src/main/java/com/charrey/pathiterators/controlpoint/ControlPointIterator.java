@@ -183,9 +183,6 @@ class ControlPointIterator extends PathIterator {
         if (this.rightNeighbourOfRightNeighbour == -1 || left == -1) {
             return false;
         } else {
-            if (!transaction.isFruitful(verticesPlaced.get(), this::getPartialMatching)) {
-                return true;
-            }
             assert pathFromRightNeighbourToItsRightNeighbour != null;
             int middle = this.head();
             int right = this.rightNeighbourOfRightNeighbour;
@@ -222,6 +219,7 @@ class ControlPointIterator extends PathIterator {
 
 
     private int findNextControlPoint(StringBuilder prefix) {
+
         do {
             chosenPath = null;
             chosenControlPoint = controlPointCandidates.next();
@@ -268,6 +266,9 @@ class ControlPointIterator extends PathIterator {
                 return provideShortestPath(prefix);
             } else if (child == null) {
                 releasePreviousControlPoint();
+                if (!transaction.isFruitful(verticesPlaced.get(), this::getPartialMatching, -1)) {
+                    return null;
+                }
                 int result = findNextControlPoint(prefix);
                 if (result == EXHAUSTED) {
                     return null;

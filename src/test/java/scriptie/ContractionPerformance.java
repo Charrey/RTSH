@@ -7,7 +7,7 @@ import system.SystemTest;
 
 import java.util.*;
 
-import static scriptie.Util.comparitiveTest;
+import static scriptie.Util.*;
 
 public class ContractionPerformance extends SystemTest {
 

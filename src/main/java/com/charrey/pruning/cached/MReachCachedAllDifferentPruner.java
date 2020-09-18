@@ -32,7 +32,7 @@ public class MReachCachedAllDifferentPruner extends MReachCachedPruner {
     }
 
     @Override
-    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced) {
         List<TIntSet> toCheck = new LinkedList<>();
         sourceGraph.vertexSet().forEach(x -> toCheck.add(getDomain(x)));
         return !allDifferent.get(toCheck);

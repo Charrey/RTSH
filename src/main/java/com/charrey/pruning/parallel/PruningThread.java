@@ -45,7 +45,7 @@ public class PruningThread implements Runnable {
 
     private void check(PartialMatching partialMatching) {
         try {
-            pruner.checkPartial(() -> partialMatching);
+            pruner.checkPartial(() -> partialMatching, -1);
         } catch (DomainCheckerException e) {
             signalPrune();
         }

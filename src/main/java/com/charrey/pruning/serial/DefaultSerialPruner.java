@@ -25,12 +25,12 @@ public abstract class DefaultSerialPruner extends Pruner {
 
     @Override
     public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
-        checkPartial(partialMatching);
+        checkPartial(partialMatching, occupied);
     }
 
     @Override
     public void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
-        checkPartial(partialMatching);
+        checkPartial(partialMatching, occupied);
     }
 
     @Override
@@ -40,9 +40,9 @@ public abstract class DefaultSerialPruner extends Pruner {
     }
 
     @Override
-    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced) {
         try {
-            checkPartial(partialMatchingProvider);
+            checkPartial(partialMatchingProvider, lastPlaced);
         } catch (DomainCheckerException e) {
             return true;
         }

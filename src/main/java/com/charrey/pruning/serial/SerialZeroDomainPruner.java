@@ -20,6 +20,7 @@ import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.procedure.TIntProcedure;
+import org.jgrapht.Graphs;
 
 import java.util.*;
 
@@ -47,26 +48,32 @@ public class SerialZeroDomainPruner extends DefaultSerialPruner {
         //nothing to close
     }
 
+    private boolean checkedOnce = false;
+
     @Override
-    public void checkPartial(PartialMatchingProvider partialMatchingProvider) throws DomainCheckerException {
+    public void checkPartial(PartialMatchingProvider partialMatchingProvider, int vertexPlaced) throws DomainCheckerException {
         PartialMatching partialMatching = partialMatchingProvider.getPartialMatching();
         if (settings.getFiltering() instanceof LabelDegreeFiltering) {
-            for (int i = partialMatching.getVertexMapping().size(); i < this.sourceGraph.vertexSet().size(); i++) {
-                int finalI = i;
-                Iterator<Integer> customIterator = targetGraph.vertexSet()
-                        .stream()
-                        .filter(x -> new LabelDegreeFiltering().filter(sourceGraph, targetGraph, finalI, x, occupation))
-                        .filter(x -> !occupation.isOccupied(x))
-                        .iterator();
-                if (!customIterator.hasNext()) {
-                    int finalI1 = i;
-                    throw new DomainCheckerException(() -> "Vertex exists with empty domain: " + finalI1);
+            if (!checkedOnce) {
+                checkedOnce = true;
+                for (int i = partialMatching.getVertexMapping().size(); i < this.sourceGraph.vertexSet().size(); i++) {
+                    int finalI = i;
+                    Iterator<Integer> customIterator = targetGraph.vertexSet()
+                            .stream()
+                            .filter(x -> new LabelDegreeFiltering().filter(sourceGraph, targetGraph, finalI, x, occupation))
+                            .filter(x -> !occupation.isOccupied(x))
+                            .iterator();
+                    if (!customIterator.hasNext()) {
+                        int finalI1 = i;
+                        throw new DomainCheckerException(() -> "Vertex exists with empty domain: " + finalI1);
+                    }
                 }
             }
         } else if (settings.getFiltering() instanceof UnmatchedDegreesFiltering) {
+            //get previous partial matching
             for (int i = partialMatching.getVertexMapping().size(); i < this.sourceGraph.vertexSet().size(); i++) {
                 int finalI = i;
-                Iterator<Integer> customIterator = targetGraph.vertexSet()
+                Iterator<Integer> customIterator = Graphs.neighborListOf(targetGraph, vertexPlaced)
                         .stream()
                         .filter(x -> new UnmatchedDegreesFiltering().filter(sourceGraph, targetGraph, finalI, x, occupation))
                         .filter(x -> !occupation.isOccupied(x))

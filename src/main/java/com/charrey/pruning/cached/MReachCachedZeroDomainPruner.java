@@ -17,7 +17,7 @@ public class MReachCachedZeroDomainPruner  extends MReachCachedPruner {
     }
 
     @Override
-    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced) {
         return sourceGraph.vertexSet().stream().anyMatch(x -> getDomain(x).isEmpty());
     }
 

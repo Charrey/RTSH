@@ -81,11 +81,11 @@ public abstract class Pruner {
 
     public abstract void close();
 
-    public abstract void checkPartial(PartialMatchingProvider partialMatching) throws DomainCheckerException;
+    public abstract void checkPartial(PartialMatchingProvider partialMatching, int vertexPlaced) throws DomainCheckerException;
 
     public void setOccupation(ReadOnlyOccupation newOccupation) {
         this.occupation = newOccupation;
     }
 
-    public abstract boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider);
+    public abstract boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced);
 }

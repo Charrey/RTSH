@@ -66,7 +66,7 @@ public abstract class DefaultCachedPruner extends Pruner {
         domain.get(sourceVertexData).clear();
         domain.get(sourceVertexData).add(targetVertex);
         removeFromDomains(targetVertex, sourceGraphCandidates, sourceVertexData);
-        if (isUnfruitful(verticesPlaced, partialMatchingProvider)) {
+        if (isUnfruitful(verticesPlaced, partialMatchingProvider, targetVertex)) {
             for (int i = sourceGraphCandidates.size() - 1; i >= 0 && sourceGraphCandidates.get(i) > sourceVertexData; i--) {
                 domain.get(sourceGraphCandidates.get(i)).add(targetVertex);
             }
@@ -80,7 +80,7 @@ public abstract class DefaultCachedPruner extends Pruner {
         TIntList candidates = reverseDomain.get(newlyOccupied);
         int sourceVertexData = verticesPlaced - 1;
         removeFromDomains(newlyOccupied, candidates, sourceVertexData);
-        if (isUnfruitful(verticesPlaced, partialMatching)) {
+        if (isUnfruitful(verticesPlaced, partialMatching, newlyOccupied)) {
             for (int i = candidates.size() - 1; i >= 0 && candidates.get(i) > sourceVertexData; i--) {
                 domain.get(candidates.get(i)).add(newlyOccupied);
             }
@@ -123,7 +123,7 @@ public abstract class DefaultCachedPruner extends Pruner {
 
 
     @Override
-    public void checkPartial(PartialMatchingProvider partialMatching) {
+    public void checkPartial(PartialMatchingProvider partialMatching, int lastPlaced) {
         throw new UnsupportedOperationException("Cached pruner cannot check partial.");
     }
 }

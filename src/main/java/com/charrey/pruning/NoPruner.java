@@ -38,7 +38,7 @@ public class NoPruner extends Pruner {
     }
 
     @Override
-    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced) {
         return false;
     }
 
@@ -53,7 +53,7 @@ public class NoPruner extends Pruner {
     }
 
     @Override
-    public void checkPartial(PartialMatchingProvider partialMatching) throws DomainCheckerException {
+    public void checkPartial(PartialMatchingProvider partialMatching, int lastPlaced) throws DomainCheckerException {
         //do nothing
     }
 

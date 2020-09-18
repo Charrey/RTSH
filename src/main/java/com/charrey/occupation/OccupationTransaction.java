@@ -176,8 +176,8 @@ public class OccupationTransaction implements ReadOnlyOccupation {
         inCommittedState = true;
     }
 
-    public boolean isFruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
-        return  !domainChecker.isUnfruitful(verticesPlaced, partialMatchingProvider);
+    public boolean isFruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced) {
+        return  !domainChecker.isUnfruitful(verticesPlaced, partialMatchingProvider, lastPlaced);
     }
 
     private static class TransactionElement {

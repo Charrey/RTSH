@@ -40,7 +40,7 @@ public class CachedZeroDomainPruner extends DefaultCachedPruner {
 
 
     @Override
-    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced) {
         return domain.subList(verticesPlaced, domain.size()).stream().anyMatch(TIntSet::isEmpty);
     }
 

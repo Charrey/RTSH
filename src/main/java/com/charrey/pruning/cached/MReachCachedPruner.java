@@ -178,7 +178,7 @@ public abstract class MReachCachedPruner extends Pruner {
                 NReachabilityCheck(newDomainLayer, newReverseDomainLayer);
             }
         }
-        if (isUnfruitful(verticesPlaced, partialMatching)) {
+        if (isUnfruitful(verticesPlaced, partialMatching, targetVertex)) {
             domain.pollFirst();
             reverseDomain.pollFirst();
             throw new DomainCheckerException(() -> "Pruner found insuitable domains after mapping " + (verticesPlaced - 1) + " to " + targetVertex);
@@ -296,7 +296,7 @@ public abstract class MReachCachedPruner extends Pruner {
     @Override
     public void afterOccupyEdge(int verticesPlaced, int targetVertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         afterOccupyEdgeWithoutCheck(verticesPlaced, targetVertex);
-        if (isUnfruitful(verticesPlaced, partialMatching)) {
+        if (isUnfruitful(verticesPlaced, partialMatching, targetVertex)) {
             domain.pollFirst();
             reverseDomain.pollFirst();
             justInvalidated.forEach(path -> {
@@ -381,7 +381,7 @@ public abstract class MReachCachedPruner extends Pruner {
     }
 
     @Override
-    public abstract boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider);
+    public abstract boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced);
 
     @Override
     public abstract Pruner copy();
@@ -392,7 +392,7 @@ public abstract class MReachCachedPruner extends Pruner {
     }
 
     @Override
-    public void checkPartial(PartialMatchingProvider partialMatching) {
+    public void checkPartial(PartialMatchingProvider partialMatching, int lastPlaced) {
 
     }
 }

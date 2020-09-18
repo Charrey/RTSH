@@ -9,7 +9,7 @@
         <module name="PathSubIsoTest" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
+    <bytecodeTargetLevel target="14">
       <module name="PathSubIsoTest" target="14" />
     </bytecodeTargetLevel>
   </component>
