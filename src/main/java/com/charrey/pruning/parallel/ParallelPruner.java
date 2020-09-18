@@ -15,7 +15,7 @@ public class ParallelPruner extends DefaultSerialPruner {
     private final Thread theThread;
     private final Pruner inner;
     volatile boolean isInPruningState = false;
-    private PartialMatching partialMatching;
+    private volatile PartialMatching partialMatching;
 
     public ParallelPruner(Pruner inner, Settings settings, MyGraph sourceGraph, MyGraph targetGraph) {
         super(settings, sourceGraph, targetGraph, inner.occupation);
@@ -59,9 +59,13 @@ public class ParallelPruner extends DefaultSerialPruner {
             inner.checkPartial(partialMatching, lastPlaced);
             synchronized (this) {
                 isInPruningState = false;
-                notifyAll();
             }
         }
+    }
+
+    public void checkPartialRegardlessOfState(PartialMatchingProvider partialMatching, int lastPlaced) throws DomainCheckerException {
+        this.partialMatching = partialMatching.getPartialMatching();
+        inner.checkPartial(partialMatching, lastPlaced);
     }
 
     PartialMatching getCurrentMatching() throws InterruptedException {

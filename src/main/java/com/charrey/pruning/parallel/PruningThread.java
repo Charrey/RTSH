@@ -26,17 +26,8 @@ public class PruningThread implements Runnable {
     public void run() {
         try {
             while (!done) {
-                //retrieve current matching
-                while (pruner.isInPruningState) {
-                    Thread.sleep(1);
-                }
                 PartialMatching partialMatching = pruner.getCurrentMatching();
                 check(partialMatching);
-                synchronized (pruner) {
-                    if (pruner.isInPruningState) {
-                        pruner.wait();
-                    }
-                }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -45,7 +36,7 @@ public class PruningThread implements Runnable {
 
     private void check(PartialMatching partialMatching) {
         try {
-            pruner.checkPartial(() -> partialMatching, -1);
+            pruner.checkPartialRegardlessOfState(() -> partialMatching, -1);
         } catch (DomainCheckerException e) {
             signalPrune();
         }

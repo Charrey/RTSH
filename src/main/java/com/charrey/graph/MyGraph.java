@@ -15,6 +15,7 @@ import org.jgrapht.util.SupplierUtil;
 
 import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +35,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
 
     private int edgeCounter = 0;
 
+    @Override
     public MyEdge removeEdge(Integer sourceVertex, Integer targetVertex) {
         MyEdge toRemove = getAllEdges(sourceVertex, targetVertex).stream().max(Comparator.comparingInt(MyEdge::getId)).get();
         removeEdge(toRemove);
@@ -137,7 +139,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             throw new IllegalStateException(GRAPH_IS_LOCKED_MESSAGE);
         }
         int toReturn = super.addVertex();
-        attributes.add(new HashMap<>());
+        attributes.add(new ConcurrentHashMap<>());
         assert toReturn == attributes.size() - 1;
         return toReturn;
     }
@@ -230,7 +232,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             if (!chainscopy.containsKey(myEdge.getSource(), myEdge.getTarget()) || chainscopy.get(myEdge.getSource(), myEdge.getTarget()).isEmpty()) {
                 return null;
             } else {
-                return Map.of("label", new DefaultAttribute<>("chain:" + chainscopy.get(myEdge.getSource(), myEdge.getTarget()).poll(), AttributeType.STRING));
+                return Map.of(LABEL, new DefaultAttribute<>("chain:" + chainscopy.get(myEdge.getSource(), myEdge.getTarget()).poll(), AttributeType.STRING));
             }
         });
         StringWriter writer = new StringWriter();
@@ -246,7 +248,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         boolean toReturn = super.addVertex(vertex);
         if (toReturn) {
             while (vertex != attributes.size() - 1) {
-                attributes.add(new HashMap<>());
+                attributes.add(new ConcurrentHashMap<>());
             }
         }
         return toReturn;
