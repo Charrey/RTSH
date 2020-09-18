@@ -21,9 +21,8 @@ public class MReachCachedAllDifferentPruner extends MReachCachedPruner {
                                           MyGraph sourceGraph,
                                           MyGraph targetGraph,
                                           ReadOnlyOccupation occupation,
-                                          VertexMatching vertexMatching,
-                                          int nReachLevel) {
-        super(settings, sourceGraph, targetGraph, occupation, vertexMatching, nReachLevel);
+                                          VertexMatching vertexMatching) {
+        super(settings, sourceGraph, targetGraph, occupation, vertexMatching);
     }
 
     public MReachCachedAllDifferentPruner(MReachCachedAllDifferentPruner copyOf) {

@@ -32,9 +32,9 @@ class RandomSystemTests extends SystemTest {
             //.withInplaceNewGreedyDFSRouting()
             //.withInplaceOldGreedyDFSRouting()
             .withNeighbourReachabilityFiltering()
-            .withParallelPruning()
-            .withClosestTargetVertexOrderCached()
-            .withZeroDomainPruning()
+            .withSerialPruning()
+            .withLargestDegreeFirstTargetVertexOrder()
+            .withAllDifferentPruning()
             .get();
 
 
@@ -103,7 +103,7 @@ class RandomSystemTests extends SystemTest {
 
                 HomeomorphismResult homeomorphism;
                 //System.out.println("case " + attempts);
-                if (attempts >= 0) {//
+                if (attempts >= 5020) {//
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);

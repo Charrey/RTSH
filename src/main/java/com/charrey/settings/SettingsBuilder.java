@@ -271,14 +271,14 @@ public class SettingsBuilder {
     }
 
     private void check() {
-        if (settings.getWhenToApply() != WhenToApply.CACHED && settings.getPruningMethod() == PruningMethod.ALLDIFFERENT) {
-            throw new IllegalArgumentException("Alldifferent is not compatible with serial or parallel pruning.");
-        }
+//        if (settings.getWhenToApply() != WhenToApply.CACHED && settings.getPruningMethod() == PruningMethod.ALLDIFFERENT) {
+//            throw new IllegalArgumentException("Alldifferent is not compatible with serial or parallel pruning.");
+//        }
         if (settings.getPathsLimit() < 1) {
             throw new IllegalArgumentException("Paths limit must be greater than 0.");
         }
         if (settings.getVertexLimit() < 1) {
-            throw new IllegalArgumentException("Paths limit must be greater than 0.");
+            throw new IllegalArgumentException("Vertex limit must be greater than 0.");
         }
     }
 

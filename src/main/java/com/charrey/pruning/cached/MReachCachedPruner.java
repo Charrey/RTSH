@@ -44,8 +44,7 @@ public abstract class MReachCachedPruner extends Pruner {
                               MyGraph sourceGraph,
                               MyGraph targetGraph,
                               ReadOnlyOccupation occupation,
-                              VertexMatching vertexMatching,
-                              int nReachLevel) {
+                              VertexMatching vertexMatching) {
         super(settings, sourceGraph, targetGraph, occupation);
         TIntObjectHashMap<TIntList> firstReverseDomain = new TIntObjectHashMap<>(targetGraph.vertexSet().size());
         targetGraph.vertexSet().forEach(x -> firstReverseDomain.put(x, new TIntLinkedList()));
@@ -55,7 +54,7 @@ public abstract class MReachCachedPruner extends Pruner {
         domain.offerFirst(firstDomain);
         this.vertexMatching = vertexMatching;
         initializeDomains();
-        this.nReachLevel = nReachLevel;
+        this.nReachLevel = settings.getFiltering() instanceof NReachabilityFiltering ? ((NReachabilityFiltering)settings.getFiltering()).getLevel() : 0;
         modifiedTargetGraph = new MyGraph(targetGraph);
     }
 
@@ -247,6 +246,9 @@ public abstract class MReachCachedPruner extends Pruner {
     }
 
     private void MReachabilityCheck(int targetVertex, Set<Integer> neighbours, boolean successors) throws DomainCheckerException {
+        if (vertexMatching.get().contains(targetVertex) && neighbours.stream().allMatch(x -> vertexMatching.get().contains(x))) {
+            return;
+        }
         for (int neighbour : neighbours) {
             int from = successors ? targetVertex : neighbour;
             int to = successors ? neighbour : targetVertex;

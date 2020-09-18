@@ -101,7 +101,7 @@ public class GlobalOccupation implements ReadOnlyOccupation {
         TIntList hypothetical = new TIntArrayList(partialMatching.getVertexMapping());
         hypothetical.add(target);
         pruner.beforeOccupyVertex(source, target, () -> new PartialMatching(hypothetical, partialMatching.getEdgeMapping(), partialMatching.getPartialPath()));
-        vertexBits.add(target);
+        vertexBits.add(target);//todo lazier
     }
 
 

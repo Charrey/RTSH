@@ -5,6 +5,7 @@ import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.cached.*;
 import com.charrey.pruning.parallel.ParallelPruner;
+import com.charrey.pruning.serial.SerialAllDifferentPruner;
 import com.charrey.pruning.serial.SerialZeroDomainPruner;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
@@ -26,7 +27,7 @@ public class PrunerFactory {
                 switch (settings.getWhenToApply()) {
                     case CACHED -> {
                         if (settings.getFiltering() instanceof MReachabilityFiltering)
-                            yield new MReachCachedZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching, 4);
+                            yield new MReachCachedZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching);
                         yield new CachedZeroDomainPruner(data, settings, occupation);
                     }
                     case SERIAL -> new SerialZeroDomainPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching);
@@ -34,10 +35,10 @@ public class PrunerFactory {
                 };
             case ALLDIFFERENT -> {
                 if (settings.getWhenToApply() == WhenToApply.SERIAL) {
-                    throw new IllegalArgumentException("AllDifferent cannot be run serially without caching. Choose CACHED execution or PARALLEL. Note that PARALLEL uses quadratic space.");
+                    yield new SerialAllDifferentPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching);
                 } else {
                     if (settings.getFiltering() instanceof NReachabilityFiltering || settings.getFiltering() instanceof MReachabilityFiltering || settings.getFiltering() instanceof UnmatchedDegreesFiltering) {
-                        yield new MReachCachedAllDifferentPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching, settings.getFiltering() instanceof  NReachabilityFiltering ? ((NReachabilityFiltering)settings.getFiltering()).getLevel() : 0);
+                        yield new MReachCachedAllDifferentPruner(settings, data.getPatternGraph(), data.getTargetGraph(), occupation, vertexMatching);
                     }
                     yield new AllDifferentPruner(data, settings, occupation);
                 }

@@ -8,8 +8,8 @@ import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
 
 public class MReachCachedZeroDomainPruner  extends MReachCachedPruner {
-    public MReachCachedZeroDomainPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, ReadOnlyOccupation occupation, VertexMatching vertexMatching, int nReachLevel) {
-        super(settings, sourceGraph, targetGraph, occupation, vertexMatching, nReachLevel);
+    public MReachCachedZeroDomainPruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, ReadOnlyOccupation occupation, VertexMatching vertexMatching) {
+        super(settings, sourceGraph, targetGraph, occupation, vertexMatching);
     }
 
     public MReachCachedZeroDomainPruner(MReachCachedZeroDomainPruner copyOf) {
