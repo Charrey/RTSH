@@ -56,7 +56,7 @@ public class ParallelPruner extends DefaultSerialPruner {
     public void checkPartial(PartialMatchingProvider partialMatching, int lastPlaced) throws DomainCheckerException {
         this.partialMatching = partialMatching.getPartialMatching();
         if (this.isInPruningState) {
-            inner.checkPartial(partialMatching, lastPlaced);
+            inner.checkPartial(partialMatching, -1);
             synchronized (this) {
                 isInPruningState = false;
             }
@@ -65,7 +65,7 @@ public class ParallelPruner extends DefaultSerialPruner {
 
     public void checkPartialRegardlessOfState(PartialMatchingProvider partialMatching, int lastPlaced) throws DomainCheckerException {
         this.partialMatching = partialMatching.getPartialMatching();
-        inner.checkPartial(partialMatching, lastPlaced);
+        inner.checkPartial(partialMatching, -1);
     }
 
     PartialMatching getCurrentMatching() throws InterruptedException {
