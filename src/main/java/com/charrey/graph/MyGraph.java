@@ -16,6 +16,7 @@ import org.jgrapht.util.SupplierUtil;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -88,7 +89,12 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         );
         this.directed = copyOf.getType().isDirected();
         this.attributes = new ArrayList<>();
-        copyOf.vertexSet().stream().sorted().forEach(this::addVertex);
+        copyOf.vertexSet().stream().sorted().forEach(vertex -> {
+            addVertex(vertex);
+            if (copyOf instanceof MyGraph) {
+                ((MyGraph) copyOf).getAttributes(vertex).forEach((key, value1) -> value1.forEach(value -> addAttribute(vertex, key, value)));
+            }
+        });
         copyOf.edgeSet().forEach(myEdge -> addEdge(myEdge.getSource(), myEdge.getTarget(), myEdge));
         copyOf.edgeSet().forEach(myEdge -> setEdgeWeight(myEdge, copyOf.getEdgeWeight(myEdge)));
         setVertexSupplier(SupplierUtil.createIntegerSupplier(copyOf.vertexSet().size()));

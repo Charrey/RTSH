@@ -1,8 +1,7 @@
 package scriptie;
 
 import com.charrey.graph.generation.TestCase;
-import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
-import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator2;
+import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.result.FailResult;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.SuccessResult;
@@ -12,6 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import system.SystemTest;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class PathIteratorPerformance extends SystemTest {
@@ -31,11 +31,11 @@ public class PathIteratorPerformance extends SystemTest {
 
     @Test
     void run() throws InterruptedException {
-        Random random = new Random(512);
         long timeout = 10*60*1000L;
         Map<Configuration, Thread> threads = new HashMap<>();
         for (Configuration configuration : configurations) {
             Thread theThread = new Thread(() -> {
+                Random threadRandom = new Random(512);
                 List<Integer> x = new ArrayList<>();
                 List<Double> results = new ArrayList<>();
                 List<Double> stdevs = new ArrayList<>();
@@ -43,11 +43,12 @@ public class PathIteratorPerformance extends SystemTest {
                 int currentX = 4;
                 int lastCasesDone = 10;
                 while (lastCasesDone > 1) {
-                    System.out.println(configuration + ", x = " + currentX);
+                    Random xRandom = new Random(threadRandom.nextLong());
+                    System.out.println(configuration + ", x = " + currentX + ", last cases = " + lastCasesDone + ", timestamp=" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
                     long timeStartForThisX = System.currentTimeMillis();
                     List<Long> times = new ArrayList<>();
                     while (System.currentTimeMillis() - timeStartForThisX < timeout) {
-                        TestCase tc = getTestCase(currentX, currentX * 3, (int)Math.round(currentX * 1.5), (int) Math.round(currentX * 1.5 * 4), random.nextLong());
+                        TestCase tc = getTestCase(currentX, xRandom.nextInt());
                         long startTime = System.nanoTime();
                         HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
                         long period = System.nanoTime() - startTime;
@@ -76,8 +77,8 @@ public class PathIteratorPerformance extends SystemTest {
         }
     }
 
-    private TestCase getTestCase(int vs, int es, int vt, int et, long seed) {
-        RandomSucceedDirectedTestCaseGenerator2 gen = new RandomSucceedDirectedTestCaseGenerator2(vs, es, vt, et, seed, false);
+    private TestCase getTestCase(int vs, int seed) {
+        ScriptieSucceedDirectedTestCaseGenerator gen = new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, seed);
         gen.init(1);
         return gen.getNext();
     }

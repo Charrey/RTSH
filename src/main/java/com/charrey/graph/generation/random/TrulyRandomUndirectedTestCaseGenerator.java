@@ -23,7 +23,7 @@ public class TrulyRandomUndirectedTestCaseGenerator extends TrulyRandomTestCaseG
     }
 
     @NotNull
-    protected MyGraph randomGraph(int nodes, int edges) {
+    protected MyGraph randomGraph(int nodes, int edges, boolean source) {
         GnmRandomGraphGenerator<Integer, MyEdge> gen = new GnmRandomGraphGenerator<>(nodes, edges, random.nextLong());
         MyGraph pattern = new MyGraph(false);
         gen.generateGraph(pattern);

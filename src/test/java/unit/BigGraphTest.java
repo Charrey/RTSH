@@ -137,6 +137,11 @@ class BigGraphTest {
         runTest("tile2x2.dot", (long) (0.1*60*1000));
     }
 
+    @Test
+    void test3x3() throws IOException, InterruptedException {
+        runTest("tile3x3.dot", (long) (0.1*60*1000));
+    }
+
 
 
     void runTest(String filename, long timeout) throws IOException, InterruptedException {
@@ -180,7 +185,7 @@ class BigGraphTest {
     @NotNull
     private TestCase getTestCase(String filename) throws IOException {
         targetGraph = new MyGraph(true);
-        importDOT(targetGraph, Paths.get("/").resolve("home").resolve("pim").resolve("Documents").resolve("Trellis").resolve(filename).toFile());
+        importDOT(targetGraph, Paths.get(".").resolve("graphs").resolve(filename).toFile());
         targetGraph.randomizeWeights();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
         return testCase;
