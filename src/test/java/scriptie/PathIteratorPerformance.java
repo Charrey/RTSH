@@ -1,17 +1,16 @@
 package scriptie;
 
+import com.charrey.Configuration;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.result.FailResult;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.SuccessResult;
 import com.charrey.settings.SettingsBuilder;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import system.SystemTest;
 
-import javax.sound.sampled.Port;
 import java.text.SimpleDateFormat;
 import java.util.*;
 

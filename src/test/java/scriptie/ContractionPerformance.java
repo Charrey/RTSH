@@ -1,6 +1,6 @@
 package scriptie;
 
-import com.charrey.graph.generation.TestCase;
+import com.charrey.Configuration;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.settings.SettingsBuilder;
 import org.junit.jupiter.api.BeforeAll;

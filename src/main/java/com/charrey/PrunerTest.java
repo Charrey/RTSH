@@ -1,20 +1,56 @@
-package scriptie;
+package com.charrey;
 
-import com.charrey.Configuration;
+import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
+import com.charrey.result.FailResult;
+import com.charrey.result.HomeomorphismResult;
+import com.charrey.result.SuccessResult;
+import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import java.util.LinkedList;
-import java.util.List;
 
-import static scriptie.Util.comparitiveTest;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+public class PrunerTest {
 
 
-public class PruningPerformance {
+    public static void main(String[] args) throws InterruptedException {
+        testSerialZeroDomainLabelDegree("serialzerodomainlabeldegree.txt");
+        testCachedZeroDomainLabelDegree("cachedzerodomainlabeldegree.txt");
+        testParallelZeroDomainLabelDegree("parallelzerodomainlabeldegree.txt");
+        testSerialAlldiffLabelDegree("serialalldifflabeldegree.txt");
+        testCachedAlldiffLabelDegree("cachedalldifflabeldegree.txt");
+        testParallelAlldiffLabelDegree("parallelalldifflabeldegree.txt");
 
-    @Test
-    public void testSerialZeroDomainLabelDegree() throws InterruptedException { //cr
+        testSerialZeroDomainUnmatchedDegrees("serialzerodomainUnmatchedDegrees.txt");
+        testCachedZeroDomainUnmatchedDegrees("cachedzerodomainUnmatchedDegrees.txt");
+        testParallelZeroDomainUnmatchedDegrees("parallelzerodomainUnmatchedDegrees.txt");
+        testSerialAlldiffUnmatched("serialalldiffUnmatchedDegrees.txt");
+        testCachedAlldiffUnmatched("cachedalldiffUnmatchedDegrees.txt");
+        testParallelAlldiffUnmatched("parallelalldiffUnmatchedDegrees.txt");
+
+        testSerialZeroDomainMReach("serialzerodomainMReach.txt");
+        testCachedZeroDomainMReach("cachedzerodomainMReach.txt");
+        testParallelZeroDomainMReach("parallelzerodomainMReach.txt");
+        testSerialAlldiffMReach("serialalldiffMReach.txt");
+        testCachedAlldiffMReach("cachedalldiffMReach.txt");
+        testParallelAlldiffMReach("parallelalldiffMReach.txt");
+
+        testSerialZeroDomainNReach("serialzerodomainNReach.txt");
+        testCachedZeroDomainNReach("cachedzerodomainNReach.txt");
+        testParallelZeroDomainNReach("parallelzerodomainNReach.txt");
+        testSerialAlldiffNReach("serialalldiffNReach.txt");
+        testCachedAlldiffNReach("cachedalldiffNReach.txt");
+        testParallelAlldiffNReach("parallelalldiffNReach.txt");
+
+    }
+
+
+    public static void testSerialZeroDomainLabelDegree(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withSerialPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
@@ -34,13 +70,22 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
-    @Test
-    public void testSerialZeroDomainUnmatchedDegrees() throws InterruptedException { //cr
+    public static void testSerialZeroDomainUnmatchedDegrees(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withSerialPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
@@ -60,13 +105,21 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testSerialZeroDomainMReach() throws InterruptedException { //cr
+
+    public static void testSerialZeroDomainMReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withSerialPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
@@ -86,13 +139,21 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testSerialZeroDomainNReach() throws InterruptedException { //cr
+
+    public static void testSerialZeroDomainNReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withSerialPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
@@ -112,14 +173,21 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
-    @Test
-    public void testCachedZeroDomainLabelDegree() throws InterruptedException { //cr
+    public static void testCachedZeroDomainLabelDegree(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withCachedPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
@@ -139,13 +207,20 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testCachedZeroDomainUnmatchedDegrees() throws InterruptedException { //cr
+    public static void testCachedZeroDomainUnmatchedDegrees(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withCachedPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
@@ -165,13 +240,21 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testCachedZeroDomainMReach() throws InterruptedException { //cr
+
+    public static void testCachedZeroDomainMReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withCachedPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
@@ -191,13 +274,21 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testCachedZeroDomainNReach() throws InterruptedException { //cr
+
+    public static void testCachedZeroDomainNReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withCachedPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
@@ -217,14 +308,26 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testParallelZeroDomainLabelDegree() throws InterruptedException { //cr
-        List<Configuration> configurations = new LinkedList<>();
+    public static void testParallelZeroDomainLabelDegree(String fileName) throws InterruptedException { //cr
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+            List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withParallelPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
                 new SettingsBuilder().withKPathRouting().get()));
@@ -234,9 +337,12 @@ public class PruningPerformance {
         configurations.add(new Configuration("+",        "green" , "CP"       ,
                 new SettingsBuilder().withControlPointRouting().withParallelPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
                 new SettingsBuilder().withControlPointRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+
+
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
@@ -249,11 +355,20 @@ public class PruningPerformance {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testParallelZeroDomainUnmatchedDegrees() throws InterruptedException { //cr
+
+    public static void testParallelZeroDomainUnmatchedDegrees(String fileName) throws InterruptedException {
+
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withParallelPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
@@ -266,7 +381,7 @@ public class PruningPerformance {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(out, System.out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
@@ -279,11 +394,20 @@ public class PruningPerformance {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(out, System.out));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testParallelZeroDomainMReach() throws InterruptedException { //cr
+    public static void testParallelZeroDomainMReach(String fileName) throws InterruptedException { //cr
+
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withParallelPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
@@ -296,7 +420,7 @@ public class PruningPerformance {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(out, System.out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
@@ -309,11 +433,21 @@ public class PruningPerformance {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(out, System.out));
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
     }
 
-    @Test
-    public void testParallelZeroDomainNReach() throws InterruptedException { //cr
+
+    public static void testParallelZeroDomainNReach(String fileName) throws InterruptedException { //cr
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
+
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withParallelPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
@@ -326,7 +460,7 @@ public class PruningPerformance {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(out, System.out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
@@ -339,12 +473,16 @@ public class PruningPerformance {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(out, System.out));
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
     }
 
 
-    @Test
-    public void testSerialAlldiffLabelDegree() throws InterruptedException { //cr
+
+    public static void testSerialAlldiffLabelDegree(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withSerialPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
@@ -364,13 +502,21 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withAllDifferentPruning().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testSerialAlldiffUnmatched() throws InterruptedException { //cr
+
+    public static void testSerialAlldiffUnmatched(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withSerialPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
@@ -390,13 +536,20 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withUnmatchedDegreesFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testSerialAlldiffMReach() throws InterruptedException { //cr
+
+    public static void testSerialAlldiffMReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withSerialPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
@@ -416,13 +569,20 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withMatchedReachabilityFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testSerialAlldiffNReach() throws InterruptedException { //cr
+
+    public static void testSerialAlldiffNReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withSerialPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
@@ -442,15 +602,22 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withSerialPruning().withNeighbourReachabilityFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
 
-    @Test
-    public void testCachedAlldiffLabelDegree() throws InterruptedException { //cr
+
+    public static void testCachedAlldiffLabelDegree(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withCachedPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
@@ -470,13 +637,20 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testCachedAlldiffUnmatched() throws InterruptedException { //cr
+
+    public static void testCachedAlldiffUnmatched(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withCachedPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
@@ -496,13 +670,20 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testCachedAlldiffMReach() throws InterruptedException { //cr
+
+    public static void testCachedAlldiffMReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withCachedPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
@@ -522,13 +703,20 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testCachedAlldiffNReach() throws InterruptedException { //cr
+
+    public static void testCachedAlldiffNReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withCachedPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
@@ -548,13 +736,24 @@ public class PruningPerformance {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
                 new SettingsBuilder().withCachedGreedyDFSRouting().withCachedPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , 10*60*1000L, true, false, Set.of(out, System.out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
-    public void testParallelAlldiffLabelDegree() throws InterruptedException { //cr
+
+    public static void testParallelAlldiffLabelDegree(String fileName) throws InterruptedException { //cr
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withParallelPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
@@ -567,7 +766,7 @@ public class PruningPerformance {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(System.out, out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
@@ -580,12 +779,19 @@ public class PruningPerformance {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(System.out, out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
-    @Test
-    public void testParallelAlldiffUnmatched() throws InterruptedException { //cr
+
+    public static void testParallelAlldiffUnmatched(String fileName) throws InterruptedException { //cr
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withParallelPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
@@ -598,7 +804,7 @@ public class PruningPerformance {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(System.out, out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
@@ -611,12 +817,19 @@ public class PruningPerformance {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(System.out, out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
-    @Test
-    public void testParallelAlldiffMReach() throws InterruptedException { //cr
+
+    public static void testParallelAlldiffMReach(String fileName) throws InterruptedException { //cr
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withParallelPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
@@ -629,7 +842,7 @@ public class PruningPerformance {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(System.out, out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
@@ -642,12 +855,20 @@ public class PruningPerformance {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(System.out, out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
-    @Test
-    public void testParallelAlldiffNReach() throws InterruptedException { //cr
+
+    public static void testParallelAlldiffNReach(String fileName) throws InterruptedException { //cr
+        try(FileWriter fw = new FileWriter(fileName, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
                 new SettingsBuilder().withKPathRouting().withParallelPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
@@ -660,7 +881,7 @@ public class PruningPerformance {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
+                , 10*60*1000L, true, false, Set.of(System.out, out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
@@ -673,13 +894,107 @@ public class PruningPerformance {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false);
-
+                , 10*60*1000L, true, false, Set.of(System.out, out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
 
+    static void comparitiveTest(List<Configuration> configurations,
+                                double sourceDegree,
+                                double sizeFactor,
+                                double targetdegree,
+                                boolean labels,
+                                TestCaseProvider tcp,
+                                long timeout,
+                                boolean continueOnError,
+                                boolean calloutEachResult,
+                                Set<Appendable> outputs) throws InterruptedException {
+        Map<Configuration, Thread> threads = new HashMap<>();
+        for (Configuration configuration : configurations) {
+            Thread theThread = new Thread(() -> {
+                Random threadRandom = new Random(512);
+                List<Integer> x = new ArrayList<>();
+                List<Double> contractionComparedToNot = new ArrayList<>();
 
+                int currentX = 4;
+                int lastCasesDone = 10;
+                while (lastCasesDone > 1) {
+                    Random perXRandom = new Random(threadRandom.nextLong());
+                    System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " " + configuration + ", x = " + currentX + ", cases done = " + lastCasesDone);
+                    long timeStartForThisX = System.currentTimeMillis();
+                    double totalTimeWith = 0d;
+                    double totalTimeWithout = 0d;
+                    double totalPortfolio = 0d;
+                    int cases = 0;
+                    while (System.currentTimeMillis() - timeStartForThisX < timeout && cases < 1000) {
+                        cases++;
+                        long testcaseSeed = perXRandom.nextLong();
+                        TestCase tc = tcp.get(currentX, (int) Math.round(currentX * sourceDegree), (int)Math.round(currentX * sizeFactor), (int) Math.round(currentX * sizeFactor * targetdegree), testcaseSeed, labels);
+                        HomeomorphismResult resultWith;
+                        HomeomorphismResult resultWithout = null;
+                        double periodWith = -1;
+                        double periodWithout = -1;
+                        try {
+                            long startTime = System.nanoTime();
+                            resultWith = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
+                            periodWith = System.nanoTime() - startTime;
+                            if (configuration.getSettingsWithoutContraction() != null) {
+                                startTime = System.nanoTime();
+                                resultWithout = testWithoutExpectation(tc, timeout, configuration.getSettingsWithoutContraction());
+                                periodWithout = System.nanoTime() - startTime;
+                            }
+                        } catch (Exception | Error e) {
+                            System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
+                            e.printStackTrace();
+                            if (continueOnError) {
+                                continue;
+                            } else {
+                                throw e;
+                            }
+                        }
+                        if (resultWithout instanceof FailResult || resultWith instanceof FailResult) {
+                            System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
+                            if (!continueOnError) {
+                                throw new IllegalStateException("Failed!");
+                            }
+                        } else if (resultWith instanceof SuccessResult && (configuration.getSettingsWithoutContraction() == null || resultWithout instanceof SuccessResult)) {
+                            totalTimeWith += periodWith;
+                            totalTimeWithout += periodWithout;
+                            if (calloutEachResult) {
+                                System.out.println("Success");
+                            }
+                        }
+                    }
+                    if (totalTimeWith > 0 && totalTimeWithout > 0) {
+                        contractionComparedToNot.add(100* (totalTimeWith / totalTimeWithout) - 100d);
+                        x.add(currentX);
+                    }
+                    lastCasesDone = cases;
+                    currentX++;
+                }
+                outputs.forEach(y -> {
+                    try {
+                        y.append(configuration.getString(x, contractionComparedToNot));
+                        ((Flushable) y).flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            });
+            threads.put(configuration, theThread);
+        }
+        threads.values().forEach(Thread::start);
+        for (Thread thread : threads.values()) {
+            thread.join();
+        }
+    }
 
+    @NotNull
+    public static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
+        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
+    }
 
 }

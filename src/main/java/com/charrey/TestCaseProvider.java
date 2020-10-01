@@ -1,4 +1,4 @@
-package scriptie;
+package com.charrey;
 
 import com.charrey.graph.generation.TestCase;
 

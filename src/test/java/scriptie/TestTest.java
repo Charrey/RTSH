@@ -1,5 +1,6 @@
 package scriptie;
 
+import com.charrey.Configuration;
 import com.charrey.settings.SettingsBuilder;
 import org.junit.jupiter.api.Test;
 import system.SystemTest;

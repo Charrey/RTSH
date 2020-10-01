@@ -1,5 +1,6 @@
 package scriptie;
 
+                                                                                                                                                                                                                                                import com.charrey.Configuration;
                                                                                                                                                                                                                                                 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.graph.generation.random.ScriptieFailDirectedTestCaseGenerator;
