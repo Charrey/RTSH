@@ -19,33 +19,267 @@ public class PrunerTest {
 
 
     public static void main(String[] args) throws InterruptedException {
-        testSerialZeroDomainLabelDegree("serialzerodomainlabeldegree.txt");
-        testCachedZeroDomainLabelDegree("cachedzerodomainlabeldegree.txt");
-        testParallelZeroDomainLabelDegree("parallelzerodomainlabeldegree.txt");
-        testSerialAlldiffLabelDegree("serialalldifflabeldegree.txt");
-        testCachedAlldiffLabelDegree("cachedalldifflabeldegree.txt");
-        testParallelAlldiffLabelDegree("parallelalldifflabeldegree.txt");
 
-        testSerialZeroDomainUnmatchedDegrees("serialzerodomainUnmatchedDegrees.txt");
-        testCachedZeroDomainUnmatchedDegrees("cachedzerodomainUnmatchedDegrees.txt");
-        testParallelZeroDomainUnmatchedDegrees("parallelzerodomainUnmatchedDegrees.txt");
-        testSerialAlldiffUnmatched("serialalldiffUnmatchedDegrees.txt");
-        testCachedAlldiffUnmatched("cachedalldiffUnmatchedDegrees.txt");
-        testParallelAlldiffUnmatched("parallelalldiffUnmatchedDegrees.txt");
+        Runnable runnable1;
+        Runnable runnable2;
+        Runnable runnable3;
+        Thread thread1;
+        Thread thread2;
+        Thread thread3;
 
-        testSerialZeroDomainMReach("serialzerodomainMReach.txt");
-        testCachedZeroDomainMReach("cachedzerodomainMReach.txt");
-        testParallelZeroDomainMReach("parallelzerodomainMReach.txt");
-        testSerialAlldiffMReach("serialalldiffMReach.txt");
-        testCachedAlldiffMReach("cachedalldiffMReach.txt");
-        testParallelAlldiffMReach("parallelalldiffMReach.txt");
+        runnable1 = () -> {
+            try {
+                testSerialZeroDomainLabelDegree("serialzerodomainlabeldegree.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable2 = () -> {
+            try {
+                testCachedZeroDomainLabelDegree("cachedzerodomainlabeldegree.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable3 = () -> {
+            try {
+                testParallelZeroDomainLabelDegree("parallelzerodomainlabeldegree.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        thread1 = new Thread(runnable1);
+        thread2 = new Thread(runnable2);
+        thread3 = new Thread(runnable3);
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread1.join();
+        thread2.join();
+        thread3.join();
 
-        testSerialZeroDomainNReach("serialzerodomainNReach.txt");
-        testCachedZeroDomainNReach("cachedzerodomainNReach.txt");
-        testParallelZeroDomainNReach("parallelzerodomainNReach.txt");
-        testSerialAlldiffNReach("serialalldiffNReach.txt");
-        testCachedAlldiffNReach("cachedalldiffNReach.txt");
-        testParallelAlldiffNReach("parallelalldiffNReach.txt");
+        runnable1 = () -> {
+            try {
+                testSerialAlldiffLabelDegree("serialalldifflabeldegree.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable2 = () -> {
+            try {
+                testCachedAlldiffLabelDegree("cachedalldifflabeldegree.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable3 = () -> {
+            try {
+                testParallelAlldiffLabelDegree("parallelalldifflabeldegree.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        thread1 = new Thread(runnable1);
+        thread2 = new Thread(runnable2);
+        thread3 = new Thread(runnable3);
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread1.join();
+        thread2.join();
+        thread3.join();
+
+        runnable1 = () -> {
+            try {
+                testSerialZeroDomainUnmatchedDegrees("serialzerodomainUnmatchedDegrees.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable2 = () -> {
+            try {
+                testCachedZeroDomainUnmatchedDegrees("cachedzerodomainUnmatchedDegrees.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable3 = () -> {
+            try {
+                testParallelZeroDomainUnmatchedDegrees("parallelzerodomainUnmatchedDegrees.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+
+        thread1 = new Thread(runnable1);
+        thread2 = new Thread(runnable2);
+        thread3 = new Thread(runnable3);
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread1.join();
+        thread2.join();
+        thread3.join();
+
+        runnable1 = () -> {
+            try {
+                testSerialAlldiffUnmatched("serialalldiffUnmatchedDegrees.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable2 = () -> {
+            try {
+                testCachedAlldiffUnmatched("cachedalldiffUnmatchedDegrees.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable3 = () -> {
+            try {
+                testParallelAlldiffUnmatched("parallelalldiffUnmatchedDegrees.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+
+        thread1 = new Thread(runnable1);
+        thread2 = new Thread(runnable2);
+        thread3 = new Thread(runnable3);
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread1.join();
+        thread2.join();
+        thread3.join();
+
+        runnable1 = () -> {
+            try {
+                testSerialZeroDomainMReach("serialzerodomainMReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable2 = () -> {
+            try {
+                testCachedZeroDomainMReach("cachedzerodomainMReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable3 = () -> {
+            try {
+                testParallelZeroDomainMReach("parallelzerodomainMReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+
+        thread1 = new Thread(runnable1);
+        thread2 = new Thread(runnable2);
+        thread3 = new Thread(runnable3);
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread1.join();
+        thread2.join();
+        thread3.join();
+
+        runnable1 = () -> {
+            try {
+                testSerialAlldiffMReach("serialalldiffMReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable2 = () -> {
+            try {
+                testCachedAlldiffMReach("cachedalldiffMReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable3 = () -> {
+            try {
+                testParallelAlldiffMReach("parallelalldiffMReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+
+        thread1 = new Thread(runnable1);
+        thread2 = new Thread(runnable2);
+        thread3 = new Thread(runnable3);
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread1.join();
+        thread2.join();
+        thread3.join();
+
+        runnable1 = () -> {
+            try {
+                testSerialZeroDomainNReach("serialzerodomainNReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable2 = () -> {
+            try {
+                testCachedZeroDomainNReach("cachedzerodomainNReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable3 = () -> {
+            try {
+                testParallelZeroDomainNReach("parallelzerodomainNReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+
+        thread1 = new Thread(runnable1);
+        thread2 = new Thread(runnable2);
+        thread3 = new Thread(runnable3);
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread1.join();
+        thread2.join();
+        thread3.join();
+
+        runnable1 = () -> {
+            try {
+                testSerialAlldiffNReach("serialalldiffNReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable2 = () -> {
+            try {
+                testCachedAlldiffNReach("cachedalldiffNReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+        runnable3 = () -> {
+            try {
+                testParallelAlldiffNReach("parallelalldiffNReach.txt");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+
+        thread1 = new Thread(runnable1);
+        thread2 = new Thread(runnable2);
+        thread3 = new Thread(runnable3);
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread1.join();
+        thread2.join();
+        thread3.join();
 
     }
 
@@ -914,6 +1148,7 @@ public class PrunerTest {
                                 Set<Appendable> outputs) throws InterruptedException {
         Map<Configuration, Thread> threads = new HashMap<>();
         for (Configuration configuration : configurations) {
+            Object fileLock = new Object();
             Thread theThread = new Thread(() -> {
                 Random threadRandom = new Random(512);
                 List<Integer> x = new ArrayList<>();
@@ -923,7 +1158,18 @@ public class PrunerTest {
                 int lastCasesDone = 10;
                 while (lastCasesDone > 1) {
                     Random perXRandom = new Random(threadRandom.nextLong());
-                    System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " " + configuration + ", x = " + currentX + ", cases done = " + lastCasesDone);
+
+                    String toPrint = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " " + configuration + ", x = " + currentX + ", cases done = " + lastCasesDone;
+                    synchronized (fileLock) {
+                        outputs.forEach(y -> {
+                            try {
+                                y.append(toPrint + "\n");
+                                ((Flushable) y).flush();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    }
                     long timeStartForThisX = System.currentTimeMillis();
                     double totalTimeWith = 0d;
                     double totalTimeWithout = 0d;
@@ -975,14 +1221,16 @@ public class PrunerTest {
                     lastCasesDone = cases;
                     currentX++;
                 }
-                outputs.forEach(y -> {
-                    try {
-                        y.append(configuration.getString(x, contractionComparedToNot));
-                        ((Flushable) y).flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+                synchronized (fileLock) {
+                    outputs.forEach(y -> {
+                        try {
+                            y.append(configuration.getString(x, contractionComparedToNot) + "\n");
+                            ((Flushable) y).flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
             });
             threads.put(configuration, theThread);
         }
