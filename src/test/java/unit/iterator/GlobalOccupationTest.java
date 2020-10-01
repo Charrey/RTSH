@@ -8,7 +8,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.pruning.PartialMatching;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
@@ -22,6 +22,9 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -80,16 +83,16 @@ class GlobalOccupationTest {
                     continue;
                 }
                 GlobalOccupation occupation = new GlobalOccupation(data, settings);
-                occupation.occupyVertex(0, tail, new PartialMatching(new TIntArrayList(), new TIntObjectHashMap<>(), new TIntHashSet()));
-                TIntList vertexMatching = new TIntArrayList();
+                occupation.occupyVertex(0, tail, new PartialMatching(new ArrayList<>(), new TIntObjectHashMap<>(), new TIntHashSet()));
+                List<Integer> vertexMatching = new ArrayList<>();
                 vertexMatching.add(tail);
                 occupation.occupyVertex(1, head, new PartialMatching(vertexMatching, new TIntObjectHashMap<>(), new TIntHashSet()));
                 PathIterator iterator = PathIteratorFactory.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
-                    TIntList vertexMatching1 = new TIntArrayList();
+                    List<Integer> vertexMatching1 = new ArrayList<>();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE);
+                }, Long.MAX_VALUE, 0);
                 Path path;
                 while ((path = iterator.next()) != null) {
                     TIntSet occupationSays = occupation.getRoutingOccupied();

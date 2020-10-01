@@ -75,6 +75,7 @@ class BigGraphTest {
         int eastIn = sourceGraph.addVertex("label", "wire");
 
         int lut = sourceGraph.addVertex("label", "SLICE");
+
         int clockEnableWire = sourceGraph.addVertex("label", "wire");
         int clockEnableArcNorth = sourceGraph.addVertex("label", "arc");
         int clockEnableArcSouth = sourceGraph.addVertex("label", "arc");
@@ -84,14 +85,27 @@ class BigGraphTest {
         sourceGraph.addEdge(southIn, clockEnableArcSouth);
         sourceGraph.addEdge(westIn, clockEnableArcWest);
         sourceGraph.addEdge(eastIn, clockEnableArcEast);
+
         sourceGraph.addEdge(clockEnableArcNorth, clockEnableWire);
         sourceGraph.addEdge(clockEnableArcSouth, clockEnableWire);
         sourceGraph.addEdge(clockEnableArcWest, clockEnableWire);
         sourceGraph.addEdge(clockEnableArcEast, clockEnableWire);
+
         sourceGraph.addEdge(clockEnableWire, lut);
         sourceGraph.addEdge(northIn, lut);
         sourceGraph.addEdge(westIn, lut);
+        sourceGraph.addEdge(eastIn, lut);
+        sourceGraph.addEdge(southIn, lut);
 
+        int northOut = sourceGraph.addVertex("label", "wire");
+        int southOut = sourceGraph.addVertex("label", "wire");
+        int westOut = sourceGraph.addVertex("label", "wire");
+        int eastOut = sourceGraph.addVertex("label", "wire");
+
+        sourceGraph.addEdge(lut, northOut);
+        sourceGraph.addEdge(lut, southOut);
+        sourceGraph.addEdge(lut, eastOut);
+        sourceGraph.addEdge(lut, westOut);
 
         return sourceGraph;
 
@@ -121,6 +135,11 @@ class BigGraphTest {
     @Test
     void test2x2() throws IOException, InterruptedException {
         runTest("tile2x2.dot", (long) (0.1*60*1000));
+    }
+
+    @Test
+    void test3x3() throws IOException, InterruptedException {
+        runTest("tile3x3.dot", (long) (0.1*60*1000));
     }
 
 
@@ -166,7 +185,7 @@ class BigGraphTest {
     @NotNull
     private TestCase getTestCase(String filename) throws IOException {
         targetGraph = new MyGraph(true);
-        importDOT(targetGraph, Paths.get("/").resolve("home").resolve("pim").resolve("Documents").resolve("Trellis").resolve(filename).toFile());
+        importDOT(targetGraph, Paths.get(".").resolve("graphs").resolve(filename).toFile());
         targetGraph.randomizeWeights();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
         return testCase;

@@ -8,7 +8,9 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
+import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
+import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -51,8 +53,8 @@ public class KPathPathIterator extends PathIterator {
                              @NotNull GlobalOccupation occupation,
                              Supplier<Integer> verticesPlaced,
                              PartialMatchingProvider partialMatchingProvider,
-                             long timeoutTime) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), partialMatchingProvider, timeoutTime, verticesPlaced);
+                             long timeoutTime, int cripple) {
+        super(targetGraph, tail, head, settings, occupation, occupation.getTransaction(), partialMatchingProvider, timeoutTime, verticesPlaced, cripple);
         this.targetGraph = targetGraph;
         this.occupation = occupation;
         init = occupation.toString();
@@ -62,12 +64,17 @@ public class KPathPathIterator extends PathIterator {
 
     private Path previousPath = null;
 
+    @Override
+    public TIntSet getLocallyOccupied() {
+        return Util.emptyTIntSet;
+    }
+
     @Nullable
     @Override
     public Path getNext() {
-        transaction.uncommit(verticesPlaced.get());
+        transaction.uncommit(verticesPlaced.get(), this::getPartialMatching);
         if (previousPath != null) {
-            previousPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x));
+            previousPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
         }
         assert occupation.toString().equals(init) : "Initially: " + init + "; now: " + occupation;
         while (yen.hasNext()) {
@@ -78,25 +85,19 @@ public class KPathPathIterator extends PathIterator {
             if (refuseLongerPaths && hasUnnecessarilyLongPaths(pathFound)) {
                 continue;
             }
-            boolean okay = true;
-            for (int v : pathFound.intermediate()) {
-                try {
-                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), v, getPartialMatching());
-                } catch (DomainCheckerException e) {
-                    okay = false;
-                    break;
-                }
+            try {
+                transaction.occupyRoutingAndCheck(verticesPlaced.get(), pathFound, this::getPartialMatching);
+            } catch (DomainCheckerException e) {
+                continue;
             }
-            if (okay) {
-                try {
-                    transaction.commit(verticesPlaced.get(), getPartialMatching());
-                } catch (DomainCheckerException e) {
-                    return next();
-                }
-                previousPath = new Path(pathFound);
-                counter++;
-                return previousPath;
+            try {
+                transaction.commit(verticesPlaced.get(), this::getPartialMatching);
+            } catch (DomainCheckerException e) {
+                return next();
             }
+            previousPath = new Path(pathFound);
+            counter++;
+            return previousPath;
         }
         previousPath = null;
         return null;

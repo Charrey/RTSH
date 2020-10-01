@@ -55,8 +55,8 @@ public class ManagedControlPointIterator extends PathIterator {
                                        Supplier<Integer> verticesPlaced,
                                        PartialMatchingProvider provider,
                                        int maxControlPoints,
-                                       long timeoutTime) {
-        super(tail, head, settings, globalOccupation, globalOccupation.getTransaction(), provider, timeoutTime, verticesPlaced);
+                                       long timeoutTime, int cripple) {
+        super(graph, tail, head, settings, globalOccupation, globalOccupation.getTransaction(), provider, timeoutTime, verticesPlaced, cripple);
         this.graph = graph;
         this.globalOccupation = globalOccupation;
         this.settings = settings;
@@ -65,10 +65,15 @@ public class ManagedControlPointIterator extends PathIterator {
         this.verticesPlaced = verticesPlaced;
     }
 
+    @Override
+    public TIntSet getLocallyOccupied() {
+        return child == null ? Util.emptyTIntSet : child.getLocallyOccupied();
+    }
+
     @Nullable
     @Override
     public Path getNext() {
-        transaction.uncommit(verticesPlaced.get());
+        transaction.uncommit(verticesPlaced.get(), this::getPartialMatching);
         while (true) {
             Path path;
             do {
@@ -79,8 +84,9 @@ public class ManagedControlPointIterator extends PathIterator {
             } while (path != null && numberOfControlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
             if (path != null) {
                 try {
-                    transaction.commit(verticesPlaced.get(), getPartialMatching());
+                    transaction.commit(verticesPlaced.get(), this::getPartialMatching);
                 } catch (DomainCheckerException e) {
+                    System.out.println("Failed to commit");
                     continue;
                 }
                 Path finalPath = path;
@@ -102,7 +108,7 @@ public class ManagedControlPointIterator extends PathIterator {
 
     @Override
     public String debugInfo() {
-        return "controlpoints(" + numberOfControlPoints + ")";
+        return "controlpoints(" + controlPoints() + ")";
     }
 
     private boolean rightShiftPossible() {
@@ -118,7 +124,7 @@ public class ManagedControlPointIterator extends PathIterator {
             Path middleAltToRight = new Path(graph, middleToRight.asList().subList(i + 1, middleToRight.length()));
             TIntSet fictionalLocalOccupation = new TIntHashSet(localOccupations.get(1));
             middleAltToRight.forEach(fictionalLocalOccupation::add);
-            Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail());
+            Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(graph, globalOccupation, fictionalLocalOccupation, left, middleAlt, refuseLongerPaths, tail(), Util.emptyTIntSet);
             assert leftToMiddleAlt.isPresent();
             Path alternative = Util.merge(graph, leftToMiddleAlt.get(), middleAltToRight);
             if (alternative.isEqualTo(leftToRight)) {
@@ -142,7 +148,7 @@ public class ManagedControlPointIterator extends PathIterator {
 
         assert middleToRight.first() == middle;
         assert middleToRight.last() == right;
-        Optional<Path> skippedPath = Util.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right, refuseLongerPaths, tail());
+        Optional<Path> skippedPath = Util.filteredShortestPath(graph, globalOccupation, localOccupations.get(1), left, right, refuseLongerPaths, tail(), Util.emptyTIntSet);
         assert skippedPath.isPresent();
         assert skippedPath.get().first() == left;
         assert skippedPath.get().last() == right;

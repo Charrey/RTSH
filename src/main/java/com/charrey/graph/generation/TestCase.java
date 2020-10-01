@@ -8,9 +8,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -41,10 +39,14 @@ public class TestCase implements Iterable<MyGraph> {
     public TestCase(MyGraph sourceGraph, MyGraph targetGraph, int[] expectedVertexMatching, Map<MyEdge, Path> expectedEdgeMatching) {
         this.expectedVertexMatching = expectedVertexMatching == null ? null : expectedVertexMatching.clone();
         this.expectedEdgeMatching = expectedEdgeMatching == null ? null : Collections.unmodifiableMap(expectedEdgeMatching);
-        sourceGraph.randomizeWeights();
-        sourceGraph.lock();
-        targetGraph.randomizeWeights();
-        targetGraph.lock();
+        try {
+            sourceGraph.randomizeWeights();
+            sourceGraph.lock();
+        } catch (IllegalStateException ignored) {}
+        try {
+            targetGraph.randomizeWeights();
+            targetGraph.lock();
+        } catch (IllegalStateException ignored) {}
         this.sourceGraph = sourceGraph;
         this.targetGraph = targetGraph;
     }
@@ -73,5 +75,17 @@ public class TestCase implements Iterable<MyGraph> {
                 targetGraphCopy,
                 expectedVertexMatchingCopy,
                 expectedEdgeMatchingCopy);
+    }
+
+    public int[] getExpectedVertexMatching() {
+        return expectedVertexMatching;
+    }
+
+    @Override
+    public String toString() {
+        return "TestCase{" +
+                "targetGraph=\n" + targetGraph +
+                ", sourceGraph=\n" + sourceGraph +
+                "}\n";
     }
 }

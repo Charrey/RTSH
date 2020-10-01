@@ -1,8 +1,8 @@
 package com.charrey.settings;
 
 import com.charrey.settings.iterator.*;
-import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.settings.pruning.PruningMethod;
+import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.settings.pruning.domainfilter.*;
 
 import java.util.Set;
@@ -37,12 +37,12 @@ public class SettingsBuilder {
                 Integer.MAX_VALUE,
                 TargetVertexOrder.LARGEST_DEGREE_FIRST,
                 false,
-                true
+                false
         );
     }
 
     public SettingsBuilder(Settings settings) {
-        this.settings = (Settings) settings.clone();
+        this.settings = settings.newInstance();
     }
 
     private SettingsBuilder setFiltering(FilteringSettings filtering) {
@@ -144,6 +144,10 @@ public class SettingsBuilder {
         return setTargetVertexOrder(TargetVertexOrder.CLOSEST_TO_MATCHED);
     }
 
+    public SettingsBuilder withClosestTargetVertexOrderCached() {
+        return setTargetVertexOrder(TargetVertexOrder.CLOSEST_TO_MATCHED_CACHED);
+    }
+
     public SettingsBuilder withLabelDegreeFiltering() {
         return setFiltering(new LabelDegreeFiltering());
     }
@@ -160,8 +164,12 @@ public class SettingsBuilder {
         return setFiltering(new MReachabilityFiltering());
     }
 
+    public SettingsBuilder withNeighbourReachabilityFiltering(int level) {
+        return setFiltering(new NReachabilityFiltering(level));
+    }
+
     public SettingsBuilder withNeighbourReachabilityFiltering() {
-        return setFiltering(new NReachabilityFiltering());
+        return setFiltering(new NReachabilityFiltering(Integer.MAX_VALUE));
     }
 
     public SettingsBuilder avoidingLongerPaths() {
@@ -255,21 +263,25 @@ public class SettingsBuilder {
         lockTargetVertexOrder = true;
         lockDFSCaching = true;
         lockContraction = true;
+        if (settings.getFiltering() instanceof MReachabilityFiltering && settings.getWhenToApply() == WhenToApply.CACHED) {
+            ((MReachabilityFiltering)settings.getFiltering()).setCached();
+        }
         check();
         return settings;
     }
 
     private void check() {
-        if (settings.getWhenToApply() != WhenToApply.CACHED && settings.getPruningMethod() == PruningMethod.ALLDIFFERENT) {
-            throw new IllegalArgumentException("Alldifferent is not compatible with serial or parallel pruning.");
-        }
+//        if (settings.getWhenToApply() != WhenToApply.CACHED && settings.getPruningMethod() == PruningMethod.ALLDIFFERENT) {
+//            throw new IllegalArgumentException("Alldifferent is not compatible with serial or parallel pruning.");
+//        }
         if (settings.getPathsLimit() < 1) {
             throw new IllegalArgumentException("Paths limit must be greater than 0.");
         }
         if (settings.getVertexLimit() < 1) {
-            throw new IllegalArgumentException("Paths limit must be greater than 0.");
+            throw new IllegalArgumentException("Vertex limit must be greater than 0.");
         }
     }
+
 
 
 }

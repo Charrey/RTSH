@@ -12,7 +12,7 @@ import com.charrey.pathiterators.dfs.CachedDFSPathIterator;
 import com.charrey.pathiterators.dfs.InPlaceDFSPathIterator;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.pruning.PartialMatching;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
@@ -25,7 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class NoDuplicatesTest {
@@ -86,15 +88,24 @@ class NoDuplicatesTest {
                 }
                 GlobalOccupation occupation = new GlobalOccupation(data, settings);
                 occupation.occupyVertex(0, tail, new PartialMatching());
-                TIntList vertexMatching = new TIntArrayList();
+                List<Integer> vertexMatching = new ArrayList<>();
                 vertexMatching.add(tail);
                 occupation.occupyVertex(1, head, new PartialMatching(vertexMatching));
-                PathIterator iterator = PathIteratorFactory.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
-                    TIntList vertexMatching1 = new TIntArrayList();
+                PathIterator iterator = PathIteratorFactory.get(targetGraph,
+                        data,
+                        tail,
+                        head,
+                        occupation,
+                        () -> 2,
+                        settings,
+                        () -> {
+                    List<Integer> vertexMatching1 = new ArrayList<>();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE);
+                },
+                        Long.MAX_VALUE,
+                        0);
                 Map<Path, Witness> seen = new HashMap<>();
                 Path path;
                 //5 4 1 3 2 is reached with controlpoints {4, 3} and with {4, 1, 3}.

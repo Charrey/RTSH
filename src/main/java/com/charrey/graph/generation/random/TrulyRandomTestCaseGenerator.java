@@ -17,10 +17,10 @@ public abstract class TrulyRandomTestCaseGenerator extends TestCaseGenerator {
      * Random object that has to be used for all non-deterministic operations.
      */
     protected final Random random;
-    private int targetEdges;
-    private int targetNodes;
-    private int patternEdges;
-    private int patternNodes;
+    protected int targetEdges;
+    protected int targetNodes;
+    protected int patternEdges;
+    protected int patternNodes;
 
     /**
      * Instantiates a new test case generator.
@@ -42,8 +42,8 @@ public abstract class TrulyRandomTestCaseGenerator extends TestCaseGenerator {
     @NotNull
     @Override
     protected TestCase getRandom() {
-        MyGraph patternGraph = randomGraph(patternNodes, patternEdges);
-        MyGraph targetGraph = randomGraph(targetNodes, targetEdges);
+        MyGraph patternGraph = randomGraph(patternNodes, patternEdges, true);
+        MyGraph targetGraph = randomGraph(targetNodes, targetEdges, false);
         return new TestCase(patternGraph, targetGraph, null, null);
     }
 
@@ -66,7 +66,10 @@ public abstract class TrulyRandomTestCaseGenerator extends TestCaseGenerator {
      * @param edges the number of edges the graph needs to have.
      * @return a random graph with the correct number of nodes and edges.
      */
-    protected abstract MyGraph randomGraph(int nodes, int edges);
+    protected abstract MyGraph randomGraph(int nodes, int edges, boolean source);
 
 
+    protected double getNodeFactor() {
+        return nodeFactor;
+    }
 }

@@ -1,5 +1,7 @@
 package com.charrey.pruning;
 
+import com.charrey.matching.PartialMatchingProvider;
+
 /**
  * Domain checker class that performs no pruning.
  */
@@ -11,22 +13,22 @@ public class NoPruner extends Pruner {
     }
 
     @Override
-    public void afterReleaseVertex(int verticesPlaced, int released) {
+    public void afterReleaseVertex(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider) {
         //do nothing
     }
 
     @Override
-    public void afterReleaseEdge(int verticesPlaced, int released) {
+    public void afterReleaseEdge(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider) {
         //do nothing
     }
 
     @Override
-    public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException {
+    public void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         //do nothing
     }
 
     @Override
-    public void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException {
+    public void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         //do nothing
     }
 
@@ -36,7 +38,7 @@ public class NoPruner extends Pruner {
     }
 
     @Override
-    public boolean isUnfruitfulCached(int verticesPlaced) {
+    public boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced) {
         return false;
     }
 
@@ -51,7 +53,7 @@ public class NoPruner extends Pruner {
     }
 
     @Override
-    public void checkPartial(PartialMatching partialMatching) throws DomainCheckerException {
+    public void checkPartial(PartialMatchingProvider partialMatching, int lastPlaced) throws DomainCheckerException {
         //do nothing
     }
 

@@ -3,6 +3,8 @@ package com.charrey.matching.candidate;
 import com.charrey.graph.MyGraph;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
+import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
+import com.charrey.settings.pruning.domainfilter.UnmatchedDegreesFiltering;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -32,7 +34,7 @@ public abstract class VertexCandidateIterator implements Iterator<Integer> {
 
     Iterator<Integer> getInnerIterator() {
         return targetGraph.vertexSet().stream().filter(x ->
-                settings.getFiltering().filter(sourceGraph, targetGraph, sourceGraphVertex, x, occupation) && !occupation.isOccupied(x)).iterator();
+                new UnmatchedDegreesFiltering().filter(sourceGraph, targetGraph, sourceGraphVertex, x, occupation) && !occupation.isOccupied(x)).iterator();
     }
 
     public abstract void doReset();

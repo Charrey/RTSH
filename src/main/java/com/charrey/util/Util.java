@@ -3,9 +3,8 @@ package com.charrey.util;
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.occupation.AbstractOccupation;
+import com.charrey.occupation.ReadOnlyOccupation;
 import gnu.trove.TCollections;
-import gnu.trove.list.TIntList;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -69,19 +68,45 @@ public class Util {
      * @param to                the target vertex
      * @param refuseLongerPaths whether to refuse paths that use unnecessarily many resources
      * @param tail              the final goal vertex of this path (if this is a recursive call)
+     * @param allowedToBeOccupied set of vertices that are allowed to be occupied by the global occupation in this path.
      * @return the path
      */
     @NotNull
-    public static Optional<Path> filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull AbstractOccupation globalOccupation, @NotNull TIntSet localOccupation, int from, int to, boolean refuseLongerPaths, int tail) {
+    public static Optional<Path> filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull ReadOnlyOccupation globalOccupation, @NotNull TIntSet localOccupation, int from, int to, boolean refuseLongerPaths, int tail, TIntSet allowedToBeOccupied) {
         assert targetGraph.containsVertex(from);
         assert targetGraph.containsVertex(to);
         Graph<Integer, MyEdge> fakeGraph = new MaskSubgraph<>(targetGraph, x ->
                 x != from &&
                         x != to &&
-                        (localOccupation.contains(x) || globalOccupation.isOccupied(x) ||
+                        (localOccupation.contains(x) || (globalOccupation.isOccupied(x) && !allowedToBeOccupied.contains(x)) ||
                                 (refuseLongerPaths && violatesLongerPaths(targetGraph, x, from, to, tail, localOccupation))), x -> false);
         GraphPath<Integer, MyEdge> algo = new BFSShortestPath<>(fakeGraph).getPath(from, to);
         return algo == null ? Optional.empty() : Optional.of(new Path(targetGraph, algo));
+    }
+
+    public static Optional<Path> filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull ReadOnlyOccupation globalOccupation, @NotNull TIntSet localOccupation, TIntSet from, TIntSet to) {
+        int virtualSource = targetGraph.addVertex();
+        int virtualTarget = targetGraph.addVertex();
+        to.forEach(integer -> {
+            targetGraph.addEdge(integer, virtualTarget);
+            return true;
+        });
+        from.forEach(integer -> {
+            targetGraph.addEdge(virtualSource, integer);
+            return true;
+        });
+        TIntSet allowedToBeVertexOccupied = new TIntHashSet();
+        allowedToBeVertexOccupied.addAll(from);
+        allowedToBeVertexOccupied.addAll(to);
+
+        Optional<Path> toReturn = filteredShortestPath(targetGraph, globalOccupation, localOccupation, virtualSource, virtualTarget, false, -1, allowedToBeVertexOccupied);
+
+        if (toReturn.isPresent()) {
+            toReturn = Optional.of(toReturn.get().intermediate());
+        }
+        targetGraph.removeVertex(virtualSource);
+        targetGraph.removeVertex(virtualTarget);
+        return toReturn;
     }
 
     /**

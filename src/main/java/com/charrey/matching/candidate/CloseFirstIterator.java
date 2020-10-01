@@ -5,34 +5,68 @@ import com.charrey.graph.MyGraph;
 import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.TIntDoubleMap;
+import gnu.trove.map.hash.TIntDoubleHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 import org.jgrapht.alg.shortestpath.IntVertexDijkstraShortestPath;
 import org.jgrapht.graph.AsUndirectedGraph;
 
-import java.util.Iterator;
-import java.util.Optional;
+import java.util.*;
 
 public class CloseFirstIterator extends VertexCandidateIterator {
 
     private final VertexMatching vertexMatching;
+    private final boolean cached;
 
     private int lastReturned = ABSENT;
     private double lastDistance = 0d;
 
-    CloseFirstIterator(MyGraph sourceGraph, MyGraph targetGraph, Settings settings, GlobalOccupation occupation, int sourceGraphVertex, VertexMatching vertexMatching) {
+    private TIntList candidatesSorted;
+    private int nextIndexToPrepare = 0;
+
+    CloseFirstIterator(MyGraph sourceGraph,
+                       MyGraph targetGraph,
+                       Settings settings,
+                       GlobalOccupation occupation,
+                       int sourceGraphVertex,
+                       VertexMatching vertexMatching,
+                       boolean cached) {
         super(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex);
         this.vertexMatching = vertexMatching;
         reset();
+        this.cached = cached;
+    }
+
+    private void populateCandidates() {
+        TIntSet matchedTargetVertices = new TIntHashSet(Graphs.neighborSetOf(sourceGraph, sourceGraphVertex).stream().filter(x -> x < vertexMatching.get().size()).mapToInt(x -> vertexMatching.get().get(x)).toArray());
+        Iterator<Integer> it = getInnerIterator();
+        ShortestPathAlgorithm<Integer, MyEdge> shortestPathAlgorithm = new IntVertexDijkstraShortestPath<>(targetGraph.isDirected() ? new AsUndirectedGraph<>(targetGraph) : targetGraph);
+        TIntDoubleMap distances = new TIntDoubleHashMap();
+        while (it.hasNext()) {
+            int candidate = it.next();
+            Optional<Double> candidateDistance2 = getCandidateDistance(candidate, Double.MAX_VALUE, matchedTargetVertices, shortestPathAlgorithm);
+            if (candidateDistance2.isPresent()) { //otherwise it is not a valid candidate
+                double actualDistance = candidateDistance2.get();
+                distances.put(candidate, actualDistance);
+            }
+        }
+        Integer[] keyObjects = ArrayUtils.toObject(distances.keys());
+        Arrays.sort(keyObjects, Comparator.comparingDouble(distances::get));
+        candidatesSorted = new TIntArrayList(ArrayUtils.toPrimitive(keyObjects));
     }
 
     @Override
     public void doReset() {
         this.nextToReturn = ABSENT;
         lastDistance = 0d;
+        nextIndexToPrepare = 0;
     }
 
     private static Optional<Double> getCandidateDistance(int candidate, double bestDistanceSoFar, TIntSet matchedTargetVertices, ShortestPathAlgorithm<Integer, MyEdge> shortestPathAlgorithm) {
@@ -53,10 +87,32 @@ public class CloseFirstIterator extends VertexCandidateIterator {
         return Optional.of(candidateDistance[0]);
     }
 
+
+
     @Override
     protected void prepareNextToReturn() {
-        TIntSet matchedTargetVertices = new TIntHashSet(Graphs.neighborSetOf(sourceGraph, sourceGraphVertex).stream().filter(x -> x < vertexMatching.getPlacement().size()).mapToInt(x -> vertexMatching.getPlacement().get(x)).toArray());
+        if (cached) {
+            if (nextIndexToPrepare == 0) {
+                populateCandidates();
+            }
+            prepareNextToReturnCached();
+        } else {
+            prepareNextToReturnUncached();
+        }
 
+    }
+
+    private void prepareNextToReturnCached() {
+        if (nextIndexToPrepare >= candidatesSorted.size()) {
+            nextToReturn = EXHAUSTED;
+        } else {
+            nextToReturn = candidatesSorted.get(nextIndexToPrepare);
+            nextIndexToPrepare++;
+        }
+    }
+
+    private void prepareNextToReturnUncached() {
+        TIntSet matchedTargetVertices = new TIntHashSet(Graphs.neighborSetOf(sourceGraph, sourceGraphVertex).stream().filter(x -> x < vertexMatching.get().size()).mapToInt(x -> vertexMatching.get().get(x)).toArray());
         int bestNewCandidate = Integer.MAX_VALUE;
         double bestNewDistance = Double.POSITIVE_INFINITY;
 

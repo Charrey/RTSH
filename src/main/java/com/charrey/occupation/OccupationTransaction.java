@@ -2,8 +2,8 @@ package com.charrey.occupation;
 
 import com.charrey.algorithms.UtilityData;
 import com.charrey.graph.Path;
+import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.pruning.PartialMatching;
 import com.charrey.pruning.Pruner;
 import com.charrey.util.MyLinkedList;
 import gnu.trove.set.TIntSet;
@@ -18,7 +18,7 @@ import java.util.Set;
  * This is linked to a GlobalOccupation object that stores other occupations. All changes can be pushed to the
  * GlobalOccupation object or made undone in single method calls.
  */
-public class OccupationTransaction implements AbstractOccupation {
+public class OccupationTransaction implements ReadOnlyOccupation {
 
     private final TIntSet routingOccupied;
     private final TIntSet vertexOccupied;
@@ -53,9 +53,9 @@ public class OccupationTransaction implements AbstractOccupation {
      * @param vertex              the vertex being occupied for routing purposes
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.                                If this is thrown, this class remains unchanged.
      */
-    public void occupyRoutingAndCheck(Integer vertexPlacementSize, Integer vertex, PartialMatching partialMatching) throws DomainCheckerException {
+    public void occupyRoutingAndCheck(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         if (routingOccupied.contains(vertex)) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Vertex was already occupied for routing!");
         }
         routingOccupied.add(vertex);
         try {
@@ -74,13 +74,16 @@ public class OccupationTransaction implements AbstractOccupation {
      * @param path                the path whose vertices to occupy
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search.                                If this is thrown, this class remains unchanged.
      */
-    public void occupyRoutingAndCheck(int vertexPlacementSize, @NotNull Path path, PartialMatching partialMatching) throws DomainCheckerException {
+    public void occupyRoutingAndCheck(int vertexPlacementSize, @NotNull Path path, PartialMatchingProvider partialMatching) throws DomainCheckerException {
+        if (path.length() <= 2) {
+            return;
+        }
         for (int i = 0; i < path.intermediate().length(); i++) {
             try {
                 occupyRoutingAndCheck(vertexPlacementSize, path.intermediate().get(i), partialMatching);
             } catch (DomainCheckerException e) {
                 for (int j = i - 1; j >= 0; j--) {
-                    releaseRouting(vertexPlacementSize, path.intermediate().get(j));
+                    releaseRouting(vertexPlacementSize, path.intermediate().get(j), partialMatching);
                 }
                 throw e;
             }
@@ -94,16 +97,16 @@ public class OccupationTransaction implements AbstractOccupation {
      * @param vertex              the vertex that is being unregistered
      * @throws IllegalArgumentException thrown when the vertex was not occupied for routing
      */
-    public void releaseRouting(int vertexPlacementSize, int vertex) {
+    public void releaseRouting(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatchingProvider) {
         if (!isOccupiedRouting(vertex)) {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for routing purposes): " + vertex);
         }
         routingOccupied.remove(vertex);
-        domainChecker.afterReleaseEdge(vertexPlacementSize, vertex);
+        domainChecker.afterReleaseEdge(vertexPlacementSize, vertex, partialMatchingProvider);
         waiting.removeFromBack(new TransactionElement(vertexPlacementSize, vertex));
     }
 
-    private boolean isOccupiedRouting(int v) {
+    public boolean isOccupiedRouting(Integer v) {
         return routingOccupied.contains(v);
     }
 
@@ -121,7 +124,7 @@ public class OccupationTransaction implements AbstractOccupation {
      * to mark vertex 16 as occupied and commit() was called, the occupation would be visible everywhere in this
      * program. By calling uncommit(), the occupation becomes hidden again.
      */
-    public void uncommit(int verticesPlaced) {
+    public void uncommit(int verticesPlaced, PartialMatchingProvider partialMatchingProvider) {
         if (!inCommittedState) {
             return;
         }
@@ -134,10 +137,10 @@ public class OccupationTransaction implements AbstractOccupation {
         }
         for (int i = waiting.size() - 1; i >= 0; i--) {
             TransactionElement transactionElement = waiting.get(i);
-            parent.releaseRouting(transactionElement.verticesPlaced, transactionElement.added);
+            parent.releaseRouting(transactionElement.verticesPlaced, transactionElement.added, partialMatchingProvider);
         }
         for (int coverElement : totalCover) {
-            parent.releaseRouting(verticesPlaced, coverElement);
+            parent.releaseRouting(verticesPlaced, coverElement, partialMatchingProvider);
         }
         inCommittedState = false;
     }
@@ -145,7 +148,7 @@ public class OccupationTransaction implements AbstractOccupation {
     /**
      * Make the changes in this transaction visible to the rest of this program.
      */
-    public void commit(int vertexPlacementSize, PartialMatching partialMatching) throws DomainCheckerException {
+    public void commit(int vertexPlacementSize, PartialMatchingProvider partialMatching) throws DomainCheckerException {
         if (inCommittedState) {
             throw new IllegalStateException("You must uncommit before committing.");
         }
@@ -166,11 +169,15 @@ public class OccupationTransaction implements AbstractOccupation {
                 parent.occupyRoutingAndCheck(vertexPlacementSize, coverElement, partialMatching);
                 committed.add(new TransactionElement(vertexPlacementSize, coverElement));
             } catch (DomainCheckerException e) {
-                committed.forEach(x -> parent.releaseRouting(x.verticesPlaced, x.added));
+                committed.forEach(x -> parent.releaseRouting(x.verticesPlaced, x.added, partialMatching));
                 throw e;
             }
         }
         inCommittedState = true;
+    }
+
+    public boolean isFruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced) {
+        return  !domainChecker.isUnfruitful(verticesPlaced, partialMatchingProvider, lastPlaced);
     }
 
     private static class TransactionElement {

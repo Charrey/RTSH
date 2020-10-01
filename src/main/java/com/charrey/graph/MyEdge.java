@@ -3,6 +3,7 @@ package com.charrey.graph;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.function.Supplier;
 
@@ -10,6 +11,7 @@ public class MyEdge implements Comparable<MyEdge>, Serializable {
 
     private Integer source;
     private Integer target;
+    private int id;
 
     public MyEdge() {
     }
@@ -56,10 +58,18 @@ public class MyEdge implements Comparable<MyEdge>, Serializable {
     }
 
     public static class MyEdgeSupplier implements Supplier<MyEdge>, Serializable {
-
         @Override
         public MyEdge get() {
             return new MyEdge();
         }
+    }
+
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
     }
 }

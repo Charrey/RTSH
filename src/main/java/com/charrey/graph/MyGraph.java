@@ -1,8 +1,10 @@
 package com.charrey.graph;
 
+import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
+import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.DefaultGraphType;
@@ -13,6 +15,8 @@ import org.jgrapht.util.SupplierUtil;
 
 import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -28,18 +32,21 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     private double maxEdgeWeight = 1d;
     private final List<Map<String, Set<String>>> attributes;
     private boolean locked = false;
-    private Map<MyEdge, List<Map<String, Set<String>>>> chains;
+    private Map<MyEdge, Chain> chains = new HashMap<>();
+
+    private int edgeCounter = 0;
+
+    @Override
+    public MyEdge removeEdge(Integer sourceVertex, Integer targetVertex) {
+        MyEdge toRemove = getAllEdges(sourceVertex, targetVertex).stream().max(Comparator.comparingInt(MyEdge::getId)).get();
+        removeEdge(toRemove);
+        return toRemove;
+    }
 
 
     @Override
     public boolean equals(Object o) {
         return this == o;
-        //        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        if (!super.equals(o)) return false;
-//        MyGraph myGraph = (MyGraph) o;
-//        return directed == myGraph.directed &&
-//                attributes.equals(myGraph.attributes);
     }
 
     @Override
@@ -67,6 +74,32 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         attributes = new ArrayList<>();
     }
 
+
+
+    public MyGraph(Graph<Integer, MyEdge> copyOf) {
+        super(
+                SupplierUtil.createIntegerSupplier(), new MyEdge.MyEdgeSupplier(),
+                copyOf.getType().isDirected() ?
+                        new DefaultGraphType.Builder()
+                                .directed().allowMultipleEdges(true).allowSelfLoops(true).weighted(true)
+                                .build() :
+                        new DefaultGraphType.Builder()
+                                .undirected().allowMultipleEdges(true).allowSelfLoops(true).weighted(true)
+                                .build()
+        );
+        this.directed = copyOf.getType().isDirected();
+        this.attributes = new ArrayList<>();
+        copyOf.vertexSet().stream().sorted().forEach(vertex -> {
+            addVertex(vertex);
+            if (copyOf instanceof MyGraph) {
+                ((MyGraph) copyOf).getAttributes(vertex).forEach((key, value1) -> value1.forEach(value -> addAttribute(vertex, key, value)));
+            }
+        });
+        copyOf.edgeSet().forEach(myEdge -> addEdge(myEdge.getSource(), myEdge.getTarget(), myEdge));
+        copyOf.edgeSet().forEach(myEdge -> setEdgeWeight(myEdge, copyOf.getEdgeWeight(myEdge)));
+        setVertexSupplier(SupplierUtil.createIntegerSupplier(copyOf.vertexSet().size()));
+    }
+
     /**
      * Applies a new vertex ordering to a graph, yielding a new graph that has this ordering. The old graph remains
      * unmodified.
@@ -83,23 +116,16 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             res.addVertex(newVertex);
             int oldVertex = newToOld[newVertex];
             source.attributes.get(oldVertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(newVertexFinal, key, value)));
-            Set<Integer> predecessors = Graphs.predecessorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableSet());
 
-            predecessors.forEach(predecessor -> {
-                for (int i = 0; i < source.getAllEdges(newToOld[predecessor], newToOld[newVertexFinal]).size(); i++) {
-                    res.addEdge(predecessor, newVertexFinal);
-                }
-            });
-
-            Set<Integer> successors = new HashSet<>(Graphs.successorListOf(source, oldVertex).stream().map(x -> oldToNew[x]).filter(x -> x <= newVertexFinal).collect(Collectors.toUnmodifiableSet()));
+            List<Integer> predecessors = source.incomingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableList());
+            predecessors.forEach(predecessor -> res.addEdge(predecessor, newVertexFinal));
+            List<Integer> successors = source.outgoingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x <= newVertexFinal).collect(Collectors.toList());
             if (!source.directed) {
-                successors.removeAll(predecessors);
-            }
-            successors.forEach(successor -> {
-                for (int i = 0; i < source.getAllEdges(newToOld[newVertexFinal], newToOld[successor]).size(); i++) {
-                    res.addEdge(newVertexFinal, successor);
+                for (Integer predecessor : predecessors) {
+                    successors.remove(predecessor);
                 }
-            });
+            }
+            successors.forEach(successor -> res.addEdge(newVertexFinal, successor));
         }
         if (source.chains != null) {
             source.chains.forEach((key, value) -> {
@@ -109,6 +135,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
                 res.chains.put(newEdges.get(), value);
             });
         }
+        res.setVertexSupplier(SupplierUtil.createIntegerSupplier(source.vertexSet().size()));
         return res;
     }
 
@@ -118,7 +145,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             throw new IllegalStateException(GRAPH_IS_LOCKED_MESSAGE);
         }
         int toReturn = super.addVertex();
-        attributes.add(new HashMap<>());
+        attributes.add(new ConcurrentHashMap<>());
         assert toReturn == attributes.size() - 1;
         return toReturn;
     }
@@ -141,6 +168,8 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         }
         defaultEdge.setSource(sourceVertex);
         defaultEdge.setTarget(targetVertex);
+        defaultEdge.setId(edgeCounter);
+        edgeCounter++;
         return super.addEdge(sourceVertex, targetVertex, defaultEdge);
     }
 
@@ -169,6 +198,8 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         super.addEdge(sourceVertex, targetVertex, res);
         this.setEdgeWeight(res, maxEdgeWeight);
         maxEdgeWeight = Math.nextAfter(maxEdgeWeight, Double.POSITIVE_INFINITY);
+        res.setId(edgeCounter);
+        edgeCounter++;
         return res;
     }
 
@@ -188,9 +219,28 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     @Override
     public String toString() {
         DOTExporter<Integer, MyEdge> exporter = new DOTExporter<>(x -> Integer.toString(x));
-        exporter.setVertexAttributeProvider(integer ->
-                attributes.get(integer).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                        x -> new DefaultAttribute<>((x.getKey().equals(LABEL) ? integer + " " : "") + x.getValue().toString(), AttributeType.STRING))));
+        MultipleKeyMap<Deque<Chain>> chainscopy = new MultipleKeyMap<>();
+        chains.forEach((key, value) -> {
+            if (!chainscopy.containsKey(key.getSource(), key.getTarget())) {
+                chainscopy.put(key.getSource(), key.getTarget(), new LinkedList<>());
+            }
+            chainscopy.get(key.getSource(), key.getTarget()).add(value);
+        });
+        exporter.setVertexAttributeProvider(integer -> {
+            if (attributes.get(integer).values().stream().allMatch(Set::isEmpty)) {
+                return null;
+            } else {
+                return attributes.get(integer).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                        x -> new DefaultAttribute<>((x.getKey().equals(LABEL) ? integer + " " : "") + x.getValue().toString(), AttributeType.STRING)));
+            }
+        });
+        exporter.setEdgeAttributeProvider(myEdge -> {
+            if (!chainscopy.containsKey(myEdge.getSource(), myEdge.getTarget()) || chainscopy.get(myEdge.getSource(), myEdge.getTarget()).isEmpty()) {
+                return null;
+            } else {
+                return Map.of(LABEL, new DefaultAttribute<>("chain:" + chainscopy.get(myEdge.getSource(), myEdge.getTarget()).poll(), AttributeType.STRING));
+            }
+        });
         StringWriter writer = new StringWriter();
         exporter.exportGraph(this, writer);
         return writer.toString();
@@ -203,9 +253,8 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         }
         boolean toReturn = super.addVertex(vertex);
         if (toReturn) {
-            attributes.add(new HashMap<>());
-            if (vertex != attributes.size() - 1) {
-                throw new IllegalStateException("Vertices must be added in ascending consecutive order!");
+            while (vertex != attributes.size() - 1) {
+                attributes.add(new ConcurrentHashMap<>());
             }
         }
         return toReturn;
@@ -266,13 +315,9 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         return toReturn;
     }
 
-    private MyGraph contractUndirected() {
-        throw new UnsupportedOperationException(); //todo;
-    }
 
-
-    private TIntObjectMap<TIntObjectMap<Set<List<Map<String, Set<String>>>>>> chainCache = new TIntObjectHashMap<>();
-    public Set<List<Map<String, Set<String>>>> getChains(int from, int to) {
+    private TIntObjectMap<TIntObjectMap<Set<Chain>>> chainCache = new TIntObjectHashMap<>();
+    public Set<Chain> getChains(int from, int to) {
         if (chains == null) {
             return Collections.emptySet();
         }
@@ -281,8 +326,12 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         }
         if (!chainCache.get(from).containsKey(to)) {
             Set<MyEdge> edges = getAllEdges(from, to);
-            Set<List<Map<String, Set<String>>>>res = new HashSet<>();
-            edges.forEach(myEdge -> res.add(chains.get(myEdge)));
+            Set<Chain> res = new HashSet<>();
+            edges.forEach(myEdge -> {
+                if (chains.containsKey(myEdge)) {
+                    res.add(chains.get(myEdge));
+                }
+            });
             chainCache.get(from).put(to, res);
             return res;
         } else {
@@ -290,7 +339,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         }
     }
 
-    public void setChains(Map<MyEdge, List<Map<String, Set<String>>>> chains) {
+    public void setChains(Map<MyEdge, Chain> chains) {
         this.chains = chains;
     }
 }

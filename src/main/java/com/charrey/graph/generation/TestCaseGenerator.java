@@ -1,8 +1,13 @@
 package com.charrey.graph.generation;
 
+import com.charrey.graph.MyGraph;
+import gnu.trove.TCollections;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.logging.Logger;
+import java.util.Random;
 
 /**
  * The type Test case generator.
@@ -34,12 +39,14 @@ public abstract class TestCaseGenerator {
      * Pregenerate a specific number of test cases.
      *
      * @param amount the number of test cases to generate.
+     * @return this
      */
-    public void init(int amount) {
+    public TestCaseGenerator init(int amount) {
         testCases.clear();
         for (int i = 0; i < amount; i++) {
             testCases.add(getRandom());
         }
+        return this;
     }
 
     /**
@@ -54,4 +61,18 @@ public abstract class TestCaseGenerator {
      * @return a random test case.
      */
     protected abstract TestCase getRandom();
+
+
+    protected MyGraph shuffleIdentifiers(MyGraph graph, Random random) {
+        TIntList toAdd = new TIntArrayList();
+        graph.vertexSet().forEach(toAdd::add);
+        toAdd.shuffle(random);
+        toAdd = TCollections.unmodifiableList(toAdd);
+        int[] newToOld = toAdd.toArray();
+        int[] oldToNew = new int[newToOld.length];
+        for (int i = 0; i < newToOld.length; i++) {
+            oldToNew[newToOld[i]] = i;
+        }
+        return MyGraph.applyOrdering(graph, newToOld, oldToNew);
+    }
 }

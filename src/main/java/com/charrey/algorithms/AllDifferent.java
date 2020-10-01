@@ -85,6 +85,9 @@ public class AllDifferent {
      * @return whether the constraint is satisfied.
      */
     public boolean get(@NotNull List<TIntSet> compatibility) {
+        if (compatibility.stream().anyMatch(TIntSet::isEmpty)) {
+            return false;
+        }
         Model model = new Model(settings);
         IntVar[] variables = IntStream.range(0, compatibility.size())
                 .boxed()

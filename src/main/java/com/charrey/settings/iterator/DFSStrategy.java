@@ -14,8 +14,11 @@ public final class DFSStrategy extends IteratorSettings {
         return "DFS            ";
     }
 
+
     @Override
-    public Object clone() {
+    public IteratorSettings newInstance() {
         return new DFSStrategy();
     }
+
+
 }

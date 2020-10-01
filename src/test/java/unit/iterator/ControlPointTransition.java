@@ -8,7 +8,7 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pathiterators.controlpoint.ManagedControlPointIterator;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.pruning.PartialMatching;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.util.Util;
@@ -21,6 +21,7 @@ import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -118,15 +119,15 @@ class ControlPointTransition {
                 }
                 GlobalOccupation occupation = new GlobalOccupation(data, settings);
                 occupation.occupyVertex(0, tail, new PartialMatching());
-                TIntList vertexMatching = new TIntArrayList();
+                List<Integer> vertexMatching = new ArrayList<>();
                 vertexMatching.add(tail);
                 occupation.occupyVertex(1, head, new PartialMatching(vertexMatching));
                 ManagedControlPointIterator iterator = (ManagedControlPointIterator) PathIteratorFactory.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
-                    TIntList vertexMatching1 = new TIntArrayList();
+                    List<Integer> vertexMatching1 = new ArrayList<>();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE);
+                }, Long.MAX_VALUE, 0);
                 Path path;
                 while ((path = iterator.next()) != null) {
                     assertTrue(toTest.test(new Case(iterator.controlPoints(), occupation, path, iterator.finalPath(), iterator.firstPath())));

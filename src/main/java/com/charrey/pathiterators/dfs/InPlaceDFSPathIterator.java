@@ -6,12 +6,15 @@ import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.iterator.DFSStrategy;
 import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.settings.iterator.NewGreedyDFSStrategy;
 import com.charrey.settings.iterator.OldGreedyDFSStrategy;
 import com.charrey.settings.Settings;
 import com.charrey.util.datastructures.ScalingIntList;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -37,8 +40,8 @@ public class InPlaceDFSPathIterator extends PathIterator {
                                   GlobalOccupation occupation,
                                   Supplier<Integer> placementSize,
                                   PartialMatchingProvider provider,
-                                  long timeoutTime) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize);
+                                  long timeoutTime, int cripple) {
+        super(graph, tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize, cripple);
         this.head = head;
         this.exploration = new Path(graph, tail);
         this.nextOptionToTry = new ScalingIntList();
@@ -71,11 +74,12 @@ public class InPlaceDFSPathIterator extends PathIterator {
     @Override
     public Path getNext() {
         ScalingIntList previouschosenoption = new ScalingIntList(nextOptionToTry);
-        transaction.uncommit(placementSize.get());
+        transaction.uncommit(placementSize.get(), this::getPartialMatching);
         if (exploration.length() > 1) {
             removeHeadOfExploration();
         }
         while (exploration.last() != head) {
+            assert exploration.length() != 0;
             if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
                 return null;
             }
@@ -83,19 +87,21 @@ public class InPlaceDFSPathIterator extends PathIterator {
             if (!foundCandidate) {
                 return null;
             }
+            assert exploration.length() != 0;
         }
         assert Arrays.stream(nextOptionToTry.toArray()).anyMatch(x -> x != 0);
         assert !previouschosenoption.equals(nextOptionToTry);
         Path toReturn = commitAndReturn();
         //assert !toReturn.equals(lastReturned) : "Path returned multiple times: " + lastReturned;
         lastReturned = new Path(toReturn);
+        assert toReturn.length() >= 1;
         return toReturn;
     }
 
 
     private Path commitAndReturn() {
         try {
-            transaction.commit(placementSize.get(), getPartialMatching());
+            transaction.commit(placementSize.get(), this::getPartialMatching);
         } catch (DomainCheckerException e) {
             return next();
         }
@@ -104,6 +110,7 @@ public class InPlaceDFSPathIterator extends PathIterator {
     }
 
     private boolean findCandidate() {
+        assert exploration.length() != 0;
         while (true) {
             if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
                 return false;
@@ -136,7 +143,7 @@ public class InPlaceDFSPathIterator extends PathIterator {
         boolean foundCandidate;
         if (newHead != head) {
             try {
-                transaction.occupyRoutingAndCheck(this.placementSize.get(), newHead, getPartialMatching());
+                transaction.occupyRoutingAndCheck(this.placementSize.get(), newHead, this::getPartialMatching);
                 foundCandidate = true;
             } catch (DomainCheckerException e) {
                 exploration.removeLast();
@@ -148,13 +155,17 @@ public class InPlaceDFSPathIterator extends PathIterator {
         return foundCandidate;
     }
 
+    public TIntSet getLocallyOccupied() {
+        return new TIntHashSet(exploration.intermediate().asList());
+    }
+
 
     private boolean removeHeadOfExploration() {
         int removed = exploration.removeLast();
         if (exploration.isEmpty()) {
             return false;
         } else if (removed != head) {
-            transaction.releaseRouting(placementSize.get(), removed);
+            transaction.releaseRouting(placementSize.get(), removed, this::getPartialMatching);
         }
         return true;
     }

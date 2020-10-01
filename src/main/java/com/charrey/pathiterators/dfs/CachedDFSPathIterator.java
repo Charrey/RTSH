@@ -7,6 +7,8 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graphs;
@@ -23,7 +25,7 @@ public class CachedDFSPathIterator extends PathIterator {
     private final int head;
 
     @NotNull
-    private final int[][] outgoingNeighbours;
+    private final Supplier<int[][]> outgoingNeighbours;
     @NotNull
     private final int[] chosenOption;
     @NotNull
@@ -54,14 +56,14 @@ public class CachedDFSPathIterator extends PathIterator {
                                  GlobalOccupation occupation,
                                  Supplier<Integer> placementSize,
                                  PartialMatchingProvider provider,
-                                 @NotNull int[][] neighbours,
-                                 long timeoutTime) {
-        super(tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize);
+                                 @NotNull Supplier<int[][]> neighbours,
+                                 long timeoutTime, int cripple) {
+        super(graph, tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize, cripple);
         this.head = head;
         exploration = new Path(graph, tail);
         //noinspection AssignmentOrReturnOfFieldWithMutableType
         this.outgoingNeighbours = neighbours;
-        chosenOption = new int[neighbours.length];
+        chosenOption = new int[graph.vertexSet().size()];
         Arrays.fill(chosenOption, 0);
         this.occupation = occupation;
         this.placementSize = placementSize;
@@ -83,10 +85,15 @@ public class CachedDFSPathIterator extends PathIterator {
         return isCandidate;
     }
 
+    @Override
+    public TIntSet getLocallyOccupied() {
+        return new TIntHashSet(exploration.subPath(1, exploration.length()).asList());
+    }
+
     @Nullable
     @Override
     public Path getNext() {
-        transaction.uncommit(placementSize.get());
+        transaction.uncommit(placementSize.get(), this::getPartialMatching);
         if (exploration.length() > 1) {
             removeHead();
         }
@@ -105,8 +112,11 @@ public class CachedDFSPathIterator extends PathIterator {
 
     private boolean findCandidate(int indexOfHeadVertex) {
         boolean foundCandidate = false;
-        for (int i = chosenOption[indexOfHeadVertex]; i < outgoingNeighbours[exploration.last()].length; i++) {
-            int neighbour = outgoingNeighbours[exploration.last()][i];
+        for (int i = chosenOption[indexOfHeadVertex]; i < outgoingNeighbours.get()[exploration.last()].length; i++) {
+            if (!graph.containsEdge(exploration.last(), outgoingNeighbours.get()[exploration.last()][i])) { //initial cache is without cripple
+                continue;
+            }
+            int neighbour = outgoingNeighbours.get()[exploration.last()][i];
             if (isCandidate(neighbour)) {
                 addForbidden();
                 exploration.append(neighbour);
@@ -122,7 +132,7 @@ public class CachedDFSPathIterator extends PathIterator {
 
     private Path commitAndReturn() {
         try {
-            transaction.commit(placementSize.get(), getPartialMatching());
+            transaction.commit(placementSize.get(), this::getPartialMatching);
         } catch (DomainCheckerException e) {
             return next();
         }
@@ -132,7 +142,7 @@ public class CachedDFSPathIterator extends PathIterator {
 
     private boolean backtrackExhaustedOptions() {
         int foo = exploration.length() - 1;
-        while (chosenOption[foo] >= outgoingNeighbours[exploration.get(foo)].length) {
+        while (chosenOption[foo] >= outgoingNeighbours.get()[exploration.get(foo)].length) {
             if (!removeHead()) {
                 return true;
             }
@@ -145,7 +155,7 @@ public class CachedDFSPathIterator extends PathIterator {
         boolean foundCandidate;
         if (newHead != head) {
             try {
-                transaction.occupyRoutingAndCheck(this.placementSize.get(), newHead, getPartialMatching());
+                transaction.occupyRoutingAndCheck(this.placementSize.get(), newHead, this::getPartialMatching);
                 foundCandidate = true;
             } catch (DomainCheckerException e) {
                 if (!addedToForbidden.isEmpty()) {
@@ -186,7 +196,7 @@ public class CachedDFSPathIterator extends PathIterator {
         if (exploration.isEmpty()) {
             return false;
         } else if (removed != head) {
-            transaction.releaseRouting(placementSize.get(), removed);
+            transaction.releaseRouting(placementSize.get(), removed, this::getPartialMatching);
             chosenOption[exploration.length()] = 0;
         }
         chosenOption[exploration.length() - 1] += 1;

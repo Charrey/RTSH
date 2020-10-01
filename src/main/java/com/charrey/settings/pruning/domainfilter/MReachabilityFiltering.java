@@ -1,29 +1,22 @@
 package com.charrey.settings.pruning.domainfilter;
 
-import com.charrey.graph.MyGraph;
-import com.charrey.occupation.GlobalOccupation;
-import gnu.trove.set.TIntSet;
-
 public class MReachabilityFiltering implements FilteringSettings {
 
-    private final FilteringSettings innerFilter = new UnmatchedDegreesFiltering();
+
+    private boolean cached = false;
+
+    public void setCached() {
+        cached = true;
+    }
 
     @Override
-    public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, GlobalOccupation occupation) {
-        if (!innerFilter.filter(sourceGraph, targetGraph, sourceGraphVertex, targetGraphVertex, occupation)) {
-            return false;
+    public FilteringSettings newInstance() {
+        MReachabilityFiltering toReturn =  new MReachabilityFiltering();
+        if (cached) {
+            toReturn.setCached();
         }
-        throw new UnsupportedOperationException(); //TODO
+        return toReturn;
     }
 
-    @Override
-    public TIntSet sourceVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int targetGraphVertex, GlobalOccupation occupation) {
-        throw new UnsupportedOperationException(); //TODO
-    }
-
-    @Override
-    public TIntSet targetVerticestoReCheck(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, GlobalOccupation occupation) {
-        throw new UnsupportedOperationException(); //TODO
-    }
 
 }

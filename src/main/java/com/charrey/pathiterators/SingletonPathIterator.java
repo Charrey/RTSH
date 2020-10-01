@@ -4,6 +4,8 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.settings.Settings;
+import com.charrey.util.Util;
+import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,10 +29,15 @@ public class SingletonPathIterator extends PathIterator {
      * @param head  the target vertex of the path
      * @throws IllegalStateException thrown if the tail vertex has no outgoing edge to the head.
      */
-    SingletonPathIterator(@NotNull MyGraph graph, Settings settings, int tail, int head, PartialMatchingProvider provider, Supplier<Integer> placementSize) {
-        super(tail, head, settings, null, null, provider, Long.MAX_VALUE, placementSize);
+    SingletonPathIterator(@NotNull MyGraph graph, Settings settings, int tail, int head, PartialMatchingProvider provider, Supplier<Integer> placementSize, int cripple) {
+        super(graph, tail, head, settings, null, null, provider, Long.MAX_VALUE, placementSize, cripple);
         toReturn = new Path(graph, tail);
         toReturn.append(head);
+    }
+
+    @Override
+    public TIntSet getLocallyOccupied() {
+        return Util.emptyTIntSet;
     }
 
     @Nullable

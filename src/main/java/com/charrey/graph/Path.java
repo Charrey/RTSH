@@ -1,8 +1,6 @@
 package com.charrey.graph;
 
-import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import com.charrey.util.datastructures.TroveIterator;
-import com.google.common.collect.Ordering;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.linked.TIntLinkedList;
@@ -14,6 +12,7 @@ import org.jgrapht.GraphPath;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -126,8 +125,16 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
      *
      * @param consumer the consumer
      */
+    @Override
     public void forEach(Consumer<? super Integer> consumer) {
         vertexList.forEach(i -> {
+            consumer.accept(i);
+            return true;
+        });
+    }
+
+    public void forEachReverse(Consumer<? super Integer> consumer) {
+        vertexList.forEachDescending(i -> {
             consumer.accept(i);
             return true;
         });
@@ -149,7 +156,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
     public void append(Integer toAdd) {
         if (!containing.contains(toAdd) ||  vertexList.get(0) == toAdd) {
             if (!containing.isEmpty() && graph.getEdge(vertexList.get(vertexList.size() - 1), toAdd) == null) {
-                throw new IllegalStateException("Attempt to add a vertex on this path that is not connected to the current head.");
+                throw new IllegalStateException("Attempt to add a vertex " + toAdd + " on this path (" + vertexList  + ") that is not connected to the current head. Graph:\n" + graph);
             }
             containing.add(toAdd);
             vertexList.add(toAdd);
@@ -299,7 +306,7 @@ public class Path implements Comparable<Path>, Iterable<Integer> {
         }
     }
 
-    public boolean noneMatch(Predicate<Integer> predicate) {
+    public boolean noneMatch(IntPredicate predicate) {
         final boolean[] toReturn = {true};
         this.vertexList.forEach(i -> {
             if (predicate.test(i)) {

@@ -18,7 +18,6 @@ import com.charrey.settings.pruning.WhenToApply;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,7 @@ public class IsoFinder {
     private long lastPrint = System.currentTimeMillis();
 
     private static boolean allDone(@NotNull MyGraph pattern, @NotNull VertexMatching vertexMatching, @NotNull EdgeMatching edgeMatching) {
-        boolean completeV = vertexMatching.getPlacement().size() == pattern.vertexSet().size();
+        boolean completeV = vertexMatching.size() == pattern.vertexSet().size();
         if (!completeV) {
             return false;
         }
@@ -53,11 +52,11 @@ public class IsoFinder {
         Map<MyEdge, Set<Path>> res = new HashMap<>();
         if (newSourceGraph.isDirected()) {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
-                int edgeSourceTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeSource(edge));
-                int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
+                int edgeSourceTarget = vertexMatching.get().get(newSourceGraph.getEdgeSource(edge));
+                int edgeTargetTarget = vertexMatching.get().get(newSourceGraph.getEdgeTarget(edge));
                 Set<Path> toAdd = new HashSet<>();
                 Set<Path> match = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).collect(Collectors.toSet());
-                assert match.size() >= 1;
+                assert !match.isEmpty();
                 match.forEach(path -> {
                     Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);
                     for (int i = 1; i < path.asList().size(); i++) {
@@ -70,11 +69,11 @@ public class IsoFinder {
             }
         } else {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
-                int edgeSourceTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeSource(edge));
-                int edgeTargetTarget = vertexMatching.getPlacement().get(newSourceGraph.getEdgeTarget(edge));
+                int edgeSourceTarget = vertexMatching.get().get(newSourceGraph.getEdgeSource(edge));
+                int edgeTargetTarget = vertexMatching.get().get(newSourceGraph.getEdgeTarget(edge));
                 Set<Path> toAdd = new HashSet<>();
-                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> Set.of(x.last(), x.first()).equals(Set.of(edgeSourceTarget, edgeTargetTarget))).collect(Collectors.toSet());
-                assert match.size() >= 1;
+                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(List.of(x.last(), x.first())).equals(new HashSet<>(List.of(edgeSourceTarget, edgeTargetTarget)))).collect(Collectors.toSet());
+                assert !match.isEmpty();
                 match.forEach(path -> {
                     Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);
                     for (int i = 1; i < path.asList().size(); i++) {
@@ -95,10 +94,11 @@ public class IsoFinder {
                        long timeoutTime) throws DomainCheckerException {
         UtilityData data = new UtilityData(sourceGraph, targetGraph);
         if (settings.getWhenToApply() == WhenToApply.CACHED && Arrays.stream(data.getCompatibility(settings.getFiltering())).anyMatch(x -> x.length == 0)) {
-            throw new DomainCheckerException("Intial domain check failed");
+            throw new DomainCheckerException(() -> "Intial domain check failed");
         }
         occupation = new GlobalOccupation(data, settings);
         vertexMatching = new VertexMatching(sourceGraph, targetGraph, occupation, settings);
+        occupation.init(vertexMatching);
         edgeMatching = new EdgeMatching(vertexMatching, data, sourceGraph, targetGraph, occupation, settings, timeoutTime);
         vertexMatching.setEdgeMatchingProvider(edgeMatching);
     }
@@ -114,6 +114,7 @@ public class IsoFinder {
     @NotNull
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name) {
         long timeoutTime = System.currentTimeMillis() + timeout;
+        settings = settings.newInstance();
         try {
             Mapping sourceGraphMapping;
             Mapping targetGraphMapping;
@@ -135,13 +136,9 @@ public class IsoFinder {
             boolean iterationpassed = true;
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
                 if (iterationpassed) {
-                    iterations++;
-                    if (System.currentTimeMillis() - lastPrint > 1000) {
-                        long finalIterations = iterations;
-                        LOG.info(() -> name + " is at " + finalIterations + " iterations...");
-                        lastPrint = System.currentTimeMillis();
-                    }
-                    LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());
+                    iterations = logProgress(name, iterations);
+//                    System.out.println(vertexMatching);
+//                    System.out.println(edgeMatching);
                 }
                 iterationpassed = false;
                 if (System.currentTimeMillis() > timeoutTime || Thread.interrupted()) {
@@ -171,15 +168,16 @@ public class IsoFinder {
                         return new FailResult(iterations);
                     }
                 }
+
             }
-            if (vertexMatching.getPlacement().size() < newSourceGraph.vertexSet().size()) {
+            if (vertexMatching.size() < newSourceGraph.vertexSet().size()) {
                 if (System.currentTimeMillis() >= timeoutTime || Thread.currentThread().isInterrupted()) {
                     return new TimeoutResult(iterations);
                 } else {
                     return new FailResult(iterations);
                 }
             } else {
-                int[] placement = vertexMatching.getPlacement().toArray();
+                int[] placement = vertexMatching.get().stream().mapToInt(x -> x).toArray();
                 int[] vertexMapping = new int[placement.length];
                 for (int i = 0; i < placement.length; i++) {
                     vertexMapping[sourceGraphMapping.newToOld[i]] = targetGraphMapping.newToOld[placement[i]];
@@ -189,6 +187,8 @@ public class IsoFinder {
 
 
                 Map<MyEdge, Set<Path>> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.newToOld, vertexMatching, targetGraphMapping.newToOld);
+//                System.out.println(vertexMatching);
+//                System.out.println(edgeMatching);
                 return new SuccessResult(vertexMapping, paths, iterations);
             }
         } finally {
@@ -196,6 +196,17 @@ public class IsoFinder {
                 occupation.close();
             }
         }
+    }
+
+    private long logProgress(String name, long iterations) {
+        iterations++;
+        if (System.currentTimeMillis() - lastPrint > 1000) {
+            long finalIterations = iterations;
+            //LOG.info(() -> name + " is at " + finalIterations + " iterations...");
+            lastPrint = System.currentTimeMillis();
+        }
+        LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());
+        return iterations;
     }
 
 

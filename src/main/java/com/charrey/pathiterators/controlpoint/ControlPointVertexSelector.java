@@ -2,7 +2,7 @@ package com.charrey.pathiterators.controlpoint;
 
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
-import com.charrey.occupation.AbstractOccupation;
+import com.charrey.occupation.ReadOnlyOccupation;
 import com.charrey.util.GraphUtil;
 import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
@@ -19,7 +19,7 @@ import java.util.Random;
 public class ControlPointVertexSelector {
 
     @NotNull
-    private final AbstractOccupation occupation;
+    private final ReadOnlyOccupation occupation;
     @Nullable
     private final TIntList vertices;
     @NotNull
@@ -39,7 +39,7 @@ public class ControlPointVertexSelector {
      * @param tail                   end goal vertex of this path (since ControlPointIterator is recursive)
      */
     ControlPointVertexSelector(@NotNull MyGraph graph,
-                               @NotNull AbstractOccupation occupation,
+                               @NotNull ReadOnlyOccupation occupation,
                                @NotNull TIntSet initialLocalOccupation,
                                int from,
                                int to,
@@ -49,7 +49,7 @@ public class ControlPointVertexSelector {
         this.localOccupation = initialLocalOccupation;
         Random random = new Random(1 + 3L * graph.hashCode() + 5L * occupation.hashCode() + 7L * initialLocalOccupation.hashCode() + 11L * from + 13L * to);
         vertices = GraphUtil.randomVertexOrder(graph, random);
-        Optional<Path> path = Util.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail);
+        Optional<Path> path = Util.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail, Util.emptyTIntSet);
         if (path.isEmpty()) {
             readyToDeliver = true;
             nextToReturn = -1;

@@ -1,7 +1,9 @@
 package com.charrey.pruning;
 
 import com.charrey.graph.MyGraph;
-import com.charrey.occupation.GlobalOccupation;
+import com.charrey.matching.PartialMatchingProvider;
+import com.charrey.occupation.ReadOnlyOccupation;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 
 public abstract class Pruner {
@@ -9,9 +11,9 @@ public abstract class Pruner {
     protected final Settings settings;
     protected final MyGraph targetGraph;
     protected final MyGraph sourceGraph;
-    protected final GlobalOccupation occupation;
+    public ReadOnlyOccupation occupation;
 
-    public Pruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, GlobalOccupation occupation) {
+    public Pruner(Settings settings, MyGraph sourceGraph, MyGraph targetGraph, ReadOnlyOccupation occupation) {
         this.settings = settings;
         this.sourceGraph = sourceGraph;
         this.targetGraph = targetGraph;
@@ -24,7 +26,7 @@ public abstract class Pruner {
      * @param verticesPlaced the number of placed source graph vertices
      * @param released       the released vertex
      */
-    public abstract void afterReleaseVertex(int verticesPlaced, int released);
+    public abstract void afterReleaseVertex(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider);
 
     /**
      * This method is called after a target graph vertex used as intermediate vertex is released.
@@ -32,7 +34,7 @@ public abstract class Pruner {
      * @param verticesPlaced the number of placed source graph vertices
      * @param released       the released vertex
      */
-    public abstract void afterReleaseEdge(int verticesPlaced, int released);
+    public abstract void afterReleaseEdge(int verticesPlaced, int released, PartialMatchingProvider partialMatchingProvider);
 
     /**
      * This method is called just before a new target graph vertex is used in vertex-on-vertex matching.
@@ -41,7 +43,7 @@ public abstract class Pruner {
      * @param occupied       the target graph vertex to be matched
      * @throws DomainCheckerException thrown when this occupation would provably result in an unfruitful search path
      */
-    public abstract void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException;
+    public abstract void beforeOccupyVertex(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException;
 
     /**
      * This method is called just before a new target graph vertex is used as intermediate vertex in a path.
@@ -50,7 +52,7 @@ public abstract class Pruner {
      * @param occupied       the target graph vertex to be used
      * @throws DomainCheckerException thrown when this occupation would provably result in an unfruitful search path
      */
-    public abstract void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatching partialMatching) throws DomainCheckerException;
+    public abstract void afterOccupyEdge(int verticesPlaced, int occupied, PartialMatchingProvider partialMatching) throws DomainCheckerException;
 
     /**
      * This method is called just before a new target graph vertex is used as intermediate vertex in a path. This
@@ -68,7 +70,7 @@ public abstract class Pruner {
      * @param verticesPlaced the number of placed source graph vertices
      * @return true if the domainchecker can prove that the current matching is unfruitful, or false if it cannot.
      */
-    public abstract boolean isUnfruitfulCached(int verticesPlaced);
+
 
     /**
      * Provides a deep copy of this checker.
@@ -79,5 +81,11 @@ public abstract class Pruner {
 
     public abstract void close();
 
-    public abstract void checkPartial(PartialMatching partialMatching) throws DomainCheckerException;
+    public abstract void checkPartial(PartialMatchingProvider partialMatching, int vertexPlaced) throws DomainCheckerException;
+
+    public void setOccupation(ReadOnlyOccupation newOccupation) {
+        this.occupation = newOccupation;
+    }
+
+    public abstract boolean isUnfruitful(int verticesPlaced, PartialMatchingProvider partialMatchingProvider, int lastPlaced);
 }

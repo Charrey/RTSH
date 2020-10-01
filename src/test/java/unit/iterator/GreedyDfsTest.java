@@ -9,7 +9,7 @@ import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pathiterators.kpath.KPathPathIterator;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.pruning.PartialMatching;
+import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.util.Util;
@@ -21,6 +21,8 @@ import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,7 +60,7 @@ class GreedyDfsTest {
                 if (Graphs.neighborSetOf(targetGraph, tail).contains(head)) {
                     continue;
                 }
-                TIntList vertexMatching = new TIntArrayList();
+                List<Integer> vertexMatching = new ArrayList<>();
                 vertexMatching.add(tail);
                 GlobalOccupation occupationGreedy = new GlobalOccupation(data, settingsGreedy);
                 occupationGreedy.occupyVertex(0, tail, new PartialMatching());
@@ -67,17 +69,17 @@ class GreedyDfsTest {
                 occupationKPath.occupyVertex(0, tail, new PartialMatching());
                 occupationKPath.occupyVertex(1, head, new PartialMatching(vertexMatching));
                 PathIterator greedyDFSIterator = PathIteratorFactory.get(targetGraph, data, tail, head, occupationGreedy, () -> 2, settingsGreedy, () -> {
-                    TIntList vertexMatching12 = new TIntArrayList();
+                    List<Integer> vertexMatching12 = new ArrayList<>();
                     vertexMatching12.add(tail);
                     vertexMatching12.add(head);
                     return new PartialMatching(vertexMatching12);
-                }, Long.MAX_VALUE);
+                }, Long.MAX_VALUE, 0);
                 KPathPathIterator kPathIterator = (KPathPathIterator) PathIteratorFactory.get(targetGraph, data, tail, head, occupationKPath, () -> 2, settingsKpath, () -> {
-                    TIntList vertexMatching1 = new TIntArrayList();
+                    List<Integer> vertexMatching1 = new ArrayList<>();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE);
+                }, Long.MAX_VALUE, 0);
 
                 Path path1 = kPathIterator.next();
                 Path path2 = greedyDFSIterator.next();

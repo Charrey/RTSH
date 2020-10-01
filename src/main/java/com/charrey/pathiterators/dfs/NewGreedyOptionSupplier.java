@@ -28,7 +28,7 @@ public class NewGreedyOptionSupplier extends OptionSupplier{
             if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
                 return;
             }
-            Optional<Path> path = Util.filteredShortestPath(getGraph(), occupation, new TIntHashSet(currentPath.asList()), neighbour, getHead(), false, -1);
+            Optional<Path> path = Util.filteredShortestPath(getGraph(), occupation, new TIntHashSet(currentPath.asList()), neighbour, getHead(), false, -1, Util.emptyTIntSet);
             path.ifPresent(realPath -> candidatesFiltered.put(neighbour, realPath.getWeight() + getGraph().getEdgeWeight(getGraph().getEdge(at, neighbour))));
         });
         List<Integer> candidatesFilteredList = new ArrayList<>(candidatesFiltered.keySet());
