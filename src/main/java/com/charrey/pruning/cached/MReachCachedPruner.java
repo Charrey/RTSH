@@ -169,8 +169,8 @@ public abstract class MReachCachedPruner extends Pruner {
         });
         reserveSingles(newDomainLayer, newReverseDomainLayer, singles);
         if (settings.getFiltering() instanceof MReachabilityFiltering || settings.getFiltering() instanceof NReachabilityFiltering) {
-            Set<Integer> mustBePredecessors = Graphs.predecessorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < vertexMatching.get().size()).map(x -> vertexMatching.get().get(x)).collect(Collectors.toUnmodifiableSet());
-            Set<Integer> mustBeSuccessors = Graphs.successorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < vertexMatching.get().size()).map(x -> vertexMatching.get().get(x)).collect(Collectors.toUnmodifiableSet());
+            Set<Integer> mustBePredecessors = Collections.unmodifiableSet(Graphs.predecessorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < vertexMatching.get().size()).map(x -> vertexMatching.get().get(x)).collect(Collectors.toSet()));
+            Set<Integer> mustBeSuccessors = Collections.unmodifiableSet(Graphs.successorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < vertexMatching.get().size()).map(x -> vertexMatching.get().get(x)).collect(Collectors.toSet()));
             List<Integer> vertexPlacement = vertexMatching.get();
             MReachabilityCheck(vertexPlacement, targetVertex, mustBePredecessors, false);
             MReachabilityCheck(vertexPlacement, targetVertex, mustBeSuccessors, true);
@@ -256,7 +256,7 @@ public abstract class MReachCachedPruner extends Pruner {
             int to = successors ? neighbour : targetVertex;
             if (!reachabilityCache.containsKey(from, to)) {
                 Optional<Path> path = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), from, to, false, -1, Util.emptyTIntSet);
-                if (path.isEmpty()) {
+                if (!path.isPresent()) {
                     domain.pollFirst();
                     reverseDomain.pollFirst();
                     throw new DomainCheckerException(() -> from + " in target graph needs connectivity to " + to + ", but doesn't have it");

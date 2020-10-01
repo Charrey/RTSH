@@ -17,6 +17,7 @@ import org.jgrapht.Graphs;
 import org.jgrapht.alg.shortestpath.YenShortestPathIterator;
 import org.jgrapht.graph.MaskSubgraph;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -113,7 +114,7 @@ public class KPathPathIterator extends PathIterator {
     private boolean hasUnnecessarilyLongPaths(@NotNull Path pathFound) {
         for (int i = 0; i < pathFound.length() - 1; i++) {
             int from = pathFound.get(i);
-            Set<Integer> neighbours = targetGraph.outgoingEdgesOf(from).stream().map(x -> Graphs.getOppositeVertex(targetGraph, x, from)).collect(Collectors.toUnmodifiableSet());
+            Set<Integer> neighbours = Collections.unmodifiableSet(targetGraph.outgoingEdgesOf(from).stream().map(x -> Graphs.getOppositeVertex(targetGraph, x, from)).collect(Collectors.toSet()));
             TIntList otherCandidates = pathFound.asList().subList(i + 2, pathFound.length());
             if (neighbours.stream().anyMatch(otherCandidates::contains)) {
                 return true;

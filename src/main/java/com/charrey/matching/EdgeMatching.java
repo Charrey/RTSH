@@ -10,6 +10,7 @@ import com.charrey.pathiterators.PathIterator;
 import com.charrey.pathiterators.PathIteratorFactory;
 import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
+import com.charrey.util.Util;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -244,7 +245,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         int initial = source.getAllEdges(sourceGraphFrom, sourceGraphTo).size();
         long done = paths.get(vertexMatching.size()-1)
                 .stream()
-                .filter(path -> List.of(path.getFirst().first(), path.getFirst().last()).equals(List.of(tail, head))).count();
+                .filter(path -> Util.listOf(path.getFirst().first(), path.getFirst().last()).equals(Util.listOf(tail, head))).count();
         if (!source.isDirected()) {
             done -= 1;
         }
@@ -288,7 +289,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         ListIterator<Pair<Path, String>> listIterator = pathsPlaced.listIterator(pathsPlaced.size());
         do {
             Pair<Path, String> element = listIterator.previous();
-            if (element.getFirst().isEqualTo(new Path(targetGraph, List.of(tail, head)))) {
+            if (element.getFirst().isEqualTo(new Path(targetGraph, Util.listOf(tail, head)))) {
                 alreadyUsed++;
             } else if (element.getFirst().first() != tail || element.getFirst().last() != head) {
                 break;

@@ -5,6 +5,7 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
+import com.charrey.util.Util;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.set.hash.TIntHashSet;
@@ -86,7 +87,7 @@ class Verifier {
         needed.entrySet().forEach(entry -> {
             int edgeSourceTarget = vertexMatching.get(entry.getFirstKey());
             int edgeTargetTarget = vertexMatching.get(entry.getSecondKey());
-            long matches = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(List.of(x.last(), x.first())).equals(new HashSet<>(List.of(edgeSourceTarget, edgeTargetTarget)))).count();
+            long matches = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(Util.listOf(x.last(), x.first())).equals(new HashSet<>(Util.listOf(edgeSourceTarget, edgeTargetTarget)))).count();
             if (matches != entry.getValue()) {
                 toReturn[0] = false;
             }

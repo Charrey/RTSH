@@ -9,6 +9,7 @@ import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
 import com.charrey.util.GraphUtil;
+import com.charrey.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,22 +35,22 @@ class BigGraphTest {
     private static MyGraph sourceGraph;
 
     private Set<Integer> wires() {
-        return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("wire")).collect(Collectors.toUnmodifiableSet());
+        return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("wire")).collect(Collectors.toSet());
     }
 
     private Set<Integer> arcs() {
-        return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("arc")).collect(Collectors.toUnmodifiableSet());
+        return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("arc")).collect(Collectors.toSet());
     }
 
     private Set<Integer> ports() {
-        return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("port")).collect(Collectors.toUnmodifiableSet());
+        return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("port")).collect(Collectors.toSet());
     }
 
     private Set<Integer> bels() {
         return targetGraph.vertexSet().stream().filter(vertex -> {
             String label = targetGraph.getLabels(vertex).iterator().next();
-            return !Set.of("wire", "port", "arc").contains(label) && !label.startsWith("match");
-        }).collect(Collectors.toUnmodifiableSet());
+            return !Util.setOf("wire", "port", "arc").contains(label) && !label.startsWith("match");
+        }).collect(Collectors.toSet());
     }
 
 //    private Set<Integer> matchFrom() {

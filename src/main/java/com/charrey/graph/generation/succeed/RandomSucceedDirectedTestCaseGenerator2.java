@@ -91,7 +91,7 @@ public class RandomSucceedDirectedTestCaseGenerator2 extends TestCaseGenerator {
 
     private double averageDegree(MyGraph graph, Set<Integer> vertices) {
         OptionalDouble toReturn =  vertices.stream().mapToInt(graph::degreeOf).average();
-        if (toReturn.isEmpty()) {
+        if (!toReturn.isPresent()) {
             throw new UnsupportedOperationException();
         } else {
             return toReturn.getAsDouble();

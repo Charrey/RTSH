@@ -12,10 +12,15 @@ public class VertexCandidateIteratorFactory {
 
 
     public static VertexCandidateIterator get(MyGraph sourceGraph, MyGraph targetGraph, Settings settings, GlobalOccupation occupation, int sourceGraphVertex, VertexMatching vertexMatching) {
-        return switch (settings.getTargetVertexOrder()) {
-            case LARGEST_DEGREE_FIRST -> new IndexIterator(sourceGraph, targetGraph, sourceGraphVertex, settings, occupation, vertexMatching);
-            case CLOSEST_TO_MATCHED -> new CloseFirstIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching, false);
-            case CLOSEST_TO_MATCHED_CACHED -> new CloseFirstIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching, true);
-        };
+        switch (settings.getTargetVertexOrder()) {
+            case LARGEST_DEGREE_FIRST:
+                return new IndexIterator(sourceGraph, targetGraph, sourceGraphVertex, settings, occupation, vertexMatching);
+            case CLOSEST_TO_MATCHED:
+                return new CloseFirstIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching, false);
+            case CLOSEST_TO_MATCHED_CACHED:
+                return new CloseFirstIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching, true);
+            default:
+                throw new UnsupportedOperationException();
+        }
     }
 }

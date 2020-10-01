@@ -4,6 +4,7 @@ import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.util.GraphUtil;
+import com.charrey.util.Util;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,7 @@ public class TestCase implements Iterable<MyGraph> {
     @NotNull
     @Override
     public Iterator<MyGraph> iterator() {
-        return List.of(sourceGraph, targetGraph).iterator();
+        return Util.listOf(sourceGraph, targetGraph).iterator();
     }
 
     public synchronized TestCase copy() {

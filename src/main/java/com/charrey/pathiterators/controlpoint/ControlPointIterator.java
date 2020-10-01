@@ -148,7 +148,7 @@ class ControlPointIterator extends PathIterator {
                 Path temporarilyRemoveGlobal = middleToRight.subPath(0, middleToRight.length() - 1);
                 temporarilyRemoveGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
                 Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(targetGraph, transaction, fictionalOccupation, leftCandidate, middleAlt, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
-                if (leftToMiddleAlt.isEmpty()) {
+                if (!leftToMiddleAlt.isPresent()) {
                     temporarilyRemoveGlobal.forEach(x -> {
                         try {
                             transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
@@ -167,7 +167,7 @@ class ControlPointIterator extends PathIterator {
                         assert false;
                     }
                 });
-                if (leftToMiddle.isEmpty()) {
+                if (!leftToMiddle.isPresent()) {
                     return true;
                 }
                 Path leftToRight = Util.merge(targetGraph, leftToMiddle.get(), middleToRight);
@@ -199,7 +199,7 @@ class ControlPointIterator extends PathIterator {
                 }
             });
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::add);
-            if (skippedPath.isEmpty()) {
+            if (!skippedPath.isPresent()) {
                 return true;
             } else {
                 return skippedPath.get().contains(middle);
@@ -218,8 +218,7 @@ class ControlPointIterator extends PathIterator {
 
 
 
-    private int findNextControlPoint(StringBuilder prefix) {
-
+    private int findNextControlPoint() {
         do {
             chosenPath = null;
             chosenControlPoint = controlPointCandidates.next();
@@ -231,9 +230,8 @@ class ControlPointIterator extends PathIterator {
         try {
             this.transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenControlPoint, this::getPartialMatching);
         } catch (DomainCheckerException e) {
-            LOG.finest(() -> prefix.toString() + "Domain check failed");
             chosenControlPoint = ControlPointIterator.ABSENT;
-            return findNextControlPoint(prefix);
+            return findNextControlPoint();
         }
         return 0;
     }
@@ -256,20 +254,18 @@ class ControlPointIterator extends PathIterator {
     @Nullable
     @Override
     public Path getNext() {
-        StringBuilder prefix = new StringBuilder();
-        prefix.append("   ".repeat(Math.max(0, 10 - controlPoints)));
         while (!done) {
             if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
                 return null;
             }
             if (controlPoints == 0) {
-                return provideShortestPath(prefix);
+                return provideShortestPath();
             } else if (child == null) {
                 releasePreviousControlPoint();
                 if (!transaction.isFruitful(verticesPlaced.get(), this::getPartialMatching, -1)) {
                     return null;
                 }
-                int result = findNextControlPoint(prefix);
+                int result = findNextControlPoint();
                 if (result == EXHAUSTED) {
                     return null;
                 }
@@ -292,7 +288,7 @@ class ControlPointIterator extends PathIterator {
                     child.setRightNeighbourOfRightNeighbour(this.head(), chosenPath, previousOccupation);
                 }
             } else {
-                Path toReturn = mergeWithChildsPath(prefix);
+                Path toReturn = mergeWithChildsPath();
                 if (toReturn != null) {
                     return toReturn;
                 }
@@ -314,15 +310,13 @@ class ControlPointIterator extends PathIterator {
     }
 
     @Nullable
-    private Path mergeWithChildsPath(StringBuilder prefix) {
+    private Path mergeWithChildsPath() {
         TIntSet localOccupationBackup = new TIntHashSet(localOccupation);
         Path childsPath = child.next();
         assert childsPath == null || childsPath.intermediate().noneMatch(localOccupationBackup::contains);
         assert chosenPath != null;
         if (childsPath != null) {
-            Path toReturn = Util.merge(targetGraph, childsPath, chosenPath);
-            LOG.finest(() -> prefix.toString() + "Merged paths into " + toReturn);
-            return toReturn;
+            return Util.merge(targetGraph, childsPath, chosenPath);
         } else {
             child = null;
             chosenPath.forEach(localOccupation::remove);
@@ -332,11 +326,10 @@ class ControlPointIterator extends PathIterator {
     }
 
     @Nullable
-    private Path provideShortestPath(StringBuilder prefix) {
-        LOG.finest(() -> prefix.toString() + "querying shortest path...");
+    private Path provideShortestPath() {
         done = true;
         Optional<Path> shortestPath = filteredShortestPath(tail(), head);
-        if (shortestPath.isEmpty() || (settings.getRefuseLongerPaths() && isUnNecessarilyLong(shortestPath.get())) || !tryOccupy(verticesPlaced.get(), shortestPath.get())) {
+        if (!shortestPath.isPresent()|| (settings.getRefuseLongerPaths() && isUnNecessarilyLong(shortestPath.get())) || !tryOccupy(verticesPlaced.get(), shortestPath.get())) {
             LOG.finest("...failed");
             return null;
         } else {

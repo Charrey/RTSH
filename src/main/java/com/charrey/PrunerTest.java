@@ -7,6 +7,7 @@ import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.SuccessResult;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
+import com.charrey.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -312,7 +313,7 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -346,7 +347,7 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -380,7 +381,7 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -414,7 +415,7 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -448,7 +449,7 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -481,7 +482,7 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -515,7 +516,7 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -549,7 +550,7 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -575,7 +576,7 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
 
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
@@ -589,7 +590,7 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(out, System.out));
+                , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -615,7 +616,7 @@ public class PrunerTest {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(out, System.out));
+                , 10*60*1000L, true, false, Util.setOf(out, System.out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
@@ -628,7 +629,7 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(out, System.out));
+                , 10*60*1000L, true, false, Util.setOf(out, System.out));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -654,7 +655,7 @@ public class PrunerTest {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(out, System.out));
+                , 10*60*1000L, true, false, Util.setOf(out, System.out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
@@ -667,7 +668,7 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(out, System.out));
+                , 10*60*1000L, true, false, Util.setOf(out, System.out));
 
     } catch (IOException e) {
         e.printStackTrace();
@@ -694,7 +695,7 @@ public class PrunerTest {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(out, System.out));
+                , 10*60*1000L, true, false, Util.setOf(out, System.out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
@@ -707,7 +708,7 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(out, System.out));
+                , 10*60*1000L, true, false, Util.setOf(out, System.out));
 
     } catch (IOException e) {
         e.printStackTrace();
@@ -743,7 +744,7 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(out, System.out));
+                , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -776,7 +777,7 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -809,7 +810,7 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -842,7 +843,7 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -877,7 +878,7 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -910,7 +911,7 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -943,7 +944,7 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -976,7 +977,7 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Set.of(out, System.out));
+                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1000,7 +1001,7 @@ public class PrunerTest {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(System.out, out));
+                , 10*60*1000L, true, false, Util.setOf(System.out, out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
@@ -1013,7 +1014,7 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(System.out, out));
+                , 10*60*1000L, true, false, Util.setOf(System.out, out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1038,7 +1039,7 @@ public class PrunerTest {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(System.out, out));
+                , 10*60*1000L, true, false, Util.setOf(System.out, out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
@@ -1051,7 +1052,7 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(System.out, out));
+                , 10*60*1000L, true, false, Util.setOf(System.out, out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1076,7 +1077,7 @@ public class PrunerTest {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(System.out, out));
+                , 10*60*1000L, true, false, Util.setOf(System.out, out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
@@ -1089,7 +1090,7 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(System.out, out));
+                , 10*60*1000L, true, false, Util.setOf(System.out, out));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1115,7 +1116,7 @@ public class PrunerTest {
                 new SettingsBuilder().withControlPointRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(System.out, out));
+                , 10*60*1000L, true, false, Util.setOf(System.out, out));
         configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
@@ -1128,7 +1129,7 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Set.of(System.out, out));
+                , 10*60*1000L, true, false, Util.setOf(System.out, out));
         } catch (IOException e) {
             e.printStackTrace();
         }

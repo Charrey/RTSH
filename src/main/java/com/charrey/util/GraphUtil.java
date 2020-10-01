@@ -79,7 +79,7 @@ public class GraphUtil {
         }
         Map<MyEdge, Path> expectedEdgeMatching = new HashMap<>();
         for (MyEdge edge : oldGraph.edgeSet()) {
-            expectedEdgeMatching.put(edge, new Path(newGraph, List.of(oldVertexToNew[edge.getSource()], oldVertexToNew[edge.getTarget()])));
+            expectedEdgeMatching.put(edge, new Path(newGraph, Util.listOf(oldVertexToNew[edge.getSource()], oldVertexToNew[edge.getTarget()])));
         }
         assert oldGraph.edgeSet().stream().allMatch(expectedEdgeMatching::containsKey);
         return new CopyResult(newGraph, oldVertexToNew, expectedEdgeMatching);

@@ -53,7 +53,8 @@ public class PathIteratorFactory {
             toReturn = LoopAdaptor.get(targetGraph, settings, data, tail, occupation, placementSize, provider, timeoutTime, crippled);
         } else {
             switch (settings.getPathIteration().iterationStrategy) {
-                case DFS_ARBITRARY, DFS_GREEDY:
+                case DFS_ARBITRARY:
+                case DFS_GREEDY:
                     if (settings.getDfsCaching()) {
                         toReturn = new CachedDFSPathIterator(targetGraph, settings, tail, head, occupation, placementSize, provider, () -> data.getTargetNeighbours(settings.getPathIteration().iterationStrategy)[head], timeoutTime, crippled);
                     } else {

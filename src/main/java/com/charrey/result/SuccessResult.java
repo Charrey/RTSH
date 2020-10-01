@@ -35,7 +35,7 @@ public class SuccessResult extends HomeomorphismResult {
             sb.append(i).append(" matched on ").append(matching[i]).append("\n");
         }
         sb.append("And with edge-on-path matching:\n");
-        for (Map.Entry<MyEdge, Set<Path>> entry : edgeMatching.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toUnmodifiableList())) {
+        for (Map.Entry<MyEdge, Set<Path>> entry : edgeMatching.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toList())) {
             sb.append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\n");
         }
         return sb.toString();

@@ -15,6 +15,7 @@ import com.charrey.pruning.DomainCheckerException;
 import com.charrey.result.*;
 import com.charrey.settings.Settings;
 import com.charrey.settings.pruning.WhenToApply;
+import com.charrey.util.Util;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -72,7 +73,7 @@ public class IsoFinder {
                 int edgeSourceTarget = vertexMatching.get().get(newSourceGraph.getEdgeSource(edge));
                 int edgeTargetTarget = vertexMatching.get().get(newSourceGraph.getEdgeTarget(edge));
                 Set<Path> toAdd = new HashSet<>();
-                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(List.of(x.last(), x.first())).equals(new HashSet<>(List.of(edgeSourceTarget, edgeTargetTarget)))).collect(Collectors.toSet());
+                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(Util.listOf(x.last(), x.first())).equals(new HashSet<>(Util.listOf(edgeSourceTarget, edgeTargetTarget)))).collect(Collectors.toSet());
                 assert !match.isEmpty();
                 match.forEach(path -> {
                     Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);

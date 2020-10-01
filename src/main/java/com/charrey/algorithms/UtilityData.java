@@ -110,9 +110,14 @@ public class UtilityData {
                     .stream()
                     .sorted().collect(Collectors.toList());
             switch (strategy) {
-                case DFS_ARBITRARY -> setArbitraryTargetNeighbours(targetVertices);
-                case DFS_GREEDY -> setGreedyTargetNeighbours(targetVertices);
-                default -> throw new UnsupportedOperationException();
+                case DFS_ARBITRARY:
+                    setArbitraryTargetNeighbours(targetVertices);
+                    break;
+                case DFS_GREEDY:
+                    setGreedyTargetNeighbours(targetVertices);
+                    break;
+                default:
+                    throw new UnsupportedOperationException();
             }
         }
         return targetNeighbours;
@@ -178,7 +183,7 @@ public class UtilityData {
                     int observingVertex = frontier.pop();
                     Set<Integer> neighbours = Graphs.neighborSetOf(targetGraph, observingVertex);
                     for (int neighbour : neighbours) {
-                        if (targetGraph.getAttributes(neighbour).containsKey("configurable") && targetGraph.getAttributes(neighbour).get("configurable").equals(Set.of("0")) && !result.contains(neighbour)) {
+                        if (targetGraph.getAttributes(neighbour).containsKey("configurable") && targetGraph.getAttributes(neighbour).get("configurable").equals(Util.setOf("0")) && !result.contains(neighbour)) {
                             frontier.add(neighbour);
                             Graphs.neighborSetOf(targetGraph, neighbour).stream()
                                     .filter(x -> targetGraph.getAttributes(x).get("label").contains("wire"))
@@ -197,6 +202,6 @@ public class UtilityData {
 
             }
         }
-        return unconfigurableCover.getOrDefault(of, Set.of(of));
+        return unconfigurableCover.getOrDefault(of, Util.setOf(of));
     }
 }

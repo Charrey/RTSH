@@ -185,4 +185,12 @@ public class Util {
         }
         return -1;  // No candidate matched the target
     }
+
+    public static <T> Set<T> setOf(T... item) {
+        return new HashSet<>(Arrays.asList(item));
+    }
+
+    public static <T> List<T> listOf(T... item) {
+        return new ArrayList<>(Arrays.asList(item));
+    }
 }

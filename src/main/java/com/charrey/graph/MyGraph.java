@@ -8,6 +8,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.DefaultGraphType;
+import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.AttributeType;
 import org.jgrapht.nio.DefaultAttribute;
 import org.jgrapht.nio.dot.DOTExporter;
@@ -117,7 +118,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             int oldVertex = newToOld[newVertex];
             source.attributes.get(oldVertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(newVertexFinal, key, value)));
 
-            List<Integer> predecessors = source.incomingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableList());
+            List<Integer> predecessors = Collections.unmodifiableList(source.incomingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x < newVertexFinal).collect(Collectors.toList()));
             predecessors.forEach(predecessor -> res.addEdge(predecessor, newVertexFinal));
             List<Integer> successors = source.outgoingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x <= newVertexFinal).collect(Collectors.toList());
             if (!source.directed) {
@@ -238,7 +239,9 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             if (!chainscopy.containsKey(myEdge.getSource(), myEdge.getTarget()) || chainscopy.get(myEdge.getSource(), myEdge.getTarget()).isEmpty()) {
                 return null;
             } else {
-                return Map.of(LABEL, new DefaultAttribute<>("chain:" + chainscopy.get(myEdge.getSource(), myEdge.getTarget()).poll(), AttributeType.STRING));
+                Map<String, Attribute> toReturn = new HashMap<>();
+                toReturn.put(LABEL, new DefaultAttribute<>("chain:" + chainscopy.get(myEdge.getSource(), myEdge.getTarget()).poll(), AttributeType.STRING));
+                return toReturn;
             }
         });
         StringWriter writer = new StringWriter();

@@ -4,6 +4,7 @@ import com.charrey.settings.iterator.*;
 import com.charrey.settings.pruning.PruningMethod;
 import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.settings.pruning.domainfilter.*;
+import com.charrey.util.Util;
 
 import java.util.Set;
 
@@ -250,7 +251,7 @@ public class SettingsBuilder {
 
 
     public Settings get() {
-        if (lockDFSCaching && !(Set.of(DFS_GREEDY, DFS_ARBITRARY).contains(settings.getPathIteration().iterationStrategy))) {
+        if (lockDFSCaching && !(Util.setOf(DFS_GREEDY, DFS_ARBITRARY).contains(settings.getPathIteration().iterationStrategy))) {
             throw new IllegalStateException("DFS caching method has been set without specifying DFS as path iteration strategy.");
         }
         lockFiltering = true;
