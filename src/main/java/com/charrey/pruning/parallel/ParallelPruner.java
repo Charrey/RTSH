@@ -71,7 +71,7 @@ public class ParallelPruner extends DefaultSerialPruner {
     PartialMatching getCurrentMatching() throws InterruptedException {
         PartialMatching toReturn = this.partialMatching;
         while (toReturn == null) {
-            Thread.sleep(10);
+            Thread.sleep(1);
             toReturn = this.partialMatching;
         }
         return toReturn;

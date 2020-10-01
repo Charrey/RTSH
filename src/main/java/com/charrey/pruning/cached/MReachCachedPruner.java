@@ -171,10 +171,11 @@ public abstract class MReachCachedPruner extends Pruner {
         if (settings.getFiltering() instanceof MReachabilityFiltering || settings.getFiltering() instanceof NReachabilityFiltering) {
             Set<Integer> mustBePredecessors = Graphs.predecessorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < vertexMatching.get().size()).map(x -> vertexMatching.get().get(x)).collect(Collectors.toUnmodifiableSet());
             Set<Integer> mustBeSuccessors = Graphs.successorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < vertexMatching.get().size()).map(x -> vertexMatching.get().get(x)).collect(Collectors.toUnmodifiableSet());
-            MReachabilityCheck(targetVertex, mustBePredecessors, false);
-            MReachabilityCheck(targetVertex, mustBeSuccessors, true);
+            List<Integer> vertexPlacement = vertexMatching.get();
+            MReachabilityCheck(vertexPlacement, targetVertex, mustBePredecessors, false);
+            MReachabilityCheck(vertexPlacement, targetVertex, mustBeSuccessors, true);
             if (settings.getFiltering() instanceof NReachabilityFiltering) {
-                NReachabilityCheck(newDomainLayer, newReverseDomainLayer);
+                NReachabilityCheck(vertexPlacement, newDomainLayer, newReverseDomainLayer);
             }
         }
         if (isUnfruitful(verticesPlaced, partialMatching, targetVertex)) {
@@ -184,7 +185,7 @@ public abstract class MReachCachedPruner extends Pruner {
         }
     }
 
-    protected void NReachabilityCheck(TIntObjectMap<TIntSet> newDomainLayer, TIntObjectMap<TIntList> newReverseDomainLayer) {
+    protected void NReachabilityCheck(List<Integer> vertexPlacement, TIntObjectMap<TIntSet> newDomainLayer, TIntObjectMap<TIntList> newReverseDomainLayer) {
         TIntList currentLevel;
         TIntList nextLevel = new TIntLinkedList();
         nextLevel.addAll(newDomainLayer.keySet());
@@ -196,20 +197,20 @@ public abstract class MReachCachedPruner extends Pruner {
                 int sourceGraphVertexToCheck = currentLevel.iterator().next();
                 currentLevel.remove(sourceGraphVertexToCheck);
                 final TIntList finalNextLevel = nextLevel;
-                NFilterOnce(newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, finalNextLevel, true);
-                NFilterOnce(newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, finalNextLevel, false);
+                NFilterOnce(vertexPlacement, newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, finalNextLevel, true);
+                NFilterOnce(vertexPlacement, newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, finalNextLevel, false);
             }
             level++;
         }
     }
 
-    private void NFilterOnce(TIntObjectMap<TIntSet> newDomainLayer, TIntObjectMap<TIntList> newReverseDomainLayer, int sourceGraphVertexToCheck, TIntList nextLevel, boolean predecessors) {
+    private void NFilterOnce(List<Integer> vertexPlacement, TIntObjectMap<TIntSet> newDomainLayer, TIntObjectMap<TIntList> newReverseDomainLayer, int sourceGraphVertexToCheck, TIntList nextLevel, boolean predecessors) {
         TIntSet sourceVertexDomain = getDomain(sourceGraphVertexToCheck);
         List<Integer> neighbours = predecessors ? Graphs.predecessorListOf(sourceGraph, sourceGraphVertexToCheck) : Graphs.successorListOf(sourceGraph, sourceGraphVertexToCheck);
         for (Integer neighbour : neighbours) {
             TIntSet neighbourDomain = getDomain(neighbour);
             new TIntHashSet(neighbourDomain).forEach(neighbourCandidate -> {
-                if ((vertexMatching.get().contains(neighbourCandidate) && allMatch(sourceVertexDomain, x -> vertexMatching.get().contains(x))) || anyMatch(sourceVertexDomain, x -> {
+                if ((vertexPlacement.contains(neighbourCandidate) && allMatch(sourceVertexDomain, vertexPlacement::contains)) || anyMatch(sourceVertexDomain, x -> {
                     int first = predecessors ? neighbourCandidate : x;
                     int second = predecessors ? x : neighbourCandidate;
                     return reachabilityCache.containsKey(first, second);
@@ -245,8 +246,9 @@ public abstract class MReachCachedPruner extends Pruner {
         return collection.forEach(predicate::test);
     }
 
-    private void MReachabilityCheck(int targetVertex, Set<Integer> neighbours, boolean successors) throws DomainCheckerException {
-        if (vertexMatching.get().contains(targetVertex) && neighbours.stream().allMatch(x -> vertexMatching.get().contains(x))) {
+    private void MReachabilityCheck(List<Integer> vertexPlacement, int targetVertex, Set<Integer> neighbours, boolean successors) throws DomainCheckerException {
+
+        if (vertexPlacement.contains(targetVertex) && vertexPlacement.containsAll(neighbours)) {
             return;
         }
         for (int neighbour : neighbours) {

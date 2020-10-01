@@ -56,10 +56,10 @@ public class SerialAllDifferentPruner extends DefaultSerialPruner {
         PartialMatching partialMatching = partialMatchingProvider.getPartialMatching();
         GlobalOccupation occ = new GlobalOccupation(new UtilityData(sourceGraph, targetGraph), new SettingsBuilder(settings).withCachedPruning().get());
         occ.init(vertexMatching);
-        int[] vertexMapping = partialMatching.getVertexMapping().toArray();
+        List<Integer> vertexMapping = partialMatching.getVertexMapping();
         TIntObjectMap<Set<Path>> edgeMapping = partialMatching.getEdgeMapping();
-        for (int i = 0; i < vertexMapping.length; i++) {
-            occ.occupyVertex(i + 1, vertexMapping[i], partialMatching);
+        for (int i = 0; i < vertexMapping.size(); i++) {
+            occ.occupyVertex(i + 1, vertexMapping.get(i), partialMatching);
             if (i + 1 < edgeMapping.size()) {
                 List<Path> paths = new ArrayList<>(edgeMapping.get(i+1));
                 Collections.sort(paths);
@@ -74,7 +74,7 @@ public class SerialAllDifferentPruner extends DefaultSerialPruner {
         sortedList.sort();
         if (!sortedList.forEach(value -> {
             try {
-                occ.occupyRoutingAndCheck(vertexMapping.length - 1, value, null);
+                occ.occupyRoutingAndCheck(vertexMapping.size() - 1, value, null);
                 return true;
             } catch (DomainCheckerException e) {
                 return false;

@@ -8,21 +8,23 @@ import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class PartialMatching {
 
-    private final TIntList vertexMapping;
+    private final List<Integer> vertexMapping;
     private final TIntObjectMap<Set<Path>> edgeMapping;
     private final TIntSet partialPath;
 
     public PartialMatching() {
-        this(new TIntArrayList());
+        this(Collections.synchronizedList(new ArrayList<>()));
     }
 
-    public PartialMatching(TIntList vertexMapping) {
+    public PartialMatching(List<Integer> vertexMapping) {
         this(vertexMapping, new TIntObjectHashMap<>(), Util.emptyTIntSet);
     }
 
@@ -30,13 +32,13 @@ public class PartialMatching {
 //        this(vertexMapping, edgeMapping, new TIntHashSet());
 //    }
 
-    public PartialMatching(TIntList vertexMapping, TIntObjectMap<Set<Path>> edgeMapping, TIntSet partialPath) {
-        this.vertexMapping = TCollections.unmodifiableList(vertexMapping);
+    public PartialMatching(List<Integer> vertexMapping, TIntObjectMap<Set<Path>> edgeMapping, TIntSet partialPath) {
+        this.vertexMapping = Collections.unmodifiableList(vertexMapping);
         this.edgeMapping = TCollections.unmodifiableMap(edgeMapping);
         this.partialPath = TCollections.unmodifiableSet(partialPath);
     }
 
-    public TIntList getVertexMapping() {
+    public List<Integer> getVertexMapping() {
         return vertexMapping;
     }
 

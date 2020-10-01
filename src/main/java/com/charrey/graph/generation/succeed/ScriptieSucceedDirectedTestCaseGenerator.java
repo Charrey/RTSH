@@ -43,7 +43,11 @@ public class ScriptieSucceedDirectedTestCaseGenerator extends TestCaseGenerator 
 
     @Override
     protected TestCase getRandom() {
-        MyGraph sourceGraph = new ScriptieFailDirectedTestCaseGenerator(patternNodes, 0d, random.nextInt()).init(1).getNext().getSourceGraph();
+        return getRandomWithSourceGraph(new ScriptieFailDirectedTestCaseGenerator(patternNodes, 0d, random.nextInt()).init(1).getNext().getSourceGraph());
+    }
+
+
+    public TestCase getRandomWithSourceGraph(MyGraph sourceGraph) {
         MyGraph targetGraph = new MyGraph(sourceGraph);
 
         List<Integer> addedLogicCells = new ArrayList<>();

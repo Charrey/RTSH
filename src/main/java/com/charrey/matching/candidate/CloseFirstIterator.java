@@ -18,10 +18,7 @@ import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 import org.jgrapht.alg.shortestpath.IntVertexDijkstraShortestPath;
 import org.jgrapht.graph.AsUndirectedGraph;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Optional;
+import java.util.*;
 
 public class CloseFirstIterator extends VertexCandidateIterator {
 
@@ -48,7 +45,7 @@ public class CloseFirstIterator extends VertexCandidateIterator {
     }
 
     private void populateCandidates() {
-        TIntSet matchedTargetVertices = new TIntHashSet(Graphs.neighborSetOf(sourceGraph, sourceGraphVertex).stream().filter(x -> x < vertexMatching.getPlacement().size()).mapToInt(x -> vertexMatching.getPlacement().get(x)).toArray());
+        TIntSet matchedTargetVertices = new TIntHashSet(Graphs.neighborSetOf(sourceGraph, sourceGraphVertex).stream().filter(x -> x < vertexMatching.get().size()).mapToInt(x -> vertexMatching.get().get(x)).toArray());
         Iterator<Integer> it = getInnerIterator();
         ShortestPathAlgorithm<Integer, MyEdge> shortestPathAlgorithm = new IntVertexDijkstraShortestPath<>(targetGraph.isDirected() ? new AsUndirectedGraph<>(targetGraph) : targetGraph);
         TIntDoubleMap distances = new TIntDoubleHashMap();
@@ -115,8 +112,7 @@ public class CloseFirstIterator extends VertexCandidateIterator {
     }
 
     private void prepareNextToReturnUncached() {
-        TIntSet matchedTargetVertices = new TIntHashSet(Graphs.neighborSetOf(sourceGraph, sourceGraphVertex).stream().filter(x -> x < vertexMatching.getPlacement().size()).mapToInt(x -> vertexMatching.getPlacement().get(x)).toArray());
-
+        TIntSet matchedTargetVertices = new TIntHashSet(Graphs.neighborSetOf(sourceGraph, sourceGraphVertex).stream().filter(x -> x < vertexMatching.get().size()).mapToInt(x -> vertexMatching.get().get(x)).toArray());
         int bestNewCandidate = Integer.MAX_VALUE;
         double bestNewDistance = Double.POSITIVE_INFINITY;
 

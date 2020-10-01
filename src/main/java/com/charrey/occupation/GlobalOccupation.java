@@ -14,6 +14,8 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -62,7 +64,10 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      */
     public OccupationTransaction getTransaction() {
         Pruner prunerCopy = pruner.copy();
-        OccupationTransaction toReturn =  new OccupationTransaction(new TIntHashSet(routingBits), new TIntHashSet(vertexBits), prunerCopy, data, this);
+        OccupationTransaction toReturn;
+        synchronized (routingBits) {
+            toReturn = new OccupationTransaction(new TIntHashSet(routingBits), new TIntHashSet(vertexBits), prunerCopy, data, this);
+        }
         prunerCopy.setOccupation(toReturn);
         return toReturn;
     }
@@ -75,14 +80,18 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      * @param vertex              the vertex being occupied for routing purposes
      */
     void occupyRoutingWithoutCheck(int vertexPlacementSize, int vertex) {
-        assert !routingBits.contains(vertex);
-        routingBits.add(vertex);
+        synchronized (routingBits) {
+            assert !routingBits.contains(vertex);
+            routingBits.add(vertex);
+        }
         pruner.afterOccupyEdgeWithoutCheck(vertexPlacementSize, vertex);
     }
 
     public void occupyRoutingAndCheck(int vertexPlacementSize, int vertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
-        assert !routingBits.contains(vertex);
-        routingBits.add(vertex);
+        synchronized (routingBits) {
+            assert !routingBits.contains(vertex);
+            routingBits.add(vertex);
+        }
         pruner.afterOccupyEdge(vertexPlacementSize, vertex, partialMatching);
     }
 
@@ -95,10 +104,12 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      * @throws DomainCheckerException thrown when this occupation would result in a dead end in the search. If this is thrown, this class remains unchanged.
      */
     public void occupyVertex(Integer source, Integer target, PartialMatching partialMatching) throws DomainCheckerException {
-        if (routingBits.contains(target) || vertexBits.contains(target)) {
-            throw new IllegalStateException();
+        synchronized (routingBits) {
+            if (routingBits.contains(target) || vertexBits.contains(target)) {
+                throw new IllegalStateException();
+            }
         }
-        TIntList hypothetical = new TIntArrayList(partialMatching.getVertexMapping());
+        List<Integer> hypothetical = new ArrayList<>(partialMatching.getVertexMapping());
         hypothetical.add(target);
         pruner.beforeOccupyVertex(source, target, () -> new PartialMatching(hypothetical, partialMatching.getEdgeMapping(), partialMatching.getPartialPath()));
         vertexBits.add(target);//todo lazier
@@ -117,7 +128,9 @@ public class GlobalOccupation implements ReadOnlyOccupation {
         if (!isOccupiedRouting(vertex)) {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for routing purposes): " + vertex);
         }
-        routingBits.remove(vertex);
+        synchronized (routingBits) {
+            routingBits.remove(vertex);
+        }
         pruner.afterReleaseEdge(vertexPlacementSize, vertex, partialMatchingProvider);
     }
 
@@ -144,7 +157,9 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      */
     @Override
     public boolean isOccupiedRouting(Integer vertex) {
-        return routingBits.contains(vertex);
+        synchronized (routingBits) {
+            return routingBits.contains(vertex);
+        }
     }
 
     /**
@@ -158,7 +173,11 @@ public class GlobalOccupation implements ReadOnlyOccupation {
     }
 
     public boolean isOccupied(int vertex) {
-        return isOccupiedRouting(vertex) || isOccupiedVertex(vertex);
+        try {
+            return isOccupiedRouting(vertex) || isOccupiedVertex(vertex);
+        } catch (ArrayIndexOutOfBoundsException e) { //parallel
+            return false;
+        }
     }
 
     @Override
@@ -177,13 +196,17 @@ public class GlobalOccupation implements ReadOnlyOccupation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GlobalOccupation that = (GlobalOccupation) o;
-        return routingBits.equals(that.routingBits) &&
-                vertexBits.equals(that.vertexBits);
+        synchronized (routingBits) {
+            return routingBits.equals(that.routingBits) &&
+                    vertexBits.equals(that.vertexBits);
+        }
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(routingBits, vertexBits);
+        synchronized (routingBits) {
+            return Objects.hash(routingBits, vertexBits);
+        }
     }
 
     /**
@@ -192,7 +215,9 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      * @return the set of vertices being used as intermediate vertex.
      */
     public TIntSet getRoutingOccupied() {
-        return TCollections.unmodifiableSet(this.routingBits);
+        synchronized (routingBits) {
+            return new TIntHashSet(this.routingBits);
+        }
     }
 
 

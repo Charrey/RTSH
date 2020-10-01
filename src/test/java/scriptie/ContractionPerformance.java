@@ -1,5 +1,7 @@
 package scriptie;
 
+import com.charrey.graph.generation.TestCase;
+import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.settings.SettingsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -25,12 +27,17 @@ public class ContractionPerformance extends SystemTest {
 
     @Test
     public void testLittleBigger() throws InterruptedException { //crashes x = 6 case 816 CP
-        comparitiveTest(configurations, 3.0, 1.5, 4.0, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
+        comparitiveTest(configurations, 0d, 0d, 0d, true, (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext(), 30*60*1000L, false, false);
+    }
+
+    @Test
+    public void testMoreBigger() throws InterruptedException { //crashes x = 6 case 816 CP
+        comparitiveTest(configurations, 0d, 0d, 0d, true, (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 3.0, (int)seed).init(1).getNext(), 30*60*1000L, false, false);
     }
 
     @Test
     public void testMuchBigger() throws InterruptedException { //crashes x = 7 case 445 CP
-        comparitiveTest(configurations, 3.0, 5.0, 4.0, false, Util::getRandomSuccessDirectedTestCase, 10*60*1000L, true, false);
+        comparitiveTest(configurations, 0d, 0d, 0d, true, (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 5.0, (int)seed).init(1).getNext(), 30*60*1000L, true, false);
     }
 
 

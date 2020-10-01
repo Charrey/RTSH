@@ -15,6 +15,9 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -24,9 +27,9 @@ import java.util.stream.IntStream;
  * A class that saves which source graph vertex is mapped to which target graph vertex, and provides methods to facilitate
  * such matchings.
  */
-public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvider {
+public class VertexMatching implements PartialMatchingProvider {
 
-    private final TIntList placement = new TIntArrayList();
+    private final List<Integer> placement = new ArrayList<>();
 
     private final VertexCandidateIterator[] candidates2;
 
@@ -86,7 +89,9 @@ public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvid
         } else {
             try {
                 occupation.occupyVertex(placement.size() + 1, toAdd, getPartialMatching());
-                placement.add(toAdd);
+                synchronized (placement) {
+                    placement.add(toAdd);
+                }
                 return true;
             } catch (DomainCheckerException e) {
                 if (canPlaceNext()) {
@@ -98,15 +103,15 @@ public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvid
     }
 
 
-    /**
-     * Returns the current vertex placement.
-     *
-     * @return the vertex placement
-     */
-    @NotNull
-    public TIntList getPlacement() {
-        return TCollections.unmodifiableList(placement);
-    }
+//    /**
+//     * Returns the current vertex placement.
+//     *
+//     * @return the vertex placement
+//     */
+//    @NotNull
+//    public TIntList getPlacement() {
+//        return TCollections.unmodifiableList(placement);
+//    }
 
 
     @NotNull
@@ -133,7 +138,9 @@ public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvid
             this.candidates2[placement.size()].reset();
         }
         final int toRemove = placement.get(placement.size() - 1);
-        placement.removeAt(placement.size() - 1);
+        synchronized (placement) {
+            placement.remove(placement.size() - 1);
+        }
         this.occupation.releaseVertex(placement.size(), toRemove, this::getPartialMatching);
         this.onDeletion.accept(toRemove);
     }
@@ -159,7 +166,7 @@ public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvid
 
     @Override
     public PartialMatching getPartialMatching() {
-        return new PartialMatching(placement, edgeMatchingProvider.get(), new TIntHashSet());
+        return new PartialMatching(get(), edgeMatchingProvider.get(), new TIntHashSet());
     }
 
     /**
@@ -167,8 +174,16 @@ public class VertexMatching implements Supplier<TIntList>, PartialMatchingProvid
      *
      * @return a result
      */
-    @Override
-    public TIntList get() {
-        return new TIntArrayList(placement);
+    public List<Integer> get() {
+        synchronized (placement) {
+            return new ArrayList<>(placement);
+        }
+    }
+
+
+    public int size() {
+        synchronized (placement) {
+            return placement.size();
+        }
     }
 }

@@ -80,17 +80,17 @@ class CompleteTest extends PathIteratorTest {
                     settings = new SettingsBuilder(settings).withPathIteration(strategy).get();
                     pathCount.put(strategy, new HashSet<>());
                     GlobalOccupation occupation = new GlobalOccupation(data, settings);
-                    TIntList vertexOccupation;
+                    List<Integer> vertexOccupation;
                     try {
                         occupation.occupyVertex(0, tail, new PartialMatching());
-                        vertexOccupation = new TIntArrayList();
+                        vertexOccupation = new ArrayList<>();
                         vertexOccupation.add(tail);
                         occupation.occupyVertex(1, head, new PartialMatching(vertexOccupation));
                     } catch (DomainCheckerException e) {
                         continue;
                     }
                     PathIterator iterator = PathIteratorFactory.get(targetGraph, data, tail, head, occupation, () -> 2, settings, () -> {
-                        TIntList vertexMatching = new TIntArrayList();
+                        List<Integer> vertexMatching = new ArrayList<>();
                         vertexMatching.add(tail);
                         vertexMatching.add(head);
                         return new PartialMatching(vertexMatching);

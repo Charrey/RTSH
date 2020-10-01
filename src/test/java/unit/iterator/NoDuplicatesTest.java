@@ -25,7 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class NoDuplicatesTest {
@@ -86,7 +88,7 @@ class NoDuplicatesTest {
                 }
                 GlobalOccupation occupation = new GlobalOccupation(data, settings);
                 occupation.occupyVertex(0, tail, new PartialMatching());
-                TIntList vertexMatching = new TIntArrayList();
+                List<Integer> vertexMatching = new ArrayList<>();
                 vertexMatching.add(tail);
                 occupation.occupyVertex(1, head, new PartialMatching(vertexMatching));
                 PathIterator iterator = PathIteratorFactory.get(targetGraph,
@@ -97,7 +99,7 @@ class NoDuplicatesTest {
                         () -> 2,
                         settings,
                         () -> {
-                    TIntList vertexMatching1 = new TIntArrayList();
+                    List<Integer> vertexMatching1 = new ArrayList<>();
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);

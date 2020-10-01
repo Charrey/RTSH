@@ -92,7 +92,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
      * @return whether some edge can be matched
      */
     public boolean hasUnmatched() {
-        int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
+        int lastPlacedIndex = vertexMatching.size() - 1;
         if (lastPlacedIndex == -1) {
             return false;
         }
@@ -105,10 +105,10 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
      * @return whether a new path has been successfully found
      */
     public boolean retry() {
-        if (vertexMatching.getPlacement().isEmpty()) {
+        if (vertexMatching.size() == 0) {
             return false;
         }
-        List<Pair<Path, String>> pathList = paths.get(vertexMatching.getPlacement().size() - 1);
+        List<Pair<Path, String>> pathList = paths.get(vertexMatching.size() - 1);
         if (pathList.isEmpty()) {
             return false;
         }
@@ -152,10 +152,10 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     public Path placeNextUnmatched() {
         assert this.hasUnmatched();
         //get things
-        int sourceGraphTo = vertexMatching.getPlacement().size() - 1;
+        int sourceGraphTo = vertexMatching.size() - 1;
         int sourceGraphFrom = edges[sourceGraphTo][paths.get(sourceGraphTo).size()];
-        int from = vertexMatching.getPlacement().get(sourceGraphFrom);
-        int to = vertexMatching.getPlacement().get(sourceGraphTo);
+        int from = vertexMatching.get().get(sourceGraphFrom);
+        int to = vertexMatching.get().get(sourceGraphTo);
         if (directed && !incoming[sourceGraphTo][paths.get(sourceGraphTo).size()]) {
             //swap
             int temp = to;
@@ -182,7 +182,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             tail,
             head,
             occupation,
-            () -> vertexMatching.getPlacement().size(),
+                vertexMatching::size,
             settings,
             this,
             timeoutTime,
@@ -242,7 +242,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
 
     private int matchesStillToGo(int sourceGraphTo, int sourceGraphFrom, int tail, int head) {
         int initial = source.getAllEdges(sourceGraphFrom, sourceGraphTo).size();
-        long done = paths.get(vertexMatching.getPlacement().size()-1)
+        long done = paths.get(vertexMatching.size()-1)
                 .stream()
                 .filter(path -> List.of(path.getFirst().first(), path.getFirst().last()).equals(List.of(tail, head))).count();
         if (!source.isDirected()) {
@@ -281,10 +281,10 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
 
     private int getDirectConnectionsAlreadyUsed(int tail, int head) {
         int alreadyUsed = 0;
-        if (!this.targetGraph.containsEdge(tail, head) || paths.get(vertexMatching.getPlacement().size()-1).isEmpty()) {
+        if (!this.targetGraph.containsEdge(tail, head) || paths.get(vertexMatching.size()-1).isEmpty()) {
             return 0;
         }
-        LinkedList<Pair<Path, String>> pathsPlaced = paths.get(vertexMatching.getPlacement().size()-1);
+        LinkedList<Pair<Path, String>> pathsPlaced = paths.get(vertexMatching.size()-1);
         ListIterator<Pair<Path, String>> listIterator = pathsPlaced.listIterator(pathsPlaced.size());
         do {
             Pair<Path, String> element = listIterator.previous();
@@ -342,7 +342,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     private void addPath(@NotNull Path found, String debugInfo) {
         assert !found.isEmpty();
         assert directed || found.last() >= found.first();
-        int lastPlacedIndex = vertexMatching.getPlacement().size() - 1;
+        int lastPlacedIndex = vertexMatching.size() - 1;
         Path added = new Path(found);
         paths.get(lastPlacedIndex).add(new Pair<>(added, debugInfo));
     }
@@ -360,8 +360,8 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     }
 
     private void synchronize(int vertex) {
-        assert !vertexMatching.getPlacement().contains(vertex);
-        paths.get(vertexMatching.getPlacement().size()).clear();
+        assert !vertexMatching.get().contains(vertex);
+        paths.get(vertexMatching.size()).clear();
         observingForChains = null;
     }
 
@@ -380,7 +380,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
     }
 
     private void removeLastPath() {
-        List<Pair<Path, String>> pathList = this.paths.get(this.vertexMatching.getPlacement().size() - 1);
+        List<Pair<Path, String>> pathList = this.paths.get(this.vertexMatching.size() - 1);
         Path removed = pathList.remove(pathList.size() - 1).getFirst();
         assert directed || removed.last() >= removed.first();
     }
@@ -403,7 +403,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             toReturn.put(i, new HashSet<>(paths.get(i).stream().map(Pair::getFirst).collect(Collectors.toSet())));
         }
         if (this.partialMatchingMode == WITHOUT_LAST) {
-            toReturn.get(vertexMatching.get().size() - 1).remove(paths.get(vertexMatching.get().size() - 1).getLast().getFirst());
+            toReturn.get(vertexMatching.size() - 1).remove(paths.get(vertexMatching.size() - 1).getLast().getFirst());
         }
         return toReturn;
     }

@@ -54,9 +54,9 @@ public class PathIteratorOverhead extends SystemTest {
                         long period = System.nanoTime() - startTime;
                         if (result instanceof FailResult) {
                             times.add(period);
-                            folio.register(currentX, times.size(), period);
+                            folio.register(currentX, times.size() - 1, period, true);
                         } else if (result instanceof SuccessResult) {
-                            tempTimeout += period;
+                            tempTimeout += period / 1_000_000d;
                         }
                     }
                     if (!times.isEmpty()) {
