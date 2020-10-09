@@ -14,9 +14,7 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -27,9 +25,9 @@ import java.util.stream.IntStream;
 public class GlobalOccupation implements ReadOnlyOccupation {
 
     @NotNull
-    private final TIntSet routingBits;
+    private final Set<Integer> routingBits;
     @NotNull
-    private final TIntSet vertexBits;
+    private final Set<Integer> vertexBits;
     private final Settings settings;
 
     private Pruner pruner;
@@ -43,8 +41,8 @@ public class GlobalOccupation implements ReadOnlyOccupation {
     public GlobalOccupation(UtilityData data, Settings settings) {
         this.data = data;
         this.settings = settings;
-        this.routingBits = new TIntHashSet();
-        this.vertexBits = new TIntHashSet();
+        this.routingBits = new HashSet<>();
+        this.vertexBits = new HashSet<>();
     }
 
     public void init(VertexMatching vertexMatching) {
@@ -105,8 +103,10 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      */
     public void occupyVertex(Integer source, Integer target, PartialMatching partialMatching) throws DomainCheckerException {
         synchronized (routingBits) {
-            if (routingBits.contains(target) || vertexBits.contains(target)) {
-                throw new IllegalStateException();
+            synchronized (vertexBits) {
+                if (routingBits.contains(target) || vertexBits.contains(target)) {
+                    throw new IllegalStateException();
+                }
             }
         }
         List<Integer> hypothetical = new ArrayList<>(partialMatching.getVertexMapping());
@@ -145,7 +145,9 @@ public class GlobalOccupation implements ReadOnlyOccupation {
         if (!isOccupiedVertex(vertex)) {
             throw new IllegalArgumentException("Cannot release a vertex that was never occupied (for vertex-on-vertex purposes): " + vertex);
         }
-        vertexBits.remove(vertex);
+        synchronized (vertexBits) {
+            vertexBits.remove(vertex);
+        }
         pruner.afterReleaseVertex(vertexPlacementSize, vertex, partialMatchingProvider);
     }
 
@@ -169,7 +171,9 @@ public class GlobalOccupation implements ReadOnlyOccupation {
      * @return whether in the current matching this vertex is used for vertex-on-vertex matching
      */
     public boolean isOccupiedVertex(Integer vertex) {
-        return vertexBits.contains(vertex);
+        synchronized (vertexBits) {
+            return vertexBits.contains(vertex);
+        }
     }
 
     public boolean isOccupied(int vertex) {
@@ -197,15 +201,19 @@ public class GlobalOccupation implements ReadOnlyOccupation {
         if (o == null || getClass() != o.getClass()) return false;
         GlobalOccupation that = (GlobalOccupation) o;
         synchronized (routingBits) {
-            return routingBits.equals(that.routingBits) &&
-                    vertexBits.equals(that.vertexBits);
+            synchronized (vertexBits) {
+                return routingBits.equals(that.routingBits) &&
+                        vertexBits.equals(that.vertexBits);
+            }
         }
     }
 
     @Override
     public int hashCode() {
         synchronized (routingBits) {
-            return Objects.hash(routingBits, vertexBits);
+            synchronized (vertexBits) {
+                return Objects.hash(routingBits, vertexBits);
+            }
         }
     }
 

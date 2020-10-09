@@ -22,8 +22,8 @@ public class SuccessResult extends HomeomorphismResult {
     private final int[] matching;
     private final Map<MyEdge, Set<Path>> edgeMatching;
 
-    public SuccessResult(int[] matching, Map<MyEdge, Set<Path>> edgeMatching, long iterations) {
-        super(true, iterations);
+    public SuccessResult(int[] matching, Map<MyEdge, Set<Path>> edgeMatching, long iterations, double mem) {
+        super(true, iterations, mem);
         this.matching = matching;
         this.edgeMatching = edgeMatching;
     }

@@ -145,6 +145,7 @@ public abstract class MReachCachedPruner extends Pruner {
 
     @Override
     public void beforeOccupyVertex(int verticesPlaced, int targetVertex, PartialMatchingProvider partialMatching) throws DomainCheckerException {
+        List<Integer> currentVertexMatching = vertexMatching.get();
         if (!getDomain(verticesPlaced - 1, domain).contains(targetVertex)) {
             throw new DomainCheckerException(() -> "1");
         }
@@ -169,13 +170,12 @@ public abstract class MReachCachedPruner extends Pruner {
         });
         reserveSingles(newDomainLayer, newReverseDomainLayer, singles);
         if (settings.getFiltering() instanceof MReachabilityFiltering || settings.getFiltering() instanceof NReachabilityFiltering) {
-            Set<Integer> mustBePredecessors = Collections.unmodifiableSet(Graphs.predecessorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < vertexMatching.get().size()).map(x -> vertexMatching.get().get(x)).collect(Collectors.toSet()));
-            Set<Integer> mustBeSuccessors = Collections.unmodifiableSet(Graphs.successorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < vertexMatching.get().size()).map(x -> vertexMatching.get().get(x)).collect(Collectors.toSet()));
-            List<Integer> vertexPlacement = vertexMatching.get();
-            MReachabilityCheck(vertexPlacement, targetVertex, mustBePredecessors, false);
-            MReachabilityCheck(vertexPlacement, targetVertex, mustBeSuccessors, true);
+            Set<Integer> mustBePredecessors = Collections.unmodifiableSet(Graphs.predecessorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < currentVertexMatching.size()).map(currentVertexMatching::get).collect(Collectors.toSet()));
+            Set<Integer> mustBeSuccessors = Collections.unmodifiableSet(Graphs.successorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < currentVertexMatching.size()).map(currentVertexMatching::get).collect(Collectors.toSet()));
+            MReachabilityCheck(currentVertexMatching, targetVertex, mustBePredecessors, false);
+            MReachabilityCheck(currentVertexMatching, targetVertex, mustBeSuccessors, true);
             if (settings.getFiltering() instanceof NReachabilityFiltering) {
-                NReachabilityCheck(vertexPlacement, newDomainLayer, newReverseDomainLayer);
+                NReachabilityCheck(currentVertexMatching, newDomainLayer, newReverseDomainLayer);
             }
         }
         if (isUnfruitful(verticesPlaced, partialMatching, targetVertex)) {

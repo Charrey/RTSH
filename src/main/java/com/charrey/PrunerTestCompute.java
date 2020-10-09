@@ -9,279 +9,193 @@ import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.util.Util;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Test;
 
 
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class PrunerTest {
+public class PrunerTestCompute {
 
 
     public static void main(String[] args) throws InterruptedException {
-
-        Runnable runnable1;
-        Runnable runnable2;
-        Runnable runnable3;
-        Thread thread1;
-        Thread thread2;
-        Thread thread3;
-
-        runnable1 = () -> {
+        List<Thread> threads = new ArrayList<>();
+        threads.add(new Thread(() -> {
             try {
                 testSerialZeroDomainLabelDegree("serialzerodomainlabeldegree.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable2 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testCachedZeroDomainLabelDegree("cachedzerodomainlabeldegree.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable3 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testParallelZeroDomainLabelDegree("parallelzerodomainlabeldegree.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        thread1 = new Thread(runnable1);
-        thread2 = new Thread(runnable2);
-        thread3 = new Thread(runnable3);
-        thread1.start();
-        thread2.start();
-        thread3.start();
-        thread1.join();
-        thread2.join();
-        thread3.join();
-
-        runnable1 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testSerialAlldiffLabelDegree("serialalldifflabeldegree.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable2 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testCachedAlldiffLabelDegree("cachedalldifflabeldegree.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable3 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testParallelAlldiffLabelDegree("parallelalldifflabeldegree.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        thread1 = new Thread(runnable1);
-        thread2 = new Thread(runnable2);
-        thread3 = new Thread(runnable3);
-        thread1.start();
-        thread2.start();
-        thread3.start();
-        thread1.join();
-        thread2.join();
-        thread3.join();
-
-        runnable1 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testSerialZeroDomainUnmatchedDegrees("serialzerodomainUnmatchedDegrees.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable2 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testCachedZeroDomainUnmatchedDegrees("cachedzerodomainUnmatchedDegrees.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable3 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testParallelZeroDomainUnmatchedDegrees("parallelzerodomainUnmatchedDegrees.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-
-        thread1 = new Thread(runnable1);
-        thread2 = new Thread(runnable2);
-        thread3 = new Thread(runnable3);
-        thread1.start();
-        thread2.start();
-        thread3.start();
-        thread1.join();
-        thread2.join();
-        thread3.join();
-
-        runnable1 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testSerialAlldiffUnmatched("serialalldiffUnmatchedDegrees.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable2 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testCachedAlldiffUnmatched("cachedalldiffUnmatchedDegrees.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable3 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testParallelAlldiffUnmatched("parallelalldiffUnmatchedDegrees.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-
-        thread1 = new Thread(runnable1);
-        thread2 = new Thread(runnable2);
-        thread3 = new Thread(runnable3);
-        thread1.start();
-        thread2.start();
-        thread3.start();
-        thread1.join();
-        thread2.join();
-        thread3.join();
-
-        runnable1 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testSerialZeroDomainMReach("serialzerodomainMReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable2 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testCachedZeroDomainMReach("cachedzerodomainMReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable3 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testParallelZeroDomainMReach("parallelzerodomainMReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-
-        thread1 = new Thread(runnable1);
-        thread2 = new Thread(runnable2);
-        thread3 = new Thread(runnable3);
-        thread1.start();
-        thread2.start();
-        thread3.start();
-        thread1.join();
-        thread2.join();
-        thread3.join();
-
-        runnable1 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testSerialAlldiffMReach("serialalldiffMReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable2 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testCachedAlldiffMReach("cachedalldiffMReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable3 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testParallelAlldiffMReach("parallelalldiffMReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-
-        thread1 = new Thread(runnable1);
-        thread2 = new Thread(runnable2);
-        thread3 = new Thread(runnable3);
-        thread1.start();
-        thread2.start();
-        thread3.start();
-        thread1.join();
-        thread2.join();
-        thread3.join();
-
-        runnable1 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testSerialZeroDomainNReach("serialzerodomainNReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable2 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testCachedZeroDomainNReach("cachedzerodomainNReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable3 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testParallelZeroDomainNReach("parallelzerodomainNReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-
-        thread1 = new Thread(runnable1);
-        thread2 = new Thread(runnable2);
-        thread3 = new Thread(runnable3);
-        thread1.start();
-        thread2.start();
-        thread3.start();
-        thread1.join();
-        thread2.join();
-        thread3.join();
-
-        runnable1 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testSerialAlldiffNReach("serialalldiffNReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable2 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testCachedAlldiffNReach("cachedalldiffNReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-        runnable3 = () -> {
+        }));
+        threads.add(new Thread(() -> {
             try {
                 testParallelAlldiffNReach("parallelalldiffNReach.txt");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        };
-
-        thread1 = new Thread(runnable1);
-        thread2 = new Thread(runnable2);
-        thread3 = new Thread(runnable3);
-        thread1.start();
-        thread2.start();
-        thread3.start();
-        thread1.join();
-        thread2.join();
-        thread3.join();
-
+        }));
+        for (int i = 0; i < threads.size(); i += 6) {
+            List<Thread> maxSixThreads = threads.subList(i, threads.size()).stream().limit(6).collect(Collectors.toList());
+            maxSixThreads.forEach(Thread::start);
+            for (Thread maxSixThread : maxSixThreads) {
+                maxSixThread.join();
+            }
+        }
     }
 
 
@@ -313,13 +227,12 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
-
     public static void testSerialZeroDomainUnmatchedDegrees(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -347,13 +260,11 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testSerialZeroDomainMReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -381,13 +292,11 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testSerialZeroDomainNReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -415,13 +324,11 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testCachedZeroDomainLabelDegree(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -449,12 +356,11 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
     public static void testCachedZeroDomainUnmatchedDegrees(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -482,13 +388,11 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testCachedZeroDomainMReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -516,13 +420,11 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testCachedZeroDomainNReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -550,12 +452,11 @@ public class PrunerTest {
 
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
     public static void testParallelZeroDomainLabelDegree(String fileName) throws InterruptedException { //cr
         try(FileWriter fw = new FileWriter(fileName, true);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -572,13 +473,6 @@ public class PrunerTest {
         configurations.add(new Configuration("+",        "green" , "CP"       ,
                 new SettingsBuilder().withControlPointRouting().withParallelPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
                 new SettingsBuilder().withControlPointRouting().get()));
-
-
-            comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
-
-        configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
@@ -590,13 +484,11 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testParallelZeroDomainUnmatchedDegrees(String fileName) throws InterruptedException {
 
         try(FileWriter fw = new FileWriter(fileName, true);
@@ -614,10 +506,6 @@ public class PrunerTest {
         configurations.add(new Configuration("+",        "green" , "CP"       ,
                 new SettingsBuilder().withControlPointRouting().withParallelPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
                 new SettingsBuilder().withControlPointRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(out, System.out));
-        configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
@@ -629,13 +517,12 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                , true, false, Util.setOf(out, System.out),  fileName);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
     public static void testParallelZeroDomainMReach(String fileName) throws InterruptedException { //cr
 
         try(FileWriter fw = new FileWriter(fileName, true);
@@ -653,10 +540,6 @@ public class PrunerTest {
         configurations.add(new Configuration("+",        "green" , "CP"       ,
                 new SettingsBuilder().withControlPointRouting().withParallelPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
                 new SettingsBuilder().withControlPointRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(out, System.out));
-        configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
@@ -668,14 +551,12 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                , true, false, Util.setOf(out, System.out),  fileName);
 
     } catch (IOException e) {
         e.printStackTrace();
     }
     }
-
-
     public static void testParallelZeroDomainNReach(String fileName) throws InterruptedException { //cr
         try(FileWriter fw = new FileWriter(fileName, true);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -693,10 +574,6 @@ public class PrunerTest {
         configurations.add(new Configuration("+",        "green" , "CP"       ,
                 new SettingsBuilder().withControlPointRouting().withParallelPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
                 new SettingsBuilder().withControlPointRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(out, System.out));
-        configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
@@ -708,15 +585,12 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                , true, false, Util.setOf(out, System.out),  fileName);
 
     } catch (IOException e) {
         e.printStackTrace();
     }
     }
-
-
-
     public static void testSerialAlldiffLabelDegree(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -744,13 +618,11 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testSerialAlldiffUnmatched(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -777,13 +649,11 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testSerialAlldiffMReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -810,13 +680,11 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testSerialAlldiffNReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -843,15 +711,11 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
-
-
     public static void testCachedAlldiffLabelDegree(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -878,13 +742,11 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testCachedAlldiffUnmatched(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -911,13 +773,11 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testCachedAlldiffMReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -944,13 +804,11 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testCachedAlldiffNReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
         configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
@@ -977,13 +835,11 @@ public class PrunerTest {
         {
             comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                    , 10*60*1000L, true, false, Util.setOf(out, System.out));
+                    , true, false, Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
     public static void testParallelAlldiffLabelDegree(String fileName) throws InterruptedException { //cr
         try(FileWriter fw = new FileWriter(fileName, true);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -999,10 +855,6 @@ public class PrunerTest {
         configurations.add(new Configuration("+",        "green" , "CP"       ,
                 new SettingsBuilder().withControlPointRouting().withParallelPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
                 new SettingsBuilder().withControlPointRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(System.out, out));
-        configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
@@ -1014,14 +866,12 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(System.out, out));
+                , true, false, Util.setOf(System.out, out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
-
-
     public static void testParallelAlldiffUnmatched(String fileName) throws InterruptedException { //cr
         try(FileWriter fw = new FileWriter(fileName, true);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -1037,10 +887,6 @@ public class PrunerTest {
         configurations.add(new Configuration("+",        "green" , "CP"       ,
                 new SettingsBuilder().withControlPointRouting().withParallelPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
                 new SettingsBuilder().withControlPointRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(System.out, out));
-        configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
@@ -1052,14 +898,12 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(System.out, out));
+                , true, false, Util.setOf(System.out, out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
-
-
     public static void testParallelAlldiffMReach(String fileName) throws InterruptedException { //cr
         try(FileWriter fw = new FileWriter(fileName, true);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -1075,10 +919,6 @@ public class PrunerTest {
         configurations.add(new Configuration("+",        "green" , "CP"       ,
                 new SettingsBuilder().withControlPointRouting().withParallelPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
                 new SettingsBuilder().withControlPointRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(System.out, out));
-        configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
@@ -1090,14 +930,12 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(System.out, out));
+                , true, false, Util.setOf(System.out, out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
-
-
     public static void testParallelAlldiffNReach(String fileName) throws InterruptedException { //cr
         try(FileWriter fw = new FileWriter(fileName, true);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -1114,10 +952,6 @@ public class PrunerTest {
         configurations.add(new Configuration("+",        "green" , "CP"       ,
                 new SettingsBuilder().withControlPointRouting().withParallelPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
                 new SettingsBuilder().withControlPointRouting().get()));
-        comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(System.out, out));
-        configurations.clear();
         configurations.add(new Configuration("o",        "purple", "GDFS O IP",
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().withParallelPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
                 new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
@@ -1129,13 +963,14 @@ public class PrunerTest {
                 new SettingsBuilder().withCachedGreedyDFSRouting().get()));
         comparitiveTest(configurations, 2.429, 1.5, 3.425, false,
                 (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , 10*60*1000L, true, false, Util.setOf(System.out, out));
+                , true, false, Util.setOf(System.out, out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
 
+    private static final long timeout = 30*60*1000;
 
     static void comparitiveTest(List<Configuration> configurations,
                                 double sourceDegree,
@@ -1143,10 +978,10 @@ public class PrunerTest {
                                 double targetdegree,
                                 boolean labels,
                                 TestCaseProvider tcp,
-                                long timeout,
                                 boolean continueOnError,
                                 boolean calloutEachResult,
-                                Set<Appendable> outputs) throws InterruptedException {
+                                Set<Appendable> outputs,
+                                String additionalInfo) throws InterruptedException {
         Map<Configuration, Thread> threads = new HashMap<>();
         for (Configuration configuration : configurations) {
             Object fileLock = new Object();
@@ -1194,7 +1029,17 @@ public class PrunerTest {
                                 periodWithout = System.nanoTime() - startTime;
                             }
                         } catch (Exception | Error e) {
-                            System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
+                            String error = (additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
+                            synchronized (fileLock) {
+                                outputs.forEach(y -> {
+                                    try {
+                                        y.append(error + "\n");
+                                        ((Flushable) y).flush();
+                                    } catch (IOException e2) {
+                                        e.printStackTrace();
+                                    }
+                                });
+                            }
                             e.printStackTrace();
                             if (continueOnError) {
                                 continue;
@@ -1203,7 +1048,7 @@ public class PrunerTest {
                             }
                         }
                         if (resultWithout instanceof FailResult || resultWith instanceof FailResult) {
-                            System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
+                            System.out.println(additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
                             if (!continueOnError) {
                                 throw new IllegalStateException("Failed!");
                             }
@@ -1243,7 +1088,7 @@ public class PrunerTest {
 
     @NotNull
     public static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
-        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
+        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST", false);
     }
 
 }

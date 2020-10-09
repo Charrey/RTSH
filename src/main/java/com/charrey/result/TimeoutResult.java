@@ -2,7 +2,7 @@ package com.charrey.result;
 
 public class TimeoutResult extends HomeomorphismResult {
 
-    public TimeoutResult(long iterations) {
-        super(false, iterations);
+    public TimeoutResult(long iterations, double mem) {
+        super(false, iterations, mem);
     }
 }

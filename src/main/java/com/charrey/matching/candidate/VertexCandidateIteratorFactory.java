@@ -19,6 +19,8 @@ public class VertexCandidateIteratorFactory {
                 return new CloseFirstIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching, false);
             case CLOSEST_TO_MATCHED_CACHED:
                 return new CloseFirstIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching, true);
+            case RANDOM:
+                return new RandomIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex);
             default:
                 throw new UnsupportedOperationException();
         }

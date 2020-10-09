@@ -52,7 +52,7 @@ class TestSerialPrune extends SystemTest {
 
                 if (attempts >= 0) {
                     try {
-                        homeomorphism = writeChallenge ? testSucceed(testCase, time - (System.currentTimeMillis() - start), settings) : new IsoFinder().getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start), "RANDOMSYSTEST  ");
+                        homeomorphism = writeChallenge ? testSucceed(testCase, time - (System.currentTimeMillis() - start), settings) : new IsoFinder().getHomeomorphism(testCase, settings, time - (System.currentTimeMillis() - start), "RANDOMSYSTEST  ", false);
                         assert homeomorphism instanceof TimeoutResult || homeomorphism.succeed || !writeChallenge;
                     } catch (AssertionError e) {
                         System.err.println(attempts);

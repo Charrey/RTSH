@@ -32,7 +32,7 @@ public class MultiGraphTest {
         TestCase testCase = new TestCase(source, target, null, null);
         Settings settings = new SettingsBuilder().withKPathRouting().withoutContraction().get();
 
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 100000L, "MultigraphTest");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 100000L, "MultigraphTest", false);
         System.out.println(result);
     }
 
@@ -51,7 +51,7 @@ public class MultiGraphTest {
         TestCase testCase = new TestCase(source, target, null, null);
         Settings settings = new SettingsBuilder().withControlPointRouting().withoutContraction().get();
 
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 100000L, "MultigraphTest");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 100000L, "MultigraphTest", false);
         System.out.println(result);
     }
 
@@ -68,7 +68,7 @@ public class MultiGraphTest {
         TestCase testCase = new TestCase(source, target, null, null);
         Settings settings = new SettingsBuilder().withControlPointRouting().withoutContraction().get();
 
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 100000L, "MultigraphTest");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 100000L, "MultigraphTest", false);
         System.out.println(result);
     }
 
@@ -91,7 +91,7 @@ public class MultiGraphTest {
         TestCase testCase = new TestCase(source, target, null, null);
         Settings settings = new SettingsBuilder().withControlPointRouting().withoutContraction().get();
 
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 100000L, "MultigraphTest");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 100000L, "MultigraphTest", false);
         System.out.println(result);
     }
 }

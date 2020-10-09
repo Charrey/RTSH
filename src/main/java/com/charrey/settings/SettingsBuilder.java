@@ -6,8 +6,6 @@ import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.settings.pruning.domainfilter.*;
 import com.charrey.util.Util;
 
-import java.util.Set;
-
 import static com.charrey.settings.pathiteration.PathIteration.DFS_ARBITRARY;
 import static com.charrey.settings.pathiteration.PathIteration.DFS_GREEDY;
 
@@ -23,6 +21,7 @@ public class SettingsBuilder {
     private boolean lockWhenToApply = false;
     private boolean lockVertexLimit = false;
     private boolean lockPathsLimit = false;
+    private boolean lockSourceVertexOrder = false;
     private boolean lockTargetVertexOrder = false;
     private boolean lockDFSCaching = false;
     private boolean lockContraction = false;
@@ -36,6 +35,7 @@ public class SettingsBuilder {
                 WhenToApply.SERIAL,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
+                SourceVertexOrder.GREATEST_CONSTRAINED_FIRST,
                 TargetVertexOrder.LARGEST_DEGREE_FIRST,
                 false,
                 false
@@ -61,6 +61,16 @@ public class SettingsBuilder {
         }
         settings.setRefuseLongerPaths(!allow);
         lockLongerPaths = true;
+        return this;
+    }
+
+
+    private SettingsBuilder setSourceVertexOrder(SourceVertexOrder order) {
+        if (lockTargetVertexOrder) {
+            throw new IllegalStateException("Source vertex order has already been set to " + settings.getTargetVertexOrder());
+        }
+        settings.setSourceVertexOrder(order);
+        lockSourceVertexOrder = true;
         return this;
     }
 
@@ -145,8 +155,20 @@ public class SettingsBuilder {
         return setTargetVertexOrder(TargetVertexOrder.CLOSEST_TO_MATCHED);
     }
 
+    public SettingsBuilder withRandomSourceVertexOrder() {
+        return setSourceVertexOrder(SourceVertexOrder.RANDOM);
+    }
+
+    public SettingsBuilder withGreatestConstrainedFirstSourceVertexOrder() {
+        return setSourceVertexOrder(SourceVertexOrder.GREATEST_CONSTRAINED_FIRST);
+    }
+
     public SettingsBuilder withClosestTargetVertexOrderCached() {
         return setTargetVertexOrder(TargetVertexOrder.CLOSEST_TO_MATCHED_CACHED);
+    }
+
+    public SettingsBuilder withRandomTargetVertexOrder() {
+        return setTargetVertexOrder(TargetVertexOrder.RANDOM);
     }
 
     public SettingsBuilder withLabelDegreeFiltering() {
@@ -261,6 +283,7 @@ public class SettingsBuilder {
         lockWhenToApply = true;
         lockVertexLimit = true;
         lockPathsLimit = true;
+        lockSourceVertexOrder = true;
         lockTargetVertexOrder = true;
         lockDFSCaching = true;
         lockContraction = true;

@@ -7,7 +7,7 @@ package com.charrey.result;
 public class CompatibilityFailResult extends HomeomorphismResult {
 
 
-    public CompatibilityFailResult() {
-        super(false, 0L);
+    public CompatibilityFailResult(double mem) {
+        super(false, 0L, mem);
     }
 }

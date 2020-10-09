@@ -73,7 +73,7 @@ public class SerialZeroDomainPruner extends DefaultSerialPruner {
             //get previous partial matching
             for (int i = partialMatching.getVertexMapping().size(); i < this.sourceGraph.vertexSet().size(); i++) {
                 int finalI = i;
-                Iterator<Integer> customIterator = (vertexPlaced > -1 ? Graphs.neighborListOf(targetGraph, vertexPlaced) : targetGraph.vertexSet())
+                Iterator<Integer> customIterator = (targetGraph.vertexSet())
                         .stream()
                         .filter(x -> new UnmatchedDegreesFiltering().filter(sourceGraph, targetGraph, finalI, x, occupation))
                         .filter(x -> !occupation.isOccupied(x))

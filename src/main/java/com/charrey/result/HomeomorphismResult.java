@@ -10,11 +10,13 @@ public abstract class HomeomorphismResult {
      */
     public final boolean succeed;
     public final long iterations;
+    public final double memory;
 
 
-    protected HomeomorphismResult(boolean succeed, long iterations) {
+    protected HomeomorphismResult(boolean succeed, long iterations, double memoryFromBase) {
         this.succeed = succeed;
         this.iterations = iterations;
+        this.memory = memoryFromBase;
     }
 
 }

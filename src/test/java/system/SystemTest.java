@@ -15,7 +15,7 @@ public abstract class SystemTest {
 
     @NotNull
     HomeomorphismResult testSucceed(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) throws IOException {
-        HomeomorphismResult morph = new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
+        HomeomorphismResult morph = new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST", false);
         if (!(morph instanceof TimeoutResult) && !morph.succeed) {
             //openInBrowser(testCase.getSourceGraph().toString(), testCase.getTargetGraph().toString());
             fail();
@@ -25,7 +25,7 @@ public abstract class SystemTest {
 
     @NotNull
     public static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
-        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST");
+        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST", false);
     }
 
 

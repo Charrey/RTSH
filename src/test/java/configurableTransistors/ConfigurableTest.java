@@ -12,7 +12,6 @@ import com.charrey.util.Util;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -92,7 +91,7 @@ class ConfigurableTest {
                 new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder().withKPathRouting().withoutContraction().get(),
                 10 * 60 * 1000,
-                "ConfigurableTest ");
+                "ConfigurableTest ", false);
         assertFalse(result.succeed);
         System.out.println(result);
     }
@@ -153,7 +152,7 @@ class ConfigurableTest {
                 new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder()
                         .withKPathRouting().withoutContraction().get(),
-                10 * 60 * 1000, "ConfigurableTest ");
+                10 * 60 * 1000, "ConfigurableTest ", false);
         assertTrue(result.succeed);
         Map<MyEdge, Set<Path>> expected = new HashMap<>();
         expected.put(new MyEdge(0, 1), Util.setOf(new Path(targetGraph, Util.listOf(0, 1))));
@@ -207,7 +206,7 @@ class ConfigurableTest {
         HomeomorphismResult result = new IsoFinder().getHomeomorphism(
                 new TestCase(sourceGraph, targetGraph, null, null),
                 new SettingsBuilder()
-                        .withKPathRouting().withoutContraction().get(), 10 * 60 * 1000, "ConfigurableTest ");
+                        .withKPathRouting().withoutContraction().get(), 10 * 60 * 1000, "ConfigurableTest ", false);
         assertTrue(result.succeed);
         System.out.println(result);
         assertArrayEquals(new int[]{0, 1, 4, 6, 7, 10}, ((SuccessResult) result).getVertexPlacement());
@@ -264,7 +263,7 @@ class ConfigurableTest {
                         .withoutContraction()
                         .withKPathRouting().get(),
                 10 * 60 * 1000,
-                "ConfigurableTest ");
+                "ConfigurableTest ", false);
         assertTrue(result.succeed);
         System.out.println(result);
         assertArrayEquals(new int[]{0, 1, 4, 5, 6, 9}, ((SuccessResult) result).getVertexPlacement());

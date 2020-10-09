@@ -8,10 +8,8 @@ import com.charrey.result.SuccessResult;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
-import com.charrey.util.GraphUtil;
 import com.charrey.util.Util;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +18,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -259,7 +256,7 @@ class BigGraphTest {
                         //.withClosestTargetVertexOrder()
                         .get();
                 try {
-                    HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, timeout, strategy.toString());
+                    HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, timeout, strategy.toString(), false);
                     System.out.println(result);
                     System.out.println(strategy.toString() + " IS FINISHED ------------------------------------");
                     System.out.flush();

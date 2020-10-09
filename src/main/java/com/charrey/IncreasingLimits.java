@@ -9,7 +9,6 @@ import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -22,13 +21,13 @@ public class IncreasingLimits extends IsoFinder {
         this.pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(threads);
     }
 
-    public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name) {
+    public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name, boolean monitorSpace) {
         final HomeomorphismResult[] confirmedFound = {null};
         final HomeomorphismResult[] timedOut = {null};
         final HomeomorphismResult[] confirmedFailed = {null};
-        int lastAdded = -1;
+        int lastAdded = 0;
         pool.submit(() -> {
-            HomeomorphismResult result = new IsoFinder().getHomeomorphism(testcase, settings, timeout, name);
+            HomeomorphismResult result = new IsoFinder().getHomeomorphism(testcase, settings, timeout, name, false);
             if (result instanceof SuccessResult) {
                 confirmedFound[0] = result;
             } else if (result instanceof TimeoutResult) {
@@ -41,7 +40,7 @@ public class IncreasingLimits extends IsoFinder {
             if (pool.getActiveCount() < pool.getPoolSize()) {
                 int finalLastAdded = lastAdded;
                 pool.submit(() -> {
-                    HomeomorphismResult result = new IsoFinder().getHomeomorphism(testcase, new SettingsBuilder(settings).withVertexLimit(finalLastAdded +1).withPathsLimit(finalLastAdded +1).get(), timeout, name);
+                    HomeomorphismResult result = new IsoFinder().getHomeomorphism(testcase, new SettingsBuilder(settings).withVertexLimit(finalLastAdded +1).withPathsLimit(finalLastAdded +1).get(), timeout, name, false);
                     if (result instanceof SuccessResult) {
                         confirmedFound[0] = result;
                     } else if (result instanceof TimeoutResult) {

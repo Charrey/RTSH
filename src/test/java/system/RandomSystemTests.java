@@ -25,16 +25,9 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            //.withInplaceDFSRouting()
-            //.withControlPointRouting()
-            .withCachedDFSRouting()
-            //.withCachedGreedyDFSRouting()
-            //.withInplaceNewGreedyDFSRouting()
-            //.withInplaceOldGreedyDFSRouting()
-            .withNeighbourReachabilityFiltering()
             .withSerialPruning()
-            .withLargestDegreeFirstTargetVertexOrder()
-            .withAllDifferentPruning()
+            .withZeroDomainPruning()
+            .withUnmatchedDegreesFiltering()
             .get();
 
 
@@ -103,7 +96,7 @@ class RandomSystemTests extends SystemTest {
 
                 HomeomorphismResult homeomorphism;
                 //System.out.println("case " + attempts);
-                if (attempts >= 5020) {//
+                if (attempts >= 1000) {//
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);

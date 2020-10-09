@@ -7,7 +7,6 @@ import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.SuccessResult;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
-import com.charrey.util.GraphUtil;
 import org.junit.jupiter.api.Test;
 
 public class ContractionTest {
@@ -41,7 +40,7 @@ public class ContractionTest {
 
         Settings settings = new SettingsBuilder().withContraction().get();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 10*60*1000, "ContractionTest");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 10*60*1000, "ContractionTest", false);
         assert result instanceof SuccessResult;
     }
 
@@ -67,7 +66,7 @@ public class ContractionTest {
 
         Settings settings = new SettingsBuilder().withContraction().get();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 10*60*1000, "ContractionTest");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 10*60*1000, "ContractionTest", false);
         System.out.println(result);
         assert result instanceof SuccessResult;
     }
@@ -129,7 +128,7 @@ public class ContractionTest {
 
         Settings settings = new SettingsBuilder().withContraction().get();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 10*60*1000, "ContractionTest");
+        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 10*60*1000, "ContractionTest", false);
         System.out.println(result);
         assert result instanceof SuccessResult;
     }

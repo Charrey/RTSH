@@ -146,28 +146,34 @@ class ControlPointIterator extends PathIterator {
                 TIntSet fictionalOccupation = new TIntHashSet(previousLocalOccupation);
                 middleAltToRight.forEach(fictionalOccupation::add);
                 Path temporarilyRemoveGlobal = middleToRight.subPath(0, middleToRight.length() - 1);
-                temporarilyRemoveGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
+                temporarilyRemoveGlobal.forEach(x -> {
+                    if (transaction.isOccupiedRouting(x)) {
+                        transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching);
+                    }
+                });
                 Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(targetGraph, transaction, fictionalOccupation, leftCandidate, middleAlt, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
                 if (!leftToMiddleAlt.isPresent()) {
-                    temporarilyRemoveGlobal.forEach(x -> {
+                    temporarilyRemoveGlobal.asList().forEach(x -> {
                         try {
                             transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
-                        } catch (DomainCheckerException e) {
-                            assert false;
+                        } catch (DomainCheckerException ignored) {
+
                         }
+                        return true;
                     });
                     return true;
                 }
                 Path leftToRightAlt = Util.merge(targetGraph, leftToMiddleAlt.get(), middleAltToRight);
                 Optional<Path> leftToMiddle = filteredShortestPath(leftCandidate, middle);
+                final boolean[] failed = {false};
                 temporarilyRemoveGlobal.forEachReverse(x -> {
                     try {
                         transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
                     } catch (DomainCheckerException e) {
-                        assert false;
+                        failed[0] = true;
                     }
                 });
-                if (!leftToMiddle.isPresent()) {
+                if (failed[0] || !leftToMiddle.isPresent()) {
                     return true;
                 }
                 Path leftToRight = Util.merge(targetGraph, leftToMiddle.get(), middleToRight);
@@ -189,15 +195,27 @@ class ControlPointIterator extends PathIterator {
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::remove);
 
             Path temporaryRemoveFromGlobal = pathFromRightNeighbourToItsRightNeighbour.subPath(0, pathFromRightNeighbourToItsRightNeighbour.length() - 1);
-            temporaryRemoveFromGlobal.forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
-            Optional<Path> skippedPath = Util.filteredShortestPath(targetGraph, transaction, localOccupation, left, right, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
-            temporaryRemoveFromGlobal.forEachReverse(x -> {
-                try {
-                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
-                } catch (DomainCheckerException e) {
-                    assert false;
+            temporaryRemoveFromGlobal.forEach(x -> {
+                if (transaction.isOccupiedRouting(x)) {
+                    transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching);
                 }
             });
+            Optional<Path> skippedPath = Util.filteredShortestPath(targetGraph, transaction, localOccupation, left, right, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
+
+           if (!temporaryRemoveFromGlobal.asList().forEach(x -> {
+                try {
+                    transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
+                    return true;
+                } catch (DomainCheckerException e) {
+                    return false;
+                }
+            })) {
+               temporaryRemoveFromGlobal.forEach(x -> {
+                   if (transaction.isOccupiedRouting(x)) {
+                       transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching);
+                   }
+               });
+           }
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::add);
             if (!skippedPath.isPresent()) {
                 return true;
@@ -304,7 +322,7 @@ class ControlPointIterator extends PathIterator {
     }
 
     private void releasePreviousControlPoint() {
-        if (chosenControlPoint != ABSENT) {
+        if (chosenControlPoint != ABSENT && this.transaction.isOccupiedRouting(chosenControlPoint)) {
             this.transaction.releaseRouting(verticesPlaced.get(), chosenControlPoint, this::getPartialMatching);
         }
     }
@@ -320,7 +338,11 @@ class ControlPointIterator extends PathIterator {
         } else {
             child = null;
             chosenPath.forEach(localOccupation::remove);
-            chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
+            chosenPath.intermediate().forEach(x -> {
+                if (transaction.isOccupiedRouting(x)) {
+                    transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching);
+                }
+            });
             return null;
         }
     }

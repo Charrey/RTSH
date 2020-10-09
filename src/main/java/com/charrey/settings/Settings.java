@@ -7,12 +7,15 @@ import com.charrey.settings.pruning.domainfilter.FilteringSettings;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * Class to encapsulate the different settings under which homeomorphisms may be found. Each setting influences the
  * behaviour of the search in some way.
  */
 public class Settings implements Cloneable {
+
+    private Random random = new Random(12345);
 
     private boolean contraction;
     private boolean dfsCaching;
@@ -38,14 +41,20 @@ public class Settings implements Cloneable {
     private int vertexLimit;
     private int pathsLimit;
 
+    private SourceVertexOrder sourceVertexOrder;
     private TargetVertexOrder targetVertexOrder;
+
+
+    public long nextLong() {
+        return random.nextLong();
+    }
 
     /**
      * Instantiates a new Settings.
-     *
      * @param refuseLongerPaths Whether to refuse paths that take up unnecessarily many resources.
      * @param pruningMethod     Which pruning method to use (select from PruningConstants.java)
      * @param pathIteration     Which method to iterate paths is used (select from PathIterationConstants.java)
+     * @param sourceVertexOrder
      */
     Settings(FilteringSettings filtering,
              boolean refuseLongerPaths,
@@ -54,6 +63,7 @@ public class Settings implements Cloneable {
              WhenToApply whenToApply,
              int vertexLimit,
              int pathsLimit,
+             SourceVertexOrder sourceVertexOrder,
              TargetVertexOrder targetVertexOrder,
              boolean dfsCaching,
              boolean contraction) {
@@ -64,6 +74,7 @@ public class Settings implements Cloneable {
         this.whenToApply = whenToApply;
         this.vertexLimit = vertexLimit;
         this.pathsLimit = pathsLimit;
+        this.sourceVertexOrder = sourceVertexOrder;
         this.targetVertexOrder = targetVertexOrder;
         this.dfsCaching = dfsCaching;
         this.contraction = contraction;
@@ -81,12 +92,14 @@ public class Settings implements Cloneable {
                 dfsCaching == settings.dfsCaching &&
                 contraction == settings.contraction &&
                 vertexLimit == settings.vertexLimit &&
+                targetVertexOrder == settings.targetVertexOrder &&
+                sourceVertexOrder == settings.sourceVertexOrder &&
                 pathsLimit == settings.pathsLimit;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration, dfsCaching, contraction, vertexLimit, pathsLimit);
+        return Objects.hash(filtering, refuseLongerPaths, pruningMethod, pathIteration, dfsCaching, contraction, targetVertexOrder, sourceVertexOrder, vertexLimit, pathsLimit);
     }
 
     public WhenToApply getWhenToApply() {
@@ -145,6 +158,13 @@ public class Settings implements Cloneable {
         this.refuseLongerPaths = refuseLongerPaths;
     }
 
+    public SourceVertexOrder getSourceVertexOrder() {
+        return sourceVertexOrder;
+    }
+    void setSourceVertexOrder(SourceVertexOrder order) {
+        this.sourceVertexOrder = order;
+    }
+
     public TargetVertexOrder getTargetVertexOrder() {
         return targetVertexOrder;
     }
@@ -171,6 +191,6 @@ public class Settings implements Cloneable {
 
 
     public Settings newInstance() {
-       return new Settings(filtering.newInstance(), refuseLongerPaths, pruningMethod, pathIteration.newInstance(), whenToApply, vertexLimit, pathsLimit, targetVertexOrder, dfsCaching, contraction);
+       return new Settings(filtering.newInstance(), refuseLongerPaths, pruningMethod, pathIteration.newInstance(), whenToApply, vertexLimit, pathsLimit, sourceVertexOrder, targetVertexOrder, dfsCaching, contraction);
     }
 }
