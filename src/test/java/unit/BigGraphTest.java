@@ -7,8 +7,6 @@ import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.SuccessResult;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
-import com.charrey.settings.iterator.*;
-import com.charrey.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,51 +16,20 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class BigGraphTest {
 
 
-    private MyGraph targetGraph;
     private static MyGraph sourceGraph;
-
-    private Set<Integer> wires() {
-        return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("wire")).collect(Collectors.toSet());
-    }
-
-    private Set<Integer> arcs() {
-        return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("arc")).collect(Collectors.toSet());
-    }
-
-    private Set<Integer> ports() {
-        return targetGraph.vertexSet().stream().filter(x -> targetGraph.getLabels(x).contains("port")).collect(Collectors.toSet());
-    }
-
-    private Set<Integer> bels() {
-        return targetGraph.vertexSet().stream().filter(vertex -> {
-            String label = targetGraph.getLabels(vertex).iterator().next();
-            return !Util.setOf("wire", "port", "arc").contains(label) && !label.startsWith("match");
-        }).collect(Collectors.toSet());
-    }
-
-//    private Set<Integer> matchFrom() {
-//        return targetGraph.vertexSet().stream().filter(vertex -> targetGraph.getLabels(vertex).iterator().next().startsWith("matchfrom")).collect(Collectors.toUnmodifiableSet());
-//    }
-//
-//    private Set<Integer> matchTo() {
-//        return targetGraph.vertexSet().stream().filter(vertex -> targetGraph.getLabels(vertex).iterator().next().startsWith("matchto")).collect(Collectors.toUnmodifiableSet());
-//    }
-
 
     private static volatile boolean failed = false;
 
-    private static BigTestRunnable getThread(TestCase testCase, IteratorSettings strategy, long timeout) {
-        return new BigTestRunnable(testCase, strategy, timeout);
+    private static BigTestRunnable getThread(TestCase testCase, long timeout) {
+        return new BigTestRunnable(testCase, timeout);
     }
 
     private static MyGraph getSourceGraph() {
@@ -117,72 +84,51 @@ class BigGraphTest {
 
     @Test
     void test1x1() throws IOException, InterruptedException {
-        runTest("tile1x1.dot", (long) (0.1*60*1000));
+        runTest("tile1x1.dot");
     }
 
     @Test
     void test1x2() throws IOException, InterruptedException {
-        runTest("tile1x2.dot", (long) (0.1*60*1000));
+        runTest("tile1x2.dot");
     }
 
     @Test
     void test2x1() throws IOException, InterruptedException {
-        runTest("tile2x1.dot", (long) (0.1*60*1000));
+        runTest("tile2x1.dot");
     }
 
     @Test
     void test2x2() throws IOException, InterruptedException {
-        runTest("tile2x2.dot", (long) (0.1*60*1000));
+        runTest("tile2x2.dot");
     }
 
     @Test
     void test3x3() throws IOException, InterruptedException {
-        runTest("tile3x3.dot", (long) (0.1*60*1000));
+        runTest("tile3x3.dot");
     }
 
 
+    public static long timeout = (long)  30*60*1000;
 
-    void runTest(String filename, long timeout) throws IOException, InterruptedException {
+    void runTest(String filename) throws IOException, InterruptedException {
         final long initial = System.currentTimeMillis();
         TestCase testCase = getTestCase(filename);
+        failed = false;
+        final BigTestRunnable runnableWithoutContraction = getThread(testCase, timeout - (System.currentTimeMillis() - initial));
+        final Thread threadWithoutContraction = new Thread(runnableWithoutContraction);
+        final BigTestRunnable runnableContraction = getThread(testCase, timeout - (System.currentTimeMillis() - initial));
+        final Thread threadWithContraction = new Thread(runnableContraction);
 
-        failed = true;
-        final BigTestRunnable runnableKPath = getThread(testCase, new KPathStrategy(), timeout - (System.currentTimeMillis() - initial));
-        final BigTestRunnable runnableDFSArbitrary = getThread(testCase, new DFSStrategy(), timeout - (System.currentTimeMillis() - initial));
-        final BigTestRunnable runnableDFSGreedy = getThread(testCase, new OldGreedyDFSStrategy(), timeout - (System.currentTimeMillis() - initial));
-        final BigTestRunnable runnableControlPoint = getThread(testCase, new ControlPointIteratorStrategy(1), timeout - (System.currentTimeMillis() - initial));
-        final Thread threadKPath = new Thread(runnableKPath);
-        final Thread threadDFSArbitrary = new Thread(runnableDFSArbitrary);
-        final Thread threadDFSGreedy = new Thread(runnableDFSGreedy);
-        final Thread threadControlPoint = new Thread(runnableControlPoint);
-        Runnable onDone = () -> {
-            threadKPath.stop();
-            threadDFSArbitrary.stop();
-            threadDFSGreedy.stop();
-            threadControlPoint.stop();
-            failed = false;
-            System.out.println("FORCE STOPPED");
-        };
-        runnableKPath.setOnDone(onDone);
-        runnableDFSArbitrary.setOnDone(onDone);
-        runnableDFSGreedy.setOnDone(onDone);
-        runnableControlPoint.setOnDone(onDone);
-
-        threadKPath.start();
-        threadDFSArbitrary.start();
-        threadDFSGreedy.start();
-        threadControlPoint.start();
-
-        threadKPath.join();
-        threadDFSArbitrary.join();
-        threadDFSGreedy.join();
-        threadControlPoint.join();
+        threadWithoutContraction.start();
+        threadWithContraction.start();
+        threadWithoutContraction.join();
+        threadWithContraction.join();
         assertFalse(failed);
     }
 
     @NotNull
     private TestCase getTestCase(String filename) throws IOException {
-        targetGraph = new MyGraph(true);
+        MyGraph targetGraph = new MyGraph(true);
         importDOT(targetGraph, Paths.get(".").resolve("graphs").resolve(filename).toFile());
         targetGraph.randomizeWeights();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
@@ -231,37 +177,35 @@ class BigGraphTest {
     }
 
     private static class BigTestRunnable implements Runnable {
-        private final IteratorSettings strategy;
         private final TestCase testCase;
         private final long timeout;
-        private Runnable onDone;
 
-        public BigTestRunnable(TestCase testCase, IteratorSettings strategy, long timeout) {
-            this.strategy = strategy;
+        public BigTestRunnable(TestCase testCase, long timeout) {
             this.testCase = testCase;
             this.timeout = timeout;
-        }
-
-        public void setOnDone(Runnable onDone) {
-            this.onDone = onDone;
         }
 
         @Override
         public void run() {
                 Settings settings = new SettingsBuilder()
-                        .withPathIteration(strategy)
-                        .withoutPruning()
-                        .withVertexLimit(10)
-                        .withPathsLimit(10)
-                        //.withClosestTargetVertexOrder()
+                        .withInplaceDFSRouting()
+                        .withoutContraction()
+                        .withGreatestConstrainedFirstSourceVertexOrder()
+                        .withLargestDegreeFirstTargetVertexOrder()
+                        .withCachedPruning()
+                        .withAllDifferentPruning()
+                        .withNeighbourReachabilityFiltering()
                         .get();
                 try {
-                    HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase.copy(), settings, timeout, strategy.toString(), false);
+                    HomeomorphismResult result = new IsoFinder(settings).getHomeomorphism(testCase.copy(), timeout, "DFS", false);
                     System.out.println(result);
-                    System.out.println(strategy.toString() + " IS FINISHED ------------------------------------");
+                    System.out.println("DFS IS FINISHED ------------------------------------");
                     System.out.flush();
                     if (result instanceof SuccessResult) {
-                        onDone.run();
+                        System.out.println(result);
+                        System.out.println("SUCCESS");
+                    } else {
+                        failed = true;
                     }
                 } catch (Throwable e) {
                     if (!(e instanceof ThreadDeath)) {

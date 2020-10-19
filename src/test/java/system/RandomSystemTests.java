@@ -25,9 +25,8 @@ import java.util.regex.Pattern;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withSerialPruning()
-            .withZeroDomainPruning()
-            .withUnmatchedDegreesFiltering()
+            .withoutPruning()
+            .withContraction()
             .get();
 
 
@@ -95,8 +94,9 @@ class RandomSystemTests extends SystemTest {
                 patternEdges = testCase.getSourceGraph().edgeSet().size();
 
                 HomeomorphismResult homeomorphism;
-                //System.out.println("case " + attempts);
-                if (attempts >= 1000) {//
+
+
+                if (attempts >= 20371) {//
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);

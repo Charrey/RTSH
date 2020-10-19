@@ -3,6 +3,9 @@ package com.charrey.algorithms.vertexordering;
 import com.charrey.graph.MyGraph;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MaxDegreeFirst implements GraphVertexMapper {
 
 
@@ -13,7 +16,11 @@ public class MaxDegreeFirst implements GraphVertexMapper {
         for (int i = 0; i < newToOld.length; i++) {
             oldToNew[newToOld[i]] = i;
         }
-        MyGraph newGraph = MyGraph.applyOrdering(graph, newToOld, oldToNew);
-        return new Mapping(newGraph, newToOld);
+        Map<Integer, Integer> newToOldMap = new HashMap<>();
+        for (int i = 0; i < newToOld.length; i++) {
+            newToOldMap.put(i, newToOld[i]);
+        }
+        MyGraph newGraph = MyGraph.applyOrdering(graph, newToOldMap, oldToNew);
+        return new Mapping(newGraph, newToOldMap);
     }
 }

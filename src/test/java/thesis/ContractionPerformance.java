@@ -1,4 +1,4 @@
-package scriptie;
+package thesis;
 
 import com.charrey.Configuration;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
@@ -9,7 +9,7 @@ import system.SystemTest;
 
 import java.util.*;
 
-import static scriptie.Util.*;
+import static thesis.Util.*;
 
 public class ContractionPerformance extends SystemTest {
 

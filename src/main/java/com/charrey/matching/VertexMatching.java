@@ -76,30 +76,32 @@ public class VertexMatching implements PartialMatchingProvider {
      * @return
      */
     public boolean placeNext() {
-        assert canPlaceNext();
-        while (!candidates2[placement.size()].hasNext()) {
-            removeLast();
-        }
-        int toAdd = candidates2[placement.size()].next();
-        boolean occupied = occupation.isOccupied(toAdd);
-        if (occupied) {
-            if (canPlaceNext()) {
-                return placeNext();
+        while (true) {
+            assert canPlaceNext();
+            while (!candidates2[placement.size()].hasNext()) {
+                removeLast();
             }
-        } else {
-            try {
-                occupation.occupyVertex(placement.size() + 1, toAdd, getPartialMatching());
-                synchronized (placement) {
-                    placement.add(toAdd);
-                }
-                return true;
-            } catch (DomainCheckerException e) {
+            int toAdd = candidates2[placement.size()].next();
+            boolean occupied = occupation.isOccupied(toAdd);
+            if (occupied) {
                 if (canPlaceNext()) {
-                    return placeNext();
+                    continue;
+                }
+            } else {
+                try {
+                    occupation.occupyVertex(placement.size() + 1, toAdd, getPartialMatching());
+                    synchronized (placement) {
+                        placement.add(toAdd);
+                    }
+                    return true;
+                } catch (DomainCheckerException e) {
+                    if (canPlaceNext()) {
+                        continue;
+                    }
                 }
             }
+            return false;
         }
-        return false;
     }
 
 

@@ -1,5 +1,6 @@
 package com.charrey.graph;
 
+import com.charrey.algorithms.vertexordering.Mapping;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -109,13 +110,13 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
      * @param newToOld the new ordering, such that the position of integers is the new vertex value, and the value of                   the integers is the old vertex value.
      * @return a graph such that the ordering is applied.
      */
-    public static MyGraph applyOrdering(MyGraph source, int[] newToOld, int[] oldToNew) {
+    public static MyGraph applyOrdering(MyGraph source, Map<Integer, Integer> newToOld, int[] oldToNew) {
         MyGraph res = new MyGraph(source.directed);
         res.chains = new HashMap<>();
         for (int newVertex = 0; newVertex < source.vertexSet().size(); newVertex++) {
             int newVertexFinal = newVertex;
             res.addVertex(newVertex);
-            int oldVertex = newToOld[newVertex];
+            int oldVertex = newToOld.get(newVertex);
             source.attributes.get(oldVertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(newVertexFinal, key, value)));
 
             List<Integer> predecessors = Collections.unmodifiableList(source.incomingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x < newVertexFinal).collect(Collectors.toList()));
@@ -307,13 +308,13 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     }
 
 
-    public MyGraph contract() {
+    public Mapping contract() {
         Contractor contractor = new Contractor();
-        MyGraph toReturn;
+        Mapping toReturn;
         if (isDirected()) {
             toReturn = contractor.contractDirected(this);
         } else {
-            toReturn =  contractor.contractUndirected(this);
+            toReturn = contractor.contractUndirected(this);
         }
         return toReturn;
     }

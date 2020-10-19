@@ -1,4 +1,4 @@
-package scriptie;
+package thesis;
 
 import com.charrey.Configuration;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.LinkedList;
 import java.util.List;
 
-import static scriptie.Util.comparitiveTest;
+import static thesis.Util.comparitiveTest;
 
 
 public class PruningPerformance {

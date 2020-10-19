@@ -248,6 +248,8 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
                 .filter(path -> Util.listOf(path.getFirst().first(), path.getFirst().last()).equals(Util.listOf(tail, head))).count();
         if (!source.isDirected()) {
             done -= 1;
+        } else {
+            done += 1;
         }
         return (int) (initial - done);
     }
@@ -291,8 +293,6 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             Pair<Path, String> element = listIterator.previous();
             if (element.getFirst().isEqualTo(new Path(targetGraph, Util.listOf(tail, head)))) {
                 alreadyUsed++;
-            } else if (element.getFirst().first() != tail || element.getFirst().last() != head) {
-                break;
             }
         } while (listIterator.hasPrevious());
         return alreadyUsed;
@@ -305,7 +305,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         for (int i = 0; i < source.vertexSet().size(); i++) {
             int tempi = i;
             if (!directed) {
-                edges[i] = source.edgesOf(tempi).stream().map(x -> Graphs.getOppositeVertex(source, x, tempi)).filter(x -> x <= tempi).mapToInt(x -> x).toArray();
+                edges[i] = source.edgesOf(tempi).stream().map(x -> Graphs.getOppositeVertex(source, x, tempi)).filter(x -> x <= tempi).mapToInt(x -> x).sorted().toArray();
                 //edges[i] = Graphs.neighborSetOf(source, tempi).stream().filter(x -> x <= tempi).mapToInt(x -> x).toArray();
             } else {
                 List<Integer> incomingEdges = IntStream.range(0, tempi).boxed()
@@ -316,6 +316,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
                         incomingEdges.add(predecessor);
                     }
                 });
+                Collections.sort(incomingEdges);
                 List<Integer> outgoingEdges = IntStream.range(0, tempi + 1 ).boxed()
                         .filter(x -> source.getEdge(tempi, x) != null)
                         .collect(Collectors.toList());
@@ -324,6 +325,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
                         outgoingEdges.add(successor);
                     }
                 });
+                Collections.sort(outgoingEdges);
                 incoming[i] = new boolean[incomingEdges.size() + outgoingEdges.size()];
                 edges[i] = new int[incomingEdges.size() + outgoingEdges.size()];
                 for (int j = 0; j < incomingEdges.size(); j++) {

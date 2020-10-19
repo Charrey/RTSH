@@ -12,22 +12,24 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class IncreasingLimits extends IsoFinder {
+public class IncreasingLimits implements HomeomorphismSolver {
 
+    private final Settings settings;
 
     private final ThreadPoolExecutor pool;
 
-    public IncreasingLimits(int threads) {
+    public IncreasingLimits(Settings settings, int threads) {
+        this.settings = settings;
         this.pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(threads);
     }
 
-    public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name, boolean monitorSpace) {
+    public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, long timeout, String name, boolean monitorSpace) {
         final HomeomorphismResult[] confirmedFound = {null};
         final HomeomorphismResult[] timedOut = {null};
         final HomeomorphismResult[] confirmedFailed = {null};
         int lastAdded = 0;
         pool.submit(() -> {
-            HomeomorphismResult result = new IsoFinder().getHomeomorphism(testcase, settings, timeout, name, false);
+            HomeomorphismResult result = new IsoFinder(settings).getHomeomorphism(testcase, timeout, name, false);
             if (result instanceof SuccessResult) {
                 confirmedFound[0] = result;
             } else if (result instanceof TimeoutResult) {
@@ -40,7 +42,7 @@ public class IncreasingLimits extends IsoFinder {
             if (pool.getActiveCount() < pool.getPoolSize()) {
                 int finalLastAdded = lastAdded;
                 pool.submit(() -> {
-                    HomeomorphismResult result = new IsoFinder().getHomeomorphism(testcase, new SettingsBuilder(settings).withVertexLimit(finalLastAdded +1).withPathsLimit(finalLastAdded +1).get(), timeout, name, false);
+                    HomeomorphismResult result = new IsoFinder(new SettingsBuilder(settings).withVertexLimit(finalLastAdded +1).withPathsLimit(finalLastAdded +1).get()).getHomeomorphism(testcase, timeout, name, false);
                     if (result instanceof SuccessResult) {
                         confirmedFound[0] = result;
                     } else if (result instanceof TimeoutResult) {

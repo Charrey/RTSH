@@ -87,9 +87,8 @@ class ConfigurableTest {
         targetGraph.addEdge(bottomMiddleRight, bottomRight);
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(
+        HomeomorphismResult result = new IsoFinder(new SettingsBuilder().withKPathRouting().withoutContraction().get()).getHomeomorphism(
                 new TestCase(sourceGraph, targetGraph, null, null),
-                new SettingsBuilder().withKPathRouting().withoutContraction().get(),
                 10 * 60 * 1000,
                 "ConfigurableTest ", false);
         assertFalse(result.succeed);
@@ -148,10 +147,9 @@ class ConfigurableTest {
         targetGraph.addEdge(bottomMiddleRight, bottomRight);
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(
+        HomeomorphismResult result = new IsoFinder(new SettingsBuilder()
+                .withKPathRouting().withoutContraction().get()).getHomeomorphism(
                 new TestCase(sourceGraph, targetGraph, null, null),
-                new SettingsBuilder()
-                        .withKPathRouting().withoutContraction().get(),
                 10 * 60 * 1000, "ConfigurableTest ", false);
         assertTrue(result.succeed);
         Map<MyEdge, Set<Path>> expected = new HashMap<>();
@@ -203,10 +201,10 @@ class ConfigurableTest {
         targetGraph.addEdge(bottomMiddleRight, bottomRight);
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(
+        HomeomorphismResult result = new IsoFinder(new SettingsBuilder()
+                .withKPathRouting().withoutContraction().get()).getHomeomorphism(
                 new TestCase(sourceGraph, targetGraph, null, null),
-                new SettingsBuilder()
-                        .withKPathRouting().withoutContraction().get(), 10 * 60 * 1000, "ConfigurableTest ", false);
+                10 * 60 * 1000, "ConfigurableTest ", false);
         assertTrue(result.succeed);
         System.out.println(result);
         assertArrayEquals(new int[]{0, 1, 4, 6, 7, 10}, ((SuccessResult) result).getVertexPlacement());
@@ -257,11 +255,10 @@ class ConfigurableTest {
         targetGraph.addEdge(bottomMiddleRight, bottomRight);
         System.out.println(sourceGraph);
         System.out.println(targetGraph);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(
+        HomeomorphismResult result = new IsoFinder(new SettingsBuilder()
+                .withoutContraction()
+                .withKPathRouting().get()).getHomeomorphism(
                 new TestCase(sourceGraph, targetGraph, null, null),
-                new SettingsBuilder()
-                        .withoutContraction()
-                        .withKPathRouting().get(),
                 10 * 60 * 1000,
                 "ConfigurableTest ", false);
         assertTrue(result.succeed);

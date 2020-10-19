@@ -5,9 +5,7 @@ import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Random;
+import java.util.*;
 
 /**
  * The type Test case generator.
@@ -73,6 +71,10 @@ public abstract class TestCaseGenerator {
         for (int i = 0; i < newToOld.length; i++) {
             oldToNew[newToOld[i]] = i;
         }
-        return MyGraph.applyOrdering(graph, newToOld, oldToNew);
+        Map<Integer, Integer> newToOldMap = new HashMap<>();
+        for (int i = 0; i < newToOld.length; i++) {
+            newToOldMap.put(i, newToOld[i]);
+        }
+        return MyGraph.applyOrdering(graph, newToOldMap, oldToNew);
     }
 }

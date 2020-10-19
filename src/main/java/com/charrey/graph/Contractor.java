@@ -1,5 +1,6 @@
 package com.charrey.graph;
 
+import com.charrey.algorithms.vertexordering.Mapping;
 import com.charrey.util.GraphUtil;
 import org.jgrapht.Graphs;
 
@@ -9,7 +10,7 @@ import java.util.stream.Collectors;
 public class Contractor {
 
 
-    MyGraph contractDirected(MyGraph input) {
+    Mapping contractDirected(MyGraph input) {
         final MyGraph res = GraphUtil.copy(input, null).graph;
         Set<Integer> toContract = res.vertexSet().stream().filter(x -> res.inDegreeOf(x) == 1 && res.outDegreeOf(x) == 1).collect(Collectors.toSet());
         Map<MyEdge, Chain> chains = new HashMap<>();
@@ -47,7 +48,7 @@ public class Contractor {
         return GraphUtil.repairVertices(res);
     }
 
-    public MyGraph contractUndirected(MyGraph input) {
+    public Mapping contractUndirected(MyGraph input) {
         final MyGraph res = GraphUtil.copy(input, null).graph;
         Set<Integer> toContract = res.vertexSet().stream().filter(x -> res.degreeOf(x) == 2).collect(Collectors.toSet());
         Map<MyEdge, Chain> chains = new HashMap<>();

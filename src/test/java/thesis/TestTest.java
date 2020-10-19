@@ -1,4 +1,4 @@
-package scriptie;
+package thesis;
 
 import com.charrey.Configuration;
 import com.charrey.settings.SettingsBuilder;
@@ -8,7 +8,7 @@ import system.SystemTest;
 import java.util.LinkedList;
 import java.util.List;
 
-import static scriptie.Util.comparitiveTest;
+import static thesis.Util.comparitiveTest;
 
 public class TestTest extends SystemTest  {
 

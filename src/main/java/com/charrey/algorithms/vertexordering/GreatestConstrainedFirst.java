@@ -12,8 +12,7 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graphs;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -33,9 +32,9 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
     @NotNull
     @Override
     public Mapping apply(@NotNull MyGraph graph) {
-        TIntList newToOld = new TIntArrayList(graph.vertexSet().size());
+        List<Integer> newToOld = new ArrayList<>(graph.vertexSet().size());
         if (graph.vertexSet().isEmpty()) {
-            return new Mapping(graph, new int[0]);
+            return new Mapping(graph, new HashMap<>());
         }
         int maxDegree = -1;
         int maxDegreeVertex = -1;
@@ -64,11 +63,14 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
         for (int i = 0; i < newToOld.size(); i++) {
             oldToNew[newToOld.get(i)] = i;
         }
-        int[] newToOldArray = newToOld.toArray();
+        Map<Integer, Integer> newToOldArray = new HashMap<>();
+        for (int i = 0; i < newToOld.size(); i++) {
+            newToOldArray.put(i, newToOld.get(i));
+        }
         return new Mapping(MyGraph.applyOrdering(graph, newToOldArray, oldToNew), newToOldArray);
     }
 
-    private TIntIntMap getScore3(MyGraph graph, TIntList ordering, TIntIntMap score1, TIntIntMap score2) {
+    private TIntIntMap getScore3(MyGraph graph, List<Integer> ordering, TIntIntMap score1, TIntIntMap score2) {
         TIntIntMap res = new TIntIntHashMap();
         graph.vertexSet().forEach(integer -> {
             if (!ordering.contains(integer)) {
@@ -78,7 +80,7 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
         return res;
     }
 
-    private TIntIntMap getScore2(MyGraph graph, TIntList ordering) {
+    private TIntIntMap getScore2(MyGraph graph, List<Integer> ordering) {
         TIntIntMap res = new TIntIntHashMap();
         graph.vertexSet().forEach(integer -> {
             if (!ordering.contains(integer)) {
@@ -88,7 +90,7 @@ public class GreatestConstrainedFirst implements GraphVertexMapper {
         return res;
     }
 
-    private TIntIntMap getScore1(MyGraph graph, TIntList ordering) {
+    private TIntIntMap getScore1(MyGraph graph, List<Integer> ordering) {
         TIntIntMap res = new TIntIntHashMap();
         graph.vertexSet().forEach(integer -> {
             if (!ordering.contains(integer)) {

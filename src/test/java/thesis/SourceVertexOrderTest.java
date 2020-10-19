@@ -1,5 +1,8 @@
-package com.charrey;
+package thesis;
 
+import com.charrey.Configuration;
+import com.charrey.IsoFinder;
+import com.charrey.TestCaseProvider;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.result.FailResult;
@@ -14,7 +17,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class TargetVertexOrderTest {
+public class SourceVertexOrderTest {
 
 
     public static void main(String[] args) throws InterruptedException {
@@ -30,96 +33,32 @@ public class TargetVertexOrderTest {
     }
 
     public static void degreeVsRandom(double factor) {
-        try(FileWriter fw = new FileWriter("degreevsrandom" + factor + ".txt", true);
+        try(FileWriter fw = new FileWriter("greatestconstrainedfirstvsrandom" + factor + ".txt", true);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
             List<Configuration> configurations = new LinkedList<>();
             configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
-                    new SettingsBuilder().withKPathRouting().withLargestDegreeFirstTargetVertexOrder().get(),
-                    new SettingsBuilder().withKPathRouting().withRandomTargetVertexOrder().get()));
+                    new SettingsBuilder().withKPathRouting().withGreatestConstrainedFirstSourceVertexOrder().get(),
+                    new SettingsBuilder().withKPathRouting().withRandomSourceVertexOrder().get()));
             configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                    new SettingsBuilder().withInplaceDFSRouting().withLargestDegreeFirstTargetVertexOrder().get(),
-                    new SettingsBuilder().withInplaceDFSRouting().withRandomTargetVertexOrder().get()));
+                    new SettingsBuilder().withInplaceDFSRouting().withGreatestConstrainedFirstSourceVertexOrder().get(),
+                    new SettingsBuilder().withInplaceDFSRouting().withRandomSourceVertexOrder().get()));
             configurations.add(new Configuration("+",        "green" , "CP"       ,
-                    new SettingsBuilder().withControlPointRouting().withLargestDegreeFirstTargetVertexOrder().get(),
-                    new SettingsBuilder().withControlPointRouting().withRandomTargetVertexOrder().get()));
+                    new SettingsBuilder().withControlPointRouting().withGreatestConstrainedFirstSourceVertexOrder().get(),
+                    new SettingsBuilder().withControlPointRouting().withRandomSourceVertexOrder().get()));
             configurations.add(new Configuration("o",        "purple", "GDFS O IP",
-                    new SettingsBuilder().withInplaceOldGreedyDFSRouting().withLargestDegreeFirstTargetVertexOrder().get(),
-                    new SettingsBuilder().withInplaceOldGreedyDFSRouting().withRandomTargetVertexOrder().get()));
+                    new SettingsBuilder().withInplaceOldGreedyDFSRouting().withGreatestConstrainedFirstSourceVertexOrder().get(),
+                    new SettingsBuilder().withInplaceOldGreedyDFSRouting().withRandomSourceVertexOrder().get()));
             configurations.add(new Configuration("asterisk", "magenta", "GDFS A IP",
-                    new SettingsBuilder().withInplaceNewGreedyDFSRouting().withLargestDegreeFirstTargetVertexOrder().get(),
-                    new SettingsBuilder().withInplaceNewGreedyDFSRouting().withRandomTargetVertexOrder().get()));
+                    new SettingsBuilder().withInplaceNewGreedyDFSRouting().withGreatestConstrainedFirstSourceVertexOrder().get(),
+                    new SettingsBuilder().withInplaceNewGreedyDFSRouting().withRandomSourceVertexOrder().get()));
             configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
-                    new SettingsBuilder().withCachedGreedyDFSRouting().withLargestDegreeFirstTargetVertexOrder().get(),
-                    new SettingsBuilder().withCachedGreedyDFSRouting().withRandomTargetVertexOrder().get()));
+                    new SettingsBuilder().withCachedGreedyDFSRouting().withGreatestConstrainedFirstSourceVertexOrder().get(),
+                    new SettingsBuilder().withCachedGreedyDFSRouting().withRandomSourceVertexOrder().get()));
             comparitiveTest(configurations, 2.429, factor, 3.425, false,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, factor, (int)seed).init(1).getNext()
-                    , true, false, Util.setOf(System.out, out),  "degreevsrandom" + factor + ".txt");
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void testTargetVertexOrder(double factor) {
-        try(FileWriter fw = new FileWriter("targetVertexOrderUncached" + factor + ".txt", true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter out = new PrintWriter(bw))
-        {
-            List<Configuration> configurations = new LinkedList<>();
-            configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
-                    new SettingsBuilder().withKPathRouting().withClosestTargetVertexOrder().get(),
-                    new SettingsBuilder().withKPathRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                    new SettingsBuilder().withInplaceDFSRouting().withClosestTargetVertexOrder().get(),
-                    new SettingsBuilder().withInplaceDFSRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("+",        "green" , "CP"       ,
-                    new SettingsBuilder().withControlPointRouting().withClosestTargetVertexOrder().get(),
-                    new SettingsBuilder().withControlPointRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("o",        "purple", "GDFS O IP",
-                    new SettingsBuilder().withInplaceOldGreedyDFSRouting().withClosestTargetVertexOrder().get(),
-                    new SettingsBuilder().withInplaceOldGreedyDFSRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("asterisk", "magenta", "GDFS A IP",
-                    new SettingsBuilder().withInplaceNewGreedyDFSRouting().withClosestTargetVertexOrder().get(),
-                    new SettingsBuilder().withInplaceNewGreedyDFSRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
-                    new SettingsBuilder().withCachedGreedyDFSRouting().withClosestTargetVertexOrder().get(),
-                    new SettingsBuilder().withCachedGreedyDFSRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            comparitiveTest(configurations, 2.429, factor, 3.425, false,
-                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, factor, (int)seed).init(1).getNext()
-                    , true, false, Util.setOf(System.out, out),  "targetVertexOrderUncached" + factor + ".txt");
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void testTargetVertexOrderCached(double factor) {
-        try(FileWriter fw = new FileWriter("targetVertexOrderCached" + factor + ".txt", true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter out = new PrintWriter(bw))
-        {
-            List<Configuration> configurations = new LinkedList<>();
-            configurations.add(new Configuration("*",        "blue"  , "K-Path"   ,
-                    new SettingsBuilder().withKPathRouting().withClosestTargetVertexOrderCached().get(),
-                    new SettingsBuilder().withKPathRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                    new SettingsBuilder().withInplaceDFSRouting().withClosestTargetVertexOrderCached().get(),
-                    new SettingsBuilder().withInplaceDFSRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("+",        "green" , "CP"       ,
-                    new SettingsBuilder().withControlPointRouting().withClosestTargetVertexOrderCached().get(),
-                    new SettingsBuilder().withControlPointRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("o",        "purple", "GDFS O IP",
-                    new SettingsBuilder().withInplaceOldGreedyDFSRouting().withClosestTargetVertexOrderCached().get(),
-                    new SettingsBuilder().withInplaceOldGreedyDFSRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("asterisk", "magenta", "GDFS A IP",
-                    new SettingsBuilder().withInplaceNewGreedyDFSRouting().withClosestTargetVertexOrderCached().get(),
-                    new SettingsBuilder().withInplaceNewGreedyDFSRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            configurations.add(new Configuration("star",     "gray"  , "GDFS C"   ,
-                    new SettingsBuilder().withCachedGreedyDFSRouting().withClosestTargetVertexOrderCached().get(),
-                    new SettingsBuilder().withCachedGreedyDFSRouting().withLargestDegreeFirstTargetVertexOrder().get()));
-            comparitiveTest(configurations, 2.429, factor, 3.425, false,
-                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, factor, (int)seed).init(1).getNext()
-                    , true, false, Util.setOf(System.out, out),  "targetVertexOrderUncached" + factor + ".txt");
+                    , true, false, Util.setOf(System.out, out),  "greatestconstrainedfirstvsrandom" + factor + ".txt");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -244,7 +183,7 @@ public class TargetVertexOrderTest {
 
     @NotNull
     public static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
-        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST", false);
+        return new IsoFinder(settings).getHomeomorphism(testCase, timeout, "SYSTEMTEST", false);
     }
 
 

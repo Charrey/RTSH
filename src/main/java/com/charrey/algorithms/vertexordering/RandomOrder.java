@@ -3,10 +3,7 @@ package com.charrey.algorithms.vertexordering;
 import com.charrey.graph.MyGraph;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class RandomOrder implements GraphVertexMapper {
 
@@ -25,7 +22,11 @@ public class RandomOrder implements GraphVertexMapper {
         for (int i = 0; i < newToOld.length; i++) {
             oldToNew[newToOld[i]] = i;
         }
-        MyGraph toReturn = MyGraph.applyOrdering(graph, newToOld, oldToNew);
-        return new Mapping(toReturn, newToOld);
+        Map<Integer, Integer> newToOldMap = new HashMap<>();
+        for (int i = 0; i < newToOld.length; i++) {
+            newToOldMap.put(i, newToOld[i]);
+        }
+        MyGraph toReturn = MyGraph.applyOrdering(graph, newToOldMap, oldToNew);
+        return new Mapping(toReturn, newToOldMap);
     }
 }

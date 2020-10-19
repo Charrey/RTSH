@@ -1,4 +1,4 @@
-package scriptie;
+package thesis;
 
 import com.charrey.Configuration;
 import com.charrey.graph.MyGraph;

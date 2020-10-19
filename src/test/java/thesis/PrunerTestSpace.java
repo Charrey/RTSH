@@ -1,5 +1,8 @@
-package com.charrey;
+package thesis;
 
+import com.charrey.Configuration;
+import com.charrey.IsoFinder;
+import com.charrey.TestCaseProvider;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.result.FailResult;
@@ -8,19 +11,17 @@ import com.charrey.result.SuccessResult;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.util.Util;
-import objectexplorer.MemoryMeasurer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class PrunerTestSpace {
 
 
     public static void main(String[] args) throws InterruptedException {
-        testSerialZeroDomainLabelDegree("spaceserialzerodomainlabeldegree.txt");
+        //testSerialZeroDomainLabelDegree("spaceserialzerodomainlabeldegree.txt");
         testCachedZeroDomainLabelDegree("spacecachedzerodomainlabeldegree.txt");
         testParallelZeroDomainLabelDegree("spaceparallelzerodomainlabeldegree.txt");
         testSerialAlldiffLabelDegree("spaceserialalldifflabeldegree.txt");
@@ -528,9 +529,7 @@ public class PrunerTestSpace {
                     HomeomorphismResult resultWithPrune;
                     HomeomorphismResult resultWithoutPrune;
                     try {
-                        System.gc();
                         resultWithPrune = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
-                        System.gc();
                         resultWithoutPrune = testWithoutExpectation(tc, timeout, configuration.getSettingsWithoutContraction());
                     } catch (Exception | Error e) {
                         String error = (additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
@@ -580,7 +579,7 @@ public class PrunerTestSpace {
 
     @NotNull
     public static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
-        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST", true);
+        return new IsoFinder(settings).getHomeomorphism(testCase, timeout, "SYSTEMTEST", true);
     }
 
 }

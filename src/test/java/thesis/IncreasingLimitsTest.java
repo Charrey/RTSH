@@ -1,5 +1,9 @@
-package com.charrey;
+package thesis;
 
+import com.charrey.Configuration;
+import com.charrey.IncreasingLimits;
+import com.charrey.IsoFinder;
+import com.charrey.TestCaseProvider;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.result.FailResult;
@@ -84,10 +88,10 @@ public class IncreasingLimitsTest {
                     double periodIncreasingLimits = -1;
                     try {
                         long startTime = System.nanoTime();
-                        resultNormal = new IsoFinder().getHomeomorphism(tc, configuration.getSettingsWithContraction(), timeout, "Normal", false);
+                        resultNormal = new IsoFinder(configuration.getSettingsWithContraction()).getHomeomorphism(tc, timeout, "Normal", false);
                         periodNormal = System.nanoTime() - startTime;
                         startTime = System.nanoTime();
-                        resultIncreasingLimits = new IncreasingLimits(6).getHomeomorphism(tc, configuration.getSettingsWithContraction(), timeout,  "IncreasingLimits", false);
+                        resultIncreasingLimits = new IncreasingLimits(configuration.getSettingsWithContraction(), 6).getHomeomorphism(tc, timeout,  "IncreasingLimits", false);
                         periodIncreasingLimits = System.nanoTime() - startTime;
                     } catch (Exception | Error e) {
                         String error = (additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);

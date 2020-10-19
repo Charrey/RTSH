@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_14">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/target/generated-sources/annotations" isTestSource="false" generated="true" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/sonarlint/issuestore/2/b" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/sonarlint/issuestore/3/b" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/sonarlint/issuestore/3/d" />
@@ -22,12 +23,12 @@
     <orderEntry type="library" name="Maven: junit:junit:4.8.2" level="project" />
     <orderEntry type="library" name="Maven: com.google.truth:truth:0.23" level="project" />
     <orderEntry type="library" name="Maven: com.levigo:gwt-awt:1.0.1" level="project" />
-    <orderEntry type="library" name="Maven: org.jgrapht:jgrapht-io:1.4.0" level="project" />
-    <orderEntry type="library" name="Maven: org.jgrapht:jgrapht-core:1.4.0" level="project" />
-    <orderEntry type="library" name="Maven: org.jheaps:jheaps:0.11" level="project" />
-    <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.7.2" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.commons:commons-text:1.6" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.8.1" level="project" />
+    <orderEntry type="library" name="Maven: org.jgrapht:jgrapht-io:1.5.0" level="project" />
+    <orderEntry type="library" name="Maven: org.jgrapht:jgrapht-core:1.5.0" level="project" />
+    <orderEntry type="library" name="Maven: org.jheaps:jheaps:0.13" level="project" />
+    <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.8-1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.commons:commons-text:1.8" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.9" level="project" />
     <orderEntry type="library" name="Maven: org.choco-solver:choco-solver:4.10.2" level="project" />
     <orderEntry type="library" name="Maven: org.choco-solver:choco-sat:1.0.2" level="project" />
     <orderEntry type="library" name="Maven: org.choco-solver:cutoffseq:1.0.5" level="project" />
@@ -65,5 +66,6 @@
     <orderEntry type="library" name="Maven: org.apiguardian:apiguardian-api:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.opentest4j:opentest4j:1.2.0" level="project" />
     <orderEntry type="library" name="Maven: org.junit.platform:junit-platform-commons:1.6.2" level="project" />
+    <orderEntry type="library" name="Maven: info.picocli:picocli:4.5.2" level="project" />
   </component>
 </module>

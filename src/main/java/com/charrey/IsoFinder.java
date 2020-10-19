@@ -17,10 +17,10 @@ import com.charrey.result.*;
 import com.charrey.settings.Settings;
 import com.charrey.settings.pruning.WhenToApply;
 import com.charrey.util.Util;
-import com.google.common.testing.GcFinalization;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -28,7 +28,13 @@ import java.util.stream.Collectors;
 /**
  * Class that finds node disjoint subgraph homeomorphisms
  */
-public class IsoFinder {
+public class IsoFinder implements HomeomorphismSolver {
+
+    private final Settings settings;
+
+    public IsoFinder(Settings settings) {
+        this.settings = settings;
+    }
 
     private static final Logger LOG = Logger.getLogger("IsoFinder");
     private EdgeMatching edgeMatching;
@@ -51,7 +57,7 @@ public class IsoFinder {
         return true;
     }
 
-    private static Map<MyEdge, Set<Path>> repairPaths(MyGraph newSourceGraph, MyGraph oldTargetGraph, EdgeMatching edgeMatching, int[] sourcegraphNewToOld, VertexMatching vertexMatching, int[] targetgraphNewToOld) {
+    private static Map<MyEdge, Set<Path>> repairPaths(MyGraph newSourceGraph, MyGraph oldTargetGraph, EdgeMatching edgeMatching, Map<Integer, Integer> sourcegraphNewToOld, VertexMatching vertexMatching, Map<Integer, Integer> targetgraphNewToOld) {
         Map<MyEdge, Set<Path>> res = new HashMap<>();
         if (newSourceGraph.isDirected()) {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
@@ -61,14 +67,14 @@ public class IsoFinder {
                 Set<Path> match = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).collect(Collectors.toSet());
                 assert !match.isEmpty();
                 match.forEach(path -> {
-                    Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);
+                    Path gotten = new Path(oldTargetGraph, targetgraphNewToOld.get(path.first()));
                     for (int i = 1; i < path.asList().size(); i++) {
-                        gotten.append(targetgraphNewToOld[path.get(i)]);
+                        gotten.append(targetgraphNewToOld.get(path.get(i)));
                     }
                     toAdd.add(gotten);
                 });
 
-                res.put(new MyEdge(sourcegraphNewToOld[edge.getSource()], sourcegraphNewToOld[edge.getTarget()]), toAdd);
+                res.put(new MyEdge(sourcegraphNewToOld.get(edge.getSource()), sourcegraphNewToOld.get(edge.getTarget())), toAdd);
             }
         } else {
             for (MyEdge edge : newSourceGraph.edgeSet()) {
@@ -78,13 +84,13 @@ public class IsoFinder {
                 Set<Path> match = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(Util.listOf(x.last(), x.first())).equals(new HashSet<>(Util.listOf(edgeSourceTarget, edgeTargetTarget)))).collect(Collectors.toSet());
                 assert !match.isEmpty();
                 match.forEach(path -> {
-                    Path gotten = new Path(oldTargetGraph, targetgraphNewToOld[path.first()]);
+                    Path gotten = new Path(oldTargetGraph, targetgraphNewToOld.get(path.first()));
                     for (int i = 1; i < path.asList().size(); i++) {
-                        gotten.append(targetgraphNewToOld[path.get(i)]);
+                        gotten.append(targetgraphNewToOld.get(path.get(i)));
                     }
                     toAdd.add(gotten);
                 });
-                res.put(new MyEdge(sourcegraphNewToOld[edge.getSource()], sourcegraphNewToOld[edge.getTarget()]), toAdd);
+                res.put(new MyEdge(sourcegraphNewToOld.get(edge.getSource()), sourcegraphNewToOld.get(edge.getTarget())), toAdd);
             }
         }
 
@@ -110,15 +116,14 @@ public class IsoFinder {
      * Searches for a node disjoint subgraph homeomorphism.
      *
      * @param testcase the case that contains a source graph and a target graph
-     * @param settings settings to be used in the search
      * @param timeout  if the algorithm takes longer than this number of milliseconds, it stops and records a failure.
      * @param monitorSpace
      * @return a result that provides information on the performance and which homeomorphism was found (if any).
      */
     @NotNull
-    public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, @NotNull Settings settings, long timeout, String name, boolean monitorSpace) {
+    public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, long timeout, String name, boolean monitorSpace) {
         long timeoutTime = System.currentTimeMillis() + timeout;
-        settings = settings.newInstance();
+        Settings tempSettings = settings.newInstance();
         double mem = Runtime.getRuntime().totalMemory();
         long lastSpaceMeasure = 0L;
         if (monitorSpace) {
@@ -130,27 +135,23 @@ public class IsoFinder {
             Mapping targetGraphMapping;
             MyGraph newSourceGraph = testcase.getSourceGraph();
             MyGraph newTargetGraph = testcase.getTargetGraph();
-            if (settings.getContraction()) {
-                newSourceGraph = newSourceGraph.contract();
+            Mapping contractMapping = null;
+            if (tempSettings.getContraction()) {
+                contractMapping =  newSourceGraph.contract();
+                newSourceGraph = contractMapping.graph;
             }
             try {
-                switch (settings.getSourceVertexOrder()) {
-                    case GREATEST_CONSTRAINED_FIRST:
-                        sourceGraphMapping = new GreatestConstrainedFirst().apply(newSourceGraph);
-                        break;
-                    case RANDOM:
-                        sourceGraphMapping = new RandomOrder(settings.nextLong()).apply(newSourceGraph);
-                        break;
-                    default:
-                        throw new UnsupportedOperationException();
-                }
+                sourceGraphMapping = switch (tempSettings.getSourceVertexOrder()) {
+                    case GREATEST_CONSTRAINED_FIRST -> new GreatestConstrainedFirst().apply(newSourceGraph);
+                    case RANDOM -> new RandomOrder(tempSettings.nextLong()).apply(newSourceGraph);
+                };
                 newSourceGraph = sourceGraphMapping.graph;
                 targetGraphMapping = new MaxDegreeFirst().apply(newTargetGraph);
                 newTargetGraph = targetGraphMapping.graph;
-                setup(newSourceGraph, newTargetGraph, settings, timeoutTime);
+                setup(newSourceGraph, newTargetGraph, tempSettings, timeoutTime);
             } catch (DomainCheckerException e) {
                 if (monitorSpace) {
-                    mem = Math.max(mem, Runtime.getRuntime().totalMemory());
+                    mem = Math.max(mem, Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
                 }
                 return new CompatibilityFailResult(mem);
             }
@@ -158,8 +159,8 @@ public class IsoFinder {
             boolean iterationpassed = true;
 
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
-                if (monitorSpace && System.currentTimeMillis() - lastSpaceMeasure > 100) {
 
+                if (monitorSpace && System.currentTimeMillis() - lastSpaceMeasure > 100) {
                     mem = Math.max(mem, Runtime.getRuntime().totalMemory());
                 }
                 if (iterationpassed) {
@@ -202,25 +203,39 @@ public class IsoFinder {
                     return new FailResult(iterations, mem);
                 }
             } else {
-                int[] placement = vertexMatching.get().stream().mapToInt(x -> x).toArray();
-                int[] vertexMapping = new int[placement.length];
-                for (int i = 0; i < placement.length; i++) {
-                    vertexMapping[sourceGraphMapping.newToOld[i]] = targetGraphMapping.newToOld[placement[i]];
+                List<Integer> placement = vertexMatching.get();
+                if (tempSettings.getContraction()) {
+                    fixContraction(testcase.getSourceGraph().vertexSet().size(), newSourceGraph, contractMapping.newToOld, placement, edgeMatching);
+                }
+                List<Integer> vertexMapping = new ArrayList<>(placement.size());
+                for (int i = 0; i < placement.size(); i++) {
+                    while (vertexMapping.size() < sourceGraphMapping.newToOld.get(i) + 1) {
+                        vertexMapping.add(-1);
+                    }
+                    vertexMapping.set(sourceGraphMapping.newToOld.get(i), targetGraphMapping.newToOld.get(placement.get(i)));
                 }
                 assert allDone(newSourceGraph, vertexMatching, edgeMatching);
                 assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
 
 
                 Map<MyEdge, Set<Path>> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.newToOld, vertexMatching, targetGraphMapping.newToOld);
-//                System.out.println(vertexMatching);
-//                System.out.println(edgeMatching);
-                return new SuccessResult(vertexMapping, paths, iterations, mem);
+                return new SuccessResult(vertexMapping.stream().mapToInt(x -> x).toArray(), paths, iterations, mem);
             }
         } finally {
             if (occupation != null) {
                 occupation.close();
             }
         }
+    }
+
+    private void fixContraction(int previousGraphSize, MyGraph newSourceGraph, Map<Integer, Integer> contractMapping, List<Integer> placement, EdgeMatching edgeMatching) {
+        List<Integer> newPlacement = new ArrayList<>(previousGraphSize);
+        for (int i = 0; i < previousGraphSize; i++) {
+            newPlacement.add(-1);
+        }
+        contractMapping.forEach((newgraph, oldgraph) -> newPlacement.set(oldgraph, placement.get(newgraph)));
+
+
     }
 
     private long logProgress(String name, long iterations) {

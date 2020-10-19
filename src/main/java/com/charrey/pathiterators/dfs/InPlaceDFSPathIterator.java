@@ -73,25 +73,30 @@ public class InPlaceDFSPathIterator extends PathIterator {
     @Nullable
     @Override
     public Path getNext() {
-        ScalingIntList previouschosenoption = new ScalingIntList(nextOptionToTry);
-        transaction.uncommit(placementSize.get(), this::getPartialMatching);
-        if (exploration.length() > 1) {
-            removeHeadOfExploration();
-        }
-        while (exploration.last() != head) {
-            assert exploration.length() != 0;
-            if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
-                return null;
+        Path toReturn = null;
+        while (toReturn == null) {
+            ScalingIntList previouschosenoption = new ScalingIntList(nextOptionToTry);
+            transaction.uncommit(placementSize.get(), this::getPartialMatching);
+            if (exploration.length() > 1) {
+                removeHeadOfExploration();
             }
-            boolean foundCandidate = findCandidate();
-            if (!foundCandidate) {
-                return null;
+            while (exploration.last() != head) {
+                if (exploration.length() == 0) {
+                    return null;
+                }
+                if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
+                    return null;
+                }
+                boolean foundCandidate = findCandidate();
+                if (!foundCandidate) {
+                    return null;
+                }
+                assert exploration.length() != 0;
             }
-            assert exploration.length() != 0;
+            //assert Arrays.stream(nextOptionToTry.toArray()).anyMatch(x -> x != 0);
+            assert !previouschosenoption.equals(nextOptionToTry);
+            toReturn = commitAndReturn();
         }
-        assert Arrays.stream(nextOptionToTry.toArray()).anyMatch(x -> x != 0);
-        assert !previouschosenoption.equals(nextOptionToTry);
-        Path toReturn = commitAndReturn();
         //assert !toReturn.equals(lastReturned) : "Path returned multiple times: " + lastReturned;
         lastReturned = new Path(toReturn);
         assert toReturn.length() >= 1;
@@ -102,10 +107,10 @@ public class InPlaceDFSPathIterator extends PathIterator {
     private Path commitAndReturn() {
         try {
             transaction.commit(placementSize.get(), this::getPartialMatching);
-        } catch (DomainCheckerException e) {
-            return next();
+            assert !exploration.isEmpty();
+        } catch (DomainCheckerException | AssertionError e) {
+            return null;
         }
-        assert !exploration.isEmpty();
         return exploration;
     }
 

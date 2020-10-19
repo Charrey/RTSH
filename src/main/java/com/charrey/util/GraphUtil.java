@@ -1,5 +1,6 @@
 package com.charrey.util;
 
+import com.charrey.algorithms.vertexordering.Mapping;
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
@@ -128,17 +129,17 @@ public class GraphUtil {
         return cachedRandomVertexOrder.get(graph);
     }
 
-    public static MyGraph repairVertices(MyGraph graph) {
-        int[] permutation = new int[graph.vertexSet().size()];
+    public static Mapping repairVertices(MyGraph graph) {
+        Map<Integer, Integer> permutation = new HashMap<>();
         int[] reversePermutation = new int[graph.vertexSet().stream().mapToInt(x -> x).max().getAsInt() + 1];
         int counter = 0;
         List<Integer> vertexList = new ArrayList<>(graph.vertexSet());
         for (Integer integer : vertexList) {
-            permutation[counter] = integer;
+            permutation.put(counter, integer);
             reversePermutation[integer] = counter;
             counter++;
         }
-        return MyGraph.applyOrdering(graph, permutation, reversePermutation);
+        return new Mapping(MyGraph.applyOrdering(graph, permutation, reversePermutation), permutation);
     }
 
     public static TIntSet radiusNeighbourHood(MyGraph sourceGraphVertex, int targetGraphVertex, int radius) {

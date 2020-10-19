@@ -1,5 +1,8 @@
-package com.charrey;
+package thesis;
 
+import com.charrey.Configuration;
+import com.charrey.IsoFinder;
+import com.charrey.TestCaseProvider;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.result.FailResult;
@@ -9,11 +12,9 @@ import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.util.Util;
 import objectexplorer.MemoryMeasurer;
-import objectexplorer.ObjectGraphMeasurer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.lang.instrument.Instrumentation;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -75,6 +76,7 @@ public class BaseSpace {
                 System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " " + configuration + ", x = " + currentX + (prunedComparedToNot.isEmpty() ? "" : ", cases done = " + lastCasesDone + ", last extra space = " + prunedComparedToNot.get(prunedComparedToNot.size() - 1)));
                 long timeStartForThisX = System.currentTimeMillis();
                 double totalExtraSpace = 0d;
+                double totalTcSpace = 0d;
 
                 int cases = 0;
                 while (System.currentTimeMillis() - timeStartForThisX < timeout && cases < 100) {
@@ -85,33 +87,32 @@ public class BaseSpace {
                     if (tc.hashCode() == 1) {
                         System.out.print("i");
                     }
-                    totalExtraSpace += caseMemory;
-//                    HomeomorphismResult resultWithPrune;
-//                    try {
-//                        System.gc();
-//                        resultWithPrune = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
-//                        if (resultWithPrune instanceof FailResult) {
-//                            System.out.println(additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
-//                        } else if (resultWithPrune instanceof SuccessResult && (configuration.getSettingsWithoutContraction() == null)) {
-//                            totalExtraSpace += resultWithPrune.memory;
-//                        }
-//                    } catch (Exception | Error e) {
-//                        String error = (additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
-//                        synchronized (fileLock) {
-//                            outputs.forEach(y -> {
-//                                try {
-//                                    y.append(error + "\n");
-//                                    ((Flushable) y).flush();
-//                                } catch (IOException e2) {
-//                                    e.printStackTrace();
-//                                }
-//                            });
-//                        }
-//                        e.printStackTrace();
-//                        continue;
-//                    }
+                    totalTcSpace += caseMemory;
+                    HomeomorphismResult resultWithPrune;
+                    try {
+                        resultWithPrune = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
+                        if (resultWithPrune instanceof FailResult) {
+                            System.out.println(additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
+                        } else if (resultWithPrune instanceof SuccessResult && (configuration.getSettingsWithoutContraction() == null)) {
+                            totalExtraSpace += resultWithPrune.memory;
+                        }
+                    } catch (Exception | Error e) {
+                        String error = (additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
+                        synchronized (fileLock) {
+                            outputs.forEach(y -> {
+                                try {
+                                    y.append(error + "\n");
+                                    ((Flushable) y).flush();
+                                } catch (IOException e2) {
+                                    e.printStackTrace();
+                                }
+                            });
+                        }
+                        e.printStackTrace();
+                        continue;
+                    }
                 }
-                prunedComparedToNot.add(totalExtraSpace);
+                prunedComparedToNot.add(totalExtraSpace / totalTcSpace);
                 x.add(currentX);
                 lastCasesDone = cases;
                 currentX++;
@@ -132,7 +133,7 @@ public class BaseSpace {
 
     @NotNull
     public static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
-        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST", true);
+        return new IsoFinder(settings).getHomeomorphism(testCase, timeout, "SYSTEMTEST", true);
     }
 
 }

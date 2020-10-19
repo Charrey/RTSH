@@ -40,7 +40,7 @@ public class ContractionTest {
 
         Settings settings = new SettingsBuilder().withContraction().get();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 10*60*1000, "ContractionTest", false);
+        HomeomorphismResult result = new IsoFinder(settings).getHomeomorphism(testCase, 10*60*1000, "ContractionTest", false);
         assert result instanceof SuccessResult;
     }
 
@@ -66,7 +66,7 @@ public class ContractionTest {
 
         Settings settings = new SettingsBuilder().withContraction().get();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 10*60*1000, "ContractionTest", false);
+        HomeomorphismResult result = new IsoFinder(settings).getHomeomorphism(testCase, 10*60*1000, "ContractionTest", false);
         System.out.println(result);
         assert result instanceof SuccessResult;
     }
@@ -128,7 +128,7 @@ public class ContractionTest {
 
         Settings settings = new SettingsBuilder().withContraction().get();
         TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
-        HomeomorphismResult result = new IsoFinder().getHomeomorphism(testCase, settings, 10*60*1000, "ContractionTest", false);
+        HomeomorphismResult result = new IsoFinder(settings).getHomeomorphism(testCase, 10*60*1000, "ContractionTest", false);
         System.out.println(result);
         assert result instanceof SuccessResult;
     }

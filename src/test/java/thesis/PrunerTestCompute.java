@@ -1,5 +1,8 @@
-package com.charrey;
+package thesis;
 
+import com.charrey.Configuration;
+import com.charrey.IsoFinder;
+import com.charrey.TestCaseProvider;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.result.FailResult;
@@ -1088,7 +1091,7 @@ public class PrunerTestCompute {
 
     @NotNull
     public static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
-        return new IsoFinder().getHomeomorphism(testCase, settings, timeout, "SYSTEMTEST", false);
+        return new IsoFinder(settings).getHomeomorphism(testCase, timeout, "SYSTEMTEST", false);
     }
 
 }
