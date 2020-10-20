@@ -2,6 +2,7 @@ package com.charrey;
 
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
+import com.charrey.graph.Path;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.result.*;
 import com.charrey.settings.Settings;
@@ -10,24 +11,20 @@ import com.charrey.settings.SourceVertexOrder;
 import com.charrey.settings.TargetVertexOrder;
 import com.charrey.settings.pruning.PruningMethod;
 import com.charrey.settings.pruning.WhenToApply;
+import gnu.trove.list.TIntList;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.jgrapht.alg.util.Pair;
-import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.nio.Attribute;
-import org.jgrapht.nio.GraphImporter;
-import org.jgrapht.nio.ImportEvent;
 import org.jgrapht.nio.ImportException;
 import org.jgrapht.nio.dot.DOTImporter;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 
 @CommandLine.Command(name = "java -jar NDSH2-contract.jar",
@@ -131,14 +128,33 @@ public class CLI implements Callable<Integer> {
             return -2;
         } else if (result instanceof SuccessResult) {
             int[] vertexPlacement = ((SuccessResult) result).getVertexPlacement();
-            System.out.println("source vertex ---> target vertex");
-            System.out.println("--------------------------------");
-            for (int i : vertexPlacement) {
+            System.out.println("----------------------------------------");
+            System.out.println("--  source vertex ---> target vertex  --");
+            System.out.println("----------------------------------------");
+            for (int i = 0; i < vertexPlacement.length; i++) {
                 System.out.println(newToOldSource.get(i) + " ---> " + newToOldTarget.get(vertexPlacement[i]));
             }
+            System.out.println("----------------------------------------");
+            System.out.println("--  source edge   ---> target path    --");
+            System.out.println("----------------------------------------");
+            Map<MyEdge, Set<Path>> edgePlacement = ((SuccessResult) result).getEdgePlacement();
+            edgePlacement.forEach((myEdge, paths) -> System.out.println("(" + newToOldSource.get(myEdge.getSource()) + ", " + newToOldSource.get(myEdge.getTarget()) + ") ---> " + toStrings(newToOldTarget, paths)));
             return 0;
         }
         return -4;
+    }
+
+    private String toStrings(Map<Integer, String> newToOldTarget, Set<Path> paths) {
+        Set<String> strings = new HashSet<>();
+        for (Path path : paths) {
+            TIntList list = path.asList();
+            StringBuilder sb = new StringBuilder(String.valueOf(newToOldTarget.get(list.get(0))));
+            for (int i = 1; i < list.size(); i++) {
+                sb.append(" -> ").append(newToOldTarget.get(list.get(i)));
+            }
+            strings.add(sb.toString());
+        }
+        return strings.toString();
     }
 
     private void setPruningMethod(SettingsBuilder settingsBuilder) {

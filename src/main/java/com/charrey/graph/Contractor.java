@@ -10,10 +10,12 @@ import java.util.stream.Collectors;
 public class Contractor {
 
 
-    Mapping contractDirected(MyGraph input) {
+    ContractResult contractDirected(MyGraph input) {
         final MyGraph res = GraphUtil.copy(input, null).graph;
         Set<Integer> toContract = res.vertexSet().stream().filter(x -> res.inDegreeOf(x) == 1 && res.outDegreeOf(x) == 1).collect(Collectors.toSet());
         Map<MyEdge, Chain> chains = new HashMap<>();
+
+        Map<Chain, LinkedList<Integer>> origins = new HashMap<>();
         while (!toContract.isEmpty()) {
             int vertexObserving = toContract.iterator().next();
             assert res.containsVertex(vertexObserving);
@@ -24,12 +26,14 @@ public class Contractor {
                 Set<String> labels = res.getAttributes(vertexObserving).getOrDefault("label", Collections.emptySet());
                 MyEdge contracted = contractSingleVertexDirected(res, vertexObserving);
                 Chain chain = new Chain();
+                origins.put(chain, new LinkedList<>(List.of(vertexObserving)));
                 chain.append(labels);
                 while (suitableForContractionDirected(res, successor)) {
                     int newSuccessor = Graphs.successorListOf(res, successor).get(0);
                     toContract.remove(successor);
                     labels = res.getAttributes(successor).getOrDefault("label", Collections.emptySet());
                     contracted = contractSingleVertexDirected(res, successor);
+                    origins.get(chain).addLast(successor);
                     chain.append(labels);
                     successor = newSuccessor;
                 }
@@ -38,6 +42,7 @@ public class Contractor {
                     toContract.remove(predecessor);
                     labels = res.getAttributes(predecessor).getOrDefault("label", Collections.emptySet());
                     contracted = contractSingleVertexDirected(res, predecessor);
+                    origins.get(chain).addFirst(predecessor);
                     chain.prepend(labels);
                     predecessor = newPredecessor;
                 }
@@ -45,13 +50,15 @@ public class Contractor {
             }
         }
         res.setChains(Collections.unmodifiableMap(chains));
-        return GraphUtil.repairVertices(res);
+        Mapping result = GraphUtil.repairVertices(res);
+        return new ContractResult(result.graph, result.newToOld, origins);
     }
 
-    public Mapping contractUndirected(MyGraph input) {
+    public ContractResult contractUndirected(MyGraph input) {
         final MyGraph res = GraphUtil.copy(input, null).graph;
         Set<Integer> toContract = res.vertexSet().stream().filter(x -> res.degreeOf(x) == 2).collect(Collectors.toSet());
         Map<MyEdge, Chain> chains = new HashMap<>();
+        Map<Chain, LinkedList<Integer>> origins = new HashMap<>();
         while (!toContract.isEmpty()) {
             int vertexObserving = toContract.iterator().next();
             assert res.containsVertex(vertexObserving);
@@ -63,12 +70,14 @@ public class Contractor {
                 Set<String> labels = res.getAttributes(vertexObserving).getOrDefault("label", Collections.emptySet());
                 MyEdge contracted = contractSingleVertexUndirected(res, vertexObserving);
                 Chain chain = new Chain();
+                origins.put(chain, new LinkedList<>(List.of(vertexObserving)));
                 chain.append(labels);
 
                 while (res.degreeOf(successor) == 2 && !res.containsEdge(successor, successor)) {
                     int finalPredecessor = predecessor;
                     Optional<Integer> newSuccessor = Graphs.neighborListOf(res, successor).stream().filter(x -> x != finalPredecessor).findAny();
                     toContract.remove(successor);
+                    origins.get(chain).addLast(successor);
                     labels = res.getAttributes(successor).getOrDefault("label", Collections.emptySet());
                     contracted = contractSingleVertexUndirected(res, successor);
                     chain.append(labels);
@@ -82,6 +91,7 @@ public class Contractor {
                     int finalSuccessor = successor;
                     Optional<Integer> newPredecessor = Graphs.neighborListOf(res, predecessor).stream().filter(x -> x != finalSuccessor).findAny();
                     toContract.remove(predecessor);
+                    origins.get(chain).addFirst(predecessor);
                     labels = res.getAttributes(predecessor).getOrDefault("label", Collections.emptySet());
                     contracted = contractSingleVertexUndirected(res, predecessor);
                     chain.prepend(labels);
@@ -95,7 +105,8 @@ public class Contractor {
             }
         }
         res.setChains(Collections.unmodifiableMap(chains));
-        return GraphUtil.repairVertices(res);
+        Mapping toReturn = GraphUtil.repairVertices(res);
+        return new ContractResult(toReturn.graph, toReturn.newToOld, origins);
     }
 
 
@@ -132,5 +143,13 @@ public class Contractor {
     }
 
 
+    private static class ContractionResult {
+        private final Map<Integer, Integer> newToOld;
+        private final MyGraph graph;
 
+        public ContractionResult(MyGraph graph, Map<Integer, Integer> newToOld) {
+            this.graph = graph;
+            this.newToOld = newToOld;
+        }
+    }
 }

@@ -1,6 +1,5 @@
 package com.charrey.graph;
 
-import com.charrey.algorithms.vertexordering.Mapping;
 import com.charrey.util.datastructures.MultipleKeyMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -18,7 +17,6 @@ import org.jgrapht.util.SupplierUtil;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -308,9 +306,9 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     }
 
 
-    public Mapping contract() {
+    public ContractResult contract() {
         Contractor contractor = new Contractor();
-        Mapping toReturn;
+        ContractResult toReturn;
         if (isDirected()) {
             toReturn = contractor.contractDirected(this);
         } else {
@@ -341,6 +339,10 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
         } else {
             return chainCache.get(from).get(to);
         }
+    }
+
+    public Map<MyEdge, Chain> getAllChains() {
+        return chains;
     }
 
     public void setChains(Map<MyEdge, Chain> chains) {

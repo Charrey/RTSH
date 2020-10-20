@@ -5,9 +5,7 @@ import com.charrey.algorithms.vertexordering.GreatestConstrainedFirst;
 import com.charrey.algorithms.vertexordering.Mapping;
 import com.charrey.algorithms.vertexordering.MaxDegreeFirst;
 import com.charrey.algorithms.vertexordering.RandomOrder;
-import com.charrey.graph.MyEdge;
-import com.charrey.graph.MyGraph;
-import com.charrey.graph.Path;
+import com.charrey.graph.*;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
@@ -16,11 +14,14 @@ import com.charrey.pruning.DomainCheckerException;
 import com.charrey.result.*;
 import com.charrey.settings.Settings;
 import com.charrey.settings.pruning.WhenToApply;
-import com.charrey.util.Util;
+import gnu.trove.list.TIntList;
+import org.chocosolver.solver.DefaultSettings;
+import org.chocosolver.solver.Model;
+import org.chocosolver.solver.variables.IntVar;
 import org.jetbrains.annotations.NotNull;
+import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -57,43 +58,32 @@ public class IsoFinder implements HomeomorphismSolver {
         return true;
     }
 
-    private static Map<MyEdge, Set<Path>> repairPaths(MyGraph newSourceGraph, MyGraph oldTargetGraph, EdgeMatching edgeMatching, Map<Integer, Integer> sourcegraphNewToOld, VertexMatching vertexMatching, Map<Integer, Integer> targetgraphNewToOld) {
+    private static Map<MyEdge, Set<Path>> repairPaths(MyGraph oldSourceGraph,
+                                                      MyGraph newSourceGraph,
+                                                      MyGraph oldTargetGraph,
+                                                      MyGraph newTargetGraph,
+                                                      Set<Path> allPaths,
+                                                      Map<Integer, Integer> sourcegraphNewToOld,
+                                                      List<Integer> placement,
+                                                      Map<Integer, Integer> targetgraphNewToOld) {
+        Map<Integer, Integer> targetgraphOldToNew = new HashMap<>();
+        targetgraphNewToOld.forEach((a, b) -> targetgraphOldToNew.put(b, a));
         Map<MyEdge, Set<Path>> res = new HashMap<>();
-        if (newSourceGraph.isDirected()) {
-            for (MyEdge edge : newSourceGraph.edgeSet()) {
-                int edgeSourceTarget = vertexMatching.get().get(newSourceGraph.getEdgeSource(edge));
-                int edgeTargetTarget = vertexMatching.get().get(newSourceGraph.getEdgeTarget(edge));
-                Set<Path> toAdd = new HashSet<>();
-                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).collect(Collectors.toSet());
-                assert !match.isEmpty();
-                match.forEach(path -> {
-                    Path gotten = new Path(oldTargetGraph, targetgraphNewToOld.get(path.first()));
-                    for (int i = 1; i < path.asList().size(); i++) {
-                        gotten.append(targetgraphNewToOld.get(path.get(i)));
-                    }
-                    toAdd.add(gotten);
-                });
-
-                res.put(new MyEdge(sourcegraphNewToOld.get(edge.getSource()), sourcegraphNewToOld.get(edge.getTarget())), toAdd);
-            }
-        } else {
-            for (MyEdge edge : newSourceGraph.edgeSet()) {
-                int edgeSourceTarget = vertexMatching.get().get(newSourceGraph.getEdgeSource(edge));
-                int edgeTargetTarget = vertexMatching.get().get(newSourceGraph.getEdgeTarget(edge));
-                Set<Path> toAdd = new HashSet<>();
-                Set<Path> match = edgeMatching.allPaths().stream().filter(x -> new HashSet<>(Util.listOf(x.last(), x.first())).equals(new HashSet<>(Util.listOf(edgeSourceTarget, edgeTargetTarget)))).collect(Collectors.toSet());
-                assert !match.isEmpty();
-                match.forEach(path -> {
-                    Path gotten = new Path(oldTargetGraph, targetgraphNewToOld.get(path.first()));
-                    for (int i = 1; i < path.asList().size(); i++) {
-                        gotten.append(targetgraphNewToOld.get(path.get(i)));
-                    }
-                    toAdd.add(gotten);
-                });
-                res.put(new MyEdge(sourcegraphNewToOld.get(edge.getSource()), sourcegraphNewToOld.get(edge.getTarget())), toAdd);
-            }
+        for (MyEdge edge : oldSourceGraph.edgeSet()) {
+            int edgeSourceTarget = targetgraphOldToNew.get(placement.get(edge.getSource()));
+            int edgeTargetTarget = targetgraphOldToNew.get(placement.get(edge.getTarget()));
+            Set<Path> toAdd = new HashSet<>();
+            Set<Path> match = allPaths.stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).collect(Collectors.toSet());
+            assert !match.isEmpty();
+            match.forEach(path -> {
+                Path gotten = new Path(oldTargetGraph, targetgraphNewToOld.get(path.first()));
+                for (int i = 1; i < path.asList().size(); i++) {
+                    gotten.append(targetgraphNewToOld.get(path.get(i)));
+                }
+                toAdd.add(gotten);
+            });
+            res.put(new MyEdge(edge.getSource(), edge.getTarget()), toAdd);
         }
-
         return res;
     }
 
@@ -135,10 +125,10 @@ public class IsoFinder implements HomeomorphismSolver {
             Mapping targetGraphMapping;
             MyGraph newSourceGraph = testcase.getSourceGraph();
             MyGraph newTargetGraph = testcase.getTargetGraph();
-            Mapping contractMapping = null;
+            ContractResult contractMapping = null;
             if (tempSettings.getContraction()) {
                 contractMapping =  newSourceGraph.contract();
-                newSourceGraph = contractMapping.graph;
+                newSourceGraph = contractMapping.getGraph();
             }
             try {
                 sourceGraphMapping = switch (tempSettings.getSourceVertexOrder()) {
@@ -159,6 +149,8 @@ public class IsoFinder implements HomeomorphismSolver {
             boolean iterationpassed = true;
 
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
+                System.out.println(vertexMatching);
+                System.out.println(edgeMatching);
 
                 if (monitorSpace && System.currentTimeMillis() - lastSpaceMeasure > 100) {
                     mem = Math.max(mem, Runtime.getRuntime().totalMemory());
@@ -196,31 +188,7 @@ public class IsoFinder implements HomeomorphismSolver {
                 }
 
             }
-            if (vertexMatching.size() < newSourceGraph.vertexSet().size()) {
-                if (System.currentTimeMillis() >= timeoutTime || Thread.currentThread().isInterrupted()) {
-                    return new TimeoutResult(iterations, mem);
-                } else {
-                    return new FailResult(iterations, mem);
-                }
-            } else {
-                List<Integer> placement = vertexMatching.get();
-                if (tempSettings.getContraction()) {
-                    fixContraction(testcase.getSourceGraph().vertexSet().size(), newSourceGraph, contractMapping.newToOld, placement, edgeMatching);
-                }
-                List<Integer> vertexMapping = new ArrayList<>(placement.size());
-                for (int i = 0; i < placement.size(); i++) {
-                    while (vertexMapping.size() < sourceGraphMapping.newToOld.get(i) + 1) {
-                        vertexMapping.add(-1);
-                    }
-                    vertexMapping.set(sourceGraphMapping.newToOld.get(i), targetGraphMapping.newToOld.get(placement.get(i)));
-                }
-                assert allDone(newSourceGraph, vertexMatching, edgeMatching);
-                assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
-
-
-                Map<MyEdge, Set<Path>> paths = repairPaths(newSourceGraph, testcase.getTargetGraph(), edgeMatching, sourceGraphMapping.newToOld, vertexMatching, targetGraphMapping.newToOld);
-                return new SuccessResult(vertexMapping.stream().mapToInt(x -> x).toArray(), paths, iterations, mem);
-            }
+            return createResult(testcase, timeoutTime, tempSettings, mem, sourceGraphMapping, targetGraphMapping, newSourceGraph, newTargetGraph, contractMapping, iterations);
         } finally {
             if (occupation != null) {
                 occupation.close();
@@ -228,14 +196,133 @@ public class IsoFinder implements HomeomorphismSolver {
         }
     }
 
-    private void fixContraction(int previousGraphSize, MyGraph newSourceGraph, Map<Integer, Integer> contractMapping, List<Integer> placement, EdgeMatching edgeMatching) {
-        List<Integer> newPlacement = new ArrayList<>(previousGraphSize);
-        for (int i = 0; i < previousGraphSize; i++) {
+    private HomeomorphismResult createResult(TestCase testcase,
+                                             long timeoutTime,
+                                             Settings tempSettings,
+                                             double mem,
+                                             Mapping sourceGraphMapping,
+                                             Mapping targetGraphMapping,
+                                             MyGraph newSourceGraph,
+                                             MyGraph newTargetGraph,
+                                             ContractResult contractMapping,
+                                             long iterations) {
+        if (vertexMatching.size() < newSourceGraph.vertexSet().size()) {
+            if (System.currentTimeMillis() >= timeoutTime || Thread.currentThread().isInterrupted()) {
+                return new TimeoutResult(iterations, mem);
+            } else {
+                return new FailResult(iterations, mem);
+            }
+        } else {
+            List<Integer> placement;
+            Set<Path> allPaths = new HashSet<>(edgeMatching.allPaths());
+            if (tempSettings.getContraction()) {
+                placement = vertexMatching.get();
+                fixContraction(testcase.getSourceGraph(), contractMapping, placement, edgeMatching, targetGraphMapping);
+                allPaths = splitPaths(allPaths, placement);
+            } else {
+                placement = new ArrayList<>();
+                for (int i = 0; i < vertexMatching.get().size(); i++) {
+                    while (placement.size() < sourceGraphMapping.newToOld.get(i) + 1) {
+                        placement.add(-1);
+                    }
+                    placement.set(sourceGraphMapping.newToOld.get(i), targetGraphMapping.newToOld.get(vertexMatching.get().get(i)));
+                }
+            }
+            assert !placement.contains(-1);
+            assert allDone(newSourceGraph, vertexMatching, edgeMatching);
+            assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
+            Map<MyEdge, Set<Path>> paths = repairPaths(testcase.getSourceGraph(),
+                    newSourceGraph,
+                    testcase.getTargetGraph(),
+                    newTargetGraph,
+                    allPaths,
+                    sourceGraphMapping.newToOld,
+                    placement,
+                    targetGraphMapping.newToOld);
+            return new SuccessResult(placement.stream().mapToInt(x -> x).toArray(), paths, iterations, mem);
+        }
+    }
+
+    private Set<Path> splitPaths(Set<Path> toChange, Collection<Integer> onValues) {
+        Set<Path> res = new HashSet<>();
+        for (Path path : toChange) {
+            TIntList list = path.asList();
+            int highestThatMayBeIncluded = 0;
+            for (int i = 0; i < list.size(); i++) {
+                if (i != 0 && i != list.size() - 1 && onValues.contains(list.get(i))) {
+                    res.add(new Path(path.getGraph(), list.subList(highestThatMayBeIncluded, i + 1)));
+                    highestThatMayBeIncluded = i;
+                }
+            }
+            res.add(new Path(path.getGraph(), list.subList(highestThatMayBeIncluded, list.size())));
+        }
+        return res;
+    }
+
+    private void fixContraction(MyGraph previousGraph, ContractResult contractResult, List<Integer> placement, EdgeMatching edgeMatching, Mapping targetGraphMapping) {
+        List<Integer> newPlacement = new ArrayList<>(previousGraph.vertexSet().size());
+        for (int i = 0; i < previousGraph.vertexSet().size(); i++) {
             newPlacement.add(-1);
         }
-        contractMapping.forEach((newgraph, oldgraph) -> newPlacement.set(oldgraph, placement.get(newgraph)));
+        Set<Path> allPaths = edgeMatching.allPaths();
+        contractResult.getNewToOld().forEach((newgraph, oldgraph) -> newPlacement.set(oldgraph, targetGraphMapping.newToOld.get(placement.get(newgraph))));
+        Map<Pair<Integer, Integer>, Set<List<Integer>>> edgeToContractlist = new HashMap<>();
+        contractResult.getGraph().getAllChains().forEach((key, value) -> {
+            edgeToContractlist.computeIfAbsent(new Pair<>(key.getSource(), key.getTarget()), x -> new HashSet<>());
+            edgeToContractlist.get(new Pair<>(key.getSource(), key.getTarget())).add(contractResult.getOrigins().get(value));
+        });
+        Map<Pair<Integer, Integer>, Set<Path>> edgeToPathList = new HashMap<>();
+        edgeToContractlist.keySet().forEach(pair -> edgeToPathList.put(pair, allPaths.stream().filter(x -> x.first() == placement.get(pair.getFirst()) && x.last() == placement.get(pair.getSecond())).collect(Collectors.toSet())));
+        org.chocosolver.solver.Settings settings = new DefaultSettings();
+        edgeToPathList.keySet().forEach(pair -> {
+            List<List<Integer>> contractList = new ArrayList<>(edgeToContractlist.get(pair));
+            List<Path> pathList = new ArrayList<>(edgeToPathList.get(pair));
+            Model model = new Model(settings);
+            IntVar[] variables = new IntVar[contractList.size()];
+            Map<Integer, Map<Integer, Map<Integer, Integer>>> variableToPathindexToAssignment = new HashMap<>();
+            for (int i = 0; i < contractList.size(); i++) {
+                variableToPathindexToAssignment.put(i, new HashMap<>());
+                List<Integer> compatiblePaths = new ArrayList<>();
+                for (int j = 0; j < pathList.size(); j++) {
+                    //map from OLD source to NEW target
+                    Map<Integer, Integer> addedMap = chainCompatible(previousGraph, contractList.get(i), (MyGraph) pathList.get(j).getGraph(), pathList.get(j).intermediate().asList());
+                    if (addedMap != null) {
+                        variableToPathindexToAssignment.get(i).put(j, addedMap);
+                        compatiblePaths.add(j);
+                    }
+                }
+                variables[i] = model.intVar(compatiblePaths.stream().mapToInt(x -> x).toArray());
+            }
+            model.allDifferent(variables).post();
+            model.getSolver().solve();
+            for (int i = 0; i < variables.length; i++) {
+                for (Map.Entry<Integer, Integer> entry : variableToPathindexToAssignment.get(i).get(variables[i].getValue()).entrySet()) {
+                    Integer key = entry.getKey();
+                    Integer value = entry.getValue();
+                    newPlacement.set(key, targetGraphMapping.newToOld.get(value));
+                }
+            }
+        });
+        placement.clear();
+        placement.addAll(newPlacement);
+    }
 
-
+    private Map<Integer, Integer> chainCompatible(MyGraph oldGraph, List<Integer> contractedSequence, MyGraph targetGraph, TIntList pathInsideContent) {
+        if (contractedSequence.isEmpty()) {
+            return new HashMap<>();
+        } else if (pathInsideContent.size() < contractedSequence.size()) {
+            return null;
+        } else {
+            if (targetGraph.getLabels(pathInsideContent.get(0)).containsAll(oldGraph.getLabels(contractedSequence.get(0)))) {
+                Map<Integer, Integer> recursive = chainCompatible(oldGraph, contractedSequence.subList(1, contractedSequence.size()), targetGraph, pathInsideContent.subList(1, pathInsideContent.size()));
+                if (recursive != null) {
+                    recursive.put(contractedSequence.get(0), pathInsideContent.get(0));
+                }
+                return recursive;
+            } else {
+                return chainCompatible(oldGraph, contractedSequence.subList(1, contractedSequence.size()), targetGraph, pathInsideContent);
+            }
+        }
     }
 
     private long logProgress(String name, long iterations) {
