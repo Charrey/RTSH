@@ -149,9 +149,6 @@ public class IsoFinder implements HomeomorphismSolver {
             boolean iterationpassed = true;
 
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
-                System.out.println(vertexMatching);
-                System.out.println(edgeMatching);
-
                 if (monitorSpace && System.currentTimeMillis() - lastSpaceMeasure > 100) {
                     mem = Math.max(mem, Runtime.getRuntime().totalMemory());
                 }

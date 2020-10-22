@@ -67,7 +67,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>thesis.SourceVertexOrderTest</mainClass>
+                            <mainClass>com.charrey.CLI</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
