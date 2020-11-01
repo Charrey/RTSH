@@ -123,19 +123,20 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             Path pathFound = pathfinder.next();
             this.partialMatchingMode = ALL;
             if (pathFound != null) {
-
                 assert pathFound.first() == tail : "Expected: " + tail + ", actual: " + pathFound.first();
                 assert pathFound.last() == head : "Expected: " + head + ", actual: " + pathFound.last();
                 Path toAdd = new Path(pathFound);
-                pathList.set(pathList.size() - 1, new Pair<>(toAdd, pathfinder.debugInfo()));
-                return true;
-            } else {
-                pathfinders.get(tail, head).removeFirst();
-                if (pathfinders.get(tail, head).isEmpty()) {
-                    pathfinders.remove(tail, head);
+                toAdd = assertChainCompatible(pathfinder.getSourceGraphTo(), pathfinder.getSourceGraphFrom(), tail, head, pathfinder, toAdd);
+                if (toAdd != null) {
+                    pathList.set(pathList.size() - 1, new Pair<>(toAdd, pathfinder.debugInfo()));
+                    return true;
                 }
-                removeLastPath();
             }
+            pathfinders.get(tail, head).removeFirst();
+            if (pathfinders.get(tail, head).isEmpty()) {
+                pathfinders.remove(tail, head);
+            }
+            removeLastPath();
         }
         return false;
     }
@@ -187,7 +188,9 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             settings,
             this,
             timeoutTime,
-                getDirectConnectionsAlreadyUsed(tail, head));
+                getDirectConnectionsAlreadyUsed(tail, head),
+                sourceGraphFrom,
+                sourceGraphTo);
         if (!pathfinders.containsKey(tail, head)) {
             pathfinders.put(tail, head, new LinkedList<>());
         }
@@ -281,7 +284,6 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
         return new AllDifferent().get(res);
     }
 
-
     private int getDirectConnectionsAlreadyUsed(int tail, int head) {
         int alreadyUsed = 0;
         if (!this.targetGraph.containsEdge(tail, head) || paths.get(vertexMatching.size()-1).isEmpty()) {
@@ -358,7 +360,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             sb.append("\t").append(pathAddition).append("\n");
         }
         sb.append("}\n");
-        assert paths.stream().allMatch(x -> x.stream().noneMatch(y -> y.getFirst().isEmpty()));
+        //assert paths.stream().allMatch(x -> x.stream().noneMatch(y -> y.getFirst().isEmpty()));
         return sb.toString();
     }
 

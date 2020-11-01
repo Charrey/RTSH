@@ -72,7 +72,7 @@ public class CachedDFSPathIterator extends PathIterator {
     }
 
     private boolean isCandidate(Integer vertex) {
-        if (vertex != head && graph.containsEdge(exploration.last(), head)) {
+        if (refuseLongerPaths && vertex != head && graph.containsEdge(exploration.last(), head)) {
             return false;
         }
         boolean isCandidate = !exploration.contains(vertex) &&

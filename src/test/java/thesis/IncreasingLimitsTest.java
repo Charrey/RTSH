@@ -88,10 +88,10 @@ public class IncreasingLimitsTest {
                     double periodIncreasingLimits = -1;
                     try {
                         long startTime = System.nanoTime();
-                        resultNormal = new IsoFinder(configuration.getSettingsWithContraction()).getHomeomorphism(tc, timeout, "Normal", false);
+                        resultNormal = new IsoFinder(configuration.getFirst()).getHomeomorphism(tc, timeout, "Normal", false);
                         periodNormal = System.nanoTime() - startTime;
                         startTime = System.nanoTime();
-                        resultIncreasingLimits = new IncreasingLimits(configuration.getSettingsWithContraction(), 6).getHomeomorphism(tc, timeout,  "IncreasingLimits", false);
+                        resultIncreasingLimits = new IncreasingLimits(configuration.getFirst(), 6).getHomeomorphism(tc, timeout,  "IncreasingLimits", false);
                         periodIncreasingLimits = System.nanoTime() - startTime;
                     } catch (Exception | Error e) {
                         String error = (additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
@@ -108,7 +108,7 @@ public class IncreasingLimitsTest {
                     }
                     if (resultIncreasingLimits instanceof FailResult || resultNormal instanceof FailResult) {
                         System.out.println(additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
-                    } else if (resultNormal instanceof SuccessResult && (configuration.getSettingsWithoutContraction() == null || resultIncreasingLimits instanceof SuccessResult)) {
+                    } else if (resultNormal instanceof SuccessResult && (configuration.getSecond() == null || resultIncreasingLimits instanceof SuccessResult)) {
                         totalTimeNormal += periodNormal;
                         totalTimeIncreasingLimits += periodIncreasingLimits;
                     }

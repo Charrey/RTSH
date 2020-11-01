@@ -68,7 +68,7 @@ public class LoopAdaptor extends PathIterator {
         pathQueue = new PriorityQueue<>(neighbours.length, Comparator.comparingDouble(o -> distances[o.getFirst()] + o.getSecond().getWeight()));
         for (int i = 0; i < neighbours.length; i++) {
             distances[i] = graph.getEdgeWeight(graph.getEdge(tailHead, neighbours[i]));
-            PathIterator pathIterator = PathIteratorFactory.get(graph, data, neighbours[i], tailHead, occupation, placementSize, settings, provider, timeoutTime, 0);
+            PathIterator pathIterator = PathIteratorFactory.get(graph, data, neighbours[i], tailHead, occupation, placementSize, settings, provider, timeoutTime, 0, -1, -1);
             spas.add(pathIterator);
             Path path = pathIterator.next();
             pathIterator.uncommit();

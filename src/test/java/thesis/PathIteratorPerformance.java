@@ -73,7 +73,7 @@ public class PathIteratorPerformance extends SystemTest {
                     while (System.currentTimeMillis() - timeStartForThisX < timeout && times.size() < 200) {
                         TestCase tc = getTestCase(currentX, factor, xRandom.nextInt());
                         long startTime = System.nanoTime();
-                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
+                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getFirst());
                         long period = System.nanoTime() - startTime;
                         if (result instanceof FailResult) {
                             System.out.println("bug in " + configuration + " with source " + tc.getSourceGraph() + " and target " + tc.getTargetGraph());

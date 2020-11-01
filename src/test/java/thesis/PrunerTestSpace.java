@@ -529,8 +529,8 @@ public class PrunerTestSpace {
                     HomeomorphismResult resultWithPrune;
                     HomeomorphismResult resultWithoutPrune;
                     try {
-                        resultWithPrune = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
-                        resultWithoutPrune = testWithoutExpectation(tc, timeout, configuration.getSettingsWithoutContraction());
+                        resultWithPrune = testWithoutExpectation(tc, timeout, configuration.getFirst());
+                        resultWithoutPrune = testWithoutExpectation(tc, timeout, configuration.getSecond());
                     } catch (Exception | Error e) {
                         String error = (additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
                         synchronized (fileLock) {
@@ -548,7 +548,7 @@ public class PrunerTestSpace {
                     }
                     if (resultWithoutPrune instanceof FailResult || resultWithPrune instanceof FailResult) {
                         System.out.println(additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
-                    } else if (resultWithPrune instanceof SuccessResult && (configuration.getSettingsWithoutContraction() == null || resultWithoutPrune instanceof SuccessResult)) {
+                    } else if (resultWithPrune instanceof SuccessResult && (configuration.getSecond() == null || resultWithoutPrune instanceof SuccessResult)) {
                         totalSpaceWith += resultWithPrune.memory;
                         totalSpaceWithout += resultWithoutPrune.memory;
                     }

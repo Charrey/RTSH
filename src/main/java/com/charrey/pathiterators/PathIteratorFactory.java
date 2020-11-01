@@ -39,7 +39,9 @@ public class PathIteratorFactory {
                                    Settings settings,
                                    PartialMatchingProvider provider,
                                    long timeoutTime,
-                                   int crippled) {
+                                   int crippled,
+                                   int sourceGraphFrom,
+                                   int sourceGraphTo) {
         PathIterator toReturn;
 
         Set<MyEdge> removed = new HashSet<>();
@@ -73,6 +75,8 @@ public class PathIteratorFactory {
             };
         }
         removed.forEach(x -> targetGraph.addEdge(x.getSource(), x.getTarget(), x));
+        toReturn.setSourceGraphFrom(sourceGraphFrom);
+        toReturn.setSourceGraphTo(sourceGraphTo);
         return toReturn;
     }
 }

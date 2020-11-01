@@ -61,7 +61,7 @@ public class InPlaceDFSPathIterator extends PathIterator {
     }
 
     private boolean isCandidate(Integer vertex) {
-        return (vertex == head || !graph.containsEdge(exploration.last(), head)) && !exploration.contains(vertex) &&
+        return (vertex == head || !refuseLongerPaths || !graph.containsEdge(exploration.last(), head)) && !exploration.contains(vertex) &&
                 !occupation.isOccupiedRouting(vertex) &&
                 !(occupation.isOccupiedVertex(vertex) && vertex != head) &&
                 (!refuseLongerPaths || Graphs.predecessorListOf(graph, vertex).stream().allMatch(x -> x == exploration.last() || !exploration.contains(x)));

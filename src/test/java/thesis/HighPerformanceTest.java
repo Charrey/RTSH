@@ -96,7 +96,7 @@ public class HighPerformanceTest {
                 Future<Double> future1 = threadPool.submit(() -> {
                     try {
                         long start = System.currentTimeMillis();
-                        HomeomorphismResult result = new IsoFinder(configuration.getSettingsWithContraction()).getHomeomorphism(tc, timeout, "THREAD 1", false);
+                        HomeomorphismResult result = new IsoFinder(configuration.getFirst()).getHomeomorphism(tc, timeout, "THREAD 1", false);
                         long end = System.currentTimeMillis();
                         if (result instanceof SuccessResult) {
                             return (end - start) / 1000d;
@@ -110,7 +110,7 @@ public class HighPerformanceTest {
                 Future<Double> future2 = threadPool.submit(() -> {
                     try {
                         long start = System.currentTimeMillis();
-                        HomeomorphismResult result = new IsoFinder(configuration.getSettingsWithoutContraction()).getHomeomorphism(tc, timeout, "THREAD 1", false);
+                        HomeomorphismResult result = new IsoFinder(configuration.getSecond()).getHomeomorphism(tc, timeout, "THREAD 1", false);
                         long end = System.currentTimeMillis();
                         if (result instanceof SuccessResult) {
                             return (end - start) / 1000d;

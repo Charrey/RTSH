@@ -127,7 +127,7 @@ class ControlPointTransition {
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE, 0);
+                }, Long.MAX_VALUE, 0, -1, -1);
                 Path path;
                 while ((path = iterator.next()) != null) {
                     assertTrue(toTest.test(new Case(iterator.controlPoints(), occupation, path, iterator.finalPath(), iterator.firstPath())));

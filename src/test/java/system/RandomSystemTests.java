@@ -5,8 +5,8 @@ import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.graph.generation.random.TrulyRandomDirectedTestCaseGenerator;
 import com.charrey.graph.generation.random.TrulyRandomUndirectedTestCaseGenerator;
 import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator;
-import com.charrey.graph.generation.succeed.RandomSucceedDirectedTestCaseGenerator2;
 import com.charrey.graph.generation.succeed.RandomSucceedUndirectedTestCaseGenerator;
+import com.charrey.result.FailResult;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.TimeoutResult;
 import com.charrey.settings.pathiteration.PathIteration;
@@ -20,13 +20,14 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
             .withoutPruning()
+            .withInplaceDFSRouting()
             .withContraction()
+            .allowingLongerPaths()
             .get();
 
 
@@ -35,7 +36,7 @@ class RandomSystemTests extends SystemTest {
         if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
-        findCases(100 * 1000, 1, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(100 * 1000, 1, new TrulyRandomUndirectedTestCaseGenerator(1, 0, 1.5, 6), false, true);
     }
 
     @Test
@@ -43,14 +44,14 @@ class RandomSystemTests extends SystemTest {
         if (settings.getPathIteration().iterationStrategy == PathIteration.KPATH) {
             return;
         }
-        findCases(100 * 1000, 100, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+        findCases(100 * 1000, 100, new RandomSucceedUndirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true, true);
     }
 
     @Test
     void findCasesDirectedSucceed() throws InterruptedException {
         Runnable runnable = () -> {
             try {
-                findCases(100000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), true);
+                findCases(100000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), false, true);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -67,12 +68,12 @@ class RandomSystemTests extends SystemTest {
 
     @Test
     void findCasesDirectedRandom() throws IOException {
-        findCases(100 * 1000, 100, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false);
+        findCases(100 * 1000, 100, new TrulyRandomDirectedTestCaseGenerator(1, 0, 1.5, 6), false, true);
     }
 
 
     @SuppressWarnings("SameParameterValue")
-    private void findCases(long time, int iterations, @NotNull TestCaseGenerator graphGen, boolean expectSucceed) throws IOException {
+    private void findCases(long time, int iterations, @NotNull TestCaseGenerator graphGen, boolean expectSucceed, boolean continueOnError) throws IOException {
         Logger.getLogger("IsoFinder").setLevel(Level.OFF);
         long start = System.currentTimeMillis();
         double totalIterations = 0L;
@@ -96,24 +97,28 @@ class RandomSystemTests extends SystemTest {
                 HomeomorphismResult homeomorphism;
 
 
-                if (attempts >= 20371) {//
+                if (attempts >= 0) {//
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);
                         } else {
                             homeomorphism = testWithoutExpectation(testCase, time - (System.currentTimeMillis() - start), settings);
                         }
-                    } catch (AssertionError | IllegalStateException | IllegalArgumentException | NoSuchElementException | UnsupportedOperationException | ConcurrentModificationException e) {
-                        System.err.println(attempts);
-                        System.err.println(testCase.getSourceGraph());
-                        int[] expected = testCase.getExpectedVertexMatching();
-                        if (expected != null) {
-                            for (int j = 0; j < expected.length; j++) {
-                                testCase.getTargetGraph().addAttribute(expected[j], "label", String.valueOf(j));
+                    } catch (NullPointerException | AssertionError | IllegalStateException | IllegalArgumentException | NoSuchElementException | UnsupportedOperationException | ConcurrentModificationException | ArrayIndexOutOfBoundsException e) {
+                        if (continueOnError) {
+                            homeomorphism = new FailResult(0, 0);
+                        } else {
+                            System.err.println(attempts);
+                            System.err.println(testCase.getSourceGraph());
+                            int[] expected = testCase.getExpectedVertexMatching();
+                            if (expected != null) {
+                                for (int j = 0; j < expected.length; j++) {
+                                    testCase.getTargetGraph().addAttribute(expected[j], "label", String.valueOf(j));
+                                }
                             }
+                            System.err.println(testCase.getTargetGraph());
+                            throw e;
                         }
-                        System.err.println(testCase.getTargetGraph());
-                        throw e;
                     }
                     if (homeomorphism instanceof TimeoutResult) {
                         return;

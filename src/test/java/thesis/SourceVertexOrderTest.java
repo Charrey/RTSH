@@ -116,11 +116,11 @@ public class SourceVertexOrderTest {
                         double periodWithout = -1;
                         try {
                             long startTime = System.nanoTime();
-                            resultWith = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
+                            resultWith = testWithoutExpectation(tc, timeout, configuration.getFirst());
                             periodWith = System.nanoTime() - startTime;
-                            if (configuration.getSettingsWithoutContraction() != null) {
+                            if (configuration.getSecond() != null) {
                                 startTime = System.nanoTime();
-                                resultWithout = testWithoutExpectation(tc, timeout, configuration.getSettingsWithoutContraction());
+                                resultWithout = testWithoutExpectation(tc, timeout, configuration.getSecond());
                                 periodWithout = System.nanoTime() - startTime;
                             }
                         } catch (Exception | Error e) {
@@ -147,7 +147,7 @@ public class SourceVertexOrderTest {
                             if (!continueOnError) {
                                 throw new IllegalStateException("Failed!");
                             }
-                        } else if (resultWith instanceof SuccessResult && (configuration.getSettingsWithoutContraction() == null || resultWithout instanceof SuccessResult)) {
+                        } else if (resultWith instanceof SuccessResult && (configuration.getSecond() == null || resultWithout instanceof SuccessResult)) {
                             totalTimeWith += periodWith;
                             totalTimeWithout += periodWithout;
                             if (calloutEachResult) {

@@ -92,7 +92,7 @@ class GlobalOccupationTest {
                     vertexMatching1.add(tail);
                     vertexMatching1.add(head);
                     return new PartialMatching(vertexMatching1);
-                }, Long.MAX_VALUE, 0);
+                }, Long.MAX_VALUE, 0, -1, -1);
                 Path path;
                 while ((path = iterator.next()) != null) {
                     TIntSet occupationSays = occupation.getRoutingOccupied();

@@ -90,10 +90,10 @@ public class BaseSpace {
                     totalTcSpace += caseMemory;
                     HomeomorphismResult resultWithPrune;
                     try {
-                        resultWithPrune = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
+                        resultWithPrune = testWithoutExpectation(tc, timeout, configuration.getFirst());
                         if (resultWithPrune instanceof FailResult) {
                             System.out.println(additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
-                        } else if (resultWithPrune instanceof SuccessResult && (configuration.getSettingsWithoutContraction() == null)) {
+                        } else if (resultWithPrune instanceof SuccessResult && (configuration.getSecond() == null)) {
                             totalExtraSpace += resultWithPrune.memory;
                         }
                     } catch (Exception | Error e) {

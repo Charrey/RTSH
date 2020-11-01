@@ -131,4 +131,23 @@ public abstract class PathIterator {
      * @return the string
      */
     public abstract String debugInfo();
+
+    private int sourceGraphFrom;
+    private int sourceGraphTo;
+
+    public void setSourceGraphFrom(int sourceGraphFrom) {
+        this.sourceGraphFrom = sourceGraphFrom;
+    }
+
+    public void setSourceGraphTo(int sourceGraphTo) {
+        this.sourceGraphTo = sourceGraphTo;
+    }
+
+    public int getSourceGraphFrom() {
+        return sourceGraphFrom;
+    }
+
+    public int getSourceGraphTo() {
+        return sourceGraphTo;
+    }
 }

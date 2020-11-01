@@ -22,8 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 /**
@@ -64,14 +68,15 @@ public class IsoFinder implements HomeomorphismSolver {
                                                       MyGraph newTargetGraph,
                                                       Set<Path> allPaths,
                                                       Map<Integer, Integer> sourcegraphNewToOld,
-                                                      List<Integer> placement,
+                                                      List<Integer> placementOldOnOld,
                                                       Map<Integer, Integer> targetgraphNewToOld) {
+        //problem: all paths is 1, 0, should be 1, 2
         Map<Integer, Integer> targetgraphOldToNew = new HashMap<>();
         targetgraphNewToOld.forEach((a, b) -> targetgraphOldToNew.put(b, a));
         Map<MyEdge, Set<Path>> res = new HashMap<>();
         for (MyEdge edge : oldSourceGraph.edgeSet()) {
-            int edgeSourceTarget = targetgraphOldToNew.get(placement.get(edge.getSource()));
-            int edgeTargetTarget = targetgraphOldToNew.get(placement.get(edge.getTarget()));
+            int edgeSourceTarget = targetgraphOldToNew.get(placementOldOnOld.get(edge.getSource()));
+            int edgeTargetTarget = targetgraphOldToNew.get(placementOldOnOld.get(edge.getTarget()));
             Set<Path> toAdd = new HashSet<>();
             Set<Path> match = allPaths.stream().filter(x -> x.last() == edgeTargetTarget && x.first() == edgeSourceTarget).collect(Collectors.toSet());
             assert !match.isEmpty();
@@ -210,22 +215,42 @@ public class IsoFinder implements HomeomorphismSolver {
                 return new FailResult(iterations, mem);
             }
         } else {
-            List<Integer> placement;
+            List<Integer> placementOldOnOld = null;
             Set<Path> allPaths = new HashSet<>(edgeMatching.allPaths());
             if (tempSettings.getContraction()) {
-                placement = vertexMatching.get();
-                fixContraction(testcase.getSourceGraph(), contractMapping, placement, edgeMatching, targetGraphMapping);
-                allPaths = splitPaths(allPaths, placement);
+                List<Integer> placementNewOnNew = vertexMatching.get();
+                placementOldOnOld = fixContraction(testcase.getSourceGraph(),
+                        newSourceGraph,
+                        sourceGraphMapping,
+                        contractMapping,
+                        placementNewOnNew,
+                        edgeMatching,
+                        targetGraphMapping);
+//  placementOldOnOld = new ArrayList<>();
+//                for (int i = 0; i < placementNewOnOld.size(); i++) {
+//                    while (placementOldOnOld.size() < sourceGraphMapping.newToOld.get(i) + 1) {
+//                        placementOldOnOld.add(-1);
+//                    }
+//                    placementOldOnOld.set(sourceGraphMapping.newToOld.get(i), placementNewOnOld.get(i));
+//                }
+                //should be 0 4 1
+                List<Integer> finalPlacementOldOnOld = placementOldOnOld;
+                Set<Integer> contractedTarget = IntStream.range(0, placementOldOnOld.size())
+                        .filter(x -> !contractMapping.getOldToNew().containsKey(x))
+                        .map(x -> targetGraphMapping.oldToNew.get(finalPlacementOldOnOld.get(x)))
+                        .boxed()
+                        .collect(Collectors.toSet());
+                allPaths = splitPaths(allPaths, contractedTarget);
             } else {
-                placement = new ArrayList<>();
+                placementOldOnOld = new ArrayList<>();
                 for (int i = 0; i < vertexMatching.get().size(); i++) {
-                    while (placement.size() < sourceGraphMapping.newToOld.get(i) + 1) {
-                        placement.add(-1);
+                    while (placementOldOnOld.size() < sourceGraphMapping.newToOld.get(i) + 1) {
+                        placementOldOnOld.add(-1);
                     }
-                    placement.set(sourceGraphMapping.newToOld.get(i), targetGraphMapping.newToOld.get(vertexMatching.get().get(i)));
+                    placementOldOnOld.set(sourceGraphMapping.newToOld.get(i), targetGraphMapping.newToOld.get(vertexMatching.get().get(i)));
                 }
             }
-            assert !placement.contains(-1);
+            assert !placementOldOnOld.contains(-1);
             assert allDone(newSourceGraph, vertexMatching, edgeMatching);
             assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
             Map<MyEdge, Set<Path>> paths = repairPaths(testcase.getSourceGraph(),
@@ -234,19 +259,19 @@ public class IsoFinder implements HomeomorphismSolver {
                     newTargetGraph,
                     allPaths,
                     sourceGraphMapping.newToOld,
-                    placement,
+                    placementOldOnOld,
                     targetGraphMapping.newToOld);
-            return new SuccessResult(placement.stream().mapToInt(x -> x).toArray(), paths, iterations, mem);
+            return new SuccessResult(placementOldOnOld.stream().mapToInt(x -> x).toArray(), paths, iterations, mem);
         }
     }
 
-    private Set<Path> splitPaths(Set<Path> toChange, Collection<Integer> onValues) {
+    private Set<Path> splitPaths(Set<Path> toChange, Collection<Integer> placement) {
         Set<Path> res = new HashSet<>();
         for (Path path : toChange) {
             TIntList list = path.asList();
             int highestThatMayBeIncluded = 0;
             for (int i = 0; i < list.size(); i++) {
-                if (i != 0 && i != list.size() - 1 && onValues.contains(list.get(i))) {
+                if (i != 0 && i != list.size() - 1 && placement.contains(list.get(i))) {
                     res.add(new Path(path.getGraph(), list.subList(highestThatMayBeIncluded, i + 1)));
                     highestThatMayBeIncluded = i;
                 }
@@ -256,24 +281,37 @@ public class IsoFinder implements HomeomorphismSolver {
         return res;
     }
 
-    private void fixContraction(MyGraph previousGraph, ContractResult contractResult, List<Integer> placement, EdgeMatching edgeMatching, Mapping targetGraphMapping) {
-        List<Integer> newPlacement = new ArrayList<>(previousGraph.vertexSet().size());
-        for (int i = 0; i < previousGraph.vertexSet().size(); i++) {
-            newPlacement.add(-1);
+    private List<Integer> fixContraction(MyGraph oldSourceGraph, MyGraph newSourceGraph, Mapping sourceGraphMapping, ContractResult contractResult, List<Integer> placementNewOnNew, EdgeMatching edgeMatching, Mapping targetGraphMapping) {
+        List<Integer> placementOldOnOld = new ArrayList<>(oldSourceGraph.vertexSet().size());
+        for (int i = 0; i < oldSourceGraph.vertexSet().size(); i++) {
+            placementOldOnOld.add(-1);
         }
         Set<Path> allPaths = edgeMatching.allPaths();
-        contractResult.getNewToOld().forEach((newgraph, oldgraph) -> newPlacement.set(oldgraph, targetGraphMapping.newToOld.get(placement.get(newgraph))));
-        Map<Pair<Integer, Integer>, Set<List<Integer>>> edgeToContractlist = new HashMap<>();
-        contractResult.getGraph().getAllChains().forEach((key, value) -> {
-            edgeToContractlist.computeIfAbsent(new Pair<>(key.getSource(), key.getTarget()), x -> new HashSet<>());
-            edgeToContractlist.get(new Pair<>(key.getSource(), key.getTarget())).add(contractResult.getOrigins().get(value));
+
+        Map<Integer, Integer> combinedOldToNew = new HashMap<>();
+        oldSourceGraph.vertexSet().forEach(integer -> combinedOldToNew.put(integer, sourceGraphMapping.oldToNew.get(contractResult.getOldToNew().get(integer))));
+        combinedOldToNew.forEach((oldV, newV) -> {
+            if (newV != null) {
+                int newTargetVertex = placementNewOnNew.get(newV);
+                int oldTargetVertex = targetGraphMapping.newToOld.get(newTargetVertex);
+                placementOldOnOld.set(oldV, oldTargetVertex);
+            }
         });
-        Map<Pair<Integer, Integer>, Set<Path>> edgeToPathList = new HashMap<>();
-        edgeToContractlist.keySet().forEach(pair -> edgeToPathList.put(pair, allPaths.stream().filter(x -> x.first() == placement.get(pair.getFirst()) && x.last() == placement.get(pair.getSecond())).collect(Collectors.toSet())));
+
+        Map<Pair<Integer, Integer>, Set<List<Integer>>> newSourcePairToContractlist = new HashMap<>(); //new to old
+        newSourceGraph.getAllChains().forEach((key, value) -> {
+            newSourcePairToContractlist.computeIfAbsent(new Pair<>(key.getSource(), key.getTarget()), x -> new HashSet<>());
+            newSourcePairToContractlist.get(new Pair<>(key.getSource(), key.getTarget())).add(contractResult.getOrigins().get(value));
+        });
+        Map<Pair<Integer, Integer>, Set<Path>> edgeToPathList = new HashMap<>(); //new to new
+        newSourcePairToContractlist.keySet().forEach(pair -> {
+            edgeToPathList.put(pair, allPaths.stream().filter(x -> x.first() == placementNewOnNew.get(pair.getFirst()) && x.last() == placementNewOnNew.get(pair.getSecond())).collect(Collectors.toSet()));
+        });
+
         org.chocosolver.solver.Settings settings = new DefaultSettings();
-        edgeToPathList.keySet().forEach(pair -> {
-            List<List<Integer>> contractList = new ArrayList<>(edgeToContractlist.get(pair));
-            List<Path> pathList = new ArrayList<>(edgeToPathList.get(pair));
+        edgeToPathList.keySet().forEach(oldSourceEdge -> {
+            List<List<Integer>> contractList = new ArrayList<>(newSourcePairToContractlist.get(oldSourceEdge));
+            List<Path> pathList = new ArrayList<>(edgeToPathList.get(oldSourceEdge));
             Model model = new Model(settings);
             IntVar[] variables = new IntVar[contractList.size()];
             Map<Integer, Map<Integer, Map<Integer, Integer>>> variableToPathindexToAssignment = new HashMap<>();
@@ -282,12 +320,13 @@ public class IsoFinder implements HomeomorphismSolver {
                 List<Integer> compatiblePaths = new ArrayList<>();
                 for (int j = 0; j < pathList.size(); j++) {
                     //map from OLD source to NEW target
-                    Map<Integer, Integer> addedMap = chainCompatible(previousGraph, contractList.get(i), (MyGraph) pathList.get(j).getGraph(), pathList.get(j).intermediate().asList());
+                    Map<Integer, Integer> addedMap = chainCompatible(oldSourceGraph, contractList.get(i), (MyGraph) pathList.get(j).getGraph(), pathList.get(j).intermediate().asList());
                     if (addedMap != null) {
                         variableToPathindexToAssignment.get(i).put(j, addedMap);
                         compatiblePaths.add(j);
                     }
                 }
+                assert compatiblePaths.size() > 0;
                 variables[i] = model.intVar(compatiblePaths.stream().mapToInt(x -> x).toArray());
             }
             model.allDifferent(variables).post();
@@ -296,12 +335,11 @@ public class IsoFinder implements HomeomorphismSolver {
                 for (Map.Entry<Integer, Integer> entry : variableToPathindexToAssignment.get(i).get(variables[i].getValue()).entrySet()) {
                     Integer key = entry.getKey();
                     Integer value = entry.getValue();
-                    newPlacement.set(key, targetGraphMapping.newToOld.get(value));
+                    placementOldOnOld.set(key, targetGraphMapping.newToOld.get(value));
                 }
             }
         });
-        placement.clear();
-        placement.addAll(newPlacement);
+        return placementOldOnOld;
     }
 
     private Map<Integer, Integer> chainCompatible(MyGraph oldGraph, List<Integer> contractedSequence, MyGraph targetGraph, TIntList pathInsideContent) {

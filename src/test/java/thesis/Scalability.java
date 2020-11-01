@@ -48,7 +48,7 @@ public class Scalability extends SystemTest {
                     while (System.currentTimeMillis() - timeStartForThisX < tempTimeout && times.size() < 200) {
                         TestCase tc = getTestCase(xRandom, currentExtraNodes, xRandom.nextInt());
                         long startTime = System.nanoTime();
-                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getSettingsWithContraction());
+                        HomeomorphismResult result = testWithoutExpectation(tc, timeout, configuration.getFirst());
                         long period = System.nanoTime() - startTime;
                         if (result instanceof FailResult) {
                             times.add(period);
