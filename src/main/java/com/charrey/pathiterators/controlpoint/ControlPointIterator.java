@@ -287,7 +287,7 @@ class ControlPointIterator extends PathIterator {
                 if (result == EXHAUSTED) {
                     return null;
                 }
-                Optional<Path> graphPath = filteredShortestPath(chosenControlPoint, head);
+                Optional<Path> graphPath = filteredShortestPath(chosenControlPoint, head); //to change: make sure this path does not include tail
                 if (graphPath.isPresent()) {
                     chosenPath = graphPath.get();
                     if (settings.getRefuseLongerPaths() && isUnNecessarilyLong(chosenPath)) {

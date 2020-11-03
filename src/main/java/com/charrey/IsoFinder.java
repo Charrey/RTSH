@@ -226,6 +226,7 @@ public class IsoFinder implements HomeomorphismSolver {
                         placementNewOnNew,
                         edgeMatching,
                         targetGraphMapping);
+                assert  !placementOldOnOld.contains(-1);
 //  placementOldOnOld = new ArrayList<>();
 //                for (int i = 0; i < placementNewOnOld.size(); i++) {
 //                    while (placementOldOnOld.size() < sourceGraphMapping.newToOld.get(i) + 1) {
@@ -315,12 +316,19 @@ public class IsoFinder implements HomeomorphismSolver {
             Model model = new Model(settings);
             IntVar[] variables = new IntVar[contractList.size()];
             Map<Integer, Map<Integer, Map<Integer, Integer>>> variableToPathindexToAssignment = new HashMap<>();
-            for (int i = 0; i < contractList.size(); i++) {
+            for (int i = 0; i < contractList.size(); i++) { //for each contracted sequence of vertices
+                List<Integer> listOfContractedVertexChains = contractList.get(i);
                 variableToPathindexToAssignment.put(i, new HashMap<>());
                 List<Integer> compatiblePaths = new ArrayList<>();
                 for (int j = 0; j < pathList.size(); j++) {
                     //map from OLD source to NEW target
-                    Map<Integer, Integer> addedMap = chainCompatible(oldSourceGraph, contractList.get(i), (MyGraph) pathList.get(j).getGraph(), pathList.get(j).intermediate().asList());
+
+                    MyGraph targetGraph = (MyGraph) pathList.get(j).getGraph();
+                    TIntList intermediateOfPath = pathList.get(j).intermediate().asList();
+                    Map<Integer, Integer> addedMap = chainCompatible(oldSourceGraph,
+                            listOfContractedVertexChains,
+                            targetGraph,
+                            intermediateOfPath);
                     if (addedMap != null) {
                         variableToPathindexToAssignment.get(i).put(j, addedMap);
                         compatiblePaths.add(j);
@@ -355,7 +363,7 @@ public class IsoFinder implements HomeomorphismSolver {
                 }
                 return recursive;
             } else {
-                return chainCompatible(oldGraph, contractedSequence.subList(1, contractedSequence.size()), targetGraph, pathInsideContent);
+                return chainCompatible(oldGraph, contractedSequence, targetGraph, pathInsideContent.subList(1, pathInsideContent.size()));
             }
         }
     }

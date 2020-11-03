@@ -75,10 +75,11 @@ public class Util {
     public static Optional<Path> filteredShortestPath(@NotNull MyGraph targetGraph, @NotNull ReadOnlyOccupation globalOccupation, @NotNull TIntSet localOccupation, int from, int to, boolean refuseLongerPaths, int tail, TIntSet allowedToBeOccupied) {
         assert targetGraph.containsVertex(from);
         assert targetGraph.containsVertex(to);
+
         Graph<Integer, MyEdge> fakeGraph = new MaskSubgraph<>(targetGraph, x ->
                 x != from &&
                         x != to &&
-                        (localOccupation.contains(x) || (globalOccupation.isOccupied(x) && !allowedToBeOccupied.contains(x)) ||
+                        (x == tail || localOccupation.contains(x) || (globalOccupation.isOccupied(x) && !allowedToBeOccupied.contains(x)) ||
                                 (refuseLongerPaths && violatesLongerPaths(targetGraph, x, from, to, tail, localOccupation))), x -> false);
         GraphPath<Integer, MyEdge> algo = new BFSShortestPath<>(fakeGraph).getPath(from, to);
         return algo == null ? Optional.empty() : Optional.of(new Path(targetGraph, algo));
@@ -119,6 +120,8 @@ public class Util {
      */
     @NotNull
     public static Path merge(@NotNull MyGraph graph, @NotNull Path left, @NotNull Path right) {
+        assert left.length() > 1;
+        assert right.length() > 1;
         Path toReturn = new Path(graph, left.first());
         for (int i = 1; i < left.length() - 1; i++) {
             toReturn.append(left.get(i));

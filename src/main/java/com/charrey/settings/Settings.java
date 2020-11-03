@@ -191,6 +191,16 @@ public class Settings implements Cloneable {
 
 
     public Settings newInstance() {
-       return new Settings(filtering.newInstance(), refuseLongerPaths, pruningMethod, pathIteration.newInstance(), whenToApply, vertexLimit, pathsLimit, sourceVertexOrder, targetVertexOrder, dfsCaching, contraction);
+       return new Settings(filtering.newInstance(),
+               refuseLongerPaths,
+               pruningMethod,
+               pathIteration.newInstance(),
+               whenToApply,
+               vertexLimit,
+               pathsLimit,
+               sourceVertexOrder,
+               targetVertexOrder,
+               dfsCaching,
+               contraction);
     }
 }

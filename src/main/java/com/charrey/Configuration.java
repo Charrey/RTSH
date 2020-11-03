@@ -1,6 +1,7 @@
 package com.charrey;
 
 import com.charrey.settings.Settings;
+import com.charrey.settings.SettingsBuilder;
 
 import java.util.List;
 
@@ -9,9 +10,9 @@ import java.util.List;
 public class Configuration {
     private final String prefix;
     private final String suffix;
-    private final Settings first;
+    private Settings first;
     private final String name;
-    private final Settings second;
+    private Settings second;
 
 
     public Configuration(String mark, String color, String name, Settings first) {
@@ -49,6 +50,14 @@ public class Configuration {
             sb.append("        (").append(x.get(i)).append(",").append(results.get(i)).append(")\n");
         }
         return sb.append(suffix).toString();
+    }
+
+    public void setSecond(Settings second) {
+        this.second = second;
+    }
+
+    public void setFirst(Settings first) {
+        this.first = first;
     }
 }
 

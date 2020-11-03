@@ -8,9 +8,9 @@ public class UnmatchedDegreesFiltering implements FilteringSettings {
 
 
     public boolean filter(MyGraph sourceGraph, MyGraph targetGraph, int sourceGraphVertex, int targetGraphVertex, ReadOnlyOccupation occupation) {
-        return !occupation.isOccupied(targetGraphVertex) || (targetGraph.getLabels(targetGraphVertex).containsAll(sourceGraph.getLabels(sourceGraphVertex)) &&
+        return !occupation.isOccupied(targetGraphVertex) && targetGraph.getLabels(targetGraphVertex).containsAll(sourceGraph.getLabels(sourceGraphVertex)) &&
                 incomingUnmatched(targetGraph, targetGraphVertex, occupation) >= incomingGreater(sourceGraph, sourceGraphVertex) &&
-                outgoingUnmatched(targetGraph, targetGraphVertex, occupation) >= outgoingGreater(sourceGraph ,sourceGraphVertex));
+                outgoingUnmatched(targetGraph, targetGraphVertex, occupation) >= outgoingGreater(sourceGraph ,sourceGraphVertex);
     }
 
 

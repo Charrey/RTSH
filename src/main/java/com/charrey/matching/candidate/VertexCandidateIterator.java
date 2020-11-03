@@ -34,7 +34,8 @@ public abstract class VertexCandidateIterator implements Iterator<Integer> {
 
     Iterator<Integer> getInnerIterator() {
         return targetGraph.vertexSet().stream().filter(x ->
-                new UnmatchedDegreesFiltering().filter(sourceGraph, targetGraph, sourceGraphVertex, x, occupation) && !occupation.isOccupied(x)).iterator();
+                new UnmatchedDegreesFiltering().filter(sourceGraph, targetGraph, sourceGraphVertex, x, occupation) && !occupation.isOccupied(x))
+                .iterator();
     }
 
     public abstract void doReset();

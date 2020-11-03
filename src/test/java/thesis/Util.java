@@ -51,6 +51,9 @@ public class Util {
                         HomeomorphismResult resultSecond = null;
                         double periodFirst = -1;
                         double periodSecond = -1;
+                        if (cases < 21) {
+                            continue;
+                        }
                         try {
                             long startTime = System.nanoTime();
                             resultFirst = SystemTest.testWithoutExpectation(tc, timeout, configuration.getFirst());
@@ -61,17 +64,17 @@ public class Util {
                                 periodSecond = System.nanoTime() - startTime;
                             }
                         } catch (Exception | Error e) {
-                            System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
-                            e.printStackTrace();
                             if (continueOnError) {
                                 continue;
                             } else {
+                                System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
+                                e.printStackTrace();
                                 throw e;
                             }
                         }
                         if (resultSecond instanceof FailResult || resultFirst instanceof FailResult) {
-                            System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
                             if (!continueOnError) {
+                                System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
                                 throw new IllegalStateException("Failed!");
                             }
                         } else if (resultFirst instanceof SuccessResult && (configuration.getSecond() == null || resultSecond instanceof SuccessResult)) {
