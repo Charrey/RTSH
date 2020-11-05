@@ -143,13 +143,4 @@ public class Contractor {
     }
 
 
-    private static class ContractionResult {
-        private final Map<Integer, Integer> newToOld;
-        private final MyGraph graph;
-
-        public ContractionResult(MyGraph graph, Map<Integer, Integer> newToOld) {
-            this.graph = graph;
-            this.newToOld = newToOld;
-        }
-    }
 }

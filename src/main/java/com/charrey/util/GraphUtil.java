@@ -142,14 +142,10 @@ public class GraphUtil {
         return new Mapping(MyGraph.applyOrdering(graph, permutation, reversePermutation), permutation);
     }
 
-    public static TIntSet radiusNeighbourHood(MyGraph sourceGraphVertex, int targetGraphVertex, int radius) {
-        throw new UnsupportedOperationException();
-    }
-
     public static class CopyResult {
         public final MyGraph graph;
-        public int[] vertexMatching;
-        public Map<MyEdge, Path> edgeMatching;
+        public final int[] vertexMatching;
+        public final Map<MyEdge, Path> edgeMatching;
 
         public CopyResult(MyGraph graph, int[] vertexMatching, Map<MyEdge, Path> edgeMatching) {
             this.graph = graph;

@@ -50,7 +50,7 @@ public class ControlPointVertexSelector {
         Random random = new Random(1 + 3L * graph.hashCode() + 5L * occupation.hashCode() + 7L * initialLocalOccupation.hashCode() + 11L * from + 13L * to);
         vertices = GraphUtil.randomVertexOrder(graph, random);
         Optional<Path> path = Util.filteredShortestPath(graph, occupation, initialLocalOccupation, from, to, refuseLongerPaths, tail, Util.emptyTIntSet);
-        if (!path.isPresent()) {
+        if (path.isEmpty()) {
             readyToDeliver = true;
             nextToReturn = -1;
         }
@@ -59,11 +59,6 @@ public class ControlPointVertexSelector {
     private int nextToReturn = -1;
     private boolean readyToDeliver = false;
 
-
-
-    public boolean hasNext() {
-        throw new IllegalStateException();
-    }
 
     private int iterate() {
         assert vertices != null;

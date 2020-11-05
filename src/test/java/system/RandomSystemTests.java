@@ -26,7 +26,7 @@ class RandomSystemTests extends SystemTest {
     private final Settings settings = new SettingsBuilder()
             .withoutPruning()
             .withInplaceDFSRouting()
-            .withContraction()
+            .withoutContraction()
             .allowingLongerPaths()
             .get();
 
@@ -51,7 +51,7 @@ class RandomSystemTests extends SystemTest {
     void findCasesDirectedSucceed() throws InterruptedException {
         Runnable runnable = () -> {
             try {
-                findCases(100000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 30), false, true);
+                findCases(100000 * 1000, 1000, new RandomSucceedDirectedTestCaseGenerator(1, 0, 0.1, 2, 32), true, false);
             } catch (IOException e) {
                 e.printStackTrace();
             }

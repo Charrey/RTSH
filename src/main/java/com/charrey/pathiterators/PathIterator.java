@@ -9,7 +9,6 @@ import com.charrey.occupation.OccupationTransaction;
 import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;

@@ -110,14 +110,9 @@ public class UtilityData {
                     .stream()
                     .sorted().collect(Collectors.toList());
             switch (strategy) {
-                case DFS_ARBITRARY:
-                    setArbitraryTargetNeighbours(targetVertices);
-                    break;
-                case DFS_GREEDY:
-                    setGreedyTargetNeighbours(targetVertices);
-                    break;
-                default:
-                    throw new UnsupportedOperationException();
+                case DFS_ARBITRARY -> setArbitraryTargetNeighbours(targetVertices);
+                case DFS_GREEDY -> setGreedyTargetNeighbours(targetVertices);
+                default -> throw new UnsupportedOperationException();
             }
         }
         return targetNeighbours;

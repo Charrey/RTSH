@@ -14,7 +14,7 @@ public class VertexCandidateIteratorFactory {
     public static VertexCandidateIterator get(MyGraph sourceGraph, MyGraph targetGraph, Settings settings, GlobalOccupation occupation, int sourceGraphVertex, VertexMatching vertexMatching) {
         switch (settings.getTargetVertexOrder()) {
             case LARGEST_DEGREE_FIRST:
-                return new IndexIterator(sourceGraph, targetGraph, sourceGraphVertex, settings, occupation, vertexMatching);
+                return new IndexIterator(sourceGraph, targetGraph, sourceGraphVertex, settings, occupation);
             case CLOSEST_TO_MATCHED:
                 return new CloseFirstIterator(sourceGraph, targetGraph, settings, occupation, sourceGraphVertex, vertexMatching, false);
             case CLOSEST_TO_MATCHED_CACHED:

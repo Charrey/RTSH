@@ -1,6 +1,5 @@
 package thesis;
 
-import com.charrey.Configuration;
 import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
@@ -15,11 +14,7 @@ import org.junit.jupiter.api.Test;
 import system.SystemTest;
 
 import java.io.StringReader;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.function.BiConsumer;
-
-import static thesis.Util.comparitiveTest;
 
 public class TestTest extends SystemTest  {
     private static final String sourceDOT = "digraph G {\n" +
@@ -78,14 +73,11 @@ public class TestTest extends SystemTest  {
     private MyGraph importGraph(String dot) {
         MyGraph res = new MyGraph(true);
         DOTImporter<Integer, MyEdge> importer = new DOTImporter<>();
-        importer.addVertexAttributeConsumer(new BiConsumer<Pair<Integer, String>, Attribute>() {
-            @Override
-            public void accept(Pair<Integer, String> integerStringPair, Attribute attribute) {
-                if (integerStringPair.getSecond().equals("label")) {
-                    String[] attributes = attribute.getValue().split("\\[")[1].split("]")[0].split(", ");
-                    for (String s : attributes) {
-                        res.addAttribute(integerStringPair.getFirst(), "label", s);
-                    }
+        importer.addVertexAttributeConsumer((integerStringPair, attribute) -> {
+            if (integerStringPair.getSecond().equals("label")) {
+                String[] attributes = attribute.getValue().split("\\[")[1].split("]")[0].split(", ");
+                for (String s : attributes) {
+                    res.addAttribute(integerStringPair.getFirst(), "label", s);
                 }
             }
         });

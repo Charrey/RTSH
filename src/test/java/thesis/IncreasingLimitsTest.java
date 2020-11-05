@@ -58,7 +58,7 @@ public class IncreasingLimitsTest {
     }
 
 
-    private static long timeout = 10*60*1000;
+    private static final long timeout = 10*60*1000;
 
     static void increasingLimitsTest(List<Configuration> configurations,
                                      double sizeFactor,
@@ -83,9 +83,9 @@ public class IncreasingLimitsTest {
                     long testcaseSeed = perXRandom.nextLong();
                     TestCase tc = tcp.get(currentX, 0, (int)Math.round(currentX * sizeFactor), 0, testcaseSeed, true);
                     HomeomorphismResult resultNormal;
-                    HomeomorphismResult resultIncreasingLimits = null;
-                    double periodNormal = -1;
-                    double periodIncreasingLimits = -1;
+                    HomeomorphismResult resultIncreasingLimits;
+                    double periodNormal;
+                    double periodIncreasingLimits;
                     try {
                         long startTime = System.nanoTime();
                         resultNormal = new IsoFinder(configuration.getFirst()).getHomeomorphism(tc, timeout, "Normal", false);
@@ -97,7 +97,7 @@ public class IncreasingLimitsTest {
                         String error = (additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
                         outputs.forEach(y -> {
                             try {
-                                y.append(error + "\n");
+                                y.append(error).append("\n");
                                 ((Flushable) y).flush();
                             } catch (IOException e2) {
                                 e.printStackTrace();
@@ -122,7 +122,7 @@ public class IncreasingLimitsTest {
             }
             outputs.forEach(y -> {
                 try {
-                    y.append(configuration.getString(x, increasingLimitsComparedToNormal) + "\n");
+                    y.append(configuration.getString(x, increasingLimitsComparedToNormal)).append("\n");
                     ((Flushable) y).flush();
                 } catch (IOException e) {
                     e.printStackTrace();

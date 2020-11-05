@@ -1,7 +1,6 @@
 package com.charrey.matching.candidate;
 
 import com.charrey.graph.MyGraph;
-import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.settings.Settings;
 

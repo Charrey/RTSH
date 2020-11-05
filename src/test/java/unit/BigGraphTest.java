@@ -108,7 +108,7 @@ class BigGraphTest {
     }
 
 
-    public static long timeout = (long)  30*60*1000;
+    public static final long timeout = (long)  30*60*1000;
 
     void runTest(String filename) throws IOException, InterruptedException {
         final long initial = System.currentTimeMillis();
@@ -131,8 +131,7 @@ class BigGraphTest {
         MyGraph targetGraph = new MyGraph(true);
         importDOT(targetGraph, Paths.get(".").resolve("graphs").resolve(filename).toFile());
         targetGraph.randomizeWeights();
-        TestCase testCase = new TestCase(sourceGraph, targetGraph, null, null);
-        return testCase;
+        return new TestCase(sourceGraph, targetGraph, null, null);
     }
 
 

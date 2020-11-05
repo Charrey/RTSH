@@ -17,11 +17,7 @@ public class ScriptieSucceedDirectedTestCaseGenerator extends TestCaseGenerator 
     private final double sourceSliceFraction = 2d/30d;
     private final double sourceArcFraction = 0d/30d;
 
-    private final double targetWireFraction = 2842d/25288d;
-    private final double targetNormalPortFraction = 1107d/25288d;
-    private final double targetCEPortFraction = 9d/25288d;
     private final double targetSliceFraction = 36d/25288d;
-    private final double targetArcFraction = 21294d/25288d;
 
     private final Random random;
     private int patternNodes;
@@ -57,6 +53,7 @@ public class ScriptieSucceedDirectedTestCaseGenerator extends TestCaseGenerator 
         Deque<Integer> addedArcs = new LinkedList<>();
         int totalAdded = 0;
 
+        double targetWireFraction = 2842d / 25288d;
         int howManyNodesWire = (int) Math.round(targetWireFraction * targetNodes);
         int howManyExtraNodesWire = Math.max(0, howManyNodesWire - (int) sourceGraph.vertexSet().stream().filter(x -> sourceGraph.getLabels(x).contains("wire")).count());
         for (int i = 0; i < howManyExtraNodesWire; i++) {
@@ -65,6 +62,7 @@ public class ScriptieSucceedDirectedTestCaseGenerator extends TestCaseGenerator 
             addedWires.add(vertex);
             totalAdded++;
         }
+        double targetNormalPortFraction = 1107d / 25288d;
         int howManyNodesNormalPort = (int) (Math.round((targetWireFraction + targetNormalPortFraction) * targetNodes) - totalAdded);
         int howManyExtraNodesNormalPort = Math.max(0, howManyNodesNormalPort - (int) sourceGraph.vertexSet().stream().filter(integer -> sourceGraph.getLabels(integer).contains("port") && !sourceGraph.getLabels(integer).contains("CE")).count());
         for (int i = 0; i < howManyExtraNodesNormalPort; i++) {
@@ -74,6 +72,7 @@ public class ScriptieSucceedDirectedTestCaseGenerator extends TestCaseGenerator 
             totalAdded++;
         }
 
+        double targetCEPortFraction = 9d / 25288d;
         int howmanyNodesCEPort = (int) (Math.round((targetWireFraction + targetNormalPortFraction + targetCEPortFraction) * targetNodes) - totalAdded);
         int howManyExtraNodesCEPort = Math.max(0, howmanyNodesCEPort - (int) sourceGraph.vertexSet().stream().filter(integer -> sourceGraph.getLabels(integer).contains("port") && sourceGraph.getLabels(integer).contains("CE")).count());
         for (int i = 0; i < howManyExtraNodesCEPort; i++) {
@@ -83,6 +82,7 @@ public class ScriptieSucceedDirectedTestCaseGenerator extends TestCaseGenerator 
             addedCEPorts.add(vertex);
             totalAdded++;
         }
+        double targetArcFraction = 21294d / 25288d;
         int howmanyNodesArc = (int) (Math.round((targetWireFraction + targetNormalPortFraction + targetCEPortFraction + targetArcFraction) * targetNodes) - totalAdded);
         int howManyExtraNodesArc = Math.max(0, howmanyNodesArc - (int) sourceGraph.vertexSet().stream().filter(integer -> sourceGraph.getLabels(integer).contains("arc")).count());
         for (int i = 0; i < howManyExtraNodesArc; i++) {
@@ -93,7 +93,7 @@ public class ScriptieSucceedDirectedTestCaseGenerator extends TestCaseGenerator 
         }
         int howmanyNodesSlice = Math.max(howManyNodesNormalPort + howmanyNodesCEPort > 0 ? 1 : 0, targetNodes - totalAdded);
         int howManyExtraNodesSlice = Math.max(0, howmanyNodesSlice - (int) sourceGraph.vertexSet().stream().filter(integer -> sourceGraph.getLabels(integer).contains("SLICE")).count());
-        if (!targetGraph.vertexSet().stream().anyMatch(x -> targetGraph.getLabels(x).contains("SLICE")) && addedCEPorts.size() + addedNormalPorts.size() > 0) {
+        if (targetGraph.vertexSet().stream().noneMatch(x -> targetGraph.getLabels(x).contains("SLICE")) && addedCEPorts.size() + addedNormalPorts.size() > 0) {
             howManyExtraNodesSlice++;
         }
         for (int i = 0; i < howManyExtraNodesSlice; i++) {

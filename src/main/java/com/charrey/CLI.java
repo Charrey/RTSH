@@ -24,9 +24,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.BiConsumer;
 
 
+@SuppressWarnings("CanBeFinal")
 @CommandLine.Command(name = "java -jar NDSH2-contract.jar",
         exitCodeListHeading = "Exit Codes:%n",
         exitCodeList = {
@@ -76,7 +76,7 @@ public class CLI implements Callable<Integer> {
     TargetVertexOrder targetVertexOrder = TargetVertexOrder.LARGEST_DEGREE_FIRST;
 
     @CommandLine.Option(names = { "-h", "--help" }, usageHelp = true, description = "display a help message")
-    private boolean helpRequested = false;
+    private final boolean helpRequested = false;
 
 
 
@@ -103,8 +103,8 @@ public class CLI implements Callable<Integer> {
         setPathIterator(settingsBuilder);
         setSourceVertexOrder(settingsBuilder);
         setTargetVertexOrder(settingsBuilder);
-        if (pathLimit > 0) {settingsBuilder.withPathsLimit(pathLimit);};
-        if (vertexLimit > 0) {settingsBuilder.withVertexLimit(vertexLimit);};
+        if (pathLimit > 0) {settingsBuilder.withPathsLimit(pathLimit);}
+        if (vertexLimit > 0) {settingsBuilder.withVertexLimit(vertexLimit);}
         setWhenToApply(settingsBuilder);
         setFiltering(settingsBuilder);
         setPruningMethod(settingsBuilder);

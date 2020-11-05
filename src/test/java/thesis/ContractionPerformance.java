@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import system.SystemTest;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 import static thesis.Util.*;
 
@@ -26,7 +25,7 @@ public class ContractionPerformance extends SystemTest {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().get()));
 
         configurations.forEach(configuration -> {
-            configuration.setFirst(new SettingsBuilder(configuration.getFirst()).withoutPruning().get());
+            configuration.setFirst(new SettingsBuilder(configuration.getFirst()).withoutPruning().allowingLongerPaths().get());
             configuration.setFirst(new SettingsBuilder(configuration.getFirst()).withContraction().get());
             configuration.setSecond(new SettingsBuilder(configuration.getFirst()).withoutContraction().get());
         });

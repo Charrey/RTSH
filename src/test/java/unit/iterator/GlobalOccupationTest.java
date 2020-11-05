@@ -13,8 +13,6 @@ import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
 import com.charrey.util.Util;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;

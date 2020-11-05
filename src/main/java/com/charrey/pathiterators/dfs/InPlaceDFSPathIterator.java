@@ -1,12 +1,12 @@
 package com.charrey.pathiterators.dfs;
 
+import com.charrey.algorithms.RefuseLongerPaths;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
-import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.iterator.DFSStrategy;
 import com.charrey.settings.iterator.IteratorSettings;
 import com.charrey.settings.iterator.NewGreedyDFSStrategy;
@@ -17,9 +17,7 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jgrapht.Graphs;
 
-import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class InPlaceDFSPathIterator extends PathIterator {
@@ -61,15 +59,22 @@ public class InPlaceDFSPathIterator extends PathIterator {
     }
 
     private boolean isCandidate(Integer vertex) {
+        TIntSet explorationWithoutHead = null;
+
+        if (refuseLongerPaths) {
+            explorationWithoutHead = new TIntHashSet(exploration.asList().subList(0, exploration.length() - 1));
+        }
+
         return (vertex == head || !refuseLongerPaths || !graph.containsEdge(exploration.last(), head)) && !exploration.contains(vertex) &&
                 !occupation.isOccupiedRouting(vertex) &&
                 !(occupation.isOccupiedVertex(vertex) && vertex != head) &&
-                (!refuseLongerPaths || Graphs.predecessorListOf(graph, vertex).stream().allMatch(x -> x == exploration.last() || !exploration.contains(x)));
+                (!refuseLongerPaths || RefuseLongerPaths.canBeReachedThroughIsolatedPath(graph, explorationWithoutHead, vertex, head));
+                //(!refuseLongerPaths || Graphs.predecessorListOf(graph, vertex).stream().allMatch(x -> x == exploration.last() || !exploration.contains(x)));
     }
 
 
 
-    Path lastReturned = null;
+
     @Nullable
     @Override
     public Path getNext() {
@@ -93,12 +98,9 @@ public class InPlaceDFSPathIterator extends PathIterator {
                 }
                 assert exploration.length() != 0;
             }
-            //assert Arrays.stream(nextOptionToTry.toArray()).anyMatch(x -> x != 0);
             assert !previouschosenoption.equals(nextOptionToTry);
             toReturn = commitAndReturn();
         }
-        //assert !toReturn.equals(lastReturned) : "Path returned multiple times: " + lastReturned;
-        lastReturned = new Path(toReturn);
         assert toReturn.length() >= 1;
         return toReturn;
     }
@@ -165,14 +167,11 @@ public class InPlaceDFSPathIterator extends PathIterator {
     }
 
 
-    private boolean removeHeadOfExploration() {
+    private void removeHeadOfExploration() {
         int removed = exploration.removeLast();
-        if (exploration.isEmpty()) {
-            return false;
-        } else if (removed != head) {
+        if (!exploration.isEmpty() && removed != head) {
             transaction.releaseRouting(placementSize.get(), removed, this::getPartialMatching);
         }
-        return true;
     }
 
 

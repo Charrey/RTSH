@@ -72,7 +72,7 @@ public class PathIteratorFactory {
                     break;
                 default:
                     throw new UnsupportedOperationException();
-            };
+            }
         }
         removed.forEach(x -> targetGraph.addEdge(x.getSource(), x.getTarget(), x));
         toReturn.setSourceGraphFrom(sourceGraphFrom);

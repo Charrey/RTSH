@@ -44,7 +44,7 @@ public class BaseSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException | InterruptedException e) {
@@ -59,7 +59,6 @@ public class BaseSpace {
     private static final long timeout = 10*60*1000;
 
     static void comparitiveTest(List<Configuration> configurations,
-                                double sizeFactor,
                                 TestCaseProvider tcp,
                                 Set<Appendable> outputs,
                                 String additionalInfo) throws InterruptedException {
@@ -101,7 +100,7 @@ public class BaseSpace {
                         synchronized (fileLock) {
                             outputs.forEach(y -> {
                                 try {
-                                    y.append(error + "\n");
+                                    y.append(error).append("\n");
                                     ((Flushable) y).flush();
                                 } catch (IOException e2) {
                                     e.printStackTrace();
@@ -109,7 +108,6 @@ public class BaseSpace {
                             });
                         }
                         e.printStackTrace();
-                        continue;
                     }
                 }
                 prunedComparedToNot.add(totalExtraSpace / totalTcSpace);
@@ -120,7 +118,7 @@ public class BaseSpace {
             synchronized (fileLock) {
                 outputs.forEach(y -> {
                     try {
-                        y.append(configuration.getString(x, prunedComparedToNot) + "\n");
+                        y.append(configuration.getString(x, prunedComparedToNot)).append("\n");
                         ((Flushable) y).flush();
                     } catch (IOException e) {
                         e.printStackTrace();

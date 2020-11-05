@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Chain {
 
-    private LinkedList<Set<String>> chain = new LinkedList<>();
+    private final LinkedList<Set<String>> chain = new LinkedList<>();
     private boolean locked = false;
 
     @Override

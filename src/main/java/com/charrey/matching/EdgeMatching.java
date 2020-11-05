@@ -123,6 +123,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
 
             PathIterator pathfinder = pathfinders.get(tail, head).peekFirst();
             this.partialMatchingMode = WITHOUT_LAST;
+            assert pathfinder != null;
             Path pathFound = pathfinder.next();
             this.partialMatchingMode = ALL;
             if (pathFound != null) {
@@ -235,12 +236,7 @@ public class EdgeMatching implements Supplier<TIntObjectMap<Set<Path>>>, Partial
             }
 
 
-            pathListToCheck.stream().filter(x -> x.getFirst().first() == tail && x.getFirst().last()==head).forEach(new Consumer<Pair<Path, String>>() {
-                @Override
-                public void accept(Pair<Path, String> pathStringPair) {
-                    satisfiedChains.put(pathStringPair.getFirst(), chains.stream().filter(x -> x.compatible(pathStringPair.getFirst())).collect(Collectors.toSet()));
-                }
-            });
+            pathListToCheck.stream().filter(x -> x.getFirst().first() == tail && x.getFirst().last()==head).forEach(pathStringPair -> satisfiedChains.put(pathStringPair.getFirst(), chains.stream().filter(x -> x.compatible(pathStringPair.getFirst())).collect(Collectors.toSet())));
 
 
             int stillToGo = matchesStillToGo(sourceGraphTo, sourceGraphFrom, tail, head, ignoreLastPath); // edges that still need a valid path, INCLUDING the one we are looking at right now

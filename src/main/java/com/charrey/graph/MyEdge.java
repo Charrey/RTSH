@@ -3,7 +3,6 @@ package com.charrey.graph;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.function.Supplier;
 

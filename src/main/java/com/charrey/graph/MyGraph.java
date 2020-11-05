@@ -117,7 +117,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
             int oldVertex = newToOld.get(newVertex);
             source.attributes.get(oldVertex).forEach((key, values) -> values.forEach(value -> res.addAttribute(newVertexFinal, key, value)));
 
-            List<Integer> predecessors = Collections.unmodifiableList(source.incomingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x < newVertexFinal).collect(Collectors.toList()));
+            List<Integer> predecessors = source.incomingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x < newVertexFinal).collect(Collectors.toUnmodifiableList());
             predecessors.forEach(predecessor -> res.addEdge(predecessor, newVertexFinal));
             List<Integer> successors = source.outgoingEdgesOf(oldVertex).stream().map(x -> oldToNew[Graphs.getOppositeVertex(source, x, oldVertex)]).filter(x -> x <= newVertexFinal).collect(Collectors.toList());
             if (!source.directed) {
@@ -318,7 +318,7 @@ public class MyGraph extends AbstractBaseGraph<Integer, MyEdge> {
     }
 
 
-    private TIntObjectMap<TIntObjectMap<Set<Chain>>> chainCache = new TIntObjectHashMap<>();
+    private final TIntObjectMap<TIntObjectMap<Set<Chain>>> chainCache = new TIntObjectHashMap<>();
     public Set<Chain> getChains(int from, int to) {
         if (chains == null) {
             return Collections.emptySet();

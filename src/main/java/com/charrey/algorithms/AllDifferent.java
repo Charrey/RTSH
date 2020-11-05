@@ -9,7 +9,6 @@ import gnu.trove.set.TIntSet;
 import org.chocosolver.solver.DefaultSettings;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Settings;
-import org.chocosolver.solver.Solution;
 import org.chocosolver.solver.variables.IntVar;
 import org.jetbrains.annotations.NotNull;
 

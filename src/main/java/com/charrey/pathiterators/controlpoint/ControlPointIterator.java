@@ -1,5 +1,6 @@
 package com.charrey.pathiterators.controlpoint;
 
+import com.charrey.algorithms.RefuseLongerPaths;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
@@ -14,7 +15,6 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jgrapht.Graphs;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -119,16 +119,16 @@ class ControlPointIterator extends PathIterator {
     }
 
     private boolean isUnNecessarilyLong(@NotNull Path chosenPath) {
-        Path fromCandidates = chosenPath.subPath(0, chosenPath.length() - 1);
-        for (int candidate : fromCandidates) {
-            List<Integer> successors = Graphs.successorListOf(targetGraph, candidate);
-            for (int successor : successors) {
-                boolean isHead = successor == chosenPath.last();
-                boolean localOccupationContains = localOccupation.contains(successor);
-                if (!isHead && localOccupationContains) {
-                    return true;
-                }
+        Path from = chosenPath.subPath(0, chosenPath.length() - 1);
+        for (int fromVertex : from) {
+            if (RefuseLongerPaths.canReachThroughIsolatedPath(targetGraph, fromVertex, localOccupation, chosenPath.last())) {
+                return true;
             }
+//            for (int successor : Graphs.successorListOf(targetGraph, fromVertex)) {
+//                if (successor != chosenPath.last() && localOccupation.contains(successor)) {
+//                    return true;
+//                }
+//            }
         }
         return false;
     }
@@ -152,7 +152,7 @@ class ControlPointIterator extends PathIterator {
                     }
                 });
                 Optional<Path> leftToMiddleAlt = Util.filteredShortestPath(targetGraph, transaction, fictionalOccupation, leftCandidate, middleAlt, settings.getRefuseLongerPaths(), tail(), Util.emptyTIntSet);
-                if (!leftToMiddleAlt.isPresent()) {
+                if (leftToMiddleAlt.isEmpty()) {
                     temporarilyRemoveGlobal.asList().forEach(x -> {
                         try {
                             transaction.occupyRoutingAndCheck(verticesPlaced.get(), x, this::getPartialMatching);
@@ -173,7 +173,7 @@ class ControlPointIterator extends PathIterator {
                         failed[0] = true;
                     }
                 });
-                if (failed[0] || !leftToMiddle.isPresent()) {
+                if (failed[0] || leftToMiddle.isEmpty()) {
                     return true;
                 }
                 Path leftToRight = Util.merge(targetGraph, leftToMiddle.get(), middleToRight);
@@ -217,11 +217,7 @@ class ControlPointIterator extends PathIterator {
                });
            }
             this.pathFromRightNeighbourToItsRightNeighbour.forEach(localOccupation::add);
-            if (!skippedPath.isPresent()) {
-                return true;
-            } else {
-                return skippedPath.get().contains(middle);
-            }
+            return skippedPath.map(integers -> integers.contains(middle)).orElse(true);
         }
     }
 
@@ -330,6 +326,7 @@ class ControlPointIterator extends PathIterator {
     @Nullable
     private Path mergeWithChildsPath() {
         TIntSet localOccupationBackup = new TIntHashSet(localOccupation);
+        assert child != null;
         Path childsPath = child.next();
         assert childsPath == null || childsPath.intermediate().noneMatch(localOccupationBackup::contains);
         assert chosenPath != null;
@@ -351,7 +348,7 @@ class ControlPointIterator extends PathIterator {
     private Path provideShortestPath() {
         done = true;
         Optional<Path> shortestPath = filteredShortestPath(tail(), head);
-        if (!shortestPath.isPresent()|| (settings.getRefuseLongerPaths() && isUnNecessarilyLong(shortestPath.get())) || !tryOccupy(verticesPlaced.get(), shortestPath.get())) {
+        if (shortestPath.isEmpty() || (settings.getRefuseLongerPaths() && isUnNecessarilyLong(shortestPath.get())) || !tryOccupy(verticesPlaced.get(), shortestPath.get())) {
             LOG.finest("...failed");
             return null;
         } else {

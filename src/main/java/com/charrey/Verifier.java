@@ -7,14 +7,11 @@ import com.charrey.matching.EdgeMatching;
 import com.charrey.matching.VertexMatching;
 import com.charrey.util.Util;
 import com.charrey.util.datastructures.MultipleKeyMap;
-import gnu.trove.map.TObjectIntMap;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * Class that verifies correctness of a homeomorphism.

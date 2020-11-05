@@ -66,7 +66,7 @@ public class SettingsBuilder {
 
 
     private SettingsBuilder setSourceVertexOrder(SourceVertexOrder order) {
-        if (lockTargetVertexOrder) {
+        if (lockSourceVertexOrder) {
             throw new IllegalStateException("Source vertex order has already been set to " + settings.getTargetVertexOrder());
         }
         settings.setSourceVertexOrder(order);
@@ -187,15 +187,15 @@ public class SettingsBuilder {
         return setFiltering(new MReachabilityFiltering());
     }
 
-    public SettingsBuilder withNeighbourReachabilityFiltering(int level) {
-        return setFiltering(new NReachabilityFiltering(level));
-    }
-
     public SettingsBuilder withNeighbourReachabilityFiltering() {
         return setFiltering(new NReachabilityFiltering(Integer.MAX_VALUE));
     }
 
     public SettingsBuilder avoidingLongerPaths() {
+        if (lockContraction && settings.getContraction()) {
+            throw new IllegalStateException("Refusing longer paths is not compatible with contraction");
+        }
+        lockContraction = true;
         return setAllowLongerPaths(false);
     }
 
@@ -264,6 +264,10 @@ public class SettingsBuilder {
     }
 
     public SettingsBuilder withContraction() {
+        if (lockLongerPaths && settings.getRefuseLongerPaths()) {
+            throw new IllegalStateException("Refusing longer paths is not compatible with contraction");
+        }
+        lockLongerPaths = true;
         return setContraction(true);
     }
 

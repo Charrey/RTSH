@@ -17,7 +17,7 @@ import java.util.*;
 public class Scalability extends SystemTest {
 
 
-    MyGraph sourceGraph = getSourceGraph();
+    final MyGraph sourceGraph = getSourceGraph();
 
     @Test
     public void test() throws InterruptedException {

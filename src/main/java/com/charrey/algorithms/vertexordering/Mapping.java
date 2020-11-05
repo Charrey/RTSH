@@ -1,11 +1,9 @@
 package com.charrey.algorithms.vertexordering;
 
-import com.charrey.TestCaseProvider;
 import com.charrey.graph.MyGraph;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class Mapping {
     public final Map<Integer, Integer> newToOld;

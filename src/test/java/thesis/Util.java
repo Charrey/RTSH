@@ -24,14 +24,12 @@ public class Util {
                                 long timeout,
                                 boolean continueOnError,
                                 boolean calloutEachResult) throws InterruptedException {
-        Portfolio portfolio = new Portfolio();
         Map<Configuration, Thread> threads = new HashMap<>();
         for (Configuration configuration : configurations) {
             Thread theThread = new Thread(() -> {
                 Random threadRandom = new Random(512);
                 List<Integer> x = new ArrayList<>();
                 List<Double> contractionComparedToNot = new ArrayList<>();
-                List<Double> portFolioComparedToNot = new ArrayList<>();
 
                 int currentX = 4;
                 int lastCasesDone = 10;
@@ -41,7 +39,6 @@ public class Util {
                     long timeStartForThisX = System.currentTimeMillis();
                     double totalTimeFirst = 0d;
                     double totalTimeSecond = 0d;
-                    double totalPortfolio = 0d;
                     int cases = 0;
                     while (System.currentTimeMillis() - timeStartForThisX < timeout && cases < 1000) {
                         cases++;
@@ -49,11 +46,8 @@ public class Util {
                         TestCase tc = tcp.get(currentX, (int) Math.round(currentX * sourceDegree), (int)Math.round(currentX * sizeFactor), (int) Math.round(currentX * sizeFactor * targetdegree), testcaseSeed, labels);
                         HomeomorphismResult resultFirst;
                         HomeomorphismResult resultSecond = null;
-                        double periodFirst = -1;
+                        double periodFirst;
                         double periodSecond = -1;
-                        if (cases < 21) {
-                            continue;
-                        }
                         try {
                             long startTime = System.nanoTime();
                             resultFirst = SystemTest.testWithoutExpectation(tc, timeout, configuration.getFirst());
@@ -80,19 +74,18 @@ public class Util {
                         } else if (resultFirst instanceof SuccessResult && (configuration.getSecond() == null || resultSecond instanceof SuccessResult)) {
                             totalTimeFirst += periodFirst;
                             totalTimeSecond += periodSecond;
-                            portfolio.register(currentX, cases, (Math.min(periodFirst, periodSecond) / periodSecond) - 1d, false);
                             if (calloutEachResult) {
                                 System.out.println("Success");
                             }
                         }
                     }
                     if (totalTimeFirst > 0 && totalTimeSecond > 0) {
-                        contractionComparedToNot.add(100* (totalTimeFirst / totalTimeSecond) - 100d);
-                        portFolioComparedToNot.add(100*(totalPortfolio / totalTimeSecond) - 100d);
+                        contractionComparedToNot.add(totalTimeFirst / totalTimeSecond);
                         x.add(currentX);
                     }
                     lastCasesDone = cases;
                     currentX++;
+                    //System.out.println(configuration.getString(x, contractionComparedToNot));
                 }
                 System.out.println(configuration.getString(x, contractionComparedToNot));
             });
@@ -102,13 +95,6 @@ public class Util {
         for (Thread thread : threads.values()) {
             thread.join();
         }
-        System.out.println(portfolio);
-    }
-
-    static TestCase getRandomSuccessDirectedTestCase(int vs, int es, int vt, int et, long seed, boolean labels) {
-        RandomSucceedDirectedTestCaseGenerator2 gen = new RandomSucceedDirectedTestCaseGenerator2(vs, es, vt, et, seed, labels);
-        gen.init(1);
-        return gen.getNext();
     }
 
 

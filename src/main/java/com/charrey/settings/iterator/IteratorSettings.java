@@ -2,7 +2,6 @@ package com.charrey.settings.iterator;
 
 import com.charrey.settings.pathiteration.PathIteration;
 
-@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
 public abstract class IteratorSettings implements Cloneable {
 
 

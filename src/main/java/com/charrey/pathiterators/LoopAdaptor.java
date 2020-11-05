@@ -21,13 +21,12 @@ import java.util.function.Supplier;
 
 public class LoopAdaptor extends PathIterator {
 
-    private final MyGraph graph;
     private final int tailHead;
 
-    double[] distances;
-    int[] neighbours;
-    PriorityQueue<Pair<Integer, Path>> pathQueue;
-    List<PathIterator> spas;
+    final double[] distances;
+    final int[] neighbours;
+    final PriorityQueue<Pair<Integer, Path>> pathQueue;
+    final List<PathIterator> spas;
 
 
 
@@ -60,15 +59,14 @@ public class LoopAdaptor extends PathIterator {
                         int[] neighbours,
                         int cripple) {
         super(targetGraph, tailHead, tailHead, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize, cripple);
-        this.graph = targetGraph;
         this.tailHead = tailHead;
         this.neighbours = neighbours;
         distances = new double[neighbours.length];
         spas = new ArrayList<>(neighbours.length);
         pathQueue = new PriorityQueue<>(neighbours.length, Comparator.comparingDouble(o -> distances[o.getFirst()] + o.getSecond().getWeight()));
         for (int i = 0; i < neighbours.length; i++) {
-            distances[i] = graph.getEdgeWeight(graph.getEdge(tailHead, neighbours[i]));
-            PathIterator pathIterator = PathIteratorFactory.get(graph, data, neighbours[i], tailHead, occupation, placementSize, settings, provider, timeoutTime, 0, -1, -1);
+            distances[i] = targetGraph.getEdgeWeight(targetGraph.getEdge(tailHead, neighbours[i]));
+            PathIterator pathIterator = PathIteratorFactory.get(targetGraph, data, neighbours[i], tailHead, occupation, placementSize, settings, provider, timeoutTime, 0, -1, -1);
             spas.add(pathIterator);
             Path path = pathIterator.next();
             pathIterator.uncommit();

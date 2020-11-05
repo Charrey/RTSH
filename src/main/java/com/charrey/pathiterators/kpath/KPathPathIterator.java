@@ -17,10 +17,11 @@ import org.jgrapht.Graphs;
 import org.jgrapht.alg.shortestpath.YenShortestPathIterator;
 import org.jgrapht.graph.MaskSubgraph;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static com.charrey.algorithms.RefuseLongerPaths.canReachThroughIsolatedPath;
 
 /**
  * This pathiterator iterates from shortest path to longest path (i.e. solves the K-Path problem).
@@ -114,13 +115,14 @@ public class KPathPathIterator extends PathIterator {
     private boolean hasUnnecessarilyLongPaths(@NotNull Path pathFound) {
         for (int i = 0; i < pathFound.length() - 1; i++) {
             int from = pathFound.get(i);
-            Set<Integer> neighbours = Collections.unmodifiableSet(targetGraph.outgoingEdgesOf(from).stream().map(x -> Graphs.getOppositeVertex(targetGraph, x, from)).collect(Collectors.toSet()));
+            Set<Integer> neighbours = targetGraph.outgoingEdgesOf(from).stream().map(x -> Graphs.getOppositeVertex(targetGraph, x, from)).collect(Collectors.toUnmodifiableSet());
             TIntList otherCandidates = pathFound.asList().subList(i + 2, pathFound.length());
-            if (neighbours.stream().anyMatch(otherCandidates::contains)) {
+            if (neighbours.stream().anyMatch(value -> canReachThroughIsolatedPath(targetGraph, value, otherCandidates, -1))) {
                 return true;
             }
         }
         return false;
     }
+
 
 }

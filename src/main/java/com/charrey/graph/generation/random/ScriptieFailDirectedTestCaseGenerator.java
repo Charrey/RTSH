@@ -1,30 +1,14 @@
 package com.charrey.graph.generation.random;
 
-import com.charrey.graph.MyEdge;
 import com.charrey.graph.MyGraph;
-import com.charrey.util.GraphUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jgrapht.generate.GnmRandomGraphGenerator;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * A class that generates random test cases of directed graphs.
  */
 public class ScriptieFailDirectedTestCaseGenerator extends TrulyRandomTestCaseGenerator {
-
-    private final double sourceWireFraction = 12d/30d;
-    private final double sourceNormalPortFraction = 15d/30d;
-    private final double sourceCEPortFraction = 1d/30d;
-    private final double sourceSliceFraction = 2d/30d;
-    private final double sourceArcFraction = 0d/30d;
-
-    private final double targetWireFraction = 2842d/25288d;
-    private final double targetNormalPortFraction = 1107d/25288d;
-    private final double targetCEPortFraction = 9d/25288d;
-    private final double targetSliceFraction = 36d/25288d;
-    private final double targetArcFraction = 21294d/25288d;
 
 
     /**
@@ -47,10 +31,20 @@ public class ScriptieFailDirectedTestCaseGenerator extends TrulyRandomTestCaseGe
     @NotNull
     protected MyGraph randomGraph(int nodes, int edges, boolean source) {
         MyGraph pattern = new MyGraph(true);
+        double sourceWireFraction = 12d / 30d;
+        double targetWireFraction = 2842d / 25288d;
         double wireFraction = source ? sourceWireFraction : targetWireFraction;
+        double targetNormalPortFraction = 1107d / 25288d;
+        double sourceNormalPortFraction = 15d / 30d;
         double normalPortFraction = source ? sourceNormalPortFraction : targetNormalPortFraction;
+        double targetCEPortFraction = 9d / 25288d;
+        double sourceCEPortFraction = 1d / 30d;
         double cePortFraction = source ? sourceCEPortFraction : targetCEPortFraction;
+        double targetSliceFraction = 36d / 25288d;
+        double sourceSliceFraction = 2d / 30d;
         double sliceFraction = source ? sourceSliceFraction : targetSliceFraction;
+        double targetArcFraction = 21294d / 25288d;
+        double sourceArcFraction = 0d / 30d;
         double arcFraction = source ? sourceArcFraction : targetArcFraction;
 
         List<Integer> logicCells = new ArrayList<>();

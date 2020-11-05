@@ -17,8 +17,6 @@ import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.iterator.*;
 import com.charrey.util.Util;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jetbrains.annotations.NotNull;

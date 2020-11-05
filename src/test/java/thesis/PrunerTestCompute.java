@@ -1002,7 +1002,7 @@ public class PrunerTestCompute {
                     synchronized (fileLock) {
                         outputs.forEach(y -> {
                             try {
-                                y.append(toPrint + "\n");
+                                y.append(toPrint).append("\n");
                                 ((Flushable) y).flush();
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -1020,7 +1020,7 @@ public class PrunerTestCompute {
                         TestCase tc = tcp.get(currentX, (int) Math.round(currentX * sourceDegree), (int)Math.round(currentX * sizeFactor), (int) Math.round(currentX * sizeFactor * targetdegree), testcaseSeed, labels);
                         HomeomorphismResult resultWith;
                         HomeomorphismResult resultWithout = null;
-                        double periodWith = -1;
+                        double periodWith;
                         double periodWithout = -1;
                         try {
                             long startTime = System.nanoTime();
@@ -1036,7 +1036,7 @@ public class PrunerTestCompute {
                             synchronized (fileLock) {
                                 outputs.forEach(y -> {
                                     try {
-                                        y.append(error + "\n");
+                                        y.append(error).append("\n");
                                         ((Flushable) y).flush();
                                     } catch (IOException e2) {
                                         e.printStackTrace();
@@ -1073,7 +1073,7 @@ public class PrunerTestCompute {
                 synchronized (fileLock) {
                     outputs.forEach(y -> {
                         try {
-                            y.append(configuration.getString(x, contractionComparedToNot) + "\n");
+                            y.append(configuration.getString(x, contractionComparedToNot)).append("\n");
                             ((Flushable) y).flush();
                         } catch (IOException e) {
                             e.printStackTrace();

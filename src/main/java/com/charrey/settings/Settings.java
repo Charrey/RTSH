@@ -15,7 +15,7 @@ import java.util.Random;
  */
 public class Settings implements Cloneable {
 
-    private Random random = new Random(12345);
+    private final Random random = new Random(12345);
 
     private boolean contraction;
     private boolean dfsCaching;

@@ -1,5 +1,6 @@
 package com.charrey.pathiterators.dfs;
 
+import com.charrey.algorithms.RefuseLongerPaths;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
@@ -11,7 +12,6 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jgrapht.Graphs;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -30,9 +30,6 @@ public class CachedDFSPathIterator extends PathIterator {
     private final int[] chosenOption;
     @NotNull
     private final Path exploration;
-
-    private final Set<Integer> forbidden = new HashSet<>();
-    private final Deque<Set<Integer>> addedToForbidden = new LinkedList<>();
 
     private final GlobalOccupation occupation;
     private final Supplier<Integer> placementSize;
@@ -61,7 +58,6 @@ public class CachedDFSPathIterator extends PathIterator {
         super(graph, tail, head, settings, occupation, occupation.getTransaction(), provider, timeoutTime, placementSize, cripple);
         this.head = head;
         exploration = new Path(graph, tail);
-        //noinspection AssignmentOrReturnOfFieldWithMutableType
         this.outgoingNeighbours = neighbours;
         chosenOption = new int[graph.vertexSet().size()];
         Arrays.fill(chosenOption, 0);
@@ -72,17 +68,20 @@ public class CachedDFSPathIterator extends PathIterator {
     }
 
     private boolean isCandidate(Integer vertex) {
-        if (refuseLongerPaths && vertex != head && graph.containsEdge(exploration.last(), head)) {
+        if (exploration.contains(vertex)) {
             return false;
         }
-        boolean isCandidate = !exploration.contains(vertex) &&
-                !occupation.isOccupiedRouting(vertex) &&
-                !(occupation.isOccupiedVertex(vertex) && vertex != head);
-        if (refuseLongerPaths) {
-            boolean check2 = !forbidden.contains(vertex);
-            isCandidate = isCandidate && check2;
+        if (occupation.isOccupiedRouting(vertex)) {
+            return false;
         }
-        return isCandidate;
+        if (occupation.isOccupiedVertex(vertex) && vertex != head) {
+            return false;
+        }
+        TIntSet explorationWithoutHead = null;
+        if (refuseLongerPaths) {
+            explorationWithoutHead = new TIntHashSet(exploration.asList().subList(0, exploration.length() - 1));
+        }
+        return !refuseLongerPaths || RefuseLongerPaths.canBeReachedThroughIsolatedPath(graph, explorationWithoutHead, vertex, head);
     }
 
     @Override
@@ -118,7 +117,6 @@ public class CachedDFSPathIterator extends PathIterator {
             }
             int neighbour = outgoingNeighbours.get()[exploration.last()][i];
             if (isCandidate(neighbour)) {
-                addForbidden();
                 exploration.append(neighbour);
                 chosenOption[indexOfHeadVertex] = i;
                 if (occupyCandidate(indexOfHeadVertex, neighbour)) {
@@ -158,9 +156,6 @@ public class CachedDFSPathIterator extends PathIterator {
                 transaction.occupyRoutingAndCheck(this.placementSize.get(), newHead, this::getPartialMatching);
                 foundCandidate = true;
             } catch (DomainCheckerException e) {
-                if (!addedToForbidden.isEmpty()) {
-                    forbidden.removeAll(addedToForbidden.pop());
-                }
                 exploration.removeLast();
                 chosenOption[indexOfHeadVertex] = 0;
                 foundCandidate = false;
@@ -171,17 +166,7 @@ public class CachedDFSPathIterator extends PathIterator {
         return foundCandidate;
     }
 
-    private void addForbidden() {
-        Set<Integer> newlyForbidden = new HashSet<>();
-        List<Integer> successorlist = Graphs.successorListOf(graph, exploration.last());
-        for (Integer j : successorlist) {
-            if (!forbidden.contains(j)) {
-                newlyForbidden.add(j);
-            }
-        }
-        addedToForbidden.push(newlyForbidden);
-        forbidden.addAll(newlyForbidden);
-    }
+
 
     /**
      * Removes the head of the current exploration queue, provided that it's not the target vertex.
@@ -189,9 +174,6 @@ public class CachedDFSPathIterator extends PathIterator {
      * @return whether the operation succeeded
      */
     private boolean removeHead() {
-        if (!addedToForbidden.isEmpty()) {
-            forbidden.removeAll(addedToForbidden.pop());
-        }
         int removed = exploration.removeLast();
         if (exploration.isEmpty()) {
             return false;

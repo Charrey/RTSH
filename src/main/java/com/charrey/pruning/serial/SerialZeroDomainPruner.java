@@ -9,7 +9,6 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.ReadOnlyOccupation;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.Pruner;
-import com.charrey.pruning.cached.MReachCachedZeroDomainPruner;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
@@ -19,8 +18,6 @@ import com.charrey.settings.pruning.domainfilter.UnmatchedDegreesFiltering;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntObjectMap;
-import gnu.trove.procedure.TIntProcedure;
-import org.jgrapht.Graphs;
 
 import java.util.*;
 
@@ -60,7 +57,7 @@ public class SerialZeroDomainPruner extends DefaultSerialPruner {
                     int finalI = i;
                     Iterator<Integer> customIterator = targetGraph.vertexSet()
                             .stream()
-                            .filter(x -> new LabelDegreeFiltering().filter(sourceGraph, targetGraph, finalI, x, occupation))
+                            .filter(x -> new LabelDegreeFiltering().filter(sourceGraph, targetGraph, finalI, x))
                             .filter(x -> !occupation.isOccupied(x))
                             .iterator();
                     if (!customIterator.hasNext()) {

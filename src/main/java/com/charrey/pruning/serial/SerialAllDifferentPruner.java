@@ -12,23 +12,16 @@ import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
-import com.charrey.settings.pruning.domainfilter.LabelDegreeFiltering;
-import com.charrey.settings.pruning.domainfilter.MReachabilityFiltering;
-import com.charrey.settings.pruning.domainfilter.NReachabilityFiltering;
-import com.charrey.settings.pruning.domainfilter.UnmatchedDegreesFiltering;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntObjectMap;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-import org.jgrapht.Graphs;
 
 import java.util.*;
 
 public class SerialAllDifferentPruner extends DefaultSerialPruner {
 
     private final VertexMatching vertexMatching;
-    private AllDifferent allDifferent = new AllDifferent();
+    private final AllDifferent allDifferent = new AllDifferent();
 
     public SerialAllDifferentPruner(Settings settings,
                                     MyGraph sourceGraph,
@@ -49,7 +42,7 @@ public class SerialAllDifferentPruner extends DefaultSerialPruner {
 
     }
 
-    private boolean checkedOnce = false;
+    private final boolean checkedOnce = false;
 
     @Override
     public void checkPartial(PartialMatchingProvider partialMatchingProvider, int vertexPlaced) throws DomainCheckerException {

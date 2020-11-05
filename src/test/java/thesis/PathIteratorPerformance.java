@@ -16,7 +16,7 @@ import java.util.*;
 
 public class PathIteratorPerformance extends SystemTest {
 
-    private static List<Configuration> configurations = new LinkedList<>();
+    private static final List<Configuration> configurations = new LinkedList<>();
 
     @BeforeAll
     public static void init() {

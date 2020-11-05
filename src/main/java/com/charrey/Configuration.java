@@ -1,7 +1,6 @@
 package com.charrey;
 
 import com.charrey.settings.Settings;
-import com.charrey.settings.SettingsBuilder;
 
 import java.util.List;
 

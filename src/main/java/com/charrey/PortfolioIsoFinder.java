@@ -22,8 +22,8 @@ public class PortfolioIsoFinder implements HomeomorphismSolver {
         this.settingsB = settingsB;
     }
 
-    ExecutorService threadpool = Executors.newFixedThreadPool(2);
-    CompletionService<HomeomorphismResult> completionService = new ExecutorCompletionService<>(threadpool);
+    final ExecutorService threadpool = Executors.newFixedThreadPool(2);
+    final CompletionService<HomeomorphismResult> completionService = new ExecutorCompletionService<>(threadpool);
 
 
 

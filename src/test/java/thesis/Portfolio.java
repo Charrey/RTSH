@@ -8,9 +8,10 @@ import java.util.Map;
 public class Portfolio {
 
 
-    private volatile List<Map<Integer, Double>> results = new ArrayList<>();
+    private final List<Map<Integer, Double>> results = new ArrayList<>();
 
 
+    private long lastPrint = 0;
     public synchronized void register(int x, int attempt, double timeTaken, boolean correctNano) {
         while (results.size() <= x) {
             results.add(new HashMap<>());
@@ -22,6 +23,10 @@ public class Portfolio {
         double newValue = results.get(x).containsKey(attempt) ?
                 Math.min(timeTaken, results.get(x).get(attempt)) : timeTaken;
         results.get(x).put(attempt, newValue);
+        if (System.currentTimeMillis() - lastPrint > 10*60_000) {
+            System.out.println(this);
+            lastPrint = System.currentTimeMillis();
+        }
     }
 
     @Override

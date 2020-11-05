@@ -3,7 +3,6 @@ package com.charrey.pruning;
 import com.charrey.graph.MyGraph;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.ReadOnlyOccupation;
-import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 
 public abstract class Pruner {

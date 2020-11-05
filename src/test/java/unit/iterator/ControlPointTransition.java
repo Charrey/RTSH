@@ -12,8 +12,6 @@ import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
 import com.charrey.util.Util;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.TIntSet;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;

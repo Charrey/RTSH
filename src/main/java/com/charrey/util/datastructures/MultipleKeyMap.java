@@ -3,7 +3,6 @@ package com.charrey.util.datastructures;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 
 /**
  * The type Multiple key map.

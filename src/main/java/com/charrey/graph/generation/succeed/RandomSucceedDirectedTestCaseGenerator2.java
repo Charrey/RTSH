@@ -5,14 +5,11 @@ import com.charrey.graph.MyGraph;
 import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.TestCaseGenerator;
 import com.charrey.util.GraphUtil;
-import guru.nidi.graphviz.model.Link;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well512a;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * A class that generates random test cases of directed graphs that guarantees a homeomorphism is possible.
@@ -91,7 +88,7 @@ public class RandomSucceedDirectedTestCaseGenerator2 extends TestCaseGenerator {
 
     private double averageDegree(MyGraph graph, Set<Integer> vertices) {
         OptionalDouble toReturn =  vertices.stream().mapToInt(graph::degreeOf).average();
-        if (!toReturn.isPresent()) {
+        if (toReturn.isEmpty()) {
             throw new UnsupportedOperationException();
         } else {
             return toReturn.getAsDouble();

@@ -22,9 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jgrapht.alg.util.Pair;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -63,11 +60,8 @@ public class IsoFinder implements HomeomorphismSolver {
     }
 
     private static Map<MyEdge, Set<Path>> repairPaths(MyGraph oldSourceGraph,
-                                                      MyGraph newSourceGraph,
                                                       MyGraph oldTargetGraph,
-                                                      MyGraph newTargetGraph,
                                                       Set<Path> allPaths,
-                                                      Map<Integer, Integer> sourcegraphNewToOld,
                                                       List<Integer> placementOldOnOld,
                                                       Map<Integer, Integer> targetgraphNewToOld) {
         //problem: all paths is 1, 0, should be 1, 2
@@ -158,7 +152,7 @@ public class IsoFinder implements HomeomorphismSolver {
                     mem = Math.max(mem, Runtime.getRuntime().totalMemory());
                 }
                 if (iterationpassed) {
-                    iterations = logProgress(name, iterations);
+                    iterations = logProgress(iterations);
                 }
                 iterationpassed = false;
                 if (System.currentTimeMillis() > timeoutTime || Thread.interrupted()) {
@@ -215,7 +209,7 @@ public class IsoFinder implements HomeomorphismSolver {
                 return new FailResult(iterations, mem);
             }
         } else {
-            List<Integer> placementOldOnOld = null;
+            List<Integer> placementOldOnOld;
             Set<Path> allPaths = new HashSet<>(edgeMatching.allPaths());
             if (tempSettings.getContraction()) {
                 List<Integer> placementNewOnNew = vertexMatching.get();
@@ -255,11 +249,8 @@ public class IsoFinder implements HomeomorphismSolver {
             assert allDone(newSourceGraph, vertexMatching, edgeMatching);
             assert Verifier.isCorrect(newSourceGraph, vertexMatching, edgeMatching);
             Map<MyEdge, Set<Path>> paths = repairPaths(testcase.getSourceGraph(),
-                    newSourceGraph,
                     testcase.getTargetGraph(),
-                    newTargetGraph,
                     allPaths,
-                    sourceGraphMapping.newToOld,
                     placementOldOnOld,
                     targetGraphMapping.newToOld);
             return new SuccessResult(placementOldOnOld.stream().mapToInt(x -> x).toArray(), paths, iterations, mem);
@@ -305,9 +296,7 @@ public class IsoFinder implements HomeomorphismSolver {
             newSourcePairToContractlist.get(new Pair<>(key.getSource(), key.getTarget())).add(contractResult.getOrigins().get(value));
         });
         Map<Pair<Integer, Integer>, Set<Path>> edgeToPathList = new HashMap<>(); //new to new
-        newSourcePairToContractlist.keySet().forEach(pair -> {
-            edgeToPathList.put(pair, allPaths.stream().filter(x -> x.first() == placementNewOnNew.get(pair.getFirst()) && x.last() == placementNewOnNew.get(pair.getSecond())).collect(Collectors.toSet()));
-        });
+        newSourcePairToContractlist.keySet().forEach(pair -> edgeToPathList.put(pair, allPaths.stream().filter(x -> x.first() == placementNewOnNew.get(pair.getFirst()) && x.last() == placementNewOnNew.get(pair.getSecond())).collect(Collectors.toSet())));
 
         org.chocosolver.solver.Settings settings = new DefaultSettings();
         edgeToPathList.keySet().forEach(oldSourceEdge -> {
@@ -368,11 +357,9 @@ public class IsoFinder implements HomeomorphismSolver {
         }
     }
 
-    private long logProgress(String name, long iterations) {
+    private long logProgress(long iterations) {
         iterations++;
         if (System.currentTimeMillis() - lastPrint > 1000) {
-            long finalIterations = iterations;
-            //LOG.info(() -> name + " is at " + finalIterations + " iterations...");
             lastPrint = System.currentTimeMillis();
         }
         LOG.fine(() -> vertexMatching.toString() + "\n" + edgeMatching.toString());

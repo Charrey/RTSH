@@ -6,7 +6,6 @@ import com.charrey.matching.VertexMatching;
 import com.charrey.pruning.*;
 import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
-import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.TIntSet;

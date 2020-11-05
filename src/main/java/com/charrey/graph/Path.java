@@ -4,7 +4,6 @@ import com.charrey.util.datastructures.TroveIterator;
 import gnu.trove.TCollections;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.linked.TIntLinkedList;
-import gnu.trove.procedure.TIntProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jgrapht.Graph;
@@ -13,7 +12,6 @@ import org.jgrapht.GraphPath;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.IntPredicate;
-import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 /**

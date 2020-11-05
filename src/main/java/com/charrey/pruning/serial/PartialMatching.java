@@ -3,8 +3,6 @@ package com.charrey.pruning.serial;
 import com.charrey.graph.Path;
 import com.charrey.util.Util;
 import gnu.trove.TCollections;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;

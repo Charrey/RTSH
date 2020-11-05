@@ -536,7 +536,7 @@ public class PrunerTestSpace {
                         synchronized (fileLock) {
                             outputs.forEach(y -> {
                                 try {
-                                    y.append(error + "\n");
+                                    y.append(error).append("\n");
                                     ((Flushable) y).flush();
                                 } catch (IOException e2) {
                                     e.printStackTrace();
@@ -566,7 +566,7 @@ public class PrunerTestSpace {
             synchronized (fileLock) {
                 outputs.forEach(y -> {
                     try {
-                        y.append(configuration.getString(x, prunedComparedToNot) + "\n");
+                        y.append(configuration.getString(x, prunedComparedToNot)).append("\n");
                         ((Flushable) y).flush();
                     } catch (IOException e) {
                         e.printStackTrace();

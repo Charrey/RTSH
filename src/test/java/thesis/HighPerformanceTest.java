@@ -57,22 +57,19 @@ public class HighPerformanceTest {
                             .get());
             portFolioTest(configuration,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, factor, (int)seed).init(1).getNext()
-                    , Util.setOf(System.out, out),  "highperformance" + factor + ".txt");
+                    , Util.setOf(System.out, out));
         } catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
     }
 
-    volatile static boolean done = false;
+    private static final long timeout = 30*60*1000;
 
-    private static long timeout = 30*60*1000;
-
-    private static ExecutorService threadPool = Executors.newFixedThreadPool(3);
+    private static final ExecutorService threadPool = Executors.newFixedThreadPool(3);
 
     static void portFolioTest(Configuration configuration,
                               TestCaseProvider tcp,
-                              Set<Appendable> outputs,
-                              String additionalInfo) throws InterruptedException, ExecutionException {
+                              Set<Appendable> outputs) throws InterruptedException, ExecutionException {
 
         Object fileLock = new Object();
 
@@ -149,18 +146,13 @@ public class HighPerformanceTest {
         synchronized (fileLock) {
             outputs.forEach(y -> {
                 try {
-                    y.append(configuration.getString(x, results) + "\n");
+                    y.append(configuration.getString(x, results)).append("\n");
                     ((Flushable) y).flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             });
         }
-    }
-
-    @NotNull
-    public static HomeomorphismResult testWithoutExpectation(@NotNull TestCase testCase, long timeout, @NotNull Settings settings) {
-        return new IsoFinder(settings).getHomeomorphism(testCase, timeout, "SYSTEMTEST", false);
     }
 
 

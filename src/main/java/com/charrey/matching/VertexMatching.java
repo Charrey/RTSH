@@ -8,15 +8,11 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.pruning.serial.PartialMatching;
 import com.charrey.settings.Settings;
-import gnu.trove.TCollections;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -143,7 +139,7 @@ public class VertexMatching implements PartialMatchingProvider {
         synchronized (placement) {
             placement.remove(placement.size() - 1);
         }
-        this.occupation.releaseVertex(placement.size(), toRemove, this::getPartialMatching);
+        this.occupation.releaseVertex(placement.size(), toRemove, this);
         this.onDeletion.accept(toRemove);
     }
 

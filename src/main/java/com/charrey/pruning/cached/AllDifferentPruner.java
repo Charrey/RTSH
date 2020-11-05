@@ -3,7 +3,6 @@ package com.charrey.pruning.cached;
 import com.charrey.algorithms.AllDifferent;
 import com.charrey.algorithms.UtilityData;
 import com.charrey.matching.PartialMatchingProvider;
-import com.charrey.matching.VertexMatching;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pruning.Pruner;
 import com.charrey.settings.Settings;

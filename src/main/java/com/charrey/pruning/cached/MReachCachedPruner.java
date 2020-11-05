@@ -114,11 +114,15 @@ public abstract class MReachCachedPruner extends Pruner {
 
     private void initializeDomains() {
         LabelDegreeFiltering subFiltering = new LabelDegreeFiltering();
-        targetGraph.vertexSet().forEach(x -> reverseDomain.peekFirst().put(x, new TIntLinkedList()));
+        assert reverseDomain.peekFirst() != null;
+        targetGraph.vertexSet().forEach(x -> {
+            reverseDomain.peekFirst().put(x, new TIntLinkedList());
+        });
         sourceGraph.vertexSet().forEach(source -> {
            TIntSet toPut = new TIntHashSet();
+           assert reverseDomain.peekFirst() != null;
             targetGraph.vertexSet().forEach(target -> {
-                if (subFiltering.filter(sourceGraph, targetGraph, source, target, occupation)) {
+                if (subFiltering.filter(sourceGraph, targetGraph, source, target)) {
                     toPut.add(target);
                     reverseDomain.peekFirst().get(target).add(source);
                 }
@@ -170,8 +174,8 @@ public abstract class MReachCachedPruner extends Pruner {
         });
         reserveSingles(newDomainLayer, newReverseDomainLayer, singles);
         if (settings.getFiltering() instanceof MReachabilityFiltering || settings.getFiltering() instanceof NReachabilityFiltering) {
-            Set<Integer> mustBePredecessors = Collections.unmodifiableSet(Graphs.predecessorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < currentVertexMatching.size()).map(currentVertexMatching::get).collect(Collectors.toSet()));
-            Set<Integer> mustBeSuccessors = Collections.unmodifiableSet(Graphs.successorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < currentVertexMatching.size()).map(currentVertexMatching::get).collect(Collectors.toSet()));
+            Set<Integer> mustBePredecessors = Graphs.predecessorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < currentVertexMatching.size()).map(currentVertexMatching::get).collect(Collectors.toUnmodifiableSet());
+            Set<Integer> mustBeSuccessors = Graphs.successorListOf(sourceGraph, verticesPlaced - 1).stream().filter(x -> x < currentVertexMatching.size()).map(currentVertexMatching::get).collect(Collectors.toUnmodifiableSet());
             MReachabilityCheck(currentVertexMatching, targetVertex, mustBePredecessors, false);
             MReachabilityCheck(currentVertexMatching, targetVertex, mustBeSuccessors, true);
             if (settings.getFiltering() instanceof NReachabilityFiltering) {
@@ -196,9 +200,8 @@ public abstract class MReachCachedPruner extends Pruner {
             while (!currentLevel.isEmpty()) {
                 int sourceGraphVertexToCheck = currentLevel.iterator().next();
                 currentLevel.remove(sourceGraphVertexToCheck);
-                final TIntList finalNextLevel = nextLevel;
-                NFilterOnce(vertexPlacement, newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, finalNextLevel, true);
-                NFilterOnce(vertexPlacement, newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, finalNextLevel, false);
+                NFilterOnce(vertexPlacement, newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, nextLevel, true);
+                NFilterOnce(vertexPlacement, newDomainLayer, newReverseDomainLayer, sourceGraphVertexToCheck, nextLevel, false);
             }
             level++;
         }
@@ -256,7 +259,7 @@ public abstract class MReachCachedPruner extends Pruner {
             int to = successors ? neighbour : targetVertex;
             if (!reachabilityCache.containsKey(from, to)) {
                 Optional<Path> path = Util.filteredShortestPath(modifiedTargetGraph, occupation, new TIntHashSet(), from, to, false, -1, Util.emptyTIntSet);
-                if (!path.isPresent()) {
+                if (path.isEmpty()) {
                     domain.pollFirst();
                     reverseDomain.pollFirst();
                     throw new DomainCheckerException(() -> from + " in target graph needs connectivity to " + to + ", but doesn't have it");
