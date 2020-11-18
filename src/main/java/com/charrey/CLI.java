@@ -27,7 +27,7 @@ import java.util.concurrent.Callable;
 
 
 @SuppressWarnings("CanBeFinal")
-@CommandLine.Command(name = "java -jar NDSH2-contract.jar",
+@CommandLine.Command(name = "java -jar NDSH.jar",
         exitCodeListHeading = "Exit Codes:%n",
         exitCodeList = {
                 " 0:Found homeomorphism",
