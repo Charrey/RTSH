@@ -76,7 +76,7 @@ public class CLI implements Callable<Integer> {
     TargetVertexOrder targetVertexOrder = TargetVertexOrder.LARGEST_DEGREE_FIRST;
 
     @CommandLine.Option(names = { "-h", "--help" }, usageHelp = true, description = "display a help message")
-    private final boolean helpRequested = false;
+    private boolean helpRequested = false;
 
 
 
