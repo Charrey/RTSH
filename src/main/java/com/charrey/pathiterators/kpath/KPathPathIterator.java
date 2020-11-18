@@ -10,6 +10,8 @@ import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
 import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +23,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.charrey.algorithms.RefuseLongerPaths.canReachThroughIsolatedPath;
+import static com.charrey.algorithms.RefuseLongerPaths.hasUnnecessarilyLongPaths;
 
 /**
  * This pathiterator iterates from shortest path to longest path (i.e. solves the K-Path problem).
@@ -84,7 +86,7 @@ public class KPathPathIterator extends PathIterator {
                 return null;
             }
             Path pathFound = new Path(targetGraph, yen.next());
-            if (refuseLongerPaths && hasUnnecessarilyLongPaths(pathFound)) {
+            if (refuseLongerPaths && hasUnnecessarilyLongPaths(targetGraph, pathFound)) {
                 continue;
             }
             try {
@@ -112,17 +114,31 @@ public class KPathPathIterator extends PathIterator {
         return String.valueOf(counter);
     }
 
-    private boolean hasUnnecessarilyLongPaths(@NotNull Path pathFound) {
-        for (int i = 0; i < pathFound.length() - 1; i++) {
-            int from = pathFound.get(i);
-            Set<Integer> neighbours = targetGraph.outgoingEdgesOf(from).stream().map(x -> Graphs.getOppositeVertex(targetGraph, x, from)).collect(Collectors.toUnmodifiableSet());
-            TIntList otherCandidates = pathFound.asList().subList(i + 2, pathFound.length());
-            if (neighbours.stream().anyMatch(value -> canReachThroughIsolatedPath(targetGraph, value, otherCandidates, -1))) {
-                return true;
-            }
-        }
-        return false;
-    }
+//    private boolean hasUnnecessarilyLongPaths(@NotNull Path pathFound) {
+//        for (int i = 0; i < pathFound.length() - 2; i++) {
+//            int from = pathFound.get(i);
+//            int head = pathFound.get(i+1);
+//            TIntList to = new TIntArrayList();
+//            pathFound.asList().subList(i + 2, pathFound.length()).forEach(new TIntProcedure() {
+//                boolean inPrePhase = true;
+//
+//                @Override
+//                public boolean execute(int value) {
+//                    if (inPrePhase && targetGraph.degreeOf(value) == 2) {
+//                        return true;
+//                    } else {
+//                        inPrePhase = false;
+//                        to.add(value);
+//                        return true;
+//                    }
+//                }
+//            });
+//            if (canReachThroughIsolatedPath(targetGraph, from, to, head)) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
 
 }

@@ -7,33 +7,56 @@ import com.charrey.graph.generation.TestCase;
 import com.charrey.graph.generation.succeed.ScriptieSucceedDirectedTestCaseGenerator;
 import com.charrey.result.HomeomorphismResult;
 import com.charrey.result.SuccessResult;
-import com.charrey.settings.Settings;
 import com.charrey.settings.SettingsBuilder;
+import com.charrey.util.CombinedFuture;
+import com.charrey.util.CombinedResult;
 import com.charrey.util.Util;
-import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.*;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Predicate;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class HighPerformanceTest {
 
 
-    public static void main(String[] args) throws InterruptedException {
-        List<Thread> threads = new ArrayList<>();
-        threads.add(new Thread(() -> testHighPerformance(1.5)));
-        threads.add(new Thread(() -> testHighPerformance(3d)));
-        threads.add(new Thread(() -> testHighPerformance(5d)));
-        threads.add(new Thread(() -> testHighPerformance(97d)));
-
-        for (Thread thread : threads) {
-            thread.start();
-            thread.join();
-        }
+    @Test
+    @Order(1)
+    public void testSmallest() throws ExecutionException, InterruptedException {
+        testHighPerformanceCompute(1.5);
     }
 
-    public static void testHighPerformance(double factor) {
+    @Test
+    @Order(2)
+    public void testSmaller() throws ExecutionException, InterruptedException {
+        testHighPerformanceCompute(3d);
+    }
+
+    @Test
+    @Order(3)
+    public void testLarger() throws ExecutionException, InterruptedException {
+        testHighPerformanceCompute(5d);
+    }
+
+    @Test
+    @Order(4)
+    public void testLargest() throws ExecutionException, InterruptedException {
+        testHighPerformanceCompute(97d);
+    }
+
+
+    public static void testHighPerformanceCompute(double factor) throws ExecutionException, InterruptedException {
+        testHighPerformanceWithSettings(factor, false, 4);
+    }
+
+    public static void testHighPerformanceMemory(double factor) throws ExecutionException, InterruptedException {
+        testHighPerformanceWithSettings(factor, true, 4);
+    }
+
+    public static void testHighPerformanceWithSettings(double factor, boolean memory, int minX) throws ExecutionException, InterruptedException {
         try(FileWriter fw = new FileWriter("highperformance" + factor + ".txt", true);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
@@ -46,6 +69,7 @@ public class HighPerformanceTest {
                             .withAllDifferentPruning()
                             .withNeighbourReachabilityFiltering()
                             .withContraction()
+                            .allowingLongerPaths()
                             .get(),
                     new SettingsBuilder()
                             .withInplaceDFSRouting()
@@ -54,22 +78,25 @@ public class HighPerformanceTest {
                             .withAllDifferentPruning()
                             .withNeighbourReachabilityFiltering()
                             .withoutContraction()
+                            .allowingLongerPaths()
                             .get());
             portFolioTest(configuration,
-                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, factor, (int)seed).init(1).getNext()
-                    , Util.setOf(System.out, out));
-        } catch (IOException | InterruptedException | ExecutionException e) {
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, factor, (int)seed).init(1).getNext(),
+                    Util.setOf(System.out, out),
+                    memory,
+                    minX);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static final long timeout = 30*60*1000;
+    private static final long timeout = 10*60*1000;
 
-    private static final ExecutorService threadPool = Executors.newFixedThreadPool(3);
+    private static final ExecutorService threadPool = Executors.newCachedThreadPool();
 
     static void portFolioTest(Configuration configuration,
                               TestCaseProvider tcp,
-                              Set<Appendable> outputs) throws InterruptedException, ExecutionException {
+                              Set<Appendable> outputs, boolean memory, int minX) throws ExecutionException, InterruptedException {
 
         Object fileLock = new Object();
 
@@ -77,26 +104,45 @@ public class HighPerformanceTest {
         List<Integer> x = new ArrayList<>();
         List<Double> results = new ArrayList<>();
 
-        int currentX = 4;
+        int currentX = minX;
         int lastCasesDone = 10;
-        while (lastCasesDone > 1) {
+        int lastTotalSuccess = 10;
+        double lastRatio = 0d;
+        while (lastTotalSuccess > 1) {
             Random perXRandom = new Random(threadRandom.nextLong());
-            System.out.print("\n" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " " + configuration + ", x = " + currentX + (results.isEmpty() ? "" : ", cases done = " + lastCasesDone+", last time = " + results.get(results.size() - 1)));
+
+            System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+            System.out.println("x =              " + currentX);
+            if (!results.isEmpty()) {
+                System.out.println("Cases done =     " + lastTotalSuccess);
+                System.out.println("Last time =      " + results.get(results.size() - 1));
+                System.out.println("Pool size =      " + ((ThreadPoolExecutor)threadPool).getPoolSize() + "/" + CombinedFuture.threadPool.getPoolSize());
+                System.out.println("Last ratio =     " + lastRatio);
+            }
+
+            System.out.println();
+
             long timeStartForThisX = System.currentTimeMillis();
-            double totalPortfolio = 0d;
             int cases = 0;
             int totalSuccess = 0;
-            while (System.currentTimeMillis() - timeStartForThisX < timeout && cases < 1000) {
+            double totalSpace = 0;
+
+            double total1win = 0d;
+            double total2win = 0d;
+            long threadStart = System.currentTimeMillis();
+            while (System.currentTimeMillis() - timeStartForThisX < timeout && cases < (memory ? 100 : 1000)) {
                 cases++;
+                System.gc();
                 long testcaseSeed = perXRandom.nextLong();
                 TestCase tc = tcp.get(currentX, 0, 0, 0, testcaseSeed, false);
+
                 Future<Double> future1 = threadPool.submit(() -> {
                     try {
                         long start = System.currentTimeMillis();
-                        HomeomorphismResult result = new IsoFinder(configuration.getFirst()).getHomeomorphism(tc, timeout, "THREAD 1", false);
+                        HomeomorphismResult result = new IsoFinder(configuration.getFirst()).getHomeomorphism(tc, System.currentTimeMillis() - timeStartForThisX, "THREAD 1", false);
                         long end = System.currentTimeMillis();
                         if (result instanceof SuccessResult) {
-                            return (end - start) / 1000d;
+                            return memory ? result.memory : (end - start) / 1000d;
                         } else {
                             return Double.NaN;
                         }
@@ -107,10 +153,10 @@ public class HighPerformanceTest {
                 Future<Double> future2 = threadPool.submit(() -> {
                     try {
                         long start = System.currentTimeMillis();
-                        HomeomorphismResult result = new IsoFinder(configuration.getSecond()).getHomeomorphism(tc, timeout, "THREAD 1", false);
+                        HomeomorphismResult result = new IsoFinder(configuration.getSecond()).getHomeomorphism(tc, System.currentTimeMillis() - timeStartForThisX, "THREAD 1", false);
                         long end = System.currentTimeMillis();
                         if (result instanceof SuccessResult) {
-                            return (end - start) / 1000d;
+                            return memory ? result.memory : (end - start) / 1000d;
                         } else {
                             return Double.NaN;
                         }
@@ -118,28 +164,29 @@ public class HighPerformanceTest {
                         return Double.NaN;
                     }
                 });
-                while (!future1.isDone() && !future2.isDone()) {
-                    Thread.sleep(1);
+
+                Future<CombinedResult> combinedFuture = new CombinedFuture(future1, future2, y -> y != null && !Double.isNaN(y));
+                CombinedResult res = combinedFuture.get();
+                if (res.firstWon) {
+                    total1win++;
+                } else if (res.secondWon) {
+                    total2win++;
                 }
-                future1.cancel(true);
-                future2.cancel(true);
-                double res = Double.MAX_VALUE;
-                if (!future1.isCancelled() && !Double.isNaN(future1.get())) {
-                    res = Math.min(res, future1.get());
-                }
-                if (!future2.isCancelled() && !Double.isNaN(future2.get())) {
-                    res = Math.min(res, future2.get());
-                }
-                if (res < Double.MAX_VALUE) {
+                if ((memory && res.value > 1d) || (!memory && res.value < Double.MAX_VALUE)) {
                     totalSuccess++;
-                    totalPortfolio += res;
-                } else {
-                    System.out.println("failed");
+                    if (memory) {
+                        totalSpace += res.value;
+                    }
                 }
               }
-            results.add(totalPortfolio / (double)totalSuccess);
+            if (!memory) {
+                results.add((cases >= 1000 ? (System.currentTimeMillis() - threadStart) / 1000d : 10 * 60d) / (double) totalSuccess);
+            } else {
+                results.add(totalSpace / (totalSuccess * 1_000_000));
+            }
             x.add(currentX);
-            lastCasesDone = cases;
+            lastTotalSuccess = totalSuccess;
+            lastRatio = total2win / (total1win + total2win);
             currentX++;
         }
 
@@ -154,6 +201,7 @@ public class HighPerformanceTest {
             });
         }
     }
+
 
 
 }

@@ -29,17 +29,24 @@ public class Util {
             Thread theThread = new Thread(() -> {
                 Random threadRandom = new Random(512);
                 List<Integer> x = new ArrayList<>();
+
                 List<Double> contractionComparedToNot = new ArrayList<>();
+                List<Double> percentageOfWins = new ArrayList<>();
+
+                double lastAdded = Double.NaN;
 
                 int currentX = 4;
                 int lastCasesDone = 10;
                 while (lastCasesDone > 1) {
                     Random perXRandom = new Random(threadRandom.nextLong());
-                    System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " " + configuration + ", x = " + currentX + (contractionComparedToNot.isEmpty() ? "" : ", cases done = " + lastCasesDone + "; last result = " + contractionComparedToNot.get(contractionComparedToNot.size()-1) ));
+                    System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " " + configuration + ", x = " + currentX + (contractionComparedToNot.isEmpty() ? "" : ", cases done = " + lastCasesDone + "; last result = " + lastAdded + "; win ratio = " + percentageOfWins.get(percentageOfWins.size()-1) ));
+                    lastAdded = Double.NaN;
                     long timeStartForThisX = System.currentTimeMillis();
                     double totalTimeFirst = 0d;
                     double totalTimeSecond = 0d;
                     int cases = 0;
+                    int wins = 0;
+                    int losses = 0;
                     while (System.currentTimeMillis() - timeStartForThisX < timeout && cases < 1000) {
                         cases++;
                         long testcaseSeed = perXRandom.nextLong();
@@ -59,6 +66,7 @@ public class Util {
                             }
                         } catch (Exception | Error e) {
                             if (continueOnError) {
+                                System.out.println(e.getMessage());
                                 continue;
                             } else {
                                 System.out.println(configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
@@ -74,14 +82,25 @@ public class Util {
                         } else if (resultFirst instanceof SuccessResult && (configuration.getSecond() == null || resultSecond instanceof SuccessResult)) {
                             totalTimeFirst += periodFirst;
                             totalTimeSecond += periodSecond;
+                            if (periodFirst < periodSecond) {
+                                wins++;
+                            } else {
+                                losses++;
+                            }
                             if (calloutEachResult) {
                                 System.out.println("Success");
                             }
+                        } else {
+                            cases--;
                         }
                     }
                     if (totalTimeFirst > 0 && totalTimeSecond > 0) {
                         contractionComparedToNot.add(totalTimeFirst / totalTimeSecond);
+                        lastAdded = totalTimeFirst / totalTimeSecond;
+                        percentageOfWins.add(wins / (double)(wins + losses));
                         x.add(currentX);
+                    } else {
+                        System.out.println();
                     }
                     lastCasesDone = cases;
                     currentX++;

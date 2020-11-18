@@ -24,8 +24,9 @@ import java.util.logging.Logger;
 class RandomSystemTests extends SystemTest {
 
     private final Settings settings = new SettingsBuilder()
-            .withoutPruning()
             .withInplaceDFSRouting()
+            .withGreatestConstrainedFirstSourceVertexOrder()
+            .withoutPruning()
             .withoutContraction()
             .allowingLongerPaths()
             .get();
@@ -97,7 +98,7 @@ class RandomSystemTests extends SystemTest {
                 HomeomorphismResult homeomorphism;
 
 
-                if (attempts >= 0) {//
+                if (attempts >= 30899) {//
                     try {
                         if (expectSucceed) {
                             homeomorphism = testSucceed(testCase, time - (System.currentTimeMillis() - start), settings);

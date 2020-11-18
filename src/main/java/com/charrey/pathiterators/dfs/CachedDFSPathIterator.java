@@ -8,10 +8,12 @@ import com.charrey.occupation.GlobalOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
+import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jgrapht.Graphs;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -77,11 +79,35 @@ public class CachedDFSPathIterator extends PathIterator {
         if (occupation.isOccupiedVertex(vertex) && vertex != head) {
             return false;
         }
-        TIntSet explorationWithoutHead = null;
-        if (refuseLongerPaths) {
-            explorationWithoutHead = new TIntHashSet(exploration.asList().subList(0, exploration.length() - 1));
+        if (!refuseLongerPaths) {
+            return true;
         }
-        return !refuseLongerPaths || RefuseLongerPaths.canBeReachedThroughIsolatedPath(graph, explorationWithoutHead, vertex, head);
+        Set<Integer> from;
+        from = new HashSet<>();
+        Set<Integer> finalFrom = from;
+        exploration.asList().subList(0, exploration.length() - 1).forEachDescending(new TIntProcedure() {
+            boolean inPrePhase = true;
+            @Override
+            public boolean execute(int value) {
+                if (inPrePhase && graph.degreeOf(value) == 2) {
+                    return true;
+                } else {
+                    inPrePhase = false;
+                    finalFrom.add(value);
+                    return true;
+                }
+            }
+        });
+        if (from.stream().anyMatch(x -> graph.getAllEdges(x, vertex).size() > 0)) {
+            return false;
+        } else return Graphs.predecessorListOf(graph, vertex)
+                .stream()
+                .filter(x -> graph.getLabels(x).contains("port") || graph.getLabels(x).contains("arc"))
+                .filter(x -> graph.inDegreeOf(x) == 1)
+                .filter(x -> graph.outDegreeOf(x) == 1)
+                .filter(x -> x != exploration.last())
+                .map(x -> Graphs.predecessorListOf(graph, x).iterator().next())
+                .noneMatch(from::contains);
     }
 
     @Override

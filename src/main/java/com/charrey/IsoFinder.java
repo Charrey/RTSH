@@ -113,9 +113,10 @@ public class IsoFinder implements HomeomorphismSolver {
     public HomeomorphismResult getHomeomorphism(@NotNull TestCase testcase, long timeout, String name, boolean monitorSpace) {
         long timeoutTime = System.currentTimeMillis() + timeout;
         Settings tempSettings = settings.newInstance();
-        double mem = Runtime.getRuntime().totalMemory();
+        double mem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         long lastSpaceMeasure = 0L;
         if (monitorSpace) {
+            System.gc();
             lastSpaceMeasure = System.currentTimeMillis();
         }
 
@@ -140,6 +141,7 @@ public class IsoFinder implements HomeomorphismSolver {
                 setup(newSourceGraph, newTargetGraph, tempSettings, timeoutTime);
             } catch (DomainCheckerException e) {
                 if (monitorSpace) {
+                    System.gc();
                     mem = Math.max(mem, Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
                 }
                 return new CompatibilityFailResult(mem);
@@ -149,7 +151,8 @@ public class IsoFinder implements HomeomorphismSolver {
 
             while (!allDone(newSourceGraph, vertexMatching, edgeMatching)) {
                 if (monitorSpace && System.currentTimeMillis() - lastSpaceMeasure > 100) {
-                    mem = Math.max(mem, Runtime.getRuntime().totalMemory());
+                    System.gc();
+                    mem = Math.max(mem, Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
                 }
                 if (iterationpassed) {
                     iterations = logProgress(iterations);
@@ -184,7 +187,7 @@ public class IsoFinder implements HomeomorphismSolver {
                 }
 
             }
-            return createResult(testcase, timeoutTime, tempSettings, mem, sourceGraphMapping, targetGraphMapping, newSourceGraph, newTargetGraph, contractMapping, iterations);
+            return createResult(testcase, timeoutTime, tempSettings, mem, sourceGraphMapping, targetGraphMapping, newSourceGraph, contractMapping, iterations);
         } finally {
             if (occupation != null) {
                 occupation.close();
@@ -199,7 +202,6 @@ public class IsoFinder implements HomeomorphismSolver {
                                              Mapping sourceGraphMapping,
                                              Mapping targetGraphMapping,
                                              MyGraph newSourceGraph,
-                                             MyGraph newTargetGraph,
                                              ContractResult contractMapping,
                                              long iterations) {
         if (vertexMatching.size() < newSourceGraph.vertexSet().size()) {
@@ -221,14 +223,6 @@ public class IsoFinder implements HomeomorphismSolver {
                         edgeMatching,
                         targetGraphMapping);
                 assert  !placementOldOnOld.contains(-1);
-//  placementOldOnOld = new ArrayList<>();
-//                for (int i = 0; i < placementNewOnOld.size(); i++) {
-//                    while (placementOldOnOld.size() < sourceGraphMapping.newToOld.get(i) + 1) {
-//                        placementOldOnOld.add(-1);
-//                    }
-//                    placementOldOnOld.set(sourceGraphMapping.newToOld.get(i), placementNewOnOld.get(i));
-//                }
-                //should be 0 4 1
                 List<Integer> finalPlacementOldOnOld = placementOldOnOld;
                 Set<Integer> contractedTarget = IntStream.range(0, placementOldOnOld.size())
                         .filter(x -> !contractMapping.getOldToNew().containsKey(x))

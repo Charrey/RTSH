@@ -79,8 +79,7 @@ public class Util {
         Graph<Integer, MyEdge> fakeGraph = new MaskSubgraph<>(targetGraph, x ->
                 x != from &&
                         x != to &&
-                        (x == tail || localOccupation.contains(x) || (globalOccupation.isOccupied(x) && !allowedToBeOccupied.contains(x)) ||
-                                (refuseLongerPaths && violatesLongerPaths(targetGraph, x, from, to, tail, localOccupation))), x -> false);
+                        (x == tail || localOccupation.contains(x) || (globalOccupation.isOccupied(x) && !allowedToBeOccupied.contains(x))), x -> false);
         GraphPath<Integer, MyEdge> algo = new BFSShortestPath<>(fakeGraph).getPath(from, to);
         return algo == null ? Optional.empty() : Optional.of(new Path(targetGraph, algo));
     }

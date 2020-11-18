@@ -18,17 +18,16 @@ public class RefuseLongerPathsPerformance extends SystemTest {
 
     @BeforeAll
     public static void init() {
-        configurations.add(new Configuration("*",        "blue"  , "K-Path"   , new SettingsBuilder().withKPathRouting().get()));
-        configurations.add(new Configuration("x",        "red"   , "DFS"      , new SettingsBuilder().withInplaceDFSRouting().get()));
+        //configurations.add(new Configuration("*",        "blue"  , "K-Path"   , new SettingsBuilder().withKPathRouting().get()));
+        //configurations.add(new Configuration("x",        "red"   , "DFS"      , new SettingsBuilder().withInplaceDFSRouting().get()));
         configurations.add(new Configuration("+",        "green" , "CP"       , new SettingsBuilder().withControlPointRouting().get()));
-        configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
-        configurations.add(new Configuration("asterisk", "magenta", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
-        configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().get()));
+        //configurations.add(new Configuration("o",        "purple", "GDFS O IP", new SettingsBuilder().withInplaceOldGreedyDFSRouting().get()));
+        //configurations.add(new Configuration("asterisk", "magenta", "GDFS A IP", new SettingsBuilder().withInplaceNewGreedyDFSRouting().get()));
+        //configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().get()));
 
         configurations.forEach(configuration -> {
-            configuration.setFirst(new SettingsBuilder(configuration.getFirst()).withoutPruning().withoutContraction().get());
-            configuration.setFirst(new SettingsBuilder(configuration.getFirst()).avoidingLongerPaths().get());
-            configuration.setSecond(new SettingsBuilder(configuration.getFirst()).allowingLongerPaths().get());
+            configuration.setFirst(new SettingsBuilder(configuration.getFirst()).withoutPruning().withoutContraction().avoidingLongerPaths().get());
+            configuration.setSecond(new SettingsBuilder(configuration.getFirst()).withInplaceDFSRouting().allowingLongerPaths().get());
         });
 
     }

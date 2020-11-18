@@ -25,25 +25,60 @@ public class ContractionPerformance extends SystemTest {
         configurations.add(new Configuration("star",     "gray"  , "GDFS C"   , new SettingsBuilder().withCachedGreedyDFSRouting().get()));
 
         configurations.forEach(configuration -> {
-            configuration.setFirst(new SettingsBuilder(configuration.getFirst()).withoutPruning().allowingLongerPaths().get());
-            configuration.setFirst(new SettingsBuilder(configuration.getFirst()).withContraction().get());
-            configuration.setSecond(new SettingsBuilder(configuration.getFirst()).withoutContraction().get());
+            configuration.setFirst(new SettingsBuilder(configuration.getFirst()).withoutPruning().avoidingLongerPaths().get());
+            configuration.setSecond(new SettingsBuilder(configuration.getFirst()).allowingLongerPaths().withContraction().get());
         });
     }
 
     @Test
     public void testLittleBigger() throws InterruptedException {
-        comparitiveTest(configurations, 0d, 0d, 0d, true, (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext(), 30*60*1000L, false, false);
+        comparitiveTest(configurations,
+                0d,
+                0d,
+                0d,
+                true, (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext(),
+                10*60*1000L,
+                false,
+                false);
     }
 
     @Test
     public void testMoreBigger() throws InterruptedException {
-        comparitiveTest(configurations, 0d, 0d, 0d, true, (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 3.0, (int)seed).init(1).getNext(), 30*60*1000L, false, false);
+        comparitiveTest(configurations,
+                0d,
+                0d,
+                0d,
+                true,
+                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 3.0, (int)seed).init(1).getNext(),
+                10*60*1000L,
+                false,
+                false);
     }
 
     @Test
     public void testMuchBigger() throws InterruptedException {
-        comparitiveTest(configurations, 0d, 0d, 0d, true, (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 5.0, (int)seed).init(1).getNext(), 30*60*1000L, true, false);
+        comparitiveTest(configurations,
+                0d,
+                0d,
+                0d,
+                true,
+                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 5.0, (int)seed).init(1).getNext(),
+                10*60*1000L,
+                true,
+                false);
+    }
+
+    @Test
+    public void testWayMuchBigger() throws InterruptedException {
+        comparitiveTest(configurations,
+                0d,
+                0d,
+                0d,
+                true,
+                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 20.0, (int)seed).init(1).getNext(),
+                10*60*1000L,
+                true,
+                false);
     }
 
 

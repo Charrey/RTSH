@@ -74,26 +74,22 @@ public class BaseSpace {
                 Random perXRandom = new Random(threadRandom.nextLong());
                 System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " " + configuration + ", x = " + currentX + (prunedComparedToNot.isEmpty() ? "" : ", cases done = " + lastCasesDone + ", last extra space = " + prunedComparedToNot.get(prunedComparedToNot.size() - 1)));
                 long timeStartForThisX = System.currentTimeMillis();
-                double totalExtraSpace = 0d;
-                double totalTcSpace = 0d;
+                double totalSpaceUsed = 0d;
+                double good = 0;
 
                 int cases = 0;
                 while (System.currentTimeMillis() - timeStartForThisX < timeout && cases < 100) {
                     cases++;
                     long testcaseSeed = perXRandom.nextLong();
                     TestCase tc = tcp.get(currentX, 0, 0, 0, testcaseSeed, false);
-                    long caseMemory = MemoryMeasurer.measureBytes(tc);
-                    if (tc.hashCode() == 1) {
-                        System.out.print("i");
-                    }
-                    totalTcSpace += caseMemory;
                     HomeomorphismResult resultWithPrune;
                     try {
                         resultWithPrune = testWithoutExpectation(tc, timeout, configuration.getFirst());
                         if (resultWithPrune instanceof FailResult) {
                             System.out.println(additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
                         } else if (resultWithPrune instanceof SuccessResult && (configuration.getSecond() == null)) {
-                            totalExtraSpace += resultWithPrune.memory;
+                            totalSpaceUsed += resultWithPrune.memory;
+                            good++;
                         }
                     } catch (Exception | Error e) {
                         String error = (additionalInfo + " " + configuration.toString() + " failed, case="+cases +", test case =" + tc + ", seed="+testcaseSeed);
@@ -110,7 +106,7 @@ public class BaseSpace {
                         e.printStackTrace();
                     }
                 }
-                prunedComparedToNot.add(totalExtraSpace / totalTcSpace);
+                prunedComparedToNot.add(totalSpaceUsed / (good * 1_000_000));
                 x.add(currentX);
                 lastCasesDone = cases;
                 currentX++;

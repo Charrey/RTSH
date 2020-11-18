@@ -1,4 +1,4 @@
-package thesis;
+package com.charrey;
 
 import com.charrey.Configuration;
 import com.charrey.IsoFinder;
@@ -21,30 +21,30 @@ public class PrunerTestSpace {
 
 
     public static void main(String[] args) throws InterruptedException {
-        //testSerialZeroDomainLabelDegree("spaceserialzerodomainlabeldegree.txt");
-        testCachedZeroDomainLabelDegree("spacecachedzerodomainlabeldegree.txt");
-        testParallelZeroDomainLabelDegree("spaceparallelzerodomainlabeldegree.txt");
-        testSerialAlldiffLabelDegree("spaceserialalldifflabeldegree.txt");
-        testCachedAlldiffLabelDegree("spacecachedalldifflabeldegree.txt");
-        testParallelAlldiffLabelDegree("spaceparallelalldifflabeldegree.txt");
-        testSerialZeroDomainUnmatchedDegrees("spaceserialzerodomainUnmatchedDegrees.txt");
-        testCachedZeroDomainUnmatchedDegrees("spacecachedzerodomainUnmatchedDegrees.txt");
-        testParallelZeroDomainUnmatchedDegrees("spaceparallelzerodomainUnmatchedDegrees.txt");
-        testSerialAlldiffUnmatched("spaceserialalldiffUnmatchedDegrees.txt");
-        testCachedAlldiffUnmatched("spacecachedalldiffUnmatchedDegrees.txt");
-        testParallelAlldiffUnmatched("spaceparallelalldiffUnmatchedDegrees.txt");
-        testSerialZeroDomainMReach("spaceserialzerodomainMReach.txt");
-        testCachedZeroDomainMReach("spacecachedzerodomainMReach.txt");
-        testParallelZeroDomainMReach("spaceparallelzerodomainMReach.txt");
-        testSerialAlldiffMReach("spaceserialalldiffMReach.txt");
-        testCachedAlldiffMReach("spacecachedalldiffMReach.txt");
-        testParallelAlldiffMReach("spaceparallelalldiffMReach.txt");
-        testSerialZeroDomainNReach("spaceserialzerodomainNReach.txt");
-        testCachedZeroDomainNReach("spacecachedzerodomainNReach.txt");
-        testParallelZeroDomainNReach("spaceparallelzerodomainNReach.txt");
-        testSerialAlldiffNReach("spaceserialalldiffNReach.txt");
-        testCachedAlldiffNReach("spacecachedalldiffNReach.txt");
-        testParallelAlldiffNReach("spaceparallelalldiffNReach.txt");
+        testParallelAlldiffNReach("2-spaceparallelalldiffNReach.txt");
+        testCachedAlldiffNReach("2-spacecachedalldiffNReach.txt");
+        testSerialAlldiffNReach("2-spaceserialalldiffNReach.txt");
+        testParallelZeroDomainNReach("2-spaceparallelzerodomainNReach.txt");
+        testCachedZeroDomainNReach("2-spacecachedzerodomainNReach.txt");
+        testSerialZeroDomainNReach("2-spaceserialzerodomainNReach.txt");
+        testParallelAlldiffMReach("2-spaceparallelalldiffMReach.txt");
+        testCachedAlldiffMReach("2-spacecachedalldiffMReach.txt");
+        testSerialAlldiffMReach("2-spaceserialalldiffMReach.txt");
+        testParallelZeroDomainMReach("2-spaceparallelzerodomainMReach.txt");
+        testCachedZeroDomainMReach("2-spacecachedzerodomainMReach.txt");
+        testSerialZeroDomainMReach("2-spaceserialzerodomainMReach.txt");
+        testParallelAlldiffUnmatched("2-spaceparallelalldiffUnmatchedDegrees.txt");
+        testCachedAlldiffUnmatched("2-spacecachedalldiffUnmatchedDegrees.txt");
+        testSerialAlldiffUnmatched("2-spaceserialalldiffUnmatchedDegrees.txt");
+        testParallelZeroDomainUnmatchedDegrees("2-spaceparallelzerodomainUnmatchedDegrees.txt");
+        testCachedZeroDomainUnmatchedDegrees("2-spacecachedzerodomainUnmatchedDegrees.txt");
+        testSerialZeroDomainUnmatchedDegrees("2-spaceserialzerodomainUnmatchedDegrees.txt");
+        testParallelAlldiffLabelDegree("2-spaceparallelalldifflabeldegree.txt");
+        testCachedAlldiffLabelDegree("2-spacecachedalldifflabeldegree.txt");
+        testSerialAlldiffLabelDegree("2-spaceserialalldifflabeldegree.txt");
+        testParallelZeroDomainLabelDegree("2-spaceparallelzerodomainlabeldegree.txt");
+        testCachedZeroDomainLabelDegree("2-spacecachedzerodomainlabeldegree.txt");
+        testSerialZeroDomainLabelDegree("2-spaceserialzerodomainlabeldegree.txt");
     }
 
 
@@ -58,7 +58,7 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -76,7 +76,7 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -85,7 +85,7 @@ public class PrunerTestSpace {
     }
     public static void testSerialZeroDomainMReach(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
-       configurations.add(new Configuration("x",        "red"   , "DFS"      ,
+        configurations.add(new Configuration("x",        "red"   , "DFS"      ,
                 new SettingsBuilder().withInplaceDFSRouting().withSerialPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
                 new SettingsBuilder().withInplaceDFSRouting().get()));
         try(FileWriter fw = new FileWriter(fileName, true);
@@ -93,7 +93,7 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -112,7 +112,7 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -131,7 +131,7 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -150,7 +150,7 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -169,7 +169,7 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -188,7 +188,7 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -203,13 +203,13 @@ public class PrunerTestSpace {
 
             List<Configuration> configurations = new LinkedList<>();
 
-        configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
-                new SettingsBuilder().withInplaceDFSRouting().get()));
+            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
+                    new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withZeroDomainPruning().withLabelDegreeFiltering().get(),
+                    new SettingsBuilder().withInplaceDFSRouting().get()));
 
-        comparitiveTest(configurations, 1.5,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , Util.setOf(out, System.out),  fileName);
+            comparitiveTest(configurations,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -221,15 +221,15 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-        List<Configuration> configurations = new LinkedList<>();
+            List<Configuration> configurations = new LinkedList<>();
 
-        configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
-                new SettingsBuilder().withInplaceDFSRouting().get()));
+            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
+                    new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withZeroDomainPruning().withUnmatchedDegreesFiltering().get(),
+                    new SettingsBuilder().withInplaceDFSRouting().get()));
 
-        comparitiveTest(configurations, 1.5,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , Util.setOf(out, System.out),  fileName);
+            comparitiveTest(configurations,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , Util.setOf(out, System.out),  fileName);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -242,19 +242,19 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-        List<Configuration> configurations = new LinkedList<>();
+            List<Configuration> configurations = new LinkedList<>();
 
-        configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
-                new SettingsBuilder().withInplaceDFSRouting().get()));
+            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
+                    new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withZeroDomainPruning().withMatchedReachabilityFiltering().get(),
+                    new SettingsBuilder().withInplaceDFSRouting().get()));
 
-        comparitiveTest(configurations, 1.5,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , Util.setOf(out, System.out),  fileName);
+            comparitiveTest(configurations,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , Util.setOf(out, System.out),  fileName);
 
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     public static void testParallelZeroDomainNReach(String fileName) throws InterruptedException { //cr
         try(FileWriter fw = new FileWriter(fileName, true);
@@ -263,19 +263,19 @@ public class PrunerTestSpace {
         {
 
 
-        List<Configuration> configurations = new LinkedList<>();
+            List<Configuration> configurations = new LinkedList<>();
 
-        configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
-                new SettingsBuilder().withInplaceDFSRouting().get()));
+            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
+                    new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withZeroDomainPruning().withNeighbourReachabilityFiltering().get(),
+                    new SettingsBuilder().withInplaceDFSRouting().get()));
 
-        comparitiveTest(configurations, 1.5,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , Util.setOf(out, System.out),  fileName);
+            comparitiveTest(configurations,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , Util.setOf(out, System.out),  fileName);
 
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     public static void testSerialAlldiffLabelDegree(String fileName) throws InterruptedException { //cr
         List<Configuration> configurations = new LinkedList<>();
@@ -289,9 +289,9 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , Util.setOf(out, System.out),  fileName);
+                    , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -307,7 +307,7 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -325,7 +325,7 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -343,7 +343,7 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -361,7 +361,7 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -379,7 +379,7 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -397,7 +397,7 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -415,7 +415,7 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-            comparitiveTest(configurations, 1.5,
+            comparitiveTest(configurations,
                     (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
                     , Util.setOf(out, System.out),  fileName);
         } catch (IOException e) {
@@ -427,15 +427,15 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-        List<Configuration> configurations = new LinkedList<>();
+            List<Configuration> configurations = new LinkedList<>();
 
-        configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
-                new SettingsBuilder().withInplaceDFSRouting().get()));
+            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
+                    new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withAllDifferentPruning().withLabelDegreeFiltering().get(),
+                    new SettingsBuilder().withInplaceDFSRouting().get()));
 
-        comparitiveTest(configurations, 1.5,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , Util.setOf(System.out, out),  fileName);
+            comparitiveTest(configurations,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , Util.setOf(System.out, out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -446,15 +446,15 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-        List<Configuration> configurations = new LinkedList<>();
+            List<Configuration> configurations = new LinkedList<>();
 
-        configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
-                new SettingsBuilder().withInplaceDFSRouting().get()));
+            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
+                    new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withAllDifferentPruning().withUnmatchedDegreesFiltering().get(),
+                    new SettingsBuilder().withInplaceDFSRouting().get()));
 
-        comparitiveTest(configurations, 1.5,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , Util.setOf(System.out, out),  fileName);
+            comparitiveTest(configurations,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , Util.setOf(System.out, out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -465,15 +465,15 @@ public class PrunerTestSpace {
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw))
         {
-        List<Configuration> configurations = new LinkedList<>();
+            List<Configuration> configurations = new LinkedList<>();
 
-        configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
-                new SettingsBuilder().withInplaceDFSRouting().get()));
+            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
+                    new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withAllDifferentPruning().withMatchedReachabilityFiltering().get(),
+                    new SettingsBuilder().withInplaceDFSRouting().get()));
 
-        comparitiveTest(configurations, 1.5,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , Util.setOf(System.out, out),  fileName);
+            comparitiveTest(configurations,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , Util.setOf(System.out, out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -485,15 +485,15 @@ public class PrunerTestSpace {
             PrintWriter out = new PrintWriter(bw))
         {
 
-        List<Configuration> configurations = new LinkedList<>();
+            List<Configuration> configurations = new LinkedList<>();
 
-        configurations.add(new Configuration("x",        "red"   , "DFS"      ,
-                new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
-                new SettingsBuilder().withInplaceDFSRouting().get()));
+            configurations.add(new Configuration("x",        "red"   , "DFS"      ,
+                    new SettingsBuilder().withInplaceDFSRouting().withParallelPruning().withAllDifferentPruning().withNeighbourReachabilityFiltering().get(),
+                    new SettingsBuilder().withInplaceDFSRouting().get()));
 
-        comparitiveTest(configurations, 1.5,
-                (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
-                , Util.setOf(System.out, out),  fileName);
+            comparitiveTest(configurations,
+                    (vs, es, vt, et, seed, labels) -> new ScriptieSucceedDirectedTestCaseGenerator(vs, 1.5, (int)seed).init(1).getNext()
+                    , Util.setOf(System.out, out),  fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -503,7 +503,6 @@ public class PrunerTestSpace {
     private static final long timeout = 10*60*1000;
 
     static void comparitiveTest(List<Configuration> configurations,
-                                double sizeFactor,
                                 TestCaseProvider tcp,
                                 Set<Appendable> outputs,
                                 String additionalInfo) {
@@ -524,6 +523,7 @@ public class PrunerTestSpace {
                 int cases = 0;
                 while (System.currentTimeMillis() - timeStartForThisX < timeout && cases < 100) {
                     cases++;
+
                     long testcaseSeed = perXRandom.nextLong();
                     TestCase tc = tcp.get(currentX, 0, 0, 0, testcaseSeed, false);
                     HomeomorphismResult resultWithPrune;

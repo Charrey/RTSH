@@ -67,7 +67,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.charrey.CLI</mainClass>
+                            <mainClass>com.charrey.PrunerTestSpace</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

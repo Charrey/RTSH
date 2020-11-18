@@ -6,19 +6,22 @@ import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
 import com.charrey.occupation.GlobalOccupation;
 import com.charrey.occupation.OccupationTransaction;
+import com.charrey.occupation.ReadOnlyOccupation;
 import com.charrey.pathiterators.PathIterator;
 import com.charrey.pruning.DomainCheckerException;
 import com.charrey.settings.Settings;
 import com.charrey.util.Util;
 import gnu.trove.TCollections;
+import gnu.trove.list.TIntList;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jgrapht.Graphs;
+import org.jgrapht.alg.util.Pair;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -118,21 +121,6 @@ class ControlPointIterator extends PathIterator {
         throw new IllegalStateException("Call ManagedControlPointIterator insead");
     }
 
-    private boolean isUnNecessarilyLong(@NotNull Path chosenPath) {
-        Path from = chosenPath.subPath(0, chosenPath.length() - 1);
-        for (int fromVertex : from) {
-            if (RefuseLongerPaths.canReachThroughIsolatedPath(targetGraph, fromVertex, localOccupation, chosenPath.last())) {
-                return true;
-            }
-//            for (int successor : Graphs.successorListOf(targetGraph, fromVertex)) {
-//                if (successor != chosenPath.last() && localOccupation.contains(successor)) {
-//                    return true;
-//                }
-//            }
-        }
-        return false;
-    }
-
     private boolean rightShiftPossible(int leftCandidate) {
         if (leftCandidate != ABSENT && this.rightNeighbourOfRightNeighbour != -1) {
             int middle = this.head();
@@ -230,8 +218,6 @@ class ControlPointIterator extends PathIterator {
         }
     }
 
-
-
     private int findNextControlPoint() {
         do {
             chosenPath = null;
@@ -268,6 +254,9 @@ class ControlPointIterator extends PathIterator {
     @Nullable
     @Override
     public Path getNext() {
+        if (done || Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
+            return cleanUp();
+        }
         while (!done) {
             if (Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= timeoutTime) {
                 return null;
@@ -276,26 +265,17 @@ class ControlPointIterator extends PathIterator {
                 return provideShortestPath();
             } else if (child == null) {
                 releasePreviousControlPoint();
-                if (!transaction.isFruitful(verticesPlaced.get(), this::getPartialMatching, -1)) {
+                if (!transaction.isFruitful(verticesPlaced.get(), this::getPartialMatching, -1) || findNextControlPoint() == EXHAUSTED) {
                     return null;
                 }
-                int result = findNextControlPoint();
-                if (result == EXHAUSTED) {
-                    return null;
-                }
-                Optional<Path> graphPath = filteredShortestPath(chosenControlPoint, head); //to change: make sure this path does not include tail
+                Optional<Path> graphPath = filteredShortestPath(chosenControlPoint, head);
                 if (graphPath.isPresent()) {
                     chosenPath = graphPath.get();
-                    if (settings.getRefuseLongerPaths() && isUnNecessarilyLong(chosenPath)) {
-                        //System.out.println("Path is refused because it is unnecessarily long");
-                        continue;
-                    }
                     try {
                         transaction.occupyRoutingAndCheck(verticesPlaced.get(), chosenPath, this::getPartialMatching);
                     } catch (DomainCheckerException e) {
                         continue;
                     }
-
                     TIntSet previousOccupation = new TIntHashSet(localOccupation);
                     chosenPath.forEach(localOccupation::add);
                     child = new ControlPointIterator(targetGraph, tail(), chosenControlPoint, globalOccupation, transaction, new TIntHashSet(localOccupation), controlPoints - 1, verticesPlaced, settings, partialMatchingProvider, timeoutTime);
@@ -308,6 +288,10 @@ class ControlPointIterator extends PathIterator {
                 }
             }
         }
+        return cleanUp();
+    }
+
+    private Path cleanUp() {
         if (controlPoints == 0 && chosenPath != null) {
             if (chosenPath.length() > 2) {
                 chosenPath.intermediate().forEach(x -> transaction.releaseRouting(verticesPlaced.get(), x, this::getPartialMatching));
@@ -315,6 +299,35 @@ class ControlPointIterator extends PathIterator {
             chosenPath = null;
         }
         return null;
+    }
+
+    private Optional<Path> findIntersectedPath(int from, int to, ReadOnlyOccupation occupation) {
+        Set<Integer> explored = new HashSet<>();
+        Deque<Pair<Integer, Path>> frontier = new LinkedList<>();
+        Graphs.successorListOf(targetGraph, from)
+                .stream()
+                .filter(x -> !occupation.isOccupied(x) && (x == to || (targetGraph.inDegreeOf(x) == 1 && targetGraph.outDegreeOf(x) == 1)))
+                .forEach(x -> frontier.add(new Pair<>(x, new Path(targetGraph, List.of(from, x)))));
+        while (!frontier.isEmpty()) {
+            Pair<Integer, Path> considering = frontier.pollFirst();
+            explored.add(considering.getFirst());
+            if (to == considering.getFirst()) {
+                assert considering.getSecond() != null;
+                return Optional.of(considering.getSecond());
+            } else if (Graphs.successorListOf(targetGraph, considering.getFirst()).contains(to)) {
+                Path res = considering.getSecond().append(to);
+                assert res != null;
+                return Optional.of(res);
+            } else if (Graphs.successorListOf(targetGraph, considering.getFirst()).size() == 1 && Graphs.predecessorListOf(targetGraph, considering.getFirst()).size() == 1) {
+                int successor = Graphs.successorListOf(targetGraph, considering.getFirst()).iterator().next();
+                if (!explored.contains(successor) &&
+                        !occupation.isOccupied(successor) &&
+                        (targetGraph.incomingEdgesOf(successor).size() == 1 && targetGraph.outgoingEdgesOf(successor).size() == 1)) {
+                    frontier.addLast(new Pair<>(successor, considering.getSecond().append(successor)));
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     private void releasePreviousControlPoint() {
@@ -348,7 +361,7 @@ class ControlPointIterator extends PathIterator {
     private Path provideShortestPath() {
         done = true;
         Optional<Path> shortestPath = filteredShortestPath(tail(), head);
-        if (shortestPath.isEmpty() || (settings.getRefuseLongerPaths() && isUnNecessarilyLong(shortestPath.get())) || !tryOccupy(verticesPlaced.get(), shortestPath.get())) {
+        if (shortestPath.isEmpty() || !tryOccupy(verticesPlaced.get(), shortestPath.get())) {
             LOG.finest("...failed");
             return null;
         } else {

@@ -1,5 +1,6 @@
 package com.charrey.pathiterators.controlpoint;
 
+import com.charrey.algorithms.RefuseLongerPaths;
 import com.charrey.graph.MyGraph;
 import com.charrey.graph.Path;
 import com.charrey.matching.PartialMatchingProvider;
@@ -81,7 +82,7 @@ public class ManagedControlPointIterator extends PathIterator {
                     return null;
                 }
                 path = child.next();
-            } while (path != null && numberOfControlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible()));
+            } while (path != null && numberOfControlPoints > 0 && (makesLastControlPointUseless() || rightShiftPossible() || (refuseLongerPaths && RefuseLongerPaths.hasUnnecessarilyLongPaths(graph, path))));
             if (path != null) {
                 try {
                     transaction.commit(verticesPlaced.get(), this::getPartialMatching);
@@ -105,7 +106,6 @@ public class ManagedControlPointIterator extends PathIterator {
         }
     }
 
-
     @Override
     public String debugInfo() {
         return "controlpoints(" + controlPoints() + ")";
@@ -113,6 +113,9 @@ public class ManagedControlPointIterator extends PathIterator {
 
     private boolean rightShiftPossible() {
         int left = tail();
+        if (controlPoints().size() == 0) {
+            return false;
+        }
         List<Path> intermediatePaths = intermediatePaths();
         List<TIntSet> localOccupations = localOccupations();
         Path leftToMiddle = intermediatePaths.get(0);
@@ -137,6 +140,9 @@ public class ManagedControlPointIterator extends PathIterator {
 
     private boolean makesLastControlPointUseless() {
         List<Integer> controlPoints = controlPoints();
+        if (controlPoints.size() == 0) {
+            return false;
+        }
         int left = tail();
         int middle = controlPoints.get(0);
         int right = controlPoints.size() > 1 ? controlPoints.get(1) : head();

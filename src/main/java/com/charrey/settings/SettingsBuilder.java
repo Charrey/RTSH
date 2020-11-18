@@ -29,7 +29,7 @@ public class SettingsBuilder {
     public SettingsBuilder() {
         settings = new Settings(
                 new LabelDegreeFiltering(),
-                true,
+                false,
                 PruningMethod.NONE,
                 new KPathStrategy(),
                 WhenToApply.SERIAL,
@@ -56,7 +56,7 @@ public class SettingsBuilder {
     }
 
     private SettingsBuilder setAllowLongerPaths(boolean allow) {
-        if (lockLongerPaths) {
+        if (lockLongerPaths && allow == settings.getRefuseLongerPaths()) {
             throw new IllegalStateException("Whether to allow longer paths has already been set to " + !settings.getRefuseLongerPaths());
         }
         settings.setRefuseLongerPaths(!allow);
@@ -267,6 +267,7 @@ public class SettingsBuilder {
         if (lockLongerPaths && settings.getRefuseLongerPaths()) {
             throw new IllegalStateException("Refusing longer paths is not compatible with contraction");
         }
+        setAllowLongerPaths(true);
         lockLongerPaths = true;
         return setContraction(true);
     }
